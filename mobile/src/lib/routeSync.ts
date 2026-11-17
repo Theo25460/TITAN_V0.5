@@ -56,6 +56,22 @@ export async function queueRoute(owner: string, r: PendingRoute) {
 }
 export const pendingRoutes = (owner: string) => readJSON<PendingRoute[]>(KEY(owner), []);
 
+/** The athlete removes a route still waiting on this phone (a trace the server refuses for good, or one they do not want to keep).
+    Its pending session link goes with it: it could never be sent without the route. Runs under the same per-account lock as the
+    other local writes, so a flush in flight only finds the route gone. Returns whether something was removed. */
+export async function discardPendingRoute(owner: string, clientRouteId: string): Promise<boolean> {
+  return mutate(owner, async () => {
+    const list = await readJSON<PendingRoute[]>(KEY(owner), []);
+    const kept = list.filter((r) => r.clientRouteId !== clientRouteId);
+    if (kept.length === list.length) return false;
+    await writeJSON(KEY(owner), kept);
+    const links = await readJSON<PendingLink[]>(LINKS(owner), []);
+    const keptLinks = links.filter((l) => l.clientRouteId !== clientRouteId);
+    if (keptLinks.length !== links.length) await writeJSON(LINKS(owner), keptLinks);
+    return true;
+  });
+}
+
 let flushing = new Map<string, Promise<void>>();
 /** Sends oldest first. Failures keep the only local copy; each item is independent, so a refused route never blocks the others.
     Apply each answer to the current outbox, preserving routes queued while the request was in flight. */

@@ -6,8 +6,9 @@ import { chromium } from "playwright";
 const decide = () => { try { if (localStorage.getItem("titan_ga4_consent_v1") === null) localStorage.setItem("titan_ga4_consent_v1", "denied"); } catch (_) { /* storage may be blocked by the test itself */ } };
 
 const launch = chromium.launch.bind(chromium);
-chromium.launch = async (...args) => {
-  const browser = await launch(...args);
+// PW_CHROMIUM names a Chromium binary to use instead of the one this Playwright version downloads (a machine that ships its own browser).
+chromium.launch = async (options = {}, ...rest) => {
+  const browser = await launch({ ...(process.env.PW_CHROMIUM && !options.executablePath ? { executablePath: process.env.PW_CHROMIUM } : {}), ...options }, ...rest);
   const newContext = browser.newContext.bind(browser);
   browser.newContext = async (...a) => { const context = await newContext(...a); await context.addInitScript(decide); return context; };
   const newPage = browser.newPage.bind(browser);

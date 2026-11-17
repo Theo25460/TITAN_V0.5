@@ -1,6 +1,7 @@
-/* TITAN heraldry for the website: the seven rank crests (Éclaireur → Légende) and the chapter beacon, as inline SVG strings, drawn exactly
-   like the Android application's (mobile/src/components/Crest.tsx) so the two products share one identity. Vector: sharp on every screen,
-   no image to load. Purely visual: a crest is earned by the rank the server confirms. */
+/* TITAN heraldry for the website: the seven rank crests (Éclaireur → Légende) and the chapter beacon, exactly like the Android
+   application's (mobile/src/components/Crest.tsx) so the two products share one identity. A rank whose sculpted badge was approved
+   (design/titan-visual-library/global-v2/approved) is shown as that image, from /assets/ranks; the others keep the vector crest drawn
+   here until theirs is approved. Purely visual: a crest is earned by the rank the server confirms. */
 (function () {
   "use strict";
   var RANKS = ["eclaireur", "explorateur", "sentinelle", "gardien", "champion", "titan", "legende"];
@@ -8,7 +9,22 @@
   var CHEVRONS = { eclaireur: 1, explorateur: 2, sentinelle: 2, gardien: 3, champion: 3, titan: 3, legende: 3 };
   var SHIELD = "M60 14 L100 26 V64 C100 94 82 116 60 128 C38 116 20 94 20 64 V26 Z";
   var INNER = "M60 23 L92 33 V64 C92 89 77 107 60 117 C43 107 28 89 28 64 V33 Z";
+  /* Approved sculpted badges, by rank id. Add an id here (and its two files in /assets/ranks) once its badge is approved. */
+  var BADGES = ["eclaireur", "explorateur", "sentinelle", "gardien"];
   var seq = 0;
+
+  function rankName(id) {
+    var ranks = (window.TitanEffort && window.TitanEffort.RANKS) || [];
+    for (var i = 0; i < ranks.length; i++) if (ranks[i].id === id && ranks[i].name) return ranks[i].name;
+    return id;
+  }
+
+  /** The approved badge of a rank as an image, `size` px wide: the square file holds the whole badge, transparent around it. */
+  function badge(id, size) {
+    var base = "/assets/ranks/" + id;
+    return '<img class="crest crest-badge" src="' + base + '-256.webp" srcset="' + base + "-256.webp 256w, " + base + '-512.webp 512w" sizes="' + size + 'px" width="' + size + '" height="' + size +
+      '" alt="Blason ' + rankName(id) + '" decoding="async" draggable="false">';
+  }
 
   function rankIdOf(level) {
     var ranks = window.TitanEffort && window.TitanEffort.RANKS;
@@ -31,10 +47,12 @@
     return out;
   }
 
-  /** The crest of a rank, `size` px wide (wings, crown and rays included). */
+  /** The crest of a rank, `size` px wide (wings, crown and rays included): the approved badge when there is one, the vector crest
+      otherwise or when `opts.vector` asks for it. */
   function svg(rank, size, opts) {
     opts = opts || {};
     var id = RANKS.indexOf(rank) >= 0 ? rank : "eclaireur";
+    if (!opts.vector && BADGES.indexOf(id) >= 0) return badge(id, size);
     var t = RANKS.indexOf(id), accent = ACCENT[id], uid = "tc" + ++seq, h = Math.round((size * 182) / 172), s = "";
     s += '<svg class="crest" width="' + size + '" height="' + h + '" viewBox="-26 -16 172 182" role="img" aria-label="Blason ' + id + '" xmlns="http://www.w3.org/2000/svg"><defs>' +
       '<radialGradient id="g' + uid + '" cx="60" cy="72" r="70" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="' + accent + '" stop-opacity="' + (0.18 + t * 0.05) + '"/><stop offset="1" stop-color="' + accent + '" stop-opacity="0"/></radialGradient>' +
@@ -76,5 +94,5 @@
     return s + "</svg>";
   }
 
-  window.TitanCrest = { RANKS: RANKS, ACCENT: ACCENT, rankIdOf: rankIdOf, svg: svg, beacon: beacon };
+  window.TitanCrest = { RANKS: RANKS, ACCENT: ACCENT, BADGES: BADGES, rankIdOf: rankIdOf, svg: svg, beacon: beacon };
 })();

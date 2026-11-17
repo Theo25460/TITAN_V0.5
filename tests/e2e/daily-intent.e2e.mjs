@@ -21,6 +21,8 @@ after(async () => { await browser?.close(); server?.kill(); });
 
 async function qg({ flag = true, missing = false, signedIn = true, friends = true } = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 900 }, timezoneId: "UTC", serviceWorkers: "block" });
+  // The optional blocks of the QG are folded rows (js/app/qg.js); these journeys read inside them, as a sportsman who keeps them open.
+  await context.addInitScript(() => { try { localStorage.setItem("titan_qg_open_v1", JSON.stringify(["pas", "rv", "cq", "wg", "bd", "ss", "rk"])); } catch {} });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));

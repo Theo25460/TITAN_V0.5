@@ -1,0 +1,124 @@
+#!/usr/bin/env node
+// Builds the production application bundle for pending migrations, straight from supabase/migrations/ (never retyped: retyping a
+// body by hand is what caused drift D1 on production, see docs/v131/lot1-securite.md).
+//
+//   node tools/db/build-production-bundle.mjs [--after 20261110130137] [--out supabase/release-v131]
+//
+// For every migration newer than --after (the last version already in production's registry) it writes one file:
+//   begin;  guard (the previous version is registered, this one is not)  ·  the repository file, byte for byte  ·
+//   insert into the registry with the file's own version and name  ·  commit;
+// A failed guard or statement aborts that transaction only: nothing of that migration is kept and the same file can be replayed.
+// It also writes 00-check-before.sql and 99-check-after.sql (read-only) with the function fingerprints expected before and after,
+// measured on a replica built from this repository (tools/db/test-migrations.sh). Running the files in name order is the procedure.
+import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
+const ROOT = new URL("../..", import.meta.url).pathname;
+const args = process.argv.slice(2);
+const opt = (name, fallback) => {
+  const i = args.indexOf(name);
+  return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
+};
+// One entry per production bundle. `after` is the last version already in production's registry when the bundle starts,
+// `until` its last migration. `before` and `expected` are function fingerprints (FINGERPRINT_SQL) measured on a replica built from
+// this repository: production must show `before` when the bundle starts and `expected` once it has run.
+export const BUNDLES = {
+  // Applied to production on 16 November 2026: frozen. Production started with drift D1 (one body retyped by hand, repaired by
+  // 20261114170000), hence a `before` that differs from a clean replica (private bodies 37dc682f45a7 there).
+  v131: {
+    out: "supabase/release-v131", after: "20261110130137", until: "20261116110000",
+    before: { private: [86, "cc64c1801f5b", "a8ec1799e8ca"], public: [284, "c2b8fedba4b1", "264867cf5abc"] },
+    expected: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "8f112d92ff21"] },
+    beforeLabel: "Before the bundle (production with drift D1, or a clean replica: one of the two)",
+    beforeNote: "On a replica built from the repository the private bodies read 37dc682f45a7 instead (no D1).",
+    afterNote: "Then run tools/db/postflight-v13.sql and tools/db/postflight-v131.sql: every row true.",
+  },
+  // TITAN LIVE and the Android features of 15 and 16 November. NOT applied: additive, rehearsed on a replica.
+  v14: {
+    out: "supabase/release-v14", after: "20261116110000", until: "20261117170000",
+    before: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "8f112d92ff21"] },
+    expected: { private: [103, "78dde17392e0", "4f6481c4b912"], public: [309, "5eb4c4873e06", "95c0de5e6ce0"] },
+    beforeNote: "This is the state production reached on 16 November 2026 (end of the V1.3.1 bundle).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
+};
+const NAME = opt("--bundle", "v131");
+if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
+
+export const FINGERPRINT_SQL = `select n.nspname as schema, count(*) as fonctions,
+  substr(md5(string_agg(p.oid::regprocedure::text || '|' || p.prosecdef || has_function_privilege('anon', p.oid, 'EXECUTE') || has_function_privilege('authenticated', p.oid, 'EXECUTE')
+    || coalesce(array_to_string(p.proconfig, ','), ''), ';' order by p.oid::regprocedure::text collate "C")), 1, 12) as droits,
+  substr(md5(string_agg(p.oid::regprocedure::text || '|' || md5(lower(regexp_replace(regexp_replace(p.prosrc, '--[^\\n\\r]*', '', 'g'), '\\s+', '', 'g'))), ';'
+    order by p.oid::regprocedure::text collate "C") filter (where p.proname not in ('handle_audit_log', 'titan_session_exclusion_v1'))), 1, 12) as corps
+from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname in ('public', 'private') group by 1 order by 1`;
+
+export function pendingMigrations(name = NAME) {
+  const { after, until } = BUNDLES[name];
+  return readdirSync(join(ROOT, "supabase/migrations"))
+    .filter((f) => /^\d{14}_[a-z0-9_]+\.sql$/.test(f) && f.slice(0, 14) > after && f.slice(0, 14) <= until)
+    .sort()
+    .map((file) => ({ file, version: file.slice(0, 14), name: file.slice(15, -4), sql: readFileSync(join(ROOT, "supabase/migrations", file), "utf8") }));
+}
+
+const lit = (s) => `'${String(s).replace(/'/g, "''")}'`;
+
+export function wrap(m, previous) {
+  if (/^\s*(begin|commit|rollback)\s*;/im.test(m.sql)) throw new Error(`${m.file} manages its own transaction: it cannot be bundled`);
+  return [
+    `-- ${m.file}: generated by tools/db/build-production-bundle.mjs from the repository file, do not edit.`,
+    "begin;",
+    "do $titan_guard$ begin",
+    `  if exists (select 1 from supabase_migrations.schema_migrations where version = ${lit(m.version)}) then`,
+    `    raise exception 'migration ${m.version} is already registered: nothing to do';`,
+    "  end if;",
+    `  if not exists (select 1 from supabase_migrations.schema_migrations where version = ${lit(previous)}) then`,
+    `    raise exception 'migration ${previous} must be registered before ${m.version}';`,
+    "  end if;",
+    "end $titan_guard$;",
+    "-- >>> repository file, byte for byte",
+    m.sql.replace(/\s*$/, ""),
+    "-- <<< repository file",
+    `insert into supabase_migrations.schema_migrations (version, name) values (${lit(m.version)}, ${lit(m.name)});`,
+    "commit;",
+    "",
+  ].join("\n");
+}
+
+function check(label, expected) {
+  const rows = Object.entries(expected)
+    .map(([schema, [n, rights, bodies]]) => `(${lit(schema)}, ${n}, ${lit(rights)}, ${lit(bodies)})`)
+    .join(", ");
+  return [
+    `-- Read-only. ${label}: every row must show ok = true.`,
+    `with expected(schema, fonctions, droits, corps) as (values ${rows}), actual as (`,
+    FINGERPRINT_SQL,
+    ")",
+    "select e.schema, a.fonctions, a.droits, a.corps,",
+    "  (a.fonctions = e.fonctions and a.droits = e.droits and a.corps = e.corps) as ok",
+    "from expected e left join actual a on a.schema = e.schema order by 1;",
+    "",
+  ].join("\n");
+}
+
+export function build(name = NAME) {
+  const bundle = BUNDLES[name];
+  const list = pendingMigrations(name);
+  const files = { "00-check-before.sql": check(bundle.beforeLabel ?? "Before the bundle", bundle.before) + `\n-- ${bundle.beforeNote}\n` };
+  list.forEach((m, i) => {
+    files[`${String(i + 1).padStart(2, "0")}-${m.file}`] = wrap(m, i === 0 ? bundle.after : list[i - 1].version);
+  });
+  files["99-check-after.sql"] = check("After the bundle", bundle.expected) + `\n-- ${bundle.afterNote}\n`;
+  return { list, files, out: bundle.out };
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const { list, files, out } = build();
+  const OUT = join(ROOT, out);
+  mkdirSync(OUT, { recursive: true });
+  // Only the generated SQL is replaced: the README beside it is written by hand.
+  for (const f of readdirSync(OUT)) if (f.endsWith(".sql")) rmSync(join(OUT, f));
+  for (const [name, text] of Object.entries(files)) writeFileSync(join(OUT, name), text);
+  console.log(`${list.length} migrations after ${BUNDLES[NAME].after} → ${OUT}`);
+  for (const name of Object.keys(files)) console.log("  " + name);
+}

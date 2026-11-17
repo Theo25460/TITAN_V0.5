@@ -79,7 +79,7 @@ test('RPG departure: explains when a session starts counting and separates badge
    assert.equal(await guide.evaluate(el=>el.open),true,'the departure guide remains readable after a refresh');
    assert.match(await guide.textContent(),/avant ta prochaine séance/);
    assert.match(await guide.textContent(),/journal/);
-   assert.match(await guide.textContent(),/ni XP ni coins/);
+   assert.match(await guide.textContent(),/sans XP ni crédits supplémentaires/);
    assert.equal(await page.locator('[data-start]').isEnabled(),true);
    assert.deepEqual(errors,[]);
   }finally{await context.close();}

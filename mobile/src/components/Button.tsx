@@ -1,11 +1,13 @@
-import { useRef } from "react";
-import { ActivityIndicator, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { useRef, useState } from "react";
+import { ActivityIndicator, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from "react-native";
+import { useSpace } from "../theme/space";
 import { colors, fonts, radius, TOUCH } from "../theme/tokens";
 import { Icon, type IconName } from "./Icon";
 import { Tap } from "./Pressable";
 import { T } from "./Text";
 
-type Kind = "primary" | "secondary" | "ghost" | "danger" | "amber";
+/** « ink »: the button that sits on a slab of the space colour (dark ground, coloured label). */
+type Kind = "primary" | "secondary" | "ghost" | "danger" | "amber" | "ink";
 
 export function Button({ label, onPress, kind = "primary", icon, loading = false, disabled = false, small = false, style, accessibilityHint, testID }: {
   label: string;
@@ -19,17 +21,28 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
   accessibilityHint?: string;
   testID?: string;
 }) {
+  // The primary button takes the colour of the space it is in: the same shape everywhere, and a colour that says where you are.
+  const theme = useSpace();
   const palette = {
-    primary: { bg: colors.cy, fg: colors.cyInk, border: colors.cy },
-    secondary: { bg: colors.bg3, fg: colors.tx, border: colors.line2 },
-    ghost: { bg: "transparent", fg: colors.cy, border: "transparent" },
+    primary: { bg: theme.accent, fg: theme.ink, border: theme.accent },
+    secondary: { bg: colors.bg3, fg: colors.tx, border: colors.bg3 },
+    ghost: { bg: "transparent", fg: theme.accent, border: "transparent" },
     danger: { bg: colors.errSoft, fg: colors.err, border: "rgba(242,102,95,0.4)" },
-    amber: { bg: colors.am, fg: "#1D1302", border: colors.am },
+    amber: { bg: colors.am, fg: colors.amInk, border: colors.am },
+    ink: { bg: theme.ink, fg: theme.accent, border: theme.ink },
   }[kind];
   const busy = loading || disabled;
   // While an asynchronous action started by this button is still running, a second press is a double tap, not a second intention
   // (V12-41). Quick successive presses of a synchronous action (a "Suivant" button) are never swallowed.
   const inFlight = useRef(false);
+  // Two lines keep a row of buttons tidy at the default size. With a large system text size (A22: the longest labels were cut at
+  // 200 %), the label wraps freely and the button grows: a truncated action is worse than a taller one.
+  const { fontScale } = useWindowDimensions();
+  const lines = fontScale > 1.3 ? undefined : 2;
+  // At the default size a label that would need a second line is first set a little smaller (16 → 14): most then fit on one line,
+  // and the few that still wrap no longer fill the button. Measured, not guessed: the label's own height says whether it wrapped.
+  const [tightFor, setTightFor] = useState<string | null>(null);
+  const tight = lines !== undefined && tightFor === label;
   const press = onPress
     ? () => {
         if (inFlight.current) return;
@@ -55,7 +68,9 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
     >
       <View style={styles.row}>
         {loading ? <ActivityIndicator color={palette.fg} size="small" /> : icon ? <Icon name={icon} size={small ? 18 : 20} color={palette.fg} strokeWidth={2} /> : null}
-        <T variant="title" numberOfLines={2} style={[styles.label, small && { fontSize: 14 }]} color={palette.fg}>
+        <T variant="title" numberOfLines={lines} color={palette.fg}
+          onLayout={lines === undefined || tight ? undefined : (e) => { if (e.nativeEvent.layout.height > LABEL_LINE * fontScale * 1.5) setTightFor(label); }}
+          style={[styles.label, small && { fontSize: 14 }, tight && (small ? styles.tightSmall : styles.tight)]}>
           {label}
         </T>
       </View>
@@ -63,9 +78,15 @@ export function Button({ label, onPress, kind = "primary", icon, loading = false
   );
 }
 
+/** Line height of the label (the « title » variant). */
+const LABEL_LINE = 22;
+
 const styles = StyleSheet.create({
-  base: { minHeight: TOUCH + 4, borderRadius: radius.r2, borderWidth: 1, paddingHorizontal: 18, justifyContent: "center", overflow: "hidden" },
+  // The vertical padding only shows when a label takes two lines: the text never touches the edge of the button.
+  base: { minHeight: TOUCH + 4, borderRadius: radius.r2, borderWidth: 1, paddingHorizontal: 18, paddingVertical: 6, justifyContent: "center", overflow: "hidden" },
   small: { minHeight: TOUCH, paddingHorizontal: 14 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-  label: { fontFamily: fonts.textHeavy, flexShrink: 1, textAlign: "center" },
+  label: { fontFamily: fonts.textBold, flexShrink: 1, textAlign: "center" },
+  tight: { fontSize: 14, lineHeight: 19 },
+  tightSmall: { fontSize: 12.5, lineHeight: 17 },
 });

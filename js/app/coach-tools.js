@@ -48,7 +48,7 @@
         ${coach ? `<section class="asc-section" data-ct-templates><div class="asc-section-head"><h2>Mes modèles</h2></div>
           <ul class="co-templates">${state.templates.map((t) => `<li><strong>${esc(t.title)}</strong> <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-ct-use="${esc(t.id)}">Utiliser</button> <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ct-del="${esc(t.id)}">Supprimer</button></li>`).join("") || '<li class="asc-small asc-muted">Aucun modèle.</li>'}</ul>
           <form data-ct-tpl class="asc-form-grid"><label class="asc-field"><span>Nom du modèle</span><input class="asc-input" name="title" maxlength="100" required></label>
-          <label class="asc-field"><span>Sport</span><input class="asc-input" name="sport" value="running" required></label>
+          <label class="asc-field"><span>Sport</span><select name="sport" required>${(window.TitanSports?.all?.() || []).map((sp) => ({ id: sp.id, label: window.TitanSports.label(sp.id) })).sort((a, b) => a.label.localeCompare(b.label, "fr")).map((sp) => `<option value="${esc(sp.id)}"${sp.id === "running" ? " selected" : ""}>${esc(sp.label)}</option>`).join("") || '<option value="running">Course à pied</option>'}</select></label>
           <label class="asc-field"><span>Consignes</span><textarea name="instructions" maxlength="2000"></textarea></label>
           <button type="submit" class="asc-btn asc-btn-secondary">Enregistrer le modèle</button></form></section>` : ""}
         <p class="asc-small" role="status" data-ct-status></p>`;

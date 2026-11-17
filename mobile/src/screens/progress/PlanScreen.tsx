@@ -15,7 +15,7 @@ import { Format, Sports } from "../../core";
 import { usePrefs, useSavePrefs } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
-import { colors, radius, space } from "../../theme/tokens";
+import { colors, radius, space, spaces } from "../../theme/tokens";
 
 const DAYS: [string, string][] = [
   ["monday", "Lundi"],
@@ -65,7 +65,7 @@ export function PlanScreen() {
           <View style={styles.targets} accessibilityRole="radiogroup">
             {[1, 2, 3, 4, 5, 6, 7].map((n) => (
               <Tap key={n} disabled={!online || save.isPending} onPress={() => persist({ weeklyGoalSessions: n }, `Cadence : ${n} jour${n > 1 ? "s" : ""} par semaine`)} accessibilityRole="radio" accessibilityState={{ checked: prefs.weeklyGoalSessions === n }} accessibilityLabel={`${n} jours`} style={[styles.target, prefs.weeklyGoalSessions === n && styles.targetOn]}>
-                <T variant="h3" color={prefs.weeklyGoalSessions === n ? colors.cyInk : colors.tx}>
+                <T variant="h3" color={prefs.weeklyGoalSessions === n ? spaces.progres.ink : colors.tx}>
                   {n}
                 </T>
               </Tap>
@@ -108,6 +108,7 @@ export function PlanScreen() {
 const styles = StyleSheet.create({
   targets: { flexDirection: "row", gap: 6 },
   target: { flex: 1, height: 52, borderRadius: radius.r2, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line2, alignItems: "center", justifyContent: "center" },
-  targetOn: { backgroundColor: colors.cy, borderColor: colors.cy },
+  // The chosen cadence is a selection: the colour of the space (Progrès), not the cyan of progression.
+  targetOn: { backgroundColor: spaces.progres.accent, borderColor: spaces.progres.accent },
   day: { flexDirection: "row", alignItems: "center", gap: space.s3, paddingVertical: space.s3 },
 });

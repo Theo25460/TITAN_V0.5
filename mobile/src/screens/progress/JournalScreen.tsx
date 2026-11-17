@@ -12,6 +12,7 @@ import { recordHolders } from "../../core/moment";
 import type { TrainingLog } from "../../core/types";
 import { useLogs } from "../../data/hooks";
 import type { RootParams } from "../../navigation/types";
+import { SpaceProvider, spaceOfRoute } from "../../theme/space";
 import { colors, space } from "../../theme/tokens";
 
 /** Full journal, virtualised (thousands of sessions stay fluid), grouped by month, filterable by sport. */
@@ -37,10 +38,13 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
     return [...groups.entries()].map(([title, data]) => ({ title, data, minutes: data.reduce((n, l) => n + (Number(l.details?.duration || l.details?.val2) || (l.unit === "min" ? Number(l.val) : 0)), 0) }));
   }, [source, sport]);
 
-  if (q.isLoading && !q.data) return <View style={{ flex: 1, backgroundColor: colors.bg, padding: space.s4 }}><LoadingCards /></View>;
-  if (q.error && !q.data) return <View style={{ flex: 1, backgroundColor: colors.bg, padding: space.s4 }}><ErrorState error={q.error} onRetry={() => q.refetch()} /></View>;
+  // This screen is a virtualised list, not a <Screen>: it names its space itself (Progrès), so chips, buttons and links are azure.
+  const theme = spaceOfRoute(route.name);
+  if (q.isLoading && !q.data) return <SpaceProvider space={theme}><View style={{ flex: 1, backgroundColor: colors.bg, padding: space.s4 }}><LoadingCards /></View></SpaceProvider>;
+  if (q.error && !q.data) return <SpaceProvider space={theme}><View style={{ flex: 1, backgroundColor: colors.bg, padding: space.s4 }}><ErrorState error={q.error} onRetry={() => q.refetch()} /></View></SpaceProvider>;
 
   return (
+    <SpaceProvider space={theme}>
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <OfflineBanner />
       <SectionList
@@ -50,7 +54,7 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
         initialNumToRender={14}
         windowSize={9}
         contentContainerStyle={{ padding: space.s4, paddingBottom: space.s9, gap: space.s2 }}
-        refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => q.refetch()} colors={[colors.cy]} progressBackgroundColor={colors.bg3} />}
+        refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => q.refetch()} colors={[theme.accent]} progressBackgroundColor={colors.bg3} />}
         ListHeaderComponent={
           <View style={{ gap: space.s3, marginBottom: space.s2 }}>
             {/* The chips slide to the screen edge (a bleed of the page margin), not into a cut at the margin. */}
@@ -91,5 +95,6 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
         }
       />
     </View>
+    </SpaceProvider>
   );
 }

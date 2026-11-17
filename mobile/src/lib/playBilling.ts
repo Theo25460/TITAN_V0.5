@@ -7,18 +7,23 @@ import { IS_E2E, SITE_URL } from "./config";
 
 export const BILLING_BUILD = process.env.EXPO_PUBLIC_TITAN_BILLING === "1";
 
+/** A perk or tagline that talks about ads is only shown by a build that can show ads: a build without ads never sells "no ads" (AUD-03). */
+export const mentionsAds = (text: string) => /publicit/i.test(text);
+export const visiblePerks = (perks: readonly string[], adsBuild: boolean) => perks.filter((p) => adsBuild || !mentionsAds(p));
+
 /** The three subscriptions, by Google Play product id. Coach and Coach Ultra were created in Play Console as `titan02` and `titan03`
     (Play tags `titan-coach` / `coach-ultra` are labels, not product ids). The TITAN+ id is the one to confirm in Play Console: it can be
     set per build with EXPO_PUBLIC_TITAN_PLUS_SKU, and a product Google does not return is simply not offered (nothing is guessed).
     `plan` is the server's own key for the offer (private.titan_plan_products): it never changes, whatever the store calls the product.
-    The perks are what the offer gives; the PRICE is never written here: it comes from Google Play. */
+    The perks are what the offer gives, in the same words as titan-app.fr/titan-plus (docs/v131/vocabulaire.md); the analyses and the
+    coach workspace open on the website, and the card says so before the purchase. The PRICE is never written here: it comes from Google Play. */
 export const PLUS_SKU = process.env.EXPO_PUBLIC_TITAN_PLUS_SKU || "titan01";
 export const PLANS = [
-  { id: PLUS_SKU, plan: "titan_plus", kind: "plus", name: "TITAN+", tagline: "Pour toi, sans publicité", perks: ["Analyses plus poussées", "Davantage de confort de personnalisation", "Aucune publicité"] },
-  { id: "titan02", plan: "coach", kind: "coach", name: "Coach", tagline: "Pour accompagner 5 sportifs", perks: ["5 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi, sans publicité", "Toute la suite Coach : calendrier, séances, messages, check-ins"] },
-  { id: "titan03", plan: "coach_pro", kind: "coach", name: "Coach Ultra", tagline: "Pour accompagner 15 sportifs", perks: ["15 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi, sans publicité", "Exactement la même suite Coach : tu paies la capacité, pas des fonctions"] },
+  { id: PLUS_SKU, plan: "titan_plus", kind: "plus", name: "TITAN+", tagline: "Pour toi, sans publicité", perks: ["Comparaisons sur 4, 12 ou 26 semaines et bilans détaillés, à consulter sur titan-app.fr", "20 routines nommées au lieu de 5, sur titan-app.fr", "Aucune publicité"] },
+  { id: "titan02", plan: "coach", kind: "coach", name: "Coach", tagline: "Pour accompagner 5 sportifs", perks: ["5 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi", "Aucune publicité", "Espace coach sur titan-app.fr : calendrier, séances, messages, check-ins"] },
+  { id: "titan03", plan: "coach_pro", kind: "coach", name: "Coach Ultra", tagline: "Pour accompagner 15 sportifs", perks: ["15 sportifs suivis bénéficient de TITAN+", "TITAN+ pour toi", "Aucune publicité", "Exactement la même suite Coach : tu paies la capacité, pas des fonctions"] },
 ] as const;
-export const FREE_PLAN = { name: "Gratuit", tagline: "L’essentiel pour progresser", perks: ["Journal, statistiques de base et records", "Progression, aventure et quêtes", "Enregistrement manuel et GPS", "Publicités rares et discrètes, jamais pendant l’effort"] } as const;
+export const FREE_PLAN = { name: "Gratuit", tagline: "L’essentiel pour progresser", perks: ["Journal, statistiques de base et records", "Progression, aventure et quêtes", "Enregistrement manuel et GPS", "Publicités, jamais pendant une séance"] } as const;
 export type PlanId = string;
 
 /* The subset of expo-iap used here; the real module is loaded lazily, tests inject a fake. */
@@ -28,9 +33,12 @@ export type IapPurchase = {
   purchaseState?: string;
   obfuscatedAccountIdAndroid?: string | null;
   isSuspendedAndroid?: boolean | null;
+  isAcknowledgedAndroid?: boolean | null;
   pendingPurchaseUpdateAndroid?: unknown;
 };
-export type IapProduct = { id: string; title?: string; displayName?: string | null; displayPrice: string; subscriptionOffers?: { id?: string; offerTokenAndroid?: string | null; basePlanIdAndroid?: string | null; displayPrice: string }[] | null };
+export type IapPricingPhase = { billingPeriod?: string; formattedPrice?: string; priceAmountMicros?: string; recurrenceMode?: number };
+export type IapOffer = { id?: string | null; offerTokenAndroid?: string | null; basePlanIdAndroid?: string | null; displayPrice: string; pricingPhasesAndroid?: { pricingPhaseList?: IapPricingPhase[] | null } | null };
+export type IapProduct = { id: string; title?: string; displayName?: string | null; displayPrice: string; subscriptionOffers?: IapOffer[] | null };
 type GoogleSubscriptionRequest = {
   skus: string[];
   obfuscatedAccountId: string;
@@ -61,22 +69,44 @@ export const _setIapForTests = (l: IapLib | null) => {
 
 export type Offer = { id: PlanId; name: string; tagline: string; perks: readonly string[]; price: string; offerToken: string };
 
-/** The offers Google Play actually returns for this account, with Google's own formatted price. A product Play does not know is simply absent. */
+const PERIODS: Record<string, string> = { P1W: "semaine", P4W: "4 semaines", P1M: "mois", P2M: "2 mois", P3M: "3 mois", P6M: "6 mois", P1Y: "an" };
+const phasesOf = (o: IapOffer) => (o.pricingPhasesAndroid?.pricingPhaseList ?? []).filter((x) => !!x?.formattedPrice);
+/** The phase that renews for as long as the subscription lives: Google lists it last. */
+const recurringPhase = (o: IapOffer) => {
+  const list = phasesOf(o);
+  return list.find((x) => x.recurrenceMode === 1) ?? list[list.length - 1] ?? null;
+};
+
+/** What the card shows: Google's own formatted amounts, with the billed period and any introductory phase spelled out,
+    so a free trial is never displayed as the price of the subscription. Without phase details, Google's display price is kept as is. */
+export function offerPriceLabel(offer: IapOffer, fallback = ""): string {
+  const regular = recurringPhase(offer);
+  if (!regular?.formattedPrice) return offer.displayPrice || fallback;
+  const period = PERIODS[regular.billingPeriod ?? ""];
+  const recurring = period ? `${regular.formattedPrice} / ${period}` : regular.formattedPrice;
+  const [first] = phasesOf(offer);
+  if (!first || first === regular) return recurring;
+  return /^0+$/.test(first.priceAmountMicros ?? "") ? `Essai gratuit, puis ${recurring}` : `${first.formattedPrice} au départ, puis ${recurring}`;
+}
+
+/** The offers Google Play actually returns for this account, with Google's own formatted price. A product Play does not know is simply absent.
+    The server only opens checkout for a product with an active monthly base plan, so a monthly offer is preferred when Play lists several. */
 export async function loadOffers(l: IapLib = iap()): Promise<Offer[]> {
   if (!(await l.initConnection())) throw new BillingError("STORE_UNAVAILABLE");
   const products = (await l.fetchProducts({ skus: PLANS.map((p) => p.id), type: "subs" })) ?? [];
   const out: Offer[] = [];
   for (const plan of PLANS) {
     const p = products.find((x) => x.id === plan.id);
-    const offer = p?.subscriptionOffers?.find((o) => o.offerTokenAndroid);
-    if (p && offer?.offerTokenAndroid) out.push({ id: plan.id, name: plan.name, tagline: plan.tagline, perks: plan.perks, price: offer.displayPrice || p.displayPrice, offerToken: offer.offerTokenAndroid });
+    const sellable = p?.subscriptionOffers?.filter((o) => o.offerTokenAndroid) ?? [];
+    const offer = sellable.find((o) => recurringPhase(o)?.billingPeriod === "P1M") ?? sellable[0];
+    if (p && offer?.offerTokenAndroid) out.push({ id: plan.id, name: plan.name, tagline: plan.tagline, perks: plan.perks, price: offerPriceLabel(offer, p.displayPrice), offerToken: offer.offerTokenAndroid });
   }
   return out;
 }
 
 export type Verdict = { active: boolean; status: string; ends_at: string | null; acknowledged: boolean; access_kind?: "test" | "verified_purchase" };
 export class BillingError extends Error {
-  constructor(public code: "CHECKOUT_UNAVAILABLE" | "VERIFICATION_UNAVAILABLE" | "STORE_UNAVAILABLE" | "PLAN_UNCERTAIN" | "AUTH" | "ALREADY_USED" | "NOT_BOUND" | "NOT_FOUND" | "NETWORK" | "REFUSED") {
+  constructor(public code: "CHECKOUT_UNAVAILABLE" | "VERIFICATION_UNAVAILABLE" | "STORE_UNAVAILABLE" | "PLAN_UNCERTAIN" | "AUTH" | "ALREADY_USED" | "NOT_BOUND" | "NOT_FOUND" | "NETWORK" | "REFUSED" | "TEST_PURCHASE") {
     super(code);
   }
 }
@@ -116,12 +146,24 @@ function billingEndpoint(): string | null {
   return null;
 }
 
+/** A server that never answers must not leave the payment screen spinning: the request is abandoned after `ms`. */
+export const BILLING_TIMEOUT_MS = 20_000;
+async function timed(fetcher: typeof fetch, url: string, init: RequestInit, ms = BILLING_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetcher(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function checkCheckoutOnServer(productId: string, accessToken: string): Promise<void> {
   const endpoint = billingEndpoint();
   if (!endpoint) throw new BillingError("CHECKOUT_UNAVAILABLE");
   let res: Response;
   try {
-    res = await fetch(`${endpoint}?product_id=${encodeURIComponent(productId)}`, {
+    res = await timed(fetch, `${endpoint}?product_id=${encodeURIComponent(productId)}`, {
       method: "GET", headers: { Authorization: `Bearer ${accessToken}` },
     });
   } catch {
@@ -137,7 +179,7 @@ export async function verifyOnServer(token: string, productId: string, accessTok
   if (!endpoint) throw new BillingError("VERIFICATION_UNAVAILABLE");
   let res: Response;
   try {
-    res = await fetcher(endpoint, {
+    res = await timed(fetcher, endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
       body: JSON.stringify({ purchase_token: token, product_id: productId }),
@@ -158,6 +200,8 @@ export async function verifyOnServer(token: string, productId: string, accessTok
   const error = ((await res.json().catch(() => null)) as { error?: string } | null)?.error;
   if (res.status === 409) throw new BillingError(error === "purchase_not_bound" || error === "purchase_bound_to_other_account" ? "NOT_BOUND" : "ALREADY_USED");
   if (res.status === 422 && error === "purchase_not_found") throw new BillingError("NOT_FOUND");
+  // Google marks purchases made by a licence tester. The public service refuses them on purpose; "Restore" can never attach one.
+  if (res.status === 422 && error === "test_purchase_refused") throw new BillingError("TEST_PURCHASE");
   throw new BillingError("REFUSED");
 }
 
@@ -178,8 +222,21 @@ type CheckoutOptions = {
   check?: typeof checkCheckoutOnServer;
 };
 
+let checkouts = 0;
+/** True while a payment sheet or a manual restoration is running: the background recovery stays out of its way. */
+export const checkoutInFlight = () => checkouts > 0;
+
 /** Verifies the current purchase before replacing it and completes the new purchase after server confirmation. */
 export async function buy(offer: Offer, owner: string, getAccessToken: () => Promise<string | null>, options: CheckoutOptions = {}): Promise<Outcome> {
+  checkouts++;
+  try {
+    return await checkout(offer, owner, getAccessToken, options);
+  } finally {
+    checkouts--;
+  }
+}
+
+async function checkout(offer: Offer, owner: string, getAccessToken: () => Promise<string | null>, options: CheckoutOptions): Promise<Outcome> {
   const { currentProductId = null, store: l = iap(), verify = verifyOnServer, check = checkCheckoutOnServer } = options;
   const google: GoogleSubscriptionRequest = {
     skus: [offer.id],
@@ -243,12 +300,22 @@ export async function buy(offer: Offer, owner: string, getAccessToken: () => Pro
 }
 
 /** Sends every active purchase Play knows for this Google account to the server (new phone, reinstall, a purchase whose answer was lost). */
-export async function restore(getAccessToken: () => Promise<string | null>, l: IapLib = iap(), verify = verifyOnServer): Promise<{ checked: number; active: number; failed: number }> {
+export async function restore(getAccessToken: () => Promise<string | null>, l: IapLib = iap(), verify = verifyOnServer): Promise<{ checked: number; active: number; failed: number; test: number }> {
+  checkouts++;
+  try {
+    return await restoreAll(getAccessToken, l, verify);
+  } finally {
+    checkouts--;
+  }
+}
+
+async function restoreAll(getAccessToken: () => Promise<string | null>, l: IapLib, verify: typeof verifyOnServer) {
   if (!(await getAccessToken())) throw new BillingError("AUTH");
   if (!(await l.initConnection())) throw new BillingError("STORE_UNAVAILABLE");
   const purchases = (await l.getAvailablePurchases()) ?? [];
   let active = 0;
   let failed = 0;
+  let test = 0;
   for (const p of purchases) {
     if (!p.purchaseToken || !PLANS.some((x) => x.id === p.productId)) continue;
     const access = await getAccessToken();
@@ -264,9 +331,49 @@ export async function restore(getAccessToken: () => Promise<string | null>, l: I
       // A token already used by another TITAN account, or made without this account's id, is not ours to attach.
       if (!(err instanceof BillingError) || err.code === "NETWORK" || err.code === "VERIFICATION_UNAVAILABLE" || err.code === "AUTH") throw err;
       failed++;
+      if (err.code === "TEST_PURCHASE") test++;
     }
   }
-  return { checked: purchases.length, active, failed };
+  return { checked: purchases.length, active, failed, test };
+}
+
+/** Silent safety net for a payment Google accepted but TITAN never confirmed: the app was closed during the bank's check, a pending
+    payment cleared later, the network dropped, or the server answered too late. Called at sign-in and when the app returns to the
+    foreground. It only looks at purchases Play attributes to THIS account and that are not settled yet (not acknowledged, or the profile
+    still has no access), hands their token to the server, and completes them in Play once the server has granted access. It never opens
+    a payment sheet, never throws, and stays out of the way of a running checkout. Returns how many purchases became active. */
+export async function recoverPurchases(
+  owner: string,
+  getAccessToken: () => Promise<string | null>,
+  options: { hasAccess?: boolean | null; store?: IapLib; verify?: typeof verifyOnServer } = {},
+): Promise<number> {
+  const { hasAccess = null, store: l = iap(), verify = verifyOnServer } = options;
+  if (checkoutInFlight()) return 0;
+  let recovered = 0;
+  try {
+    if (!(await getAccessToken()) || !(await l.initConnection())) return 0;
+    const purchases = (await l.getAvailablePurchases()) ?? [];
+    for (const p of purchases) {
+      if (checkoutInFlight()) break;
+      if (!p.purchaseToken || !PLANS.some((x) => x.id === p.productId) || p.obfuscatedAccountIdAndroid !== owner) continue;
+      if (p.purchaseState && p.purchaseState.toLowerCase() !== "purchased") continue;
+      if (p.isAcknowledgedAndroid === true && hasAccess === true) continue;
+      const access = await getAccessToken();
+      if (!access) break;
+      try {
+        const verdict = await verify(p.purchaseToken, p.productId, access);
+        if (!(await getAccessToken())) break;
+        if (verdict.active) {
+          recovered++;
+          await l.finishTransaction({ purchase: p, isConsumable: false }).catch(() => {});
+        }
+      } catch (err) {
+        // The service is down or the session ended: the next foreground tries again. Any other refusal concerns this token only.
+        if (!(err instanceof BillingError) || err.code === "NETWORK" || err.code === "VERIFICATION_UNAVAILABLE" || err.code === "AUTH") break;
+      }
+    }
+  } catch { /* Play is unreachable on this device right now: nothing to recover, nothing to report. */ }
+  return recovered;
 }
 
 /** Open the store's management and cancellation screen for an existing subscription. */
@@ -286,6 +393,7 @@ export const messageFor = (e: unknown): string => {
       NOT_FOUND: "Google Play ne reconnaît pas cet achat.",
       NETWORK: "Connexion indisponible. Consulte Google Play, puis utilise « Restaurer mes achats ».",
       REFUSED: "L’achat n’a pas pu être confirmé. Consulte Google Play, puis utilise « Restaurer mes achats ».",
+      TEST_PURCHASE: "Google Play signale un achat de test (compte testeur de licence). Le service public TITAN n’ouvre aucun accès pour un achat de test, et « Restaurer mes achats » ne le rattachera pas. Un achat de test n’est pas un paiement réel.",
     } as Record<string, string>
   )[code] ?? "L’opération a échoué. Consulte tes abonnements dans Google Play, puis réessaie.";
 };

@@ -100,7 +100,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
           </T>
           <T variant="caption" tone="faint">
             {Math.round(effort.counted)} min comptées × intensité {String(effort.intensity).replace(".", ",")}
-            {effort.rpe ? ` (RPE ${effort.rpe})` : " (RPE par défaut 5)"}.
+            {effort.rpe ? ` (ressenti ${effort.rpe}/10)` : " (ressenti non renseigné : 5 par défaut)"}.
           </T>
         </Card>
       ) : null}
@@ -132,7 +132,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
       {d.elevation || d.bio?.rpe ? (
         <StatRow flat>
           {d.elevation ? <Stat label="dénivelé" value={`${Format.number(Number(d.elevation))} m`} /> : null}
-          {d.bio?.rpe ? <Stat label={RPE_TEXT[Number(d.bio.rpe)] ?? "RPE"} value={`${d.bio.rpe}/10`} /> : null}
+          {d.bio?.rpe ? <Stat label={RPE_TEXT[Number(d.bio.rpe)] ?? "Ressenti"} value={`${d.bio.rpe}/10`} /> : null}
         </StatRow>
       ) : null}
 

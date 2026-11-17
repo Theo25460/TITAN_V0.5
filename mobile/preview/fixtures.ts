@@ -1,6 +1,6 @@
 /* Preview only: twelve weeks of a plausible multisport athlete, deterministic (no Math.random). */
 import type { TrainingLog } from "../src/core/types";
-import { adventure as baseAdventure, archived, atelier, goals, profile as baseProfile, social } from "../test-fixtures/data";
+import { adventure as baseAdventure, archived, atelier as baseAtelier, goals as baseGoals, profile as baseProfile, social } from "../test-fixtures/data";
 
 const at = (daysAgo: number, hour: number) => {
   const d = new Date();
@@ -45,6 +45,16 @@ for (let week = 11; week >= 0; week -= 1) {
 list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
 export const logs = list;
-export { archived, atelier, goals, social };
-export const profile = { ...baseProfile, username: "Camille", level: 7, xp: 1850, credits: 2380 };
-export const adventure = { ...baseAdventure, level: 7, xp: 1850, next_level_xp: 6275, credits: 2380 };
+export { archived, social };
+/* One account, the same figures on every screen: level 7 and 2 380 credits on the QG, the profile, the career and the Atelier. */
+const LEVEL = 7, CREDITS = 2380;
+export const profile = { ...baseProfile, username: "Camille", level: LEVEL, xp: 1850, credits: CREDITS };
+export const adventure = {
+  ...baseAdventure, level: LEVEL, xp: 1850, next_level_xp: 6275, credits: CREDITS,
+  // The archipelago is at chapter 9: its first eight beacons are lit (the test fixture only lights the valley's).
+  rewards: [...baseAdventure.rewards, ...Array.from({ length: 8 }, (_, i) => ({ world: "marees", chapter: i + 1, earned_at: at(40 - i * 4, 19) }))],
+};
+export const atelier = { ...baseAtelier, credits: CREDITS, level: LEVEL };
+/* The test fixtures are dated around a fixed week; here the goals follow today, so a goal listed « En cours » has not ended. */
+const dayKey = (daysAgo: number) => at(daysAgo, 12).slice(0, 10);
+export const goals = baseGoals.map((g) => ({ ...g, start_date: dayKey(10), end_date: dayKey(g.archived_at ? -20 : -18), archived_at: g.archived_at ? at(2, 18) : null }));

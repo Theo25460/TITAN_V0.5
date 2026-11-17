@@ -43,6 +43,8 @@ function installClient({ preview, accept }) {
 const PREVIEW = { valid: true, title: "Duel du week-end <b>", metric: "effort_minutes", sport: null, target: 120, endsAt: "2026-11-05T20:00:00Z", participants: 2 };
 async function landing({ token = TOKEN, preview = PREVIEW, accept = "ok" } = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 900 }, timezoneId: "UTC", serviceWorkers: "block" });
+  // The optional panels of the Communauté are folded rows (js/app/communaute-extras.js); these journeys read inside them.
+  await context.addInitScript(() => { try { localStorage.setItem("titan_cm_open_v1", JSON.stringify(["consultations", "duels", "clubs", "factions", "pantheon"])); } catch {} });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));
@@ -106,6 +108,8 @@ test("defi landing: a signed-in player joins on an explicit tap only, and every 
 const CHALLENGES = { mine: [{ id: "c1", title: "Duel du week-end", endsAt: "2026-11-05T20:00:00Z", links: [{ id: "l1", expiresAt: "2026-11-03T20:00:00Z", used: false }] }], ended: [{ id: "c0", title: "Défi d’octobre", endedAt: "2026-10-25T20:00:00Z" }] };
 async function panel({ flag = true, missing = false, signedIn = true } = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 900 }, timezoneId: "UTC", serviceWorkers: "block" });
+  // The optional panels of the Communauté are folded rows (js/app/communaute-extras.js); these journeys read inside them.
+  await context.addInitScript(() => { try { localStorage.setItem("titan_cm_open_v1", JSON.stringify(["consultations", "duels", "clubs", "factions", "pantheon"])); } catch {} });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));

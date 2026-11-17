@@ -303,6 +303,12 @@
     };
   }
 
+  function weekChapterLogs(logs, owner) {
+    const discovery = String(owner || "").startsWith("guest_");
+    return logs.filter((l) => l?.sport && !l.is_suspicious
+      && (!l.syncStatus || l.syncStatus === "confirmed" || (discovery && l.syncStatus === "local")));
+  }
+
   /** A chapter tells only what is recorded. A comparison is based on the same sport and measured minutes. */
   function weekChapter(logs, { now = new Date(), start = now, adventure, owner, paused = false } = {}) {
     const f = F();
@@ -310,7 +316,7 @@
     const end = f.addDays(from, 7);
     const partial = weekKey(from) === weekKey(now);
     const inChapter = (date) => date >= from && date < end && date <= now;
-    const journal = activeLogs(logs, now).filter((l) => l.sport && !l.is_suspicious && (!l.syncStatus || l.syncStatus === "confirmed"));
+    const journal = weekChapterLogs(activeLogs(logs, now), owner);
     const rows = journal.filter((l) => inChapter(new Date(l.date)));
     const previousStart = f.addDays(from, -7);
     const previousCutoff = partial ? f.addDays(now, -7) : from;
@@ -714,6 +720,7 @@
     weekLogs,
     newRecords,
     recap,
+    weekChapterLogs,
     weekChapter,
     dna,
     insights,

@@ -27,7 +27,7 @@ export function TourCard() {
       <T variant="small" tone="muted">
         {started ? `${progressLabel(tour)} : on reprend où tu t’étais arrêté.` : `${TOUR_STEPS.length} étapes courtes sur les vrais écrans. Facultatif, tu peux l’arrêter quand tu veux.`}
       </T>
-      <View style={{ flexDirection: "row", gap: 8 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         <Button small label={started ? "Reprendre" : "Commencer"} onPress={() => (navigation as unknown as { navigate: (n: string) => void }).navigate("Guide")} testID="tour-start" />
         <Button
           small

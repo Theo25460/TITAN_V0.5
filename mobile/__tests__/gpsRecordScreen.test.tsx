@@ -33,10 +33,14 @@ jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a", useAuth: () =>
 jest.mock("../src/data/drafts", () => ({ saveDraft: (...a: unknown[]) => mockDraft(...a) }));
 jest.mock("../src/lib/exportFile", () => ({ shareTextFile: jest.fn(async () => undefined) }));
 jest.mock("../src/lib/haptics", () => ({ haptic: jest.fn() }));
+// Notification permission asked at the first start (V1.3.1): granted unless a test says otherwise.
+const mockNotice = jest.fn(async (_explain?: () => Promise<boolean>) => true);
+jest.mock("../src/lib/reminders", () => ({ ensurePermission: (explain?: () => Promise<boolean>) => mockNotice(explain) }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { SafeAreaProvider } = require("react-native-safe-area-context");
 const { ToastProvider } = require("../src/components/Toast");
+const { DialogHost, resetDialogs } = require("../src/components/Dialog");
 const { GpsRecordScreen } = require("../src/screens/session/GpsRecordScreen");
 const { GpsAccountGuard } = require("../src/components/GpsAccountGuard");
 const exportFile = require("../src/lib/exportFile");
@@ -107,6 +111,31 @@ test("start, pause, resume, finish, then the totals become the form draft and th
   expect(mockState.active).toBeNull();
 });
 
+test("abandoning a finished outing asks first: « Garder » keeps the trace, only an explicit confirmation deletes it (AUD-07)", async () => {
+  resetDialogs();
+  render(<SafeAreaProvider initialMetrics={metrics}><ToastProvider><GpsRecordScreen navigation={nav} route={{ params: { sport: "running" } }} /><DialogHost /></ToastProvider></SafeAreaProvider>);
+  fireEvent.press(await screen.findByTestId("gps-start"));
+  await screen.findByText(/Enregistrement en cours/);
+  await act(async () => void (await mockRecorder.append("owner-a", Array.from({ length: 12 }, (_, i) => fix(i)))));
+  fireEvent.press(screen.getByTestId("gps-finish"));
+  await screen.findByText(/Séance terminée/);
+  fireEvent.press(screen.getByText("Abandonner cette séance"));
+  expect(await screen.findByText("Abandonner cette séance ?")).toBeTruthy();
+  fireEvent.press(screen.getByText("Garder"));
+  await waitFor(() => expect(screen.queryByText("Abandonner cette séance ?")).toBeNull());
+  expect(mockStore.get("titan.gps.v1:owner-a")).toBeTruthy();
+  expect(nav.goBack).not.toHaveBeenCalled();
+  // The button stays locked until the question it opened is answered (V12-41), and « Garder » answers one timer turn after the
+  // dialog left: a second press sent in that gap is swallowed as a double tap. Press like a person does, until the question shows.
+  await waitFor(() => {
+    if (!screen.queryByText("Abandonner cette séance ?")) fireEvent.press(screen.getByText("Abandonner cette séance"));
+    expect(screen.getByText("Supprimer la trace")).toBeTruthy();
+  });
+  fireEvent.press(screen.getByText("Supprimer la trace"));
+  await waitFor(() => expect(nav.goBack).toHaveBeenCalled());
+  expect(mockStore.get("titan.gps.v1:owner-a") ?? null).toBeNull();
+});
+
 test("a recording left running by a lost service is shown as interrupted, not extended", async () => {
   await mockRecorder.start("owner-a", "running");
   await mockRecorder.append("owner-a", Array.from({ length: 5 }, (_, i) => fix(i)));
@@ -148,4 +177,24 @@ test("launch waits for the initial auth identity before deciding whether to paus
   mockAuth = { status: "loading", owner: null };
   view.rerender(<GpsAccountGuard />);
   expect(mockGuard).toHaveBeenLastCalledWith(null);
+});
+
+test("the recording notification is asked for at the first start only, and a refusal never blocks the recording", async () => {
+  mockNotice.mockClear();
+  mockNotice.mockResolvedValueOnce(false);
+  show();
+  // Nothing is asked when the screen opens: only the press on « Démarrer » asks.
+  await screen.findByTestId("gps-start");
+  expect(mockNotice).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByTestId("gps-start"));
+  await screen.findByText(/Enregistrement en cours/);
+  expect(mockNotice).toHaveBeenCalledTimes(1);
+  expect(typeof mockNotice.mock.calls[0]![0]).toBe("function"); // TITAN's own explanation comes before Android's prompt
+  expect(screen.getByTestId("gps-no-notification")).toBeTruthy();
+  // Pause and resume do not ask again.
+  fireEvent.press(screen.getByTestId("gps-toggle"));
+  await screen.findByText(/En pause/);
+  fireEvent.press(screen.getByTestId("gps-toggle"));
+  await screen.findByText(/Enregistrement en cours/);
+  expect(mockNotice).toHaveBeenCalledTimes(1);
 });

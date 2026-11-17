@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Image, PanResponder, View } from "react-native";
 import Svg, { Circle, Polyline, Rect } from "react-native-svg";
 import { Button } from "../../components/Button";
+import { Alert } from "../../components/Dialog";
 import { Tap } from "../../components/Pressable";
 import { ToggleRow } from "../../components/Toggle";
 import { Card } from "../../components/Card";
@@ -19,7 +20,7 @@ import { shareTextFile } from "../../lib/exportFile";
 import { decodeTrack, projectTrack, toGpx, trimEnds } from "../../lib/gpsTrack";
 import { fitView, panBy, TILE, TILES_ATTRIBUTION, tilesConfigured, tilesFor, tileUrl, toScreen, zoomBy, type View as MapViewState } from "../../lib/tiles";
 import { readJSON, writeJSON } from "../../lib/storage";
-import { pendingRoutes } from "../../lib/routeSync";
+import { discardPendingRoute, pendingRoutes } from "../../lib/routeSync";
 import type { RootParams } from "../../navigation/types";
 import { colors, familyColors, radius, space } from "../../theme/tokens";
 
@@ -57,7 +58,7 @@ export function RouteMap({ track, height = 240, basemap = false, accessibilityLa
   const line = (s: { lat: number; lon: number }[]) => s.map((q) => { const o = project(q)!; return `${o.x.toFixed(1)},${o.y.toFixed(1)}`; }).join(" ");
   const first = pts[0], last = pts[pts.length - 1];
   return (
-    <View style={{ borderRadius: radius.r3, overflow: "hidden", borderWidth: 1, borderColor: colors.line, backgroundColor: colors.bg2 }}>
+    <View style={{ borderRadius: radius.r3, overflow: "hidden", backgroundColor: colors.bg2 }}>
       <View onLayout={(e) => setW(Math.max(120, Math.round(e.nativeEvent.layout.width)))} style={{ height }} accessible accessibilityLabel={accessibilityLabel} accessibilityRole="image" {...(useTiles ? pan.panHandlers : {})}>
         {useTiles && v ? tilesFor(v, w, height).map((t) => <Image key={t.key} source={{ uri: tileUrl(t) }} style={{ position: "absolute", left: t.left, top: t.top, width: TILE, height: TILE }} />) : null}
         <Svg width={w} height={height} style={{ position: "absolute", left: 0, top: 0 }}>
@@ -102,6 +103,9 @@ function MapButton({ label, hint, onPress }: { label: string; hint: string; onPr
 }
 
 /** The athlete's private route library. Nothing here is shared with anyone. */
+/** Server-side limit of the private route library. */
+const ROUTE_LIMIT = 200;
+
 export function RoutesScreen({ navigation }: NativeStackScreenProps<RootParams, "Routes">) {
   const owner = useOwner();
   const toast = useToast();
@@ -111,17 +115,20 @@ export function RoutesScreen({ navigation }: NativeStackScreenProps<RootParams, 
   if (q.isLoading && !q.data && !waiting.data?.length) return <Screen><LoadingCards count={2} /></Screen>;
   if (q.error && !q.data && !waiting.data?.length) return <Screen><ErrorState error={q.error} onRetry={() => q.refetch()} /></Screen>;
   const list = q.data ?? [];
+  // The server keeps at most 200 routes per account (migration 20261102120000_routes.sql): a full library is said as such, with the way out.
+  const libraryFull = list.length >= ROUTE_LIMIT;
   const refresh = () => { q.refetch(); waiting.refetch(); };
   return (
     <Screen refreshing={q.isRefetching} onRefresh={refresh}>
       <T variant="eyebrow" tone="accent">Mes parcours</T>
       <T tone="muted">Tes traces GPS, gardées pour toi seul. Elles ne sont jamais partagées ni publiées, et se suppriment une par une.</T>
       {q.error ? <T tone="warn">La bibliothèque en ligne est indisponible. Tes parcours en attente restent sur ce téléphone.</T> : null}
+      {libraryFull ? <T variant="small" tone="warn" accessibilityRole="alert" testID="routes-full">Bibliothèque pleine : {ROUTE_LIMIT} parcours. Supprime un parcours pour que le suivant puisse être enregistré.</T> : null}
       {waiting.data?.length ? <T variant="small" tone="warn">{waiting.data.length} parcours en attente d’envoi. Ils restent sur ce téléphone jusqu’à confirmation du serveur.</T> : null}
       {waiting.data?.map((r) => (
         <Card key={r.clientRouteId}>
           <T variant="bodyStrong">{Sports.label(r.sport)} · {when(r.startedAt)}</T>
-          <T variant="small" tone={r.rejected ? "warn" : "muted"}>{r.rejected ? "Envoi refusé : la trace est conservée. Garde une copie GPX avant de contacter l’assistance." : "Envoi à réessayer. Tu peux déjà garder une copie GPX."}</T>
+          <T variant="small" tone={r.rejected ? "warn" : "muted"}>{r.rejected && libraryFull ? `Ta bibliothèque est pleine (${ROUTE_LIMIT} parcours) : supprime un parcours ci-dessous, l’envoi reprendra tout seul. En attendant, garde une copie GPX.` : r.rejected ? "Envoi refusé : la trace est conservée. Garde une copie GPX avant de contacter l’assistance." : "Envoi à réessayer. Tu peux déjà garder une copie GPX."}</T>
           <Button small kind="secondary" label="Exporter le parcours en attente" testID={`pending-export-${r.clientRouteId}`} loading={exporting === r.clientRouteId} onPress={async () => {
             if (exporting) return;
             setExporting(r.clientRouteId);
@@ -131,6 +138,22 @@ export function RoutesScreen({ navigation }: NativeStackScreenProps<RootParams, 
               toast({ kind: "err", title: "Export impossible", message: "Ta trace reste conservée. Réessaie dans un instant." });
             } finally { setExporting(null); }
           }} />
+          <Button small kind="ghost" label="Retirer de ce téléphone" testID={`pending-discard-${r.clientRouteId}`} disabled={!!exporting} onPress={() => Alert.alert(
+            "Retirer ce parcours en attente ?",
+            "La trace est effacée de ce téléphone et ne sera jamais envoyée. La séance reste dans ton journal. Exporte une copie GPX avant si tu veux la garder.",
+            [
+              { text: "Annuler", style: "cancel" },
+              { text: "Retirer", style: "destructive", onPress: async () => {
+                try {
+                  await discardPendingRoute(owner, r.clientRouteId);
+                  await waiting.refetch();
+                  toast({ kind: "ok", title: "Parcours retiré de ce téléphone" });
+                } catch {
+                  toast({ kind: "err", title: "Retrait impossible", message: "La trace reste conservée. Réessaie dans un instant." });
+                }
+              } },
+            ],
+          )} />
         </Card>
       ))}
       {list.length === 0 && !waiting.data?.length ? (

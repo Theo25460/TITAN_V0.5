@@ -1,7 +1,10 @@
 /* =====================================================================
-   TITAN 300 — ASCENSION design system
-   Dark, cold, cinematic, sporty. Cyan is the brand accent for action and
-   progression only. Amber is reserved for records and rare moments.
+   TITAN « Programme » — the design system shared with the Android app
+   (mobile/src/theme/tokens.ts). See DESIGN.md.
+   A night ground. One flat, bright colour per space of the app, each with
+   its own ink: it fills that space's header field and is its action colour.
+   Cyan is progression (XP, level) and amber is records, everywhere.
+   One type family, Archivo, in three widths.
    ===================================================================== */
 
 @font-face {
@@ -13,47 +16,34 @@
   src: url(./fonts/archivo-latin-variable.woff2) format("woff2-variations");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-@font-face {
-  font-family: "Manrope";
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url(./fonts/manrope-latin-1.woff2) format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: "Manrope";
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url(./fonts/manrope-latin-0.woff2) format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C0;
-}
 
 :root {
   color-scheme: dark;
-  /* Surfaces: blue-black, steel. */
-  --bg: #05070a;
-  --bg-1: #090d12;
-  --bg-2: #0e141a;
-  --bg-3: #141c24;
-  --bg-4: #1b2530;
-  --line: rgba(150, 180, 205, 0.11);
-  --line-2: rgba(150, 180, 205, 0.2);
-  --line-3: rgba(150, 180, 205, 0.32);
-  /* Text. */
-  --tx: #eef3f7;
-  --tx-2: #a8b6c3;
-  --tx-3: #7f909f;
-  --tx-4: #4c5966;
-  /* Brand accent (action, progression). */
+  /* The ground and its tones. A panel is one tone above the ground and has no outline. */
+  --bg: #090c10;
+  --bg-1: #0d1116;
+  --bg-2: #131920;
+  --bg-3: #1a222c;
+  --bg-4: #232d39;
+  --line: rgba(226, 234, 236, 0.09);
+  --line-2: rgba(226, 234, 236, 0.17);
+  --line-3: rgba(226, 234, 236, 0.3);
+  /* The edge of a field one types in: 3:1 against the ground (WCAG 1.4.11). */
+  --line-4: rgba(226, 234, 236, 0.42);
+  /* Text. --tx-4 is for marks and disabled states, never for a sentence. */
+  --tx: #f1f3ef;
+  --tx-2: #aeb7bd;
+  --tx-3: #838e97;
+  --tx-4: #525c66;
+  /* Progression (XP, level, the ascent): cyan, in every space. */
   --cy: #3dd9e8;
   --cy-2: #8ceaf2;
   --cy-ink: #02181b;
   --cy-soft: rgba(61, 217, 232, 0.12);
   --cy-line: rgba(61, 217, 232, 0.38);
-  /* Records and rare moments. */
+  /* Records and rare moments: amber, in every space. */
   --am: #f4bb54;
+  --am-ink: #1d1302;
   --am-soft: rgba(244, 187, 84, 0.12);
   --am-line: rgba(244, 187, 84, 0.4);
   /* States. */
@@ -61,15 +51,32 @@
   --warn: #f0a24a;
   --err: #f2665f;
   --err-soft: rgba(242, 102, 95, 0.12);
+  /* The space colours: flat and bright, each one carries dark ink. */
+  --signal: #d7f25a;
+  --signal-ink: #161c00;
+  --azur: #9cc3ff;
+  --craie: #e9ede8;
+  --corail: #ff9b7a;
+  --mousse: #7fe0b0;
+  /* The space a page belongs to (QG by default; see « Spaces » below). */
+  --space: var(--cy);
+  --space-hi: var(--cy-2);
+  --space-ink: var(--cy-ink);
+  --space-soft: var(--cy-soft);
+  --space-line: var(--cy-line);
+  --space-field: #0a1b21;
   /* Sport families (data visualisation, never decoration). */
   --fam-endurance: #3dd9e8;
   --fam-force: #7c93ff;
   --fam-technique: #b693ff;
   --fam-jeu: #57d39b;
   --fam-mobilite: #8ea2b3;
-  /* Type. */
+  /* Type: one family. Text is the normal width, titles the condensed heavy, figures the extra-condensed. */
+  --font: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
-  --font-text: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --w-text: 100%;
+  --w-title: 75%;
+  --w-figure: 62%;
   /* Spacing (4 px grid). */
   --s1: 4px;
   --s2: 8px;
@@ -81,19 +88,80 @@
   --s8: 40px;
   --s9: 56px;
   --s10: 72px;
-  --r1: 8px;
-  --r2: 12px;
-  --r3: 18px;
-  --r4: 26px;
+  /* Squared, precise shapes: 4 / 8 / 12. Only avatars and counters are round. */
+  --r1: 4px;
+  --r2: 8px;
+  --r3: 12px;
+  --r4: 12px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --t-fast: 140ms;
   --t-med: 240ms;
-  --rail: 248px;
+  --rail: 232px;
   --tabbar: 68px;
   --topbar: 56px;
-  --content: 1080px;
+  --content: 1200px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
+}
+
+/* ---------- Spaces ----------
+   A page takes its space from its territory (the attribute the shell already reads); a block can be set in another space with
+   data-space. Primary buttons, selected chips and tabs, links, the focus ring and the active navigation item use --space. */
+body[data-territory="seance"],
+[data-space="seance"] {
+  --space: var(--signal);
+  --space-hi: #e6f892;
+  --space-ink: var(--signal-ink);
+  --space-soft: rgba(215, 242, 90, 0.12);
+  --space-line: rgba(215, 242, 90, 0.4);
+  --space-field: #14190a;
+}
+body[data-territory="progres"],
+[data-space="progres"] {
+  --space: var(--azur);
+  --space-hi: #c2daff;
+  --space-ink: #06142e;
+  --space-soft: rgba(156, 195, 255, 0.13);
+  --space-line: rgba(156, 195, 255, 0.42);
+  --space-field: #0c1526;
+}
+body[data-territory="aventure"],
+[data-space="aventure"] {
+  --space: var(--mousse);
+  --space-hi: #abecd0;
+  --space-ink: #032012;
+  --space-soft: rgba(127, 224, 176, 0.12);
+  --space-line: rgba(127, 224, 176, 0.4);
+  --space-field: #0a1b16;
+}
+body[data-territory="profil"],
+body[data-territory="atelier"],
+body[data-territory="aide"],
+[data-space="profil"] {
+  --space: var(--craie);
+  --space-hi: #ffffff;
+  --space-ink: #0e1216;
+  --space-soft: rgba(233, 237, 232, 0.1);
+  --space-line: rgba(233, 237, 232, 0.36);
+  --space-field: #14181d;
+}
+body[data-territory="communaute"],
+body[data-territory="coaching"],
+[data-space="cercle"] {
+  --space: var(--corail);
+  --space-hi: #ffbba4;
+  --space-ink: #2a0b02;
+  --space-soft: rgba(255, 155, 122, 0.12);
+  --space-line: rgba(255, 155, 122, 0.42);
+  --space-field: #20120e;
+}
+[data-space="qg"] {
+  --space: var(--cy);
+  --space-hi: var(--cy-2);
+  --space-ink: var(--cy-ink);
+  --space-soft: var(--cy-soft);
+  --space-line: var(--cy-line);
+  --space-field: #0a1b21;
 }
 
 /* ---------- Base ---------- */
@@ -101,10 +169,15 @@
 .asc * {
   box-sizing: border-box;
 }
+/* Netlify adds its review drawer to deploy previews; the site's Content-Security-Policy refuses its frame, which leaves a grey bar
+   fixed over the bottom navigation of every preview page. The drawer does not exist on the live site. */
+[data-netlify-deploy-id] { display: none !important; }
+
 html.asc-root {
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  scrollbar-color: var(--bg-4) var(--bg);
 }
 body.asc {
   margin: 0;
@@ -112,13 +185,30 @@ body.asc {
   min-height: 100dvh;
   background: var(--bg);
   color: var(--tx);
-  font-family: var(--font-text);
-  font-size: 15px;
-  line-height: 1.55;
+  font-family: var(--font);
+  font-stretch: var(--w-text);
+  font-size: 15.5px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "tnum" 0;
+  caret-color: var(--space);
+  accent-color: var(--space);
+}
+.asc ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.asc ::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+.asc ::-webkit-scrollbar-thumb {
+  background: var(--bg-4);
+  border-radius: 0;
+}
+.asc ::-webkit-scrollbar-thumb:hover {
+  background: var(--tx-4);
 }
 :where(.asc) :where(img, svg) {
   display: block;
@@ -137,13 +227,13 @@ body.asc {
   cursor: pointer;
 }
 .asc :focus-visible {
-  outline: 2px solid var(--cy);
+  outline: 2px solid var(--space);
   outline-offset: 3px;
-  border-radius: 6px;
+  border-radius: var(--r1);
 }
 .asc ::selection {
-  background: var(--cy-soft);
-  color: var(--tx);
+  background: var(--space);
+  color: var(--space-ink);
 }
 .asc .sr-only {
   position: absolute !important;
@@ -162,8 +252,8 @@ body.asc {
   left: var(--s3);
   z-index: 100;
   padding: var(--s2) var(--s4);
-  background: var(--cy);
-  color: var(--cy-ink);
+  background: var(--space);
+  color: var(--space-ink);
   border-radius: var(--r1);
   font-weight: 700;
   transform: translateY(-200%);
@@ -179,54 +269,50 @@ body.asc {
   flex: none;
 }
 
-/* ---------- Typography ---------- */
+/* ---------- Typography ----------
+   Titles: condensed, heavy. Text: normal width. Figures: extra-condensed, light when huge and bold when small. */
 :where(.asc) :where(h1, h2, h3, h4) {
   margin: 0;
   font-family: var(--font-display);
+  font-stretch: var(--w-title);
   font-weight: 800;
-  letter-spacing: -0.01em;
-  word-spacing: 0.06em;
-  line-height: 1.02;
+  letter-spacing: -0.005em;
+  line-height: 1.04;
   color: var(--tx);
 }
 :where(.asc) h1,
 .asc-h1 {
-  font-size: clamp(34px, 7vw, 56px);
-  font-stretch: 78%;
-  text-transform: none;
+  font-size: clamp(36px, 9.5vw, 64px);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
 }
 :where(.asc) h2,
 .asc-h2 {
-  font-size: clamp(22px, 3.6vw, 30px);
-  font-stretch: 85%;
+  font-size: clamp(24px, 3.6vw, 30px);
 }
 :where(.asc) h3,
 .asc-h3 {
-  font-size: 18px;
-  font-stretch: 92%;
-  font-weight: 750;
+  font-size: 19px;
   line-height: 1.2;
 }
 :where(.asc) p {
   margin: 0;
 }
+/* The old uppercase kicker is gone. The class is kept for its call sites and is now a plain small label. */
 .asc-eyebrow {
-  font-family: var(--font-display);
-  font-stretch: 100%;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--tx-3);
+  line-height: 1.3;
+  color: var(--tx-2);
 }
 .asc-eyebrow.cy {
-  color: var(--cy);
+  color: var(--space);
 }
 .asc-eyebrow.am {
   color: var(--am);
 }
 .asc-lead {
-  font-size: 16px;
+  font-size: 16.5px;
   color: var(--tx-2);
   max-width: 56ch;
 }
@@ -237,14 +323,23 @@ body.asc {
   color: var(--tx-3);
 }
 .asc-small {
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.45;
 }
 .asc-num {
   font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
-  font-stretch: 80%;
-  font-weight: 800;
+  font-stretch: var(--w-figure);
+  font-weight: 700;
+}
+/* A large figure (48 px and more): the light cut. */
+.asc-figure {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-stretch: var(--w-figure);
+  font-weight: 300;
+  font-size: clamp(56px, 12vw, 88px);
+  line-height: 0.9;
   letter-spacing: -0.01em;
 }
 
@@ -254,13 +349,15 @@ body.asc {
   min-height: 100dvh;
 }
 .asc-main {
+  /* --pad is the gutter on each side of the content column; a header field uses it to run edge to edge. */
+  --pad: var(--s4);
   width: 100%;
-  max-width: calc(var(--content) + 2 * var(--s6));
-  margin: 0 auto;
-  padding: calc(var(--topbar) + var(--safe-t) + var(--s4)) var(--s4) calc(var(--tabbar) + var(--safe-b) + var(--s8));
+  margin: 0;
+  padding: calc(var(--topbar) + var(--safe-t) + var(--s3)) var(--pad) calc(var(--tabbar) + var(--safe-b) + var(--s8));
 }
+/* On a phone the top row is part of the page: it sits on the header field and leaves with it. The tab bar stays. */
 .asc-topbar {
-  position: fixed;
+  position: absolute;
   inset: 0 0 auto 0;
   z-index: 40;
   height: calc(var(--topbar) + var(--safe-t));
@@ -268,20 +365,18 @@ body.asc {
   display: flex;
   align-items: center;
   gap: var(--s3);
-  background: rgba(5, 7, 10, 0.99); /* near-opaque: text scrolling underneath must not show through (visual audit 21/10/2026) */
-  backdrop-filter: saturate(140%) blur(14px);
-  -webkit-backdrop-filter: saturate(140%) blur(14px);
-  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--head-ink, var(--tx));
 }
 .asc-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   font-family: var(--font-display);
-  font-weight: 850;
-  font-stretch: 82%;
+  font-weight: 900;
+  font-stretch: 88%;
   font-size: 20px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 .asc-brand-mark {
   width: 26px;
@@ -291,10 +386,8 @@ body.asc {
 .asc-topbar-title {
   flex: 1;
   min-width: 0;
-  font-family: var(--font-display);
-  font-weight: 750;
-  font-stretch: 88%;
-  font-size: 17px;
+  font-weight: 700;
+  font-size: 15px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -302,22 +395,29 @@ body.asc {
 .asc-topbar .asc-brand + .asc-topbar-title {
   display: none;
 }
+.asc-topbar .asc-btn-ghost {
+  color: inherit;
+}
+.asc-topbar .asc-btn-ghost:hover {
+  color: inherit;
+  background: var(--head-wash, var(--bg-2));
+}
 .asc-me {
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
   padding: 3px 3px 3px var(--s3);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--head-line, var(--line-2));
   border-radius: 999px;
-  background: var(--bg-1);
   min-height: 40px;
 }
 .asc-me-level {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-stretch: 85%;
-  font-size: 13px;
-  color: var(--tx-2);
+  font-weight: 700;
+  font-stretch: var(--w-figure);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
 }
 .asc-avatar {
   width: 32px;
@@ -325,14 +425,12 @@ body.asc {
   border-radius: 50%;
   overflow: hidden;
   background: var(--bg-3);
-  border: 1px solid var(--line-2);
   flex: none;
 }
 .asc-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(0.82) contrast(1.04);
 }
 .asc-sync {
   width: 10px;
@@ -340,7 +438,6 @@ body.asc {
   border-radius: 50%;
   background: var(--tx-4);
   flex: none;
-  box-shadow: 0 0 0 3px var(--bg);
 }
 .asc-sync[data-state="cloud"] {
   background: var(--ok);
@@ -355,8 +452,12 @@ body.asc {
 .asc-sync[data-state="local"] {
   background: var(--tx-3);
 }
+/* The dot sits on a bright field in the top row of a phone: a ring of ink keeps every state visible there. */
+.asc-topbar .asc-sync {
+  box-shadow: 0 0 0 2px var(--head-ink, var(--bg));
+}
 
-/* Mobile tab bar: five territories, Séance raised in the middle. */
+/* Mobile tab bar: five spaces, the record action in the middle, in lime wherever you are. */
 .asc-tabbar {
   position: fixed;
   inset: auto 0 0 0;
@@ -365,11 +466,9 @@ body.asc {
   padding: 0 var(--s2) var(--safe-b);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  align-items: center;
-  background: rgba(7, 10, 14, 0.99);
-  backdrop-filter: saturate(140%) blur(16px);
-  -webkit-backdrop-filter: saturate(140%) blur(16px);
-  border-top: 1px solid var(--line);
+  align-items: stretch;
+  background: var(--bg);
+  border-top: 1px solid var(--line-2);
 }
 .asc-tab {
   display: flex;
@@ -378,11 +477,11 @@ body.asc {
   justify-content: center;
   gap: 3px;
   min-height: 52px;
-  color: var(--tx-3);
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.01em;
-  border-radius: var(--r2);
+  color: var(--tx-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  border-top: 2px solid transparent;
+  margin-top: -1px;
   transition: color var(--t-fast) var(--ease);
 }
 .asc-tab .t-icon {
@@ -390,38 +489,33 @@ body.asc {
   height: 22px;
 }
 .asc-tab[aria-current="page"] {
+  color: var(--space);
+  border-top-color: var(--space);
+  font-weight: 700;
+}
+.asc-tab-record,
+.asc-tab-record[aria-current="page"] {
   color: var(--tx);
-}
-.asc-tab[aria-current="page"] .t-icon {
-  color: var(--cy);
-}
-.asc-tab-record .asc-tab-plus .t-icon {
-  color: var(--cy-ink);
-}
-.asc-tab-record {
-  margin-top: -18px;
+  border-top-color: transparent;
 }
 .asc-tab-record .asc-tab-plus {
-  width: 54px;
-  height: 54px;
-  border-radius: 18px;
+  width: 52px;
+  height: 36px;
+  border-radius: var(--r2);
   display: grid;
   place-items: center;
-  background: var(--cy);
-  color: var(--cy-ink);
-  box-shadow: 0 10px 28px rgba(61, 217, 232, 0.28), 0 0 0 4px var(--bg);
+  background: var(--signal);
+  color: var(--signal-ink);
   transition: transform var(--t-fast) var(--ease);
 }
 .asc-tab-record .asc-tab-plus .t-icon {
-  width: 26px;
-  height: 26px;
-  stroke-width: 2.2;
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.4;
+  color: var(--signal-ink);
 }
 .asc-tab-record:active .asc-tab-plus {
   transform: scale(0.95);
-}
-.asc-tab-record[aria-current="page"] {
-  color: var(--tx);
 }
 
 /* Desktop rail. */
@@ -440,9 +534,10 @@ body.asc {
     width: var(--rail);
     display: flex;
     flex-direction: column;
-    padding: var(--s6) var(--s4);
+    padding: var(--s6) var(--s4) var(--s4);
     background: var(--bg);
     border-right: 1px solid var(--line);
+    overflow-y: auto;
   }
   .asc-rail .asc-brand {
     padding: 0 var(--s3);
@@ -461,61 +556,59 @@ body.asc {
     padding: 0 var(--s3);
     border-radius: var(--r2);
     color: var(--tx-2);
-    font-weight: 650;
+    font-weight: 600;
     transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
   }
   .asc-rail-link:hover {
     background: var(--bg-2);
     color: var(--tx);
   }
+  /* Where I am: the item takes the colour of its space. */
   .asc-rail-link[aria-current="page"] {
-    background: var(--bg-2);
-    color: var(--tx);
+    background: var(--space-soft);
+    color: var(--space);
+    font-weight: 700;
   }
-  .asc-rail-link[aria-current="page"] .t-icon {
-    color: var(--cy);
-  }
-  .asc-rail-record {
-    margin: var(--s5) 0;
+  /* The record action is lime in every space: lime is « I record ». */
+  .asc-rail-record,
+  .asc-rail-record[aria-current="page"] {
+    margin: var(--s4) 0;
     justify-content: center;
-    background: var(--cy);
-    color: var(--cy-ink);
+    background: var(--signal);
+    color: var(--signal-ink);
     font-weight: 800;
   }
-  .asc-rail-record:hover,
-  .asc-rail-record[aria-current="page"] {
-    background: var(--cy-2);
-    color: var(--cy-ink);
-  }
-  .asc-rail-record[aria-current="page"] .t-icon {
-    color: var(--cy-ink);
+  .asc-rail-record:hover {
+    background: #e6f892;
+    color: var(--signal-ink);
   }
   .asc-rail-sub {
-    margin-top: var(--s6);
+    margin-top: var(--s5);
     padding-top: var(--s4);
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--line-2);
     display: flex;
     flex-direction: column;
     gap: 2px;
   }
   .asc-rail-sub .asc-rail-link {
-    min-height: 38px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--tx-3);
+    min-height: 44px;
+    font-size: 14.5px;
+    color: var(--tx-2);
+  }
+  .asc-rail-sub .asc-rail-link[aria-current="page"] {
+    color: var(--space);
   }
   .asc-rail-foot {
     margin-top: auto;
     display: flex;
     align-items: center;
     gap: var(--s3);
-    padding: var(--s3);
-    border-radius: var(--r2);
-    border: 1px solid var(--line);
-    background: var(--bg-1);
+    padding: var(--s3) var(--s3) var(--s2);
+    border-top: 1px solid var(--line-2);
+    min-height: 60px;
   }
-  .asc-rail-foot:hover {
-    border-color: var(--line-2);
+  .asc-rail-foot:hover strong {
+    color: var(--space);
   }
   .asc-rail-foot .asc-avatar {
     width: 38px;
@@ -523,47 +616,239 @@ body.asc {
   }
   .asc-rail-foot strong {
     display: block;
-    font-size: 14px;
+    font-size: 14.5px;
     line-height: 1.2;
   }
   .asc-rail-foot small {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--tx-3);
-    font-size: 12px;
+    color: var(--tx-2);
+    font-size: 12.5px;
   }
   .asc-main {
-    padding: var(--s8) var(--s7) var(--s10);
-    padding-left: calc(var(--rail) + var(--s7));
-    max-width: calc(var(--content) + var(--rail) + 2 * var(--s7));
+    --pad: max(var(--s8), calc((100vw - var(--rail) - var(--content)) / 2));
+    width: auto;
+    margin-left: var(--rail);
+    padding: var(--s8) var(--pad) var(--s10);
   }
 }
 
-/* ---------- Page header ---------- */
+/* ---------- Header field ----------
+   A page opens on a flat field of its space colour, edge to edge, with its title set large in the field's own ink. Text on the
+   field is the ink at two strengths, never grey. The QG opens on the world's painting instead (.asc-art-head); Aventure keeps its
+   title on the ground because the map under it is that painting. */
 .asc-page-head {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--s4);
-  margin: var(--s2) 0 var(--s7);
+  gap: var(--s4) var(--s5);
+  margin: calc(-1 * (var(--topbar) + var(--safe-t) + var(--s3))) calc(-1 * var(--pad)) var(--s6);
+  padding: calc(var(--topbar) + var(--safe-t) + var(--s3)) var(--pad) var(--s5);
+  background: var(--space);
+  color: var(--space-ink);
 }
 .asc-page-head > div {
   display: grid;
   gap: var(--s2);
   min-width: 0;
 }
+.asc-page-head :where(h1, h2, h3) {
+  color: var(--space-ink);
+}
+/* A tint made with color-mix() is always written after a solid value, in its own @supports block. A fallback declaration in the
+   same rule would not do: a declaration that contains var() is never dropped at parse time, so a browser without color-mix() would
+   end with no border, no background, or the grey of the ground rules on a bright field. */
+.asc-page-head :where(.asc-lead, .asc-muted, .asc-faint, .asc-eyebrow, .asc-small) {
+  color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-page-head :where(.asc-lead, .asc-muted, .asc-faint, .asc-eyebrow, .asc-small) {
+    color: color-mix(in srgb, var(--space-ink) 84%, transparent);
+  }
+}
+.asc-page-head .asc-lead {
+  max-width: 52ch;
+}
+/* On the field a button is drawn in ink: solid for the action, a frame for the rest. */
+.asc-page-head .asc-btn-primary,
+.asc-on-field .asc-btn-primary {
+  background: var(--space-ink);
+  color: var(--space);
+}
+.asc-page-head .asc-btn-primary:hover,
+.asc-on-field .asc-btn-primary:hover {
+  background: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-page-head .asc-btn-primary:hover,
+  .asc-on-field .asc-btn-primary:hover {
+    background: color-mix(in srgb, var(--space-ink) 86%, var(--space));
+  }
+}
+.asc-page-head .asc-btn-secondary,
+.asc-page-head .asc-btn-ghost,
+.asc-on-field .asc-btn-secondary,
+.asc-on-field .asc-btn-ghost {
+  background: transparent;
+  border: 1.5px solid var(--space-ink);
+  color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-page-head .asc-btn-secondary,
+  .asc-page-head .asc-btn-ghost,
+  .asc-on-field .asc-btn-secondary,
+  .asc-on-field .asc-btn-ghost {
+    border: 1.5px solid color-mix(in srgb, var(--space-ink) 30%, transparent);
+  }
+}
+.asc-page-head .asc-btn-secondary:hover,
+.asc-page-head .asc-btn-ghost:hover,
+.asc-on-field .asc-btn-secondary:hover,
+.asc-on-field .asc-btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-page-head .asc-btn-secondary:hover,
+  .asc-page-head .asc-btn-ghost:hover,
+  .asc-on-field .asc-btn-secondary:hover,
+  .asc-on-field .asc-btn-ghost:hover {
+    background: color-mix(in srgb, var(--space-ink) 10%, transparent);
+  }
+}
+.asc-page-head :focus-visible,
+.asc-on-field :focus-visible {
+  outline-color: var(--space-ink);
+}
+.asc-page-head ::selection,
+.asc-on-field ::selection {
+  background: var(--space-ink);
+  color: var(--space);
+}
+/* Figures set on a field: the number in the field's ink, its label under it. */
+.asc-field-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, auto));
+  gap: var(--s3) var(--s7);
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.asc-field-figures > div {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+.asc-field-figures dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-weight: 700;
+  font-size: 46px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--space-ink);
+}
+.asc-field-figures dt {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-field-figures dt {
+    color: color-mix(in srgb, var(--space-ink) 82%, transparent);
+  }
+}
+@media (max-width: 719px) {
+  .asc-field-figures {
+    flex-basis: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s3);
+  }
+  .asc-field-figures dd {
+    font-size: 38px;
+  }
+}
+/* Three figures on a narrow phone: a figure with a unit (« 27,1 km », « 34 h ») keeps inside its third of the field. */
+@media (max-width: 379px) {
+  .asc-field-figures dd {
+    font-size: clamp(26px, 9.2vw, 34px);
+  }
+}
+/* The top row of a phone takes the ink of what it sits on: light on the ground or on a painting, the field's ink on a field.
+   Knowing that the page opens on a field needs :has(). The default is therefore the safe one — light ink on a band of the ground,
+   whatever is under it — and the row only sits on the field, in the field's ink, in a browser that can tell (see .asc-topbar). */
+body.asc {
+  --head-ink: var(--tx);
+  --head-line: rgba(241, 243, 239, 0.34);
+  --head-wash: rgba(9, 12, 16, 0.4);
+}
+@supports selector(:has(*)) {
+  .asc-topbar {
+    background: transparent;
+  }
+  body.asc:has(.asc-page-head) {
+    --head-ink: var(--space-ink);
+    --head-line: var(--space-ink);
+    --head-wash: rgba(0, 0, 0, 0.1);
+  }
+}
+@supports selector(:has(*)) and (color: color-mix(in srgb, red 50%, blue)) {
+  body.asc:has(.asc-page-head) {
+    --head-line: color-mix(in srgb, var(--space-ink) 30%, transparent);
+    --head-wash: color-mix(in srgb, var(--space-ink) 10%, transparent);
+  }
+}
+/* A verification alert (js/app/shell.js) or the card of local preferences to check (js/state.js) comes first in the page. The
+   header under it then starts under it instead of pulling itself up over it (the card's last row could not be pressed), and the
+   top row, which sits on the ground again, keeps its light ink. */
+.asc-verify-alert + .asc-page-head,
+.asc-verify-alert + .asc-art-head,
+.asc-verify-alert + * > .asc-page-head:first-child,
+#titan-profile-recovery + .asc-page-head,
+#titan-profile-recovery + .asc-art-head,
+#titan-profile-recovery + * > .asc-page-head:first-child {
+  margin-top: 0;
+}
+@media (max-width: 959px) {
+  .asc-verify-alert + .asc-page-head,
+  .asc-verify-alert + .asc-art-head,
+  .asc-verify-alert + * > .asc-page-head:first-child,
+  #titan-profile-recovery + .asc-page-head,
+  #titan-profile-recovery + .asc-art-head,
+  #titan-profile-recovery + * > .asc-page-head:first-child {
+    padding-top: var(--s5);
+  }
+}
+@supports selector(:has(*)) {
+  body.asc:has(.asc-verify-alert),
+  body.asc:has(#titan-profile-recovery) {
+    --head-ink: var(--tx);
+    --head-line: rgba(241, 243, 239, 0.34);
+    --head-wash: rgba(9, 12, 16, 0.4);
+  }
+}
+@media (min-width: 960px) {
+  .asc-page-head {
+    margin: calc(-1 * var(--s8)) calc(-1 * var(--pad)) var(--s7);
+    padding: var(--s9) var(--pad) var(--s6);
+  }
+}
+/* The pages of a space, under its field: a ruled row, the current one in the space colour. */
 .asc-subnav {
   display: flex;
   gap: var(--s1);
   overflow-x: auto;
   scrollbar-width: none;
-  margin: calc(-1 * var(--s3)) calc(-1 * var(--s4)) var(--s6);
-  padding: 0 var(--s4);
-  border-bottom: 1px solid var(--line);
+  margin: calc(-1 * var(--s6)) calc(-1 * var(--pad)) var(--s6);
+  padding: 0 calc(var(--pad) - var(--s3));
+  border-bottom: 1px solid var(--line-2);
   /* The links are filled by the shell after load: the row is reserved so the page below never jumps. */
-  min-height: var(--subnav-h, 46px);
+  min-height: var(--subnav-h, 50px);
   box-sizing: border-box;
 }
 .asc-subnav::-webkit-scrollbar {
@@ -571,25 +856,28 @@ body.asc {
 }
 .asc-subnav a {
   flex: none;
-  padding: var(--s3) var(--s3) calc(var(--s3) - 2px);
-  border-bottom: 2px solid transparent;
-  color: var(--tx-3);
-  font-weight: 650;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--s3);
+  border-bottom: 3px solid transparent;
+  color: var(--tx-2);
+  font-weight: 600;
+  font-size: 15px;
   white-space: nowrap;
 }
 .asc-subnav a:hover {
-  color: var(--tx-2);
+  color: var(--tx);
 }
 .asc-subnav a[aria-current="page"] {
-  color: var(--tx);
-  border-color: var(--cy);
+  color: var(--space);
+  border-color: var(--space);
+  font-weight: 700;
 }
 @media (min-width: 960px) {
   .asc-subnav {
-    margin-left: 0;
-    margin-right: 0;
-    padding: 0;
+    margin-top: calc(-1 * var(--s7));
+    margin-bottom: var(--s7);
   }
 }
 
@@ -599,12 +887,12 @@ body.asc {
   align-items: center;
   justify-content: center;
   gap: var(--s2);
-  min-height: 46px;
+  min-height: 48px;
   padding: 0 var(--s5);
   border-radius: var(--r2);
-  border: 1px solid transparent;
-  font-weight: 750;
-  font-size: 15px;
+  border: 1.5px solid transparent;
+  font-weight: 700;
+  font-size: 15.5px;
   line-height: 1;
   white-space: nowrap;
   transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
@@ -620,20 +908,21 @@ body.asc {
   pointer-events: none;
 }
 .asc-btn-primary {
-  background: var(--cy);
-  color: var(--cy-ink);
+  background: var(--space);
+  color: var(--space-ink);
+  font-weight: 800;
 }
 .asc-btn-primary:hover {
-  background: var(--cy-2);
+  background: var(--space-hi);
 }
 .asc-btn-secondary {
-  background: var(--bg-2);
-  border-color: var(--line-2);
+  background: transparent;
+  border-color: var(--line-3);
   color: var(--tx);
 }
 .asc-btn-secondary:hover {
-  border-color: var(--line-3);
-  background: var(--bg-3);
+  border-color: var(--tx);
+  background: var(--bg-2);
 }
 .asc-btn-ghost {
   background: transparent;
@@ -652,7 +941,7 @@ body.asc {
 .asc-btn-sm {
   min-height: 36px;
   padding: 0 var(--s3);
-  font-size: 13px;
+  font-size: 13.5px;
   border-radius: var(--r1);
 }
 .asc-btn-block {
@@ -667,11 +956,11 @@ body.asc {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--cy);
+  color: var(--space);
   font-weight: 700;
 }
 .asc-link:hover {
-  color: var(--cy-2);
+  color: var(--space-hi);
 }
 .asc-actions {
   display: flex;
@@ -680,70 +969,73 @@ body.asc {
   align-items: center;
 }
 
-/* ---------- Surfaces ---------- */
+/* ---------- Surfaces ----------
+   Cards are not the structure of a page. A section opens with a rule and a real heading; what it holds sits on the ground.
+   .asc-panel is the default sheet (one tone above the ground, no outline); .asc-ruled is a block on the ground under a hairline;
+   .asc-slab is the one solid block of a page, in the space colour with ink text. */
 .asc-hero {
   position: relative;
   overflow: hidden;
-  border-radius: var(--r4);
-  background: var(--bg-1);
-  border: 1px solid var(--line);
-  padding: var(--s6);
+  border-radius: var(--r3);
+  background: var(--bg-2);
+  padding: var(--s5);
   isolation: isolate;
 }
-.asc-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: url("/assets/ascension/contours.svg") right -40px top -60px / 520px auto no-repeat;
-  opacity: 0.55;
-  pointer-events: none;
-}
 .asc-hero.is-record {
-  border-color: var(--am-line);
-}
-.asc-hero.is-record::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 2px;
-  background: var(--am);
-}
-.asc-hero.is-accent::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 2px;
-  background: var(--cy);
+  background: #1b160b;
 }
 @media (min-width: 720px) {
   .asc-hero {
-    padding: var(--s8);
+    padding: var(--s7);
   }
 }
 .asc-panel {
-  background: var(--bg-1);
-  border: 1px solid var(--line);
+  background: var(--bg-2);
   border-radius: var(--r3);
   padding: var(--s5);
+}
+.asc-ruled {
+  border-top: 1px solid var(--line-2);
+  padding-top: var(--s4);
+}
+.asc-slab {
+  background: var(--space);
+  color: var(--space-ink);
+  border-radius: var(--r3);
+  padding: var(--s5);
+}
+.asc-slab :where(h1, h2, h3, h4) {
+  color: var(--space-ink);
+}
+.asc-slab :where(.asc-lead, .asc-muted, .asc-faint, .asc-eyebrow, .asc-small) {
+  color: var(--space-ink);
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .asc-slab :where(.asc-lead, .asc-muted, .asc-faint, .asc-eyebrow, .asc-small) {
+    color: color-mix(in srgb, var(--space-ink) 84%, transparent);
+  }
 }
 .asc-section {
   margin-top: var(--s8);
 }
+/* A section opens like a line of a printed programme: a rule across the column, then its title. */
 .asc-section-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--s3);
-  margin-bottom: var(--s4);
+  min-height: 44px;
+  margin-bottom: var(--s3);
+  padding-top: var(--s2);
+  border-top: 2px solid var(--tx);
 }
 .asc-section-head h2 {
-  font-size: 20px;
-  font-stretch: 90%;
+  font-size: 21px;
+  line-height: 1.15;
 }
 .asc-divider {
   height: 1px;
-  background: var(--line);
+  background: var(--line-2);
   border: 0;
   margin: var(--s6) 0;
 }
@@ -755,6 +1047,7 @@ body.asc {
   .asc-grid-2 {
     grid-template-columns: 1.35fr 1fr;
     align-items: start;
+    gap: var(--s8);
   }
   .asc-grid-2.even {
     grid-template-columns: 1fr 1fr;
@@ -774,24 +1067,56 @@ body.asc {
 }
 .asc-stat-value {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-stretch: 78%;
-  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 700;
+  font-stretch: var(--w-figure);
+  font-size: clamp(32px, 5vw, 42px);
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
 }
 .asc-stat-value small {
-  font-size: 0.48em;
+  font-size: 0.5em;
   font-weight: 700;
   color: var(--tx-2);
   margin-left: 2px;
   letter-spacing: 0;
 }
 .asc-stat-label {
-  font-size: 12.5px;
-  color: var(--tx-3);
+  font-size: 13px;
+  color: var(--tx-2);
   font-weight: 600;
+}
+/* Figures side by side under one rule, the way a result sheet sets them: no box per figure. */
+.asc-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: var(--s4) var(--s5);
+}
+.asc-figures > * {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  align-content: start;
+}
+.asc-figures .asc-figure-value {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-weight: 300;
+  font-size: clamp(48px, 11vw, 72px);
+  line-height: 0.92;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.asc-figures .asc-figure-value small {
+  font-size: 0.42em;
+  font-weight: 700;
+  margin-left: 3px;
+  letter-spacing: 0;
+}
+.asc-figures .asc-figure-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx-2);
 }
 .asc-delta {
   display: inline-flex;
@@ -802,7 +1127,7 @@ body.asc {
   color: var(--tx-2);
 }
 .asc-delta.up {
-  color: var(--cy);
+  color: var(--space);
 }
 .asc-delta.down {
   color: var(--tx-3);
@@ -811,15 +1136,17 @@ body.asc {
   list-style: none;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--line);
+}
+.asc-section-head + .asc-list {
+  margin-top: calc(-1 * var(--s3));
 }
 .asc-row {
   display: flex;
   align-items: center;
   gap: var(--s3);
-  min-height: 60px;
+  min-height: 64px;
   padding: var(--s3) 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-2);
 }
 a.asc-row,
 button.asc-row {
@@ -831,20 +1158,22 @@ button.asc-row {
   text-align: left;
   transition: background var(--t-fast) var(--ease);
 }
-a.asc-row:hover,
-button.asc-row:hover {
-  background: linear-gradient(90deg, transparent, var(--bg-1) 12%, var(--bg-1) 88%, transparent);
+a.asc-row:hover .asc-row-title,
+button.asc-row:hover .asc-row-title {
+  color: var(--space);
 }
+/* The icon of a row is a mark, not a tile: no box around it. */
 .asc-row-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r2);
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
-  background: var(--bg-2);
-  border: 1px solid var(--line);
   color: var(--tx-2);
   flex: none;
+}
+.asc-row-icon .t-icon {
+  width: 22px;
+  height: 22px;
 }
 .asc-row-main {
   flex: 1;
@@ -859,8 +1188,8 @@ button.asc-row:hover {
   text-overflow: ellipsis;
 }
 .asc-row-sub {
-  font-size: 13px;
-  color: var(--tx-3);
+  font-size: 13.5px;
+  color: var(--tx-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -874,48 +1203,49 @@ button.asc-row:hover {
 }
 .asc-row-end strong {
   font-family: var(--font-display);
-  font-stretch: 82%;
-  font-size: 17px;
+  font-stretch: var(--w-figure);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
+/* A chip is a small squared tag: a wash, no outline. */
 .asc-chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   min-height: 26px;
   padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line-2);
+  border-radius: var(--r1);
+  background: var(--bg-3);
   color: var(--tx-2);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 650;
   white-space: nowrap;
 }
 .asc-chip.cy {
-  border-color: var(--cy-line);
-  color: var(--cy);
-  background: var(--cy-soft);
+  color: var(--space);
+  background: var(--space-soft);
 }
 .asc-chip.am {
-  border-color: var(--am-line);
   color: var(--am);
   background: var(--am-soft);
 }
 .asc-chip.warn {
-  border-color: rgba(240, 162, 74, 0.45);
   color: var(--warn);
+  background: rgba(240, 162, 74, 0.12);
 }
 .asc-chip.err {
-  border-color: rgba(242, 102, 95, 0.45);
-  color: var(--err);
+  color: #ff8d87;
+  background: var(--err-soft);
 }
 
 /* Progression line: an ascension profile that fills up. */
 .asc-ascent {
   position: relative;
-  height: 10px;
+  height: 6px;
   border-radius: 999px;
-  background: var(--bg-3);
+  background: var(--bg-4);
   overflow: hidden;
 }
 .asc-ascent > span {
@@ -923,14 +1253,14 @@ button.asc-row:hover {
   inset: 0 auto 0 0;
   width: var(--p, 0%);
   border-radius: inherit;
-  background: linear-gradient(90deg, rgba(61, 217, 232, 0.55), var(--cy));
-  transition: width 900ms var(--ease);
+  background: var(--cy);
+  transition: width 600ms var(--ease);
 }
 .asc-ascent.am > span {
-  background: linear-gradient(90deg, rgba(244, 187, 84, 0.5), var(--am));
+  background: var(--am);
 }
 .asc-ascent.thin {
-  height: 6px;
+  height: 4px;
 }
 
 /* Cadence: eight weekly notches. */
@@ -940,26 +1270,24 @@ button.asc-row:hover {
   gap: 5px;
 }
 .asc-notch {
-  height: 30px;
-  border-radius: 6px;
+  height: 22px;
+  border-radius: 2px;
   background: var(--bg-3);
-  border: 1px solid var(--line);
   position: relative;
 }
 .asc-notch[data-state="held"] {
   background: var(--cy);
-  border-color: var(--cy);
 }
 .asc-notch[data-state="partial"] {
-  background: linear-gradient(0deg, var(--cy-soft) var(--fill, 50%), var(--bg-3) var(--fill, 50%));
-  border-color: var(--cy-line);
+  background: linear-gradient(0deg, rgba(61, 217, 232, 0.45) var(--fill, 50%), var(--bg-3) var(--fill, 50%));
 }
 .asc-notch[data-state="pause"] {
-  background: repeating-linear-gradient(135deg, var(--bg-3) 0 4px, var(--bg-2) 4px 8px);
+  background: repeating-linear-gradient(135deg, var(--bg-3) 0 4px, var(--bg-1) 4px 8px);
 }
 .asc-notch[data-state="current"] {
-  border: 1px dashed var(--cy-line);
-  background: linear-gradient(0deg, var(--cy-soft) var(--fill, 0%), transparent var(--fill, 0%));
+  outline: 1.5px dashed var(--cy-line);
+  outline-offset: -1.5px;
+  background: linear-gradient(0deg, rgba(61, 217, 232, 0.45) var(--fill, 0%), transparent var(--fill, 0%));
 }
 
 /* ---------- Forms ---------- */
@@ -970,13 +1298,13 @@ button.asc-row:hover {
 }
 .asc-field > span,
 .asc-label {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--tx-2);
 }
 .asc-field small {
-  color: var(--tx-3);
-  font-size: 12px;
+  color: var(--tx-2);
+  font-size: 12.5px;
 }
 .asc-input,
 .asc select,
@@ -985,7 +1313,7 @@ button.asc-row:hover {
   min-height: 48px;
   padding: 0 var(--s4);
   border-radius: var(--r2);
-  border: 1px solid var(--line-2);
+  border: 1.5px solid var(--line-4);
   background: var(--bg-1);
   color: var(--tx);
   font-size: 16px;
@@ -1009,13 +1337,13 @@ button.asc-row:hover {
 .asc-input:hover,
 .asc select:hover,
 .asc textarea:hover {
-  border-color: var(--line-3);
+  border-color: var(--tx-3);
 }
 .asc-input:focus,
 .asc select:focus,
 .asc textarea:focus {
   outline: none;
-  border-color: var(--cy);
+  border-color: var(--space);
   background: var(--bg-2);
 }
 .asc-input::placeholder,
@@ -1038,22 +1366,21 @@ button.asc-row:hover {
   padding: 3px;
   border-radius: var(--r2);
   background: var(--bg-2);
-  border: 1px solid var(--line);
 }
 .asc-seg button {
   min-height: 38px;
   padding: 0 var(--s3);
   border: 0;
-  border-radius: 9px;
+  border-radius: 5px;
   background: transparent;
-  color: var(--tx-3);
+  color: var(--tx-2);
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: 14px;
 }
 .asc-seg button[aria-pressed="true"],
 .asc-seg button[aria-selected="true"] {
-  background: var(--bg-4);
-  color: var(--tx);
+  background: var(--space);
+  color: var(--space-ink);
 }
 .asc-scale {
   display: grid;
@@ -1061,19 +1388,20 @@ button.asc-row:hover {
   gap: 4px;
 }
 .asc-scale button {
-  min-height: 42px;
+  min-height: 44px;
   border-radius: var(--r1);
-  border: 1px solid var(--line);
-  background: var(--bg-1);
+  border: 0;
+  background: var(--bg-2);
   color: var(--tx-2);
   font-family: var(--font-display);
-  font-weight: 800;
-  font-stretch: 85%;
+  font-weight: 700;
+  font-stretch: var(--w-figure);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
 }
 .asc-scale button[aria-pressed="true"] {
-  background: var(--cy);
-  border-color: var(--cy);
-  color: var(--cy-ink);
+  background: var(--space);
+  color: var(--space-ink);
 }
 
 /* ---------- Feedback ---------- */
@@ -1106,23 +1434,32 @@ button.asc-row:hover {
   align-items: flex-start;
   padding: var(--s3) var(--s4);
   border-radius: var(--r2);
-  border: 1px solid var(--line);
-  background: var(--bg-1);
+  background: var(--bg-2);
   color: var(--tx-2);
-  font-size: 13.5px;
+  font-size: 14px;
 }
 .asc-note .t-icon {
   margin-top: 2px;
-  color: var(--tx-3);
+  color: var(--tx-2);
+}
+/* A note that carries an action: the sentence takes the room, the action keeps its label on one line at the end. */
+.asc-note > :where(span, p):first-child {
+  flex: 1;
+  min-width: 0;
+}
+.asc-note > .asc-btn {
+  flex: none;
+  align-self: center;
+  white-space: nowrap;
 }
 .asc-note.warn {
-  border-color: rgba(240, 162, 74, 0.35);
+  background: rgba(240, 162, 74, 0.1);
 }
 .asc-note.warn .t-icon {
   color: var(--warn);
 }
 .asc-note.err {
-  border-color: rgba(242, 102, 95, 0.35);
+  background: var(--err-soft);
 }
 .asc-note.err .t-icon {
   color: var(--err);
@@ -1153,9 +1490,8 @@ button.asc-row:hover {
   align-items: flex-start;
   padding: var(--s3) var(--s4);
   border-radius: var(--r2);
-  background: var(--bg-3);
-  border: 1px solid var(--line-2);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  background: var(--bg-4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   animation: asc-rise var(--t-med) var(--ease);
 }
 .asc-toast strong {
@@ -1167,7 +1503,7 @@ button.asc-row:hover {
   color: var(--tx-2);
 }
 .asc-toast.ok .t-icon {
-  color: var(--cy);
+  color: var(--ok);
 }
 .asc-toast.err .t-icon {
   color: var(--err);
@@ -1190,15 +1526,13 @@ button.asc-row:hover {
   width: 100%;
   max-width: 560px;
   max-height: 92dvh;
-  border-radius: var(--r4) var(--r4) 0 0;
-  background: var(--bg-1);
+  border-radius: var(--r3) var(--r3) 0 0;
+  background: var(--bg-2);
   color: var(--tx);
-  border-top: 1px solid var(--line-2);
   box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.5);
 }
 .asc-sheet::backdrop {
-  background: rgba(2, 4, 6, 0.7);
-  backdrop-filter: blur(3px);
+  background: rgba(2, 4, 6, 0.72);
 }
 .asc-sheet[open] {
   animation: asc-sheet-in var(--t-med) var(--ease);
@@ -1224,8 +1558,7 @@ button.asc-row:hover {
 @media (min-width: 720px) {
   .asc-sheet {
     margin: auto;
-    border-radius: var(--r4);
-    border: 1px solid var(--line-2);
+    border-radius: var(--r3);
   }
 }
 
@@ -1279,6 +1612,18 @@ html[data-motion="reduced"] *::after {
   justify-content: space-between;
   gap: var(--s3);
 }
+/* Text on one side, its actions on the other: the text takes the room and wraps, the actions keep their width and stay inside. */
+.asc-between > :where(span, div, p):first-child:not(:only-child) {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.asc-between > .asc-actions,
+.asc-between > .asc-btn {
+  flex: none;
+  justify-content: flex-end;
+  gap: var(--s1);
+}
 .asc-hide-mobile {
   display: none;
 }
@@ -1302,8 +1647,20 @@ html[data-motion="reduced"] *::after {
 .asc-more {
   margin-right: var(--s1);
 }
+/* The current page lives in the « Plus » sheet: the button carries a small dot in its own ink. It used to be a 3 px inner
+   shadow, which the rounded corners turned into a bracket under the icon that read as a rendering fault. */
 .asc-more[aria-current="page"] {
-  color: var(--cy);
+  position: relative;
+}
+.asc-more[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 .asc-more-legal {
   margin-top: var(--s4);
@@ -1311,10 +1668,9 @@ html[data-motion="reduced"] *::after {
 }
 
 /* Routes (GPS traces seen on the web): a plain drawing of the trace, no map server. */
-.jr-routes { margin-bottom: var(--s3, 12px); }
-.rt-map { width: 100%; height: auto; display: block; border: 1px solid var(--line-2); border-radius: 14px; }
+.rt-map { width: 100%; height: auto; display: block; border-radius: var(--r3); }
 .rt-map-bg { fill: var(--bg-2); }
-.rt-line { stroke: var(--cy); }
+.rt-line { stroke: var(--space); }
 .rt-start { fill: var(--ok, #4ade80); }
 .rt-end { fill: var(--am); }
 .rt-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: baseline; }
@@ -1322,6 +1678,60 @@ html[data-motion="reduced"] *::after {
 .rt-dot.rt-end { background: var(--am); }
 .rt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .rt-legend { margin: 6px 0 0; }
+
+/* Folding sections carry one mark everywhere: a chevron at the end of the line that turns when the section opens, instead of the
+   browser's triangle at its start. Components that draw their own mark (the QG « why », the optional measures of a session,
+   the public menu, coaching rows, the groups of the profile) are left alone; the rule has no specificity, so any component can still restyle its summary. */
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  list-style: none;
+  cursor: pointer;
+}
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary::-webkit-details-marker {
+  display: none;
+}
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary::after {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin: 0 6px 4px auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  opacity: 0.72;
+  transform: rotate(45deg);
+  transition: transform var(--t-fast, 0.16s) ease;
+}
+:where(.asc) details[open]:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary::after {
+  margin-bottom: -4px;
+  transform: rotate(-135deg);
+}
+/* A title never leaves one word, or a lone question mark, on its last line; a paragraph avoids a one-word last line. Browsers that
+   do not know these values keep their ordinary wrapping. */
+:where(.asc) :where(h1, h2, h3, .asc-h1, .asc-h2, .asc-h3, summary) {
+  text-wrap: balance;
+}
+:where(.asc) :where(p, li, dd) {
+  text-wrap: pretty;
+}
+/* A link written inside a sentence is recognisable as a link: the colour of the space and an underline. */
+:where(.asc-main) :where(p, li, dd) > a:where(:not([class])) {
+  color: var(--space);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  font-weight: 600;
+}
+:where(.asc-main) :where(p, li, dd) > a:where(:not([class])):hover {
+  color: var(--space-hi);
+}
+/* On a field of colour (a page header, the QG's next step) the link keeps the ink of the field. */
+:where(.asc-page-head, .qg-hero, [data-on-colour]) :where(p, li, dd) > a:where(:not([class])),
+:where(.asc-page-head, .qg-hero, [data-on-colour]) :where(p, li, dd) > a:where(:not([class])):hover {
+  color: inherit;
+}
 
 /* Touch targets (WCAG 2.2 AA 2.5.8): text links outside a paragraph, check boxes, radios and folding summaries are never smaller than a thumb allows. */
 @media (pointer: coarse) {
@@ -1359,7 +1769,7 @@ html[data-motion="reduced"] *::after {
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--t-med, 240ms) var(--ease, ease);
-  font-family: var(--font-text, system-ui, sans-serif);
+  font-family: var(--font, system-ui, sans-serif);
 }
 .titan-first-run-guide.active { opacity: 1; pointer-events: auto; }
 .titan-guide-panel {
@@ -1369,12 +1779,11 @@ html[data-motion="reduced"] *::after {
   max-height: min(720px, calc(100dvh - 36px));
   overflow-y: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--line-2, rgba(150, 180, 205, 0.2));
-  border-radius: var(--r2, 12px);
-  background: linear-gradient(180deg, var(--bg-3, #141c24), var(--bg-1, #090d12));
+  border-radius: var(--r3, 12px);
+  background: var(--bg-2, #131920);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
   padding: 24px;
-  color: var(--tx, #eef3f7);
+  color: var(--tx, #f1f3ef);
 }
 .titan-guide-close {
   position: absolute;
@@ -1394,20 +1803,18 @@ html[data-motion="reduced"] *::after {
 .titan-guide-close:hover { color: var(--tx, #eef3f7); border-color: var(--cy-line, rgba(61, 217, 232, 0.38)); }
 .titan-guide-kicker {
   margin-bottom: 6px;
-  color: var(--cy, #3dd9e8);
-  font-family: var(--font-display, system-ui, sans-serif);
-  font-size: 0.72rem;
+  color: var(--tx-2, #aeb7bd);
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 .titan-guide-panel h2 {
   margin: 0;
   padding-right: 48px;
   font-family: var(--font-display, system-ui, sans-serif);
-  font-size: 1.4rem;
+  font-stretch: 75%;
+  font-size: 1.7rem;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.1;
   letter-spacing: 0;
 }
 .titan-guide-copy { margin: 10px 0 18px; color: var(--tx-2, #a8b6c3); font-size: 0.94rem; line-height: 1.55; }
@@ -1417,10 +1824,8 @@ html[data-motion="reduced"] *::after {
   grid-template-columns: 38px 1fr;
   gap: 12px;
   align-items: center;
-  padding: 10px 12px;
-  border: 1px solid var(--line, rgba(150, 180, 205, 0.11));
-  border-radius: var(--r1, 8px);
-  background: var(--bg-2, #0e141a);
+  padding: 10px 0;
+  border-top: 1px solid var(--line-2, rgba(226, 234, 236, 0.17));
 }
 .titan-guide-step i {
   width: 38px;
@@ -1428,15 +1833,12 @@ html[data-motion="reduced"] *::after {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--cy-line, rgba(61, 217, 232, 0.38));
-  border-radius: var(--r1, 8px);
-  background: var(--cy-soft, rgba(61, 217, 232, 0.12));
   color: var(--cy, #3dd9e8);
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-style: normal;
 }
-.titan-guide-step strong { display: block; color: var(--tx, #eef3f7); font-family: var(--font-display, system-ui, sans-serif); font-size: 0.86rem; font-weight: 700; }
-.titan-guide-step span { display: block; margin-top: 2px; color: var(--tx-3, #7f909f); font-size: 0.8rem; line-height: 1.4; }
+.titan-guide-step strong { display: block; color: var(--tx, #f1f3ef); font-size: 0.92rem; font-weight: 700; }
+.titan-guide-step span { display: block; margin-top: 2px; color: var(--tx-2, #aeb7bd); font-size: 0.84rem; line-height: 1.4; }
 .titan-guide-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
 .titan-guide-primary,
 .titan-guide-secondary {
@@ -1446,9 +1848,8 @@ html[data-motion="reduced"] *::after {
   gap: 8px;
   min-height: 48px;
   padding: 0 16px;
-  border-radius: var(--r1, 8px);
-  font-family: var(--font-display, system-ui, sans-serif);
-  font-size: 0.9rem;
+  border-radius: var(--r2, 8px);
+  font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1463,3 +1864,224 @@ html[data-motion="reduced"] *::after {
   .titan-guide-actions { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { .titan-first-run-guide { transition: none; } }
+
+/* ---------- « Le programme » (js/app/program.js) ----------
+   TITAN's signature figure: the practice laid out like the schedule of a sports meeting. One line per sport, one column per day
+   or per week; a cell is inked in the colour of the sport's family at four strengths. */
+.prg {
+  --prg-name: 47%;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.prg-line {
+  display: grid;
+  grid-template-columns: minmax(0, var(--prg-name)) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s3);
+  min-height: 44px;
+  --fam: var(--tx-2);
+}
+.prg-line[data-family="endurance"] { --fam: var(--fam-endurance); }
+.prg-line[data-family="force"] { --fam: var(--fam-force); }
+.prg-line[data-family="technique"] { --fam: var(--fam-technique); }
+.prg-line[data-family="jeu"] { --fam: var(--fam-jeu); }
+.prg-line[data-family="mobilite"] { --fam: var(--fam-mobilite); }
+.prg-head {
+  min-height: 0;
+}
+.prg-name {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+}
+.prg-name .t-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--fam);
+}
+.prg-swatch {
+  width: 18px;
+  height: 3px;
+  background: var(--fam);
+  flex: none;
+}
+.prg-text {
+  display: grid;
+  min-width: 0;
+}
+.prg-text small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The name of a sport is never cut (« Musculation en salle » on a phone): it takes a second line. */
+.prg-text strong {
+  font-weight: 650;
+  font-size: 15px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.prg-text small {
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--tx-3);
+  font-variant-numeric: tabular-nums;
+}
+.prg-cells {
+  display: grid;
+  grid-template-columns: repeat(var(--prg-cols, 7), minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+}
+.prg-col {
+  padding: 2px 0 3px;
+  border-bottom: 2px solid transparent;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 15px;
+  color: var(--tx-3);
+  white-space: nowrap;
+  /* A label wider than its column (a month over a narrow week) spills over its neighbours, never out of the figure. */
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+/* Only a period has labels wider than a column: there the first and the last align to their edge. The letter of a day stays
+   centred over its column. */
+.prg[data-kind="span"] .prg-col:first-child {
+  justify-content: flex-start;
+}
+.prg[data-kind="span"] .prg-col:last-child {
+  justify-content: flex-end;
+}
+.prg-col.is-mark {
+  color: var(--space);
+  border-bottom-color: var(--space);
+}
+.prg-cell {
+  aspect-ratio: 1;
+  max-height: 36px;
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+.prg-cell.is-mark {
+  background: rgba(226, 234, 236, 0.05);
+}
+.prg-ink {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--fam);
+}
+.prg-ink[data-level="1"] { opacity: 0.34; }
+.prg-ink[data-level="2"] { opacity: 0.56; }
+.prg-ink[data-level="3"] { opacity: 0.78; }
+.prg-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  border: 1.5px dashed var(--fam);
+  opacity: 0.8;
+}
+.prg-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--tx-4);
+}
+.prg[data-kind="span"] .prg-cells {
+  gap: 3px;
+}
+.prg[data-kind="span"] .prg-col {
+  font-size: 11px;
+  font-weight: 600;
+}
+.prg-legend {
+  list-style: none;
+  margin: var(--s3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s4);
+  font-size: 12.5px;
+  color: var(--tx-2);
+}
+.prg-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.prg-legend i {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--tx-2);
+}
+.prg-legend li[data-family="endurance"] i { background: var(--fam-endurance); }
+.prg-legend li[data-family="force"] i { background: var(--fam-force); }
+.prg-legend li[data-family="technique"] i { background: var(--fam-technique); }
+.prg-legend li[data-family="jeu"] i { background: var(--fam-jeu); }
+.prg-legend li[data-family="mobilite"] i { background: var(--fam-mobilite); }
+@media (min-width: 720px) {
+  .prg {
+    --prg-name: 230px;
+  }
+  .prg-line {
+    grid-template-columns: var(--prg-name) minmax(0, 1fr);
+    gap: var(--s4);
+  }
+}
+
+/* ---------- Painting header (QG) ----------
+   The world's painting runs edge to edge and dissolves into the ground: the picture is the header, not a card inside it. */
+.asc-art-head {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 300px;
+  margin: calc(-1 * (var(--topbar) + var(--safe-t) + var(--s3))) calc(-1 * var(--pad)) 0;
+  padding: calc(var(--topbar) + var(--safe-t) + var(--s8)) var(--pad) var(--s4);
+  background: var(--bg);
+}
+.asc-art-img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center 38%;
+}
+.asc-art-head::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(9, 12, 16, 0.42) 0%, rgba(9, 12, 16, 0.26) 22%, rgba(9, 12, 16, 0.74) 66%, var(--bg) 100%);
+}
+.asc-art-copy {
+  display: grid;
+  gap: var(--s1);
+  min-width: 0;
+  max-width: 860px;
+}
+.asc-art-line {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--tx);
+}
+@media (min-width: 960px) {
+  .asc-art-head {
+    min-height: 400px;
+    margin: calc(-1 * var(--s8)) calc(-1 * var(--pad)) 0;
+    padding: var(--s10) var(--pad) var(--s5);
+  }
+}

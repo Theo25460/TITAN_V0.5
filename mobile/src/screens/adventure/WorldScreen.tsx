@@ -25,7 +25,7 @@ import { worldAccess } from "../../lib/adventureAccess";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
-import { colors, radius, space } from "../../theme/tokens";
+import { colors, radius, space, spaces } from "../../theme/tokens";
 
 /** One world: where you are on its nine-chapter path, what stands in the way, and what your next real session does. */
 export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootParams, "World">) {
@@ -86,9 +86,11 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
   return (
     <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
       <View style={styles.hero}>
-        <Image source={worldImages[world.image]} style={StyleSheet.absoluteFill} resizeMode="cover" />
-        <Shade from={0.05} start={0.2} to={0.92} />
+        <Image source={worldImages[world.image]} style={styles.heroArt} resizeMode="cover" accessibilityIgnoresInvertColors />
         <View style={{ padding: space.s4, gap: 6 }}>
+          {/* The scrim follows the text block: a dark plate with a soft upper edge, so the name, the pills and the bar read on
+              the brightest painting (the archipelago's sky and sea); the top of the painting stays clear. */}
+          <View style={styles.heroScrim} pointerEvents="none"><Shade from={0} start={0} end={0.3} to={0.84} /></View>
           <T variant="caption" color={world.color}>
             {world.subtitle}
           </T>
@@ -118,9 +120,10 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
         <Card style={{ gap: 6 }}>
           <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
             <Icon name="cloud" color={colors.tx2} />
-            <T variant="bodyStrong">Accès à vérifier</T>
+            <T variant="bodyStrong">Disponibilité à confirmer</T>
           </View>
-          <T variant="small">{access.reason}</T>
+          {/* The only non-open state the access rule knows is "not confirmed by the snapshot": no unlock condition exists, so none is stated. */}
+          <T variant="small">TITAN n’a pas encore reçu la confirmation que ce monde est ouvert pour ton compte. Actualise l’aventure ou réessaie plus tard. Tes acquis sont conservés.</T>
         </Card>
       ) : !chapter ? (
         <Reveal>
@@ -136,8 +139,8 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
               Ton chemin
             </T>
             {Codex.routes.map((r) => (
-              <Tap key={r.id} onPress={() => setRouteChoice(r.id)} accessibilityRole="radio" accessibilityState={{ checked: routeChoice === r.id }} accessibilityLabel={`${r.name} : ${r.description}`} style={[styles.route, routeChoice === r.id && { borderColor: colors.cy, backgroundColor: colors.cySoft }]}>
-                <Icon name={routeChoice === r.id ? "check" : r.id === "journal" ? "journal" : "route"} size={20} color={routeChoice === r.id ? colors.cy : colors.tx3} />
+              <Tap key={r.id} onPress={() => setRouteChoice(r.id)} accessibilityRole="radio" accessibilityState={{ checked: routeChoice === r.id }} accessibilityLabel={`${r.name} : ${r.description}`} style={[styles.route, routeChoice === r.id && { borderColor: spaces.aventure.accent, backgroundColor: spaces.aventure.soft }]}>
+                <Icon name={routeChoice === r.id ? "check" : r.id === "journal" ? "journal" : "route"} size={20} color={routeChoice === r.id ? spaces.aventure.accent : colors.tx3} />
                 <View style={{ flex: 1 }}>
                   <T variant="bodyStrong">{r.name}</T>
                   <T variant="caption" tone="faint">
@@ -207,7 +210,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
             ) : null}
 
             {cp.ready ? (
-              <Button label={`Allumer la balise du chapitre ${chapter}`} icon="check" loading={action.isPending} disabled={!online} onPress={() => claim(current)} testID="world-claim" />
+              <Button label={`Allumer la balise ${chapter}`} icon="check" loading={action.isPending} disabled={!online} onPress={() => claim(current)} testID="world-claim" />
             ) : (
               <View style={{ gap: space.s3 }}>
                 <T variant="small">{current.practice}</T>
@@ -275,6 +278,9 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
 
 const styles = StyleSheet.create({
   hero: { minHeight: 236, paddingTop: 44, borderRadius: radius.r3, overflow: "hidden", justifyContent: "flex-end", borderWidth: 1, borderColor: colors.line2 },
+  // A bundled image carries its own pixel size in its style: without an explicit size the painting is not scaled to its box.
+  heroArt: { ...StyleSheet.absoluteFill, width: "100%", height: "100%" },
+  heroScrim: { position: "absolute", left: 0, right: 0, bottom: 0, top: -44 },
   heroMeta: { flexDirection: "row", gap: space.s2, flexWrap: "wrap" },
   pill: { flexDirection: "row", flexShrink: 1, alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: "rgba(5,7,10,0.65)", borderWidth: 1, borderColor: colors.line2 },
   shrink: { flexShrink: 1 },

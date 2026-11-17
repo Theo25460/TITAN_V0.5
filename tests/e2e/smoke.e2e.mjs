@@ -941,10 +941,10 @@ test("onboarding finish: small screens contain the sports choice while pending a
   }
 });
 
-async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360, overview = {}, hash = "" } = {}) {
+async function communityPage({ hold = [], guild = false, wrongOwner = false, width = 360, overview = {}, hash = "", query = "" } = {}) {
   const fixture = await newPage(width), { page } = fixture;
   await page.route("**/js/app/communaute.js?*", r => r.fulfill({ contentType: "text/javascript", body: "" }));
-  await page.goto(BASE + "/social" + hash, { waitUntil: "load" });
+  await page.goto(BASE + "/social" + query + hash, { waitUntil: "load" });
   await page.waitForFunction(() => window.TitanAdventure?.status === "ready" && window.TitanAdventure.snapshot?.owner === window.state.user.id);
   await page.evaluate(({ hold, guild, wrongOwner, overview }) => {
     window.state.user.id = "alice";
@@ -1046,6 +1046,28 @@ test("community pending actions: accepting and declining the same request cannot
   const index = await page.evaluate(() => window.communityCalls.findIndex(c => c.name === "titan_social_respond"));
   await releaseCommunity(page, index);
   await page.waitForFunction(() => !document.querySelector("[data-accept]").disabled);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: without a ticked friend a challenge is open to anyone and its link is copied (AUD-34)", async () => {
+  const { page, context, errors } = await communityPage({ overview: { friends: [] } });
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", { value: { writeText: async (t) => { window.copied = t; } }, configurable: true });
+    const original = window.titanClient.rpc;
+    window.titanClient.rpc = (name, params) => {
+      if (name !== "titan_challenge_open_create_v1") return original(name, params);
+      window.openCreate = params;
+      const result = Promise.resolve({ data: { id: "c-open", token: "f".repeat(64), expiresAt: new Date(Date.now() + 86400000).toISOString() } });
+      const query = { setHeader: () => query, then: (yes, no) => result.then(yes, no) };
+      return query;
+    };
+  });
+  await page.locator("[data-new-challenge]").click();
+  await page.locator("dialog[open] form").evaluate((form) => form.requestSubmit());
+  await page.waitForFunction(() => typeof window.copied === "string");
+  assert.match(await page.evaluate(() => window.copied), /\/defi\?t=f{64}$/);
+  assert.equal(await page.evaluate(() => "p_invitees" in window.openCreate), false);
   assert.deepEqual(errors, []);
   await context.close();
 });
@@ -1429,6 +1451,35 @@ test("community: replacing the client rejects its late overview and focus loads 
   assert.equal(await page.locator(".cm-code-value").count(), 0);
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await page.getByText("Moment privé nouveau client", { exact: true }).waitFor();
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: an invitation link pre-fills the friend code once, and a malformed code is ignored (AUD-11)", async () => {
+  const { page, context, errors } = await communityPage({ query: "?ami=tn-zz99" });
+  await page.waitForFunction(() => document.querySelector("#cm-code")?.value === "TN-ZZ99");
+  await context.close();
+  const bad = await communityPage({ query: "?ami=%3Cimg%3E" });
+  assert.equal(await bad.page.locator("#cm-code").inputValue(), "");
+  assert.deepEqual([...errors, ...bad.errors], []);
+  await bad.context.close();
+});
+
+test("community: a guild invitation link pre-fills the join field for someone without a guild (AUD-11)", async () => {
+  const { page, context, errors } = await communityPage({ query: "?guilde=G-K7P2Q" });
+  await page.waitForFunction(() => document.querySelector("#cm-guild-code")?.value === "G-K7P2Q");
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("community: copying the friend code copies an invitation link that carries it (AUD-11)", async () => {
+  const { page, context, errors } = await communityPage();
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: { writeText: async (t) => { window.copied = t; } }, configurable: true }));
+  await page.locator("[data-copy-code]").click();
+  await page.waitForFunction(() => typeof window.copied === "string");
+  const copied = await page.evaluate(() => window.copied);
+  assert.match(copied, /\/social\?ami=TN-alice/);
+  assert.match(copied, /TN-alice/);
   assert.deepEqual(errors, []);
   await context.close();
 });
@@ -3494,7 +3545,7 @@ test("assistance labels: every shell consumer bypasses the previous cached label
     for (const version of ['300.0', '300.2', '300.3']) await cache.put('/js/app/shell.js?v=' + version, new Response(stale, { headers: { 'content-type': 'text/javascript' } }));
   }, shell);
   const consumers = readdirSync(ROOT).filter(name => name.endsWith('.html') && /src="\/js\/app\/shell\.js\?/.test(readFileSync(ROOT + '/' + name, 'utf8')));
-  assert.equal(consumers.length, 17, 'all current shell consumers are exercised');
+  assert.equal(consumers.length, 18, 'all current shell consumers are exercised');
   for (const filename of consumers) {
     const path = '/' + filename.replace(/\.html$/, '') + (filename === 'onboarding.html' ? '?again=1' : '');
     await page.goto(BASE + path, { waitUntil: 'load' });
@@ -3586,7 +3637,9 @@ test("assistance: a refund request is explicit and email delivery is never claim
   await page.goto(BASE + "/service", { waitUntil: "load" });
   const topic = page.locator('section[aria-labelledby="help-titanplus"]');
   assert.equal(await topic.count(), 1);
-  assert.match(await topic.innerText(), /pas automatiquement accordé/);
+  // A refund is never promised: Google Play's procedure first, then each request is examined.
+  assert.match(await topic.innerText(), /Un remboursement n’est pas automatique/);
+  assert.match(await topic.innerText(), /procédure de Google Play/);
   assert.match(await page.locator('section[aria-labelledby="help-contact"]').innerText(), /application de messagerie/);
   assert.match(await page.locator('section[aria-labelledby="help-contact"]').innerText(), /Rien n’est envoyé/);
   assert.equal(await page.getByText('titanteam.app@gmail.com', { exact: true }).count(), 1, "address can be copied when no mail app opens");
@@ -3652,7 +3705,9 @@ test("assistance: installed PWA can reach help offline before its first visit", 
   assert.equal(new URL(page.url()).pathname, '/service');
   assert.equal(await page.getByRole('navigation', { name: 'Choisir une catégorie' }).locator('a').count(), 6);
   assert.equal(await page.locator('.help-topics').evaluate(el => getComputedStyle(el).display), 'grid');
-  assert.equal(await page.locator('.pub-card').first().evaluate(el => getComputedStyle(el).borderTopStyle), 'solid');
+  // The public stylesheet is applied offline: a panel is one tone above the ground (it has no outline any more, see DESIGN.md).
+  assert.notEqual(await page.locator('.pub-card').first().evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)');
+  assert.equal(await page.locator('.pub-card').first().evaluate(el => getComputedStyle(el).borderTopStyle), 'none');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   await page.locator('a[href="#help-bug"]').click();
   await page.locator('section[aria-labelledby="help-bug"] summary').first().click();
@@ -4352,11 +4407,18 @@ test("checkout receipt: a real cross-tab lock protects confirmation from concurr
   await writer.waitForFunction(() => window.writerLocked);
   await page.evaluate(() => { window.atelierFixture.plus.active = true; dispatchEvent(new Event("online")); });
   await page.waitForFunction(async () => (await navigator.locks.query()).pending.some(l => l.name === "titan_checkout_receipt:" + window.state.user.id), null, { timeout: 2000 });
-  await writer.evaluate(() => {
-    const owner = "00000000-0000-4000-8000-000000000123";
-    localStorage.setItem("titan_checkout_started_v3:" + owner, JSON.stringify({ v: 3, owner, at: Date.now(), notified: false, consent: localStorage.getItem("titan_privacy_v1") }));
-    window.releaseWriter();
+  // localStorage reaches another tab asynchronously: the writer must copy the preference the page holds after its consent change,
+  // otherwise it stamps the receipt with the previous one and the page rightly refuses to measure it.
+  const preference = await page.evaluate(() => window.TitanAnalytics.consentSnapshot());
+  await writer.waitForFunction(p => localStorage.getItem("titan_privacy_v1") === p, preference);
+  const replacement = await writer.evaluate(() => {
+    const owner = "00000000-0000-4000-8000-000000000123", raw = JSON.stringify({ v: 3, owner, at: Date.now(), notified: false, consent: localStorage.getItem("titan_privacy_v1") });
+    localStorage.setItem("titan_checkout_started_v3:" + owner, raw);
+    return raw;
   });
+  // The lock serializes the two tabs, not the delivery of a localStorage write to the other one: release once the page sees it.
+  await page.waitForFunction(raw => localStorage.getItem("titan_checkout_started_v3:" + window.state.user.id) === raw, replacement);
+  await writer.evaluate(() => window.releaseWriter());
   await settleCheckout(page);
   assert.equal(await page.evaluate(() => window.checkoutWrites.filter(r => r.event_name === "premium_activated").length), 1, "the current replacement is measured after the writer releases its lock");
   assert.equal(await page.evaluate(() => window.activationToasts.length), 1);
@@ -6289,7 +6351,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text(), (deployedRefs[marker] || []).filter(url => url.split("?")[0] === path)]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
-    await cache.put("/css/ascension-app.css?v=300.0", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
+    await cache.put("/css/ascension-app.css?v=302.1", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
     await cache.put("/service", new Response('<!doctype html><html lang="fr"><body><h1>Ancienne aide en cache</h1></body></html>', { headers: { "content-type": "text/html" } }));
     for (const version of ['300.0','300.1','300.2','300.3']) {
       await cache.put(`/js/app/analytics.js?v=${version}`, new Response('window.TitanAnalytics = {EVENTS: new Set(["first_session"]), track: async () => false};', { headers: { "content-type": "text/javascript" } }));

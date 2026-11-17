@@ -1,6 +1,6 @@
 # Registre des assets V1.3
 
-Le JSON couvre 199 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 151 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
+Le JSON couvre 214 fichiers physiques, 19 familles en code, 81 glyphes, 260 entrées sport du catalogue hors ligne et 165 sources d’écran. Générer avec `node tools/v13-asset-registry.mjs` et vérifier avec `node tools/v13-asset-registry.mjs --check`.
 
 Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. Les références littérales et les usages par catalogue sont distingués. Le registre précise cadrage, décision, statut visuel et mesures restantes. Les captures Play Store sont incluses. Les captures de recette restent dans les preuves.
 
@@ -14,9 +14,10 @@ Chaque fichier indique sa provenance, version SHA, poids, dimensions et ratio. L
 | legacy-encounters | 80 | 89968606 | 5771850 |
 | notifications | 1 | 1382 | 1382 |
 | public-auth-hero | 5 | 350839 | 350839 |
-| store-listing | 15 | 6221203 | 0 |
+| ranks | 16 | 423852 | 423852 |
+| store-listing | 15 | 6257727 | 0 |
 | subscription | 4 | 154842 | 154842 |
-| typography | 12 | 506691 | 506691 |
+| typography | 11 | 563599 | 563599 |
 | world-map-decoration | 1 | 28400 | 28400 |
 | worlds | 18 | 2480758 | 2480758 |
 
@@ -72,7 +73,15 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 
 | Fichier | Famille | Octets | Dimensions | Décision |
 |---|---|---:|---|---|
-| `assets/ascension/contours.svg` | world-map-decoration | 28400 | 800×600 | retain |
+| `assets/ascension/contours.svg` | world-map-decoration | 28400 | 800×600 | fix |
+| `assets/ranks/eclaireur-256.webp` | ranks | 10486 | 256×256 | retain |
+| `assets/ranks/eclaireur-512.webp` | ranks | 28222 | 512×512 | retain |
+| `assets/ranks/explorateur-256.webp` | ranks | 14284 | 256×256 | retain |
+| `assets/ranks/explorateur-512.webp` | ranks | 39548 | 512×512 | retain |
+| `assets/ranks/gardien-256.webp` | ranks | 18104 | 256×256 | retain |
+| `assets/ranks/gardien-512.webp` | ranks | 46824 | 512×512 | retain |
+| `assets/ranks/sentinelle-256.webp` | ranks | 14850 | 256×256 | retain |
+| `assets/ranks/sentinelle-512.webp` | ranks | 39608 | 512×512 | retain |
 | `assets/renaissance/archipelago-small.webp` | worlds | 112454 | 800×450 | retain |
 | `assets/renaissance/archipelago-xs.webp` | worlds | 44338 | 480×270 | retain |
 | `assets/renaissance/archipelago.webp` | worlds | 386128 | 1600×900 | retain |
@@ -106,10 +115,8 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 | `assets/renaissance/valley-xs.webp` | worlds | 32900 | 480×270 | retain |
 | `assets/renaissance/valley.webp` | worlds | 277988 | 1600×900 | retain |
 | `css/fonts/archivo-latin-variable.woff2` | typography | 90104 | sans dimension raster | retain |
-| `css/fonts/manrope-latin-0.woff2` | typography | 15120 | sans dimension raster | retain |
-| `css/fonts/manrope-latin-1.woff2` | typography | 24836 | sans dimension raster | retain |
 | `css/fonts/remixicon.woff2` | typography | 143720 | sans dimension raster | retain |
-| `docs/play-store/README.md` | store-listing | 1998 | sans dimension raster | fix |
+| `docs/play-store/README.md` | store-listing | 4879 | sans dimension raster | fix |
 | `docs/play-store/feature-graphic-1024x500.png` | store-listing | 353883 | 1024×500 | fix |
 | `docs/play-store/phone-01-qg.png` | store-listing | 171459 | 1080×1920 | fix |
 | `docs/play-store/phone-02-seance.png` | store-listing | 185815 | 1080×1920 | fix |
@@ -241,14 +248,23 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 | `mobile/assets/brand/mark.png` | brand | 4363 | 256×256 | retain |
 | `mobile/assets/brand/notification.png` | notifications | 1382 | 96×96 | retain |
 | `mobile/assets/brand/splash-mark.png` | brand | 18018 | 1024×1024 | retain |
-| `mobile/assets/fonts/Manrope-Bold.ttf` | typography | 35560 | sans dimension raster | retain |
-| `mobile/assets/fonts/Manrope-ExtraBold.ttf` | typography | 35764 | sans dimension raster | retain |
-| `mobile/assets/fonts/Manrope-Regular.ttf` | typography | 35652 | sans dimension raster | retain |
-| `mobile/assets/fonts/Manrope-SemiBold.ttf` | typography | 35632 | sans dimension raster | retain |
 | `mobile/assets/fonts/TitanDisplay-Bold.ttf` | typography | 40768 | sans dimension raster | retain |
 | `mobile/assets/fonts/TitanDisplay-Heavy.ttf` | typography | 40648 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanFigure-Bold.ttf` | typography | 40456 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanFigure-Light.ttf` | typography | 40448 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanText-Bold.ttf` | typography | 40696 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanText-ExtraBold.ttf` | typography | 40740 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanText-Regular.ttf` | typography | 40796 | sans dimension raster | retain |
+| `mobile/assets/fonts/TitanText-SemiBold.ttf` | typography | 40720 | sans dimension raster | retain |
 | `mobile/assets/fonts/archivo-OFL.txt` | typography | 4503 | sans dimension raster | fix |
-| `mobile/assets/fonts/manrope-OFL.txt` | typography | 4384 | sans dimension raster | fix |
+| `mobile/assets/rank/eclaireur-256.webp` | ranks | 10486 | 256×256 | retain |
+| `mobile/assets/rank/eclaireur-512.webp` | ranks | 28222 | 512×512 | retain |
+| `mobile/assets/rank/explorateur-256.webp` | ranks | 14284 | 256×256 | retain |
+| `mobile/assets/rank/explorateur-512.webp` | ranks | 39548 | 512×512 | retain |
+| `mobile/assets/rank/gardien-256.webp` | ranks | 18104 | 256×256 | retain |
+| `mobile/assets/rank/gardien-512.webp` | ranks | 46824 | 512×512 | retain |
+| `mobile/assets/rank/sentinelle-256.webp` | ranks | 14850 | 256×256 | retain |
+| `mobile/assets/rank/sentinelle-512.webp` | ranks | 39608 | 512×512 | retain |
 | `mobile/assets/rpg/archipelago-small.webp` | worlds | 112454 | 800×450 | retain |
 | `mobile/assets/rpg/artisan-s.webp` | avatars | 10612 | 192×192 | retain |
 | `mobile/assets/rpg/aurora-small.webp` | worlds | 92238 | 800×450 | retain |
@@ -265,12 +281,12 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 | `mobile/assets/rpg/sentinel-s.webp` | avatars | 8926 | 192×192 | retain |
 | `mobile/assets/rpg/valley-small.webp` | worlds | 83722 | 800×450 | retain |
 | `mobile/docs/play-store/README.md` | store-listing | 1174 | sans dimension raster | fix |
-| `mobile/docs/play-store/phone-01-qg.png` | store-listing | 188054 | 1080×2160 | fix |
-| `mobile/docs/play-store/phone-02-apres-seance.png` | store-listing | 161039 | 1080×2160 | fix |
-| `mobile/docs/play-store/phone-03-tes-questions.png` | store-listing | 210663 | 1080×2160 | fix |
-| `mobile/docs/play-store/phone-04-monde.png` | store-listing | 834638 | 1080×2160 | fix |
-| `mobile/docs/play-store/phone-05-aventure.png` | store-listing | 2094859 | 1080×2160 | fix |
-| `mobile/docs/play-store/phone-06-records.png` | store-listing | 192398 | 1080×2160 | fix |
+| `mobile/docs/play-store/phone-01-qg.png` | store-listing | 767035 | 1080×2160 | fix |
+| `mobile/docs/play-store/phone-02-apres-seance.png` | store-listing | 136127 | 1080×2160 | fix |
+| `mobile/docs/play-store/phone-03-tes-questions.png` | store-listing | 195028 | 1080×2160 | fix |
+| `mobile/docs/play-store/phone-04-monde.png` | store-listing | 856811 | 1080×2160 | fix |
+| `mobile/docs/play-store/phone-05-aventure.png` | store-listing | 1570677 | 1080×2160 | fix |
+| `mobile/docs/play-store/phone-06-records.png` | store-listing | 189616 | 1080×2160 | fix |
 
 ## Contrôles de rendu restant ouverts
 

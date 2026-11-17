@@ -20,7 +20,7 @@ export function AboutScreen() {
       </Group>
       <Card style={{ gap: 6 }}>
         <T variant="bodyStrong">Licences</T>
-        <T variant="small">Polices Archivo et Manrope (SIL Open Font License 1.1). Application construite avec React Native et Expo (MIT), Supabase (MIT), TanStack Query (MIT), React Navigation (MIT).</T>
+        <T variant="small">Police Archivo (SIL Open Font License 1.1). Application construite avec React Native et Expo (MIT), Supabase (MIT), TanStack Query (MIT), React Navigation (MIT).</T>
       </Card>
     </Screen>
   );

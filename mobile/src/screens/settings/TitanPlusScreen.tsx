@@ -10,7 +10,7 @@ import { T } from "../../components/Text";
 import { fetchProfile } from "../../data/api";
 import { useOwner } from "../../data/auth";
 import { keys, useProfile } from "../../data/hooks";
-import { BILLING_BUILD, BillingError, buy, FREE_PLAN, loadCurrentPlayProduct, loadOffers, manageInPlay, messageFor, PLANS, restore, type Offer } from "../../lib/playBilling";
+import { BILLING_BUILD, BillingError, buy, FREE_PLAN, mentionsAds, visiblePerks, loadCurrentPlayProduct, loadOffers, manageInPlay, messageFor, PLANS, restore, type Offer } from "../../lib/playBilling";
 import { supabase } from "../../lib/supabase";
 import { colors } from "../../theme/tokens";
 
@@ -92,9 +92,13 @@ export function TitanPlusScreen() {
         setNote("Aucun accès actif n’a été confirmé. Consulte tes abonnements Google Play ou utilise « Restaurer mes achats ».");
         refresh();
       } else if (r.kind === "pending") setNote("Paiement en attente chez Google Play. Une fois confirmé, utilise « Restaurer mes achats ».");
-      else if (r.kind === "error") setNote(messageFor(r.error));
+      else if (r.kind === "error") {
+        setNote(messageFor(r.error));
+        // The server may have granted access although its answer was lost or late: read the profile and Play again instead of trusting the error.
+        refresh();
+      }
       if (r.kind === "active" || r.kind === "pending") setCurrentPlayProduct(undefined);
-      if (r.kind === "active") await refreshStorePlan();
+      if (r.kind === "active" || r.kind === "error") await refreshStorePlan();
     } catch (e) {
       if (alive.current) setNote(messageFor(e));
     } finally { stop(); }
@@ -105,7 +109,7 @@ export function TitanPlusScreen() {
     try {
       const r = await restore(accessToken);
       if (!alive.current) return;
-      setNote(r.active ? "Achats restaurés." : r.checked ? "Aucun abonnement actif n’a pu être rattaché à ce compte." : "Google Play ne signale aucun abonnement.");
+      setNote(r.active ? "Achats restaurés." : r.test ? messageFor(new BillingError("TEST_PURCHASE")) : r.checked ? "Aucun abonnement actif n’a pu être rattaché à ce compte." : "Google Play ne signale aucun abonnement.");
       refresh();
       await refreshStorePlan();
     } catch (e) {
@@ -125,10 +129,18 @@ export function TitanPlusScreen() {
         <T variant="h1" center>
           {live ? "TITAN+" : "TITAN+ — Bientôt disponible"}
         </T>
+        {/* One description of the offer, the reference wording of docs/v131/vocabulaire.md: what it adds, and what it never gives. */}
         <T tone="muted" center>
-          {live ? "Des analyses plus poussées et davantage de confort de personnalisation. Les prix sont ceux de Google Play." : "Des analyses plus poussées et davantage de confort de personnalisation. Pas encore proposé : aucun achat n’est possible aujourd’hui."}
+          TITAN+ ajoute des comparaisons de périodes, des bilans, des vues sauvegardées, plus de routines et un accès temporaire à quatre pièces de l’Atelier.{ADS_BUILD ? " Dans l’application, il retire aussi les publicités." : ""}
+        </T>
+        <T variant="bodyStrong" center testID="plus-fairplay">
+          Il ne donne ni XP, ni crédits, ni avance.
+        </T>
+        <T variant="small" tone="muted" center>
+          {live ? "Le prix et les conditions sont ceux que Google Play affiche avant toute validation." : "Pas encore en vente : aucun paiement n’est possible aujourd’hui."}
         </T>
       </View>
+      <T variant="caption" tone="faint">Les comparaisons et les bilans se consultent sur titan-app.fr, avec le même compte. Le journal, les analyses de base, la progression, les quatre campagnes, la Communauté et l’Atelier sont gratuits, sans limite de durée.</T>
       {profile?.is_elite ? (
         <Card tone="accent">
           <T variant="bodyStrong">Ton compte bénéficie déjà d’un accès TITAN+.</T>
@@ -139,7 +151,7 @@ export function TitanPlusScreen() {
       <Card style={{ gap: 6 }} testID="plan-free">
         <T variant="h3">{FREE_PLAN.name}</T>
         <T variant="caption" tone="faint">{FREE_PLAN.tagline}</T>
-        {FREE_PLAN.perks.filter((p) => ADS_BUILD || !/Publicités/.test(p)).map((p) => (
+        {visiblePerks(FREE_PLAN.perks, ADS_BUILD).map((p) => (
           <T key={p} variant="small">• {p}</T>
         ))}
       </Card>
@@ -149,9 +161,9 @@ export function TitanPlusScreen() {
         return (
           <Card key={plan.id} tone={plan.kind === "coach" ? "amber" : "accent"} style={{ gap: 6 }} testID={`plan-${plan.plan}`}>
             <T variant="h3">{plan.name}</T>
-            <T variant="caption" tone="faint">{plan.tagline}</T>
+            {ADS_BUILD || !mentionsAds(plan.tagline) ? <T variant="caption" tone="faint">{plan.tagline}</T> : null}
             <T variant="bodyStrong">{o ? o.price : live ? "Pas encore proposé" : "Bientôt disponible"}</T>
-            {plan.perks.map((p) => (
+            {visiblePerks(plan.perks, ADS_BUILD).map((p) => (
               <T key={p} variant="small">• {p}</T>
             ))}
             {plan.id === currentPlayProduct ? <T variant="caption" tone="muted">Offre détectée dans Google Play</T> : null}

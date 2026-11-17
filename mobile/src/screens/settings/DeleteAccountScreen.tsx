@@ -46,9 +46,15 @@ export function DeleteAccountScreen() {
       <Card style={{ gap: space.s2 }}>
         <T>Cette action efface ton compte TITAN sur l’application et sur titan-app.fr :</T>
         <T variant="small">• ton profil, ton journal de séances, tes objectifs et ta progression (niveau, XP, crédits, aventure) ;</T>
-        <T variant="small">• tes amitiés, moments et défis ;</T>
+        <T variant="small">• tes amitiés, tes Moments et tes défis ;</T>
+        <T variant="small">• tes parcours GPS et tes pas ;</T>
         <T variant="small">• les données de ce téléphone liées au compte.</T>
         <T variant="small">Elle est irréversible. Pense à exporter ton journal avant (Compte › Mes données).</T>
+      </Card>
+      {/* E-10: deleting the account does not stop a store subscription; said before the confirmation field, never after. */}
+      <Card tone="amber" style={{ gap: space.s1 }} testID="delete-subscription-warning">
+        <T variant="bodyStrong">Supprimer ton compte ne résilie pas un abonnement.</T>
+        <T variant="small">Si tu as TITAN+, Coach ou Coach Ultra, arrête-le d’abord dans tes abonnements Google Play : sinon il continue d’être facturé.</T>
       </Card>
       {queue.items.length ? <T variant="small" tone="warn">{Format.plural(queue.items.length, "séance non envoyée sera aussi effacée", "séances non envoyées seront aussi effacées")} de ce téléphone.</T> : null}
       <Field label="Pour confirmer, écris SUPPRIMER" value={confirm} onChangeText={setConfirm} autoCapitalize="characters" autoCorrect={false} />

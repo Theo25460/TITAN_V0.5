@@ -156,7 +156,7 @@ function Climb({ logs }: { logs: TrainingLog[] }) {
 function Load({ logs }: { logs: TrainingLog[] }) {
   const l = Questions.load(logs);
   const q = "Ma semaine est-elle plus chargée que d’habitude ?";
-  if (!l.enough) return <QuestionCard q={q} answer="Renseigne ton ressenti (RPE) sur la plupart de tes séances : TITAN pourra comparer ta charge avec tes semaines habituelles." basis="Charge = durée × ressenti. Il faut un ressenti sur au moins 60 % des séances." />;
+  if (!l.enough) return <QuestionCard q={q} answer="Renseigne ton ressenti sur la plupart de tes séances : TITAN pourra comparer ta charge avec tes semaines habituelles." basis="Charge = durée × ressenti. Il faut un ressenti sur au moins 60 % des séances." />;
   const pct = Math.round(l.ratio * 100);
   const [lead, answer] = l.level === "high" ? ["Oui, nettement :", `${pct} % de ta charge habituelle. Si la fatigue s’accumule, une journée plus calme aide à absorber le travail.`] : l.level === "low" ? ["Plus légère :", `${pct} % de ta charge habituelle.`] : ["Dans ta zone habituelle :", `${pct} % de ta moyenne des 4 semaines précédentes.`];
   return (
@@ -196,7 +196,7 @@ export function SportQuestions({ logs, cadenceTarget, pauses }: { logs: Training
 const styles = StyleSheet.create({
   line: { flexDirection: "row", alignItems: "center", gap: space.s2 },
   grades: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
-  grade: { minWidth: 64, gap: 2, padding: space.s2, borderRadius: radius.r1, backgroundColor: colors.bg1, borderWidth: 1, borderColor: colors.line },
+  grade: { minWidth: 64, gap: 2, padding: space.s2, borderRadius: radius.r1, backgroundColor: colors.bg1 },
   gradeLast: { borderColor: "rgba(244,187,84,0.5)" },
   gauge: { height: 12, borderRadius: 6, backgroundColor: colors.bg4, overflow: "hidden", justifyContent: "center" },
   gaugeFill: { height: 12, borderRadius: 6 },

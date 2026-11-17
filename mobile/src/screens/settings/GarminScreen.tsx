@@ -8,7 +8,7 @@ import { ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
 import { ToggleRow } from "../../components/Toggle";
 import { useOwner } from "../../data/auth";
-import { completeGarmin, connectGarmin, disconnectGarmin, GARMIN_CHECKING, garminFailureMessage, parseGarminReturn, readGarmin } from "../../lib/nativeConnections";
+import { completeGarmin, connectGarmin, disconnectGarmin, GARMIN_CHECKING, garminFailureMessage, garminWithdrawalMessage, parseGarminReturn, readGarmin } from "../../lib/nativeConnections";
 
 export function GarminScreen() {
   const owner = useOwner();
@@ -81,14 +81,15 @@ export function GarminScreen() {
     setMessage(null);
     try {
       completion.current?.abort();
-      if (remove) await disconnectGarmin(owner, fetch, current);
-      else {
+      // The server says whether Garmin confirmed the withdrawal on its side: when it did not, the athlete is told how to finish it there.
+      const withdrawal = remove ? await disconnectGarmin(owner, fetch, current) : null;
+      if (!remove) {
         awaitingReturn.current = true;
         await connectGarmin(owner, consent, Linking.openURL, fetch, current, dailies);
       }
       if (!current()) return;
       if (remove || awaitingReturn.current) {
-        setMessage(remove ? "L’autorisation Garmin a été retirée dans TITAN. Les séances déjà importées restent dans ton journal." : "Termine l’autorisation chez Garmin, puis reviens ici et actualise.");
+        setMessage(remove ? garminWithdrawalMessage(withdrawal ?? "unconfirmed") : "Termine l’autorisation chez Garmin, puis reviens ici et actualise.");
       }
       await q.refetch();
     } catch (error) {

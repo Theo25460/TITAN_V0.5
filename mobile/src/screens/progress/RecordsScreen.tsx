@@ -1,16 +1,18 @@
 import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
 import { Icon } from "../../components/Icon";
+import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
 import { EmptyState } from "../../components/States";
 import { T } from "../../components/Text";
 import { Format, Insights, Sports, type RecordEntry } from "../../core";
 import { useLogs } from "../../data/hooks";
-import { colors, space } from "../../theme/tokens";
+import { recordHistory } from "../../lib/recordBook";
+import { colors, space, TOUCH } from "../../theme/tokens";
 
 const KIND_LABEL: Record<RecordEntry["kind"], string> = { distance: "Distance", time: "Temps sur distance", duration: "Durée", strength: "Force", climbing: "Escalade" };
 
@@ -40,6 +42,8 @@ export function RecordsScreen() {
   const [sport, setSport] = useState<string | null>(null);
   const records = useMemo(() => Insights.records(active.filter((l) => l.syncStatus === "confirmed" || !l.syncStatus), "all", Date.now()), [active]);
   const sports = useMemo(() => [...new Set(records.map((r) => r.sport))], [records]);
+  const history = useMemo(() => recordHistory(active), [active]);
+  const [opened, setOpened] = useState<string | null>(null);
   const shown = records.filter((r) => !sport || r.sport === sport);
   const grouped = useMemo(() => {
     const m = new Map<string, RecordEntry[]>();
@@ -88,6 +92,25 @@ export function RecordsScreen() {
                 {Format.longDate(r.log.date)}
                 {details.get(r.id) ? ` · ${details.get(r.id)}` : ""}
               </T>
+              {(history.get(r.id)?.length ?? 0) > 1 ? (
+                opened === r.id ? (
+                  <View style={{ gap: 2, paddingTop: 4 }} testID={`record-book-${r.id}`}>
+                    <T variant="caption" tone="amber">Livre d’or · {history.get(r.id)!.length} étapes</T>
+                    {history.get(r.id)!.map((h) => (
+                      <T key={h.logId} variant="caption" tone="muted">
+                        {Format.longDate(h.date)} · {typeof h.value === "number" ? Format.recordValue(h.unit, h.value) : h.value}
+                      </T>
+                    ))}
+                  </View>
+                ) : (
+                  // A 48 dp target for a one-line link; the negative margins take that room from the card's own padding, so the card stays compact.
+                  <Tap onPress={() => setOpened(r.id)} accessibilityLabel={`Voir ses ${history.get(r.id)!.length} étapes depuis le début`} testID={`record-book-open-${r.id}`} style={styles.bookLink}>
+                    <T variant="caption" tone="accent">
+                      Voir ses {history.get(r.id)!.length} étapes depuis le début
+                    </T>
+                  </Tap>
+                )
+              ) : null}
             </Card>
           ))}
         </Section>
@@ -105,3 +128,7 @@ export function RecordsScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  bookLink: { minHeight: TOUCH, justifyContent: "center", alignSelf: "flex-start", paddingRight: space.s3, marginTop: -space.s2, marginBottom: -space.s3 },
+});

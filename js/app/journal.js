@@ -90,10 +90,20 @@
     const d = new Date(l.date);
     const fam = SP().familyOf(l.sport);
     const rec = recs.get(X().idOf(l));
+    // On a wide screen the journal reads as a table: time, distance and effort each in their own aligned column of figures,
+    // and the line under the sport keeps only what those columns do not say. On a phone the single line says it all.
+    const mets = window.TitanMoment?.metrics(l) || [];
+    const mins = minutes(l);
+    const dist = mets.find(([k]) => k === "Distance")?.[1] || "";
+    const rpe = Number(l.details?.rpe) > 0 ? String(Math.round(Number(l.details.rpe))) : "";
+    const rest = mets.filter(([k]) => !["Distance", "Durée", "Ressenti"].includes(k)).slice(0, 3).map(([k, v]) => (LABELLED[k] ? LABELLED[k](v) : v)).join(" · ");
     return `<button type="button" class="jr-row" data-open="${esc(X().idOf(l))}" data-family="${esc(fam)}">
       <span class="jr-date"><span class="asc-num">${d.getDate()}</span><small>${d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")}</small></span>
       <span class="jr-icon">${icon(SP().iconOf(l.sport))}</span>
-      <span class="jr-text"><span class="jr-title">${esc(SP().label(l.sport))}</span><span class="jr-sub">${esc(shortMetrics(l))}</span></span>
+      <span class="jr-text"><span class="jr-title">${esc(SP().label(l.sport))}</span><span class="jr-sub jr-sub-narrow">${esc(shortMetrics(l))}</span><span class="jr-sub jr-sub-wide">${esc(rest)}</span></span>
+      <span class="jr-fig" data-col="Durée">${mins ? esc(F().duration(mins)) : ""}</span>
+      <span class="jr-fig" data-col="Distance">${esc(dist)}</span>
+      <span class="jr-fig" data-col="Ressenti">${rpe ? `${rpe}<small>/10</small>` : ""}</span>
       <span class="jr-tags">${rec ? `<span class="asc-chip jr-badge am" title="${esc(rec.map((r) => r.label).join(", "))}">${icon("star")}Record</span>` : ""}${historical(l) ? '<span class="asc-chip jr-badge" title="Ajoutée plus de 30 jours après la séance : sans XP">Historique</span>' : ""}${syncBadge(l)}</span>
     </button>`;
   }
@@ -119,6 +129,7 @@
       const mins = logs.reduce((n, l) => n + (minutes(l) || 0), 0);
       out += `<section class="jr-month" aria-label="${esc(new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}">
         <header class="jr-month-head"><h2>${esc(new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: y === new Date().getFullYear() ? undefined : "numeric" }))}</h2><span class="asc-small asc-muted">${logs.length} séance${logs.length > 1 ? "s" : ""}${mins ? ` · ${esc(F().duration(mins))}` : ""}</span></header>
+        <div class="jr-cols" aria-hidden="true"><span></span><span></span><span>Séance</span><span>Durée</span><span>Distance</span><span>Ressenti</span><span></span></div>
         <div class="jr-rows">${logs.map((l) => rowHtml(l, recs)).join("")}</div></section>`;
       shown += logs.length;
     }
@@ -215,8 +226,13 @@
     const archivedCount = (window.state?.archivedHistory || []).length;
     const focus = document.activeElement?.id;
     root.innerHTML = `
-      ${window.titanFlags?.enabled?.("screens.activityhub", false) === true ? `<div class="asc-actions jr-add"><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Ajouter une activité</a><a class="asc-btn asc-btn-secondary" href="/training?mode=manual" data-journal-manual>Saisie manuelle</a></div>` : ""}
-      ${window.titanFlags?.enabled?.("screens.routes", false) === true ? `<div class="asc-actions jr-routes"><button type="button" class="asc-btn asc-btn-secondary" data-routes-open>${icon("route")} Mes parcours</button></div>` : ""}
+      ${(() => {
+        // One quiet row of entries, whatever the server has opened: adding by hand, importing a file, saved routes. They used to be
+        // two stacked rows of three large buttons that pushed the journal itself under the first screen of a phone.
+        const hub = window.titanFlags?.enabled?.("screens.activityhub", false) === true, routes = window.titanFlags?.enabled?.("screens.routes", false) === true;
+        if (!hub && !routes) return "";
+        return `<div class="jr-add">${hub ? `<a class="asc-btn asc-btn-secondary asc-btn-sm" href="/training?mode=manual" data-journal-manual>${icon("plus")} Ajouter</a><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/training?mode=import" data-journal-import>${icon("upload")} Importer</a>` : ""}${routes ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-routes-open aria-label="Mes parcours">${icon("route")} Parcours</button>` : ""}</div>`;
+      })()}
       ${pendingHtml()}
       <div class="jr-tools">
         <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>
@@ -258,7 +274,7 @@
     const r = l.details?.serverReward;
     if (String(window.state?.user?.id || "").startsWith("guest_")) return { cls: "", text: `≈ ${F().number(P().effortOf(l).xp)} XP estimés (mode découverte).` };
     if (l.syncStatus === "confirmed" && r && typeof r === "object" && r.reward_held) {
-      return { cls: "", text: `Récompense en vérification : ${F().number(r.held_xp)} XP retenus par précaution, au plus 24 h ; ils arrivent d’eux-mêmes si rien n’est trouvé.` };
+      return { cls: "", text: `Récompense en vérification : ${F().number(r.held_xp)} XP arrivent d’eux-mêmes d’ici 24 h, après une vérification de routine.` };
     }
     if (l.syncStatus === "confirmed") {
       const xp = Number(r?.xp ?? l.xp) || 0;

@@ -1,0 +1,5 @@
+{
+  "_comment": "What titan_feature_flags_v1 answered an anonymous visitor on production on 17 November 2026. Captures taken without these flags show a site no real visitor sees: every e2e journey cuts the network, so it runs with all of them off. screens.live is absent, which means closed.",
+  "flags": {"auth.google": true, "screens.buddy": true, "screens.clubs": true, "screens.duels": true, "screens.garmin": true, "screens.routes": true, "screens.intents": true, "screens.ranking": true, "screens.seasons": true, "screens.factions": true, "screens.pantheon": true, "screens.worldgoal": true, "screens.coachtools": true, "screens.gpxterrain": true, "screens.activityhub": true, "screens.coachexport": true, "screens.commonquest": true, "screens.coachanalysis": true, "screens.coachcalendar": true, "screens.consultations": true, "screens.coachworkspace": true},
+  "version": 1
+}

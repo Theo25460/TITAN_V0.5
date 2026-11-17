@@ -22,6 +22,8 @@ after(async () => { await browser?.close(); server?.kill(); });
 const NOON = new Date("2026-10-29T12:00:00Z");
 async function qg({ rows, missing = false, signedIn = true, width = 390, path = "/aujourdhui" } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, timezoneId: "UTC", serviceWorkers: "block" });
+  // The optional blocks of the QG are folded rows (js/app/qg.js); these journeys read inside them, as a sportsman who keeps them open.
+  await context.addInitScript(() => { try { localStorage.setItem("titan_qg_open_v1", JSON.stringify(["pas", "rv", "cq", "wg", "bd", "ss", "rk"])); } catch {} });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));

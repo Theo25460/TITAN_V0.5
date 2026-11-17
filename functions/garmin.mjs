@@ -38,6 +38,12 @@ const stateCookie = (value, age) => `${STATE_COOKIE}=${value}; Path=/; Secure; H
 const getStateCookie = request => (request.headers.get('cookie') || '').split(';').map(part => part.trim())
     .find(part => part.startsWith(`${STATE_COOKIE}=`))?.slice(STATE_COOKIE.length + 1);
 const outcome = (garmin, reason) => ({ garmin, ...(reason ? { garmin_reason: reason } : {}) });
+// The journal's own rules refused this summary (implausible speed, value or date out of range, same id with another content):
+// resending the same summary can never succeed. Answering 503 would make Garmin resend the whole envelope without end and hold
+// back every other activity in it. Quotas (TRAINING_RATE_LIMIT, 429), locks, conflicts and outages stay retryable.
+const FINAL_REFUSALS = new Set(['TRAINING_REJECTED', 'EVENT_CONTENT_CONFLICT']);
+const finalRefusal = result => result.status >= 400 && result.status < 500 && typeof result.data?.message === 'string'
+    && (FINAL_REFUSALS.has(result.data.message) || (result.data.code === '22023' && result.data.message.startsWith('TRAINING_')));
 
 function sameSecret(given, expected) {
     const a = crypto.createHash('sha256').update(String(given)).digest(), b = crypto.createHash('sha256').update(String(expected)).digest();
@@ -199,14 +205,19 @@ export default async function handler(request) {
                 const result = await rpc('titan_garmin_deregister_v1', { p_garmin_user: user });
                 if (!result.ok) return reply(503);
             }
+            let refused = 0;
             for (const activity of activities) {
                 const user = String(activity?.userId ?? '');
                 if (!GARMIN_USER.test(user) || ended.has(user)) continue;
                 const summary = Object.fromEntries(ACTIVITY_FIELDS.map(key => [key, activity[key]])
                     .filter(([, value]) => (typeof value === 'string' && value.length <= 128) || Number.isFinite(value)));
                 const result = await rpc('titan_garmin_ingest_v1', { p_garmin_user: user, p_activity: summary });
-                if (!result.ok) return reply(503);
+                if (result.ok) continue;
+                if (!finalRefusal(result)) return reply(503);
+                refused++;
             }
+            // A count only: no identity, no activity content.
+            if (refused) console.warn('[garmin] activities refused by the journal rules', { refused });
         } catch (_) { return reply(503); }
         return reply(200);
     }

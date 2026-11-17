@@ -22,6 +22,30 @@ describe("RPG heraldry", () => {
     render(<BeaconEmblem lit />);
     expect(screen.getByLabelText("Balise allumée")).toBeTruthy();
   });
+  test("an approved rank shows its sculpted badge in the same box as the vector crest; the others, and `vector`, stay drawn", () => {
+    const approved = ["eclaireur", "explorateur", "sentinelle", "gardien"] as const;
+    for (const id of RANK_IDS) {
+      const { unmount } = render(<RankCrest rank={id} size={86} />);
+      const badge = screen.queryByTestId(`rank-badge-${id}`);
+      if ((approved as readonly string[]).includes(id)) {
+        expect(badge).toBeTruthy();
+        expect(badge?.props.accessibilityLabel).toMatch(/^Blason \S/);
+        expect(badge?.props.style).toEqual({ width: 86, height: (86 * 182) / 172 });
+        expect(badge?.props.resizeMode).toBe("contain");
+      } else expect(badge).toBeNull();
+      unmount();
+    }
+    // The large file only above 86 dp (258 px at 3x): two different assets are bundled per rank.
+    const small = render(<RankCrest rank="gardien" size={86} />);
+    const smallSource = small.getByTestId("rank-badge-gardien").props.source;
+    small.unmount();
+    const large = render(<RankCrest rank="gardien" size={150} />);
+    expect(large.getByTestId("rank-badge-gardien").props.source).not.toEqual(smallSource);
+    large.unmount();
+    render(<RankCrest rank="gardien" size={96} vector />);
+    expect(screen.queryByTestId("rank-badge-gardien")).toBeNull();
+    expect(screen.getByLabelText("Blason Gardien")).toBeTruthy();
+  });
   test("embers are deterministic for a seed (same burst, stable tests) and stay in range", () => {
     const a = emberPlan(20, 5, ["#fff"]);
     expect(emberPlan(20, 5, ["#fff"])).toEqual(a);

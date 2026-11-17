@@ -100,19 +100,22 @@ for (const entry of readdirSync(root)) {
   copyFileOrDirectory(entry);
 }
 
-// Old workers and the HTTP cache can survive a deployment. Content-versioned first-party scripts
-// let the new HTML bypass both even while the old worker still controls the page.
-const scriptDigests = new Map();
+// Old workers and the HTTP cache can survive a deployment: /css and /js are served with a seven-day browser cache, and the hand-written
+// ?v= keys were not always changed with the file (nine deployments of the Programme redesign kept the same two stylesheet keys, so a
+// returning visitor saw the new pages with the old styles). Every first-party script AND stylesheet a page loads therefore carries a digest
+// of its own bytes: a changed file is a new address, an unchanged one stays cached, whatever ?v= says.
+const assetDigests = new Map();
 function versionScriptUrl(url) {
   const path = url.split('?')[0];
-  if (!scriptDigests.has(path)) {
+  if (!assetDigests.has(path)) {
     const source = assertInsideRoot(join(dist, path));
-    scriptDigests.set(path, createHash('sha256').update(readFileSync(source)).digest('hex').slice(0, 12));
+    assetDigests.set(path, createHash('sha256').update(readFileSync(source)).digest('hex').slice(0, 12));
   }
-  return `${url}${url.includes('?') ? '&' : '?'}rev=${scriptDigests.get(path)}`;
+  return `${url}${url.includes('?') ? '&' : '?'}rev=${assetDigests.get(path)}`;
 }
-const versionScripts = (html) => html.replace(/(<script\b[^>]*\ssrc=")(\/js\/(?!vendor\/)[^"#]+)"/g,
-  (_, prefix, url) => `${prefix}${versionScriptUrl(url)}"`);
+const versionScripts = (html) => html
+  .replace(/(<script\b[^>]*\ssrc=")(\.?\/js\/(?!vendor\/)[^"#]+)"/g, (_, prefix, url) => `${prefix}${versionScriptUrl(url)}"`)
+  .replace(/(<link\b[^>]*\shref=")(\.?\/css\/[^"#]+\.css(?:\?[^"#]*)?)"/g, (_, prefix, url) => `${prefix}${versionScriptUrl(url)}"`);
 
 for (const entry of readdirSync(root)) {
   if (!entry.endsWith('.html') || excludedHtml.has(basename(entry))) continue;
@@ -128,7 +131,7 @@ for (const entry of readdirSync(root)) {
 // Offline shell: every local asset the app pages load, plus the pages themselves.
 // Public help and its assets are available offline even before the first help visit.
 const APP_PAGES = ['aujourdhui', 'training', 'journal', 'stats', 'records', 'carriere', 'objectifs', 'prevoir', 'adventure', 'profile', 'social', 'coaching', 'boutique', 'onboarding', 'login', 'service'];
-const precache = new Set(['/', '/network-error.html', '/manifest.json', '/favicon.ico', '/image/logo-192.png', '/css/fonts/archivo-latin-variable.woff2', '/css/fonts/manrope-latin-0.woff2', '/css/fonts/manrope-latin-1.woff2', '/js/vendor/qrcode-generator-1.4.4.js']);
+const precache = new Set(['/', '/network-error.html', '/manifest.json', '/favicon.ico', '/image/logo-192.png', '/css/fonts/archivo-latin-variable.woff2', '/js/vendor/qrcode-generator-1.4.4.js']);
 const gpxWorkerUrl = '/js/core/gpx-worker.js';
 const gpxWorkerPath = join(dist, gpxWorkerUrl);
 precache.add(gpxWorkerUrl);
@@ -143,6 +146,8 @@ for (const page of APP_PAGES) {
   for (const [, url] of html.matchAll(/(?:src|href)="(\/(?:css|js)\/[^"]+)"/g)) precache.add(url);
 }
 for (const img of ['scout-s', 'ranger-s', 'keeper-s', 'artisan-s', 'navigator-s', 'sentinel-s', 'guardian-aube-s', 'guardian-marees-s', 'guardian-forge-s', 'guardian-aurores-s', 'valley-small', 'valley-xs', 'archipelago-xs', 'forge-xs', 'aurora-xs']) precache.add(`/assets/renaissance/${img}.webp`);
+// The approved rank badges (js/app/crest.js): the small file is enough offline, whatever the rank the sportsman holds.
+for (const rank of ['eclaireur', 'explorateur', 'sentinelle', 'gardien']) precache.add(`/assets/ranks/${rank}-256.webp`);
 for (const url of precache) {
   const file = join(dist, url.split('?')[0].replace(/^\//, '') || 'index.html');
   const page = url.startsWith('/') && !url.includes('.') && url !== '/' ? join(dist, `${url.slice(1)}.html`) : file;

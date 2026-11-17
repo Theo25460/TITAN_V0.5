@@ -38,6 +38,23 @@ describe("TITAN pedometer ledger", () => {
     expect(todaySteps(l, at(4, 12, 5))).toBe(650);
   });
 
+  test("a clock set forward or back without a reboot never credits the steps since the last boot a second time", () => {
+    const boot = at(1, 6); // the phone has been on for three days
+    let l = read(emptyLedger(), 40_000, at(4, 9), boot);
+    l = read(l, 40_300, at(4, 10), boot); // +300
+    expect(todaySteps(l, at(4, 10))).toBe(300);
+    // The person sets the clock one hour forward: "wall clock minus uptime" moves by an hour, the counter did not restart.
+    l = read(l, 40_350, at(4, 11, 10), boot + 3_600_000); // 10 real minutes later, +50
+    expect(todaySteps(l, at(4, 11, 10))).toBe(350);
+    // And back again (automatic time correction).
+    l = read(l, 40_400, at(4, 10, 20), boot);
+    expect(todaySteps(l, at(4, 10, 20))).toBe(400);
+    // A real reboot afterwards is still seen: the new boot instant is later than the last reading.
+    const newBoot = at(4, 12);
+    l = read(l, 60, at(4, 12, 30), newBoot);
+    expect(todaySteps(l, at(4, 12, 30))).toBe(460);
+  });
+
   test("a total that goes backwards without a reboot is treated as a restart too", () => {
     let l = read(emptyLedger(), 5000, at(4, 9));
     l = read(l, 80, at(4, 10));

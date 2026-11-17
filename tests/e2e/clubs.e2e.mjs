@@ -35,6 +35,8 @@ const DATA = {
 async function tap(page, locator) { await locator.scrollIntoViewIfNeeded(); await page.waitForTimeout(500); await locator.click({ timeout: 5000 }); }
 async function panel({ flag = true, missing = false, signedIn = true } = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 900 }, timezoneId: "UTC", serviceWorkers: "block" });
+  // The optional panels of the Communauté are folded rows (js/app/communaute-extras.js); these journeys read inside them.
+  await context.addInitScript(() => { try { localStorage.setItem("titan_cm_open_v1", JSON.stringify(["consultations", "duels", "clubs", "factions", "pantheon"])); } catch {} });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));

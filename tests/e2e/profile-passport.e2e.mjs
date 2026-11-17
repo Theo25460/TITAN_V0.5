@@ -41,7 +41,10 @@ for (const width of [320, 360, 1280]) {
       assert.equal(await page.locator("[data-profile-group]").count(), 4);
       assert.equal(await page.locator("[data-profile-group][open]").count(), 0);
       assert.equal(await metrics.count(), 3);
-      assert.equal(await page.locator(".pf-crest svg").isVisible(), true);
+      // The rank crest is the approved badge image for the first four ranks and the vector crest above: either must be on screen,
+      // and an image must really be loaded from the site (no broken badge).
+      assert.equal(await page.locator(".pf-crest .crest").isVisible(), true);
+      await page.waitForFunction(() => { const crest = document.querySelector(".pf-crest .crest"); return crest.tagName !== "IMG" || (crest.complete && crest.naturalWidth > 0); });
       assert.equal(await page.getByRole("link", { name: /Mon parcours sportif/ }).getAttribute("href"), "/stats");
 
       if (process.env.TITAN_QA_SCREENSHOTS) {
@@ -89,7 +92,7 @@ for (const width of [320, 360, 1280]) {
           .map(element => element.className?.baseVal || element.className).slice(0, 10),
       }));
       assert.ok(geometry.content <= geometry.width, JSON.stringify(geometry));
-      assert.equal(await page.locator(".pf-crest svg").isVisible(), true);
+      assert.equal(await page.locator(".pf-crest .crest").isVisible(), true);
       const targets = await page.locator("[data-profile-group] > summary, [data-profile-personalize], .pf-sport-passport")
         .evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
       assert.equal(targets.length, 6);

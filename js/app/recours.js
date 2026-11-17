@@ -122,7 +122,7 @@
     const el = root();
     if (!el) return false;
     if (isGuest(ctx.owner) || !ctx.client) {
-      show('<p class="asc-note" role="status">Connecte-toi pour contester une décision. <a href="/login">Se connecter</a></p>');
+      show('<div class="asc-note" role="status"><span>Connecte-toi pour contester une décision.</span><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/login">Se connecter</a></div>');
       return false;
     }
     try {
@@ -142,7 +142,7 @@
     } catch (error) {
       if (run !== token || !same(ctx, context())) return false;
       const old = /could not find the function|PGRST202/i.test(String(error?.message || "")) || error?.code === "PGRST202";
-      show(`<p class="asc-note" role="alert">${old ? "Le service de recours n’est pas encore disponible." : "Impossible de charger tes recours pour le moment."} <button type="button" class="asc-btn asc-btn-secondary" data-appeal-retry>Réessayer</button></p>`);
+      show(`<div class="asc-note" role="alert"><span>${old ? "Le service de recours n’est pas encore disponible." : "Impossible de charger tes recours pour le moment."}</span><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-appeal-retry>Réessayer</button></div>`);
       return false;
     }
   }

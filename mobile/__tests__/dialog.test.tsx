@@ -65,7 +65,9 @@ describe("TITAN dialogs replace the system alert (V12-08)", () => {
     mount();
     act(() => Alert.alert("Obtenir « Cape de braise » ?", "120 crédits gagnés par tes séances.", [{ text: "Annuler", style: "cancel" }, { text: "Échanger 120 crédits contre cet objet", onPress: jest.fn() }]));
     const label = screen.getByText("Échanger 120 crédits contre cet objet");
-    expect(label.props.numberOfLines).toBe(2);
+    // Two lines at the default text size; no limit at all with a large system text size (Jest reports fontScale 2): never one line.
+    const lines = label.props.numberOfLines as number | undefined;
+    expect(lines === undefined || lines >= 2).toBe(true);
   });
 });
 

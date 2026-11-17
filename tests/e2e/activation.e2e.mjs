@@ -37,7 +37,9 @@ for(const width of [360,1280]){
    assert.doesNotMatch(await offers.textContent(),/ouvre plus de monde/);
    await offers.locator('[data-availability="now"]').waitFor();
    assert.match(await offers.locator('[data-availability="now"]').textContent(),/journal|Journal/);
-   assert.match(await offers.locator('[data-availability="planned"]').textContent(),/à venir/);
+   // The paid offers are announced, never sold on the site: the note says they are not purchasable yet and that no payment is possible.
+   assert.match(await offers.locator('[data-availability="planned"]').textContent(),/bientôt disponible/);
+   assert.match(await offers.locator('[data-availability="planned"]').textContent(),/aucun paiement n’est possible/);
    assert.match(await offers.textContent(),/routines/);
    if(process.env.TITAN_QA_SCREENSHOTS){await offers.scrollIntoViewIfNeeded();await page.screenshot({path:`/tmp/titan-activation-offer-${width}.png`});}
    assert.equal(await offers.getByRole('link',{name:'Commencer gratuitement',exact:true}).getAttribute('href'),'/onboarding');

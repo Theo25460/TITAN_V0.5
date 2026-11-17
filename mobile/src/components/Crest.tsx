@@ -1,9 +1,12 @@
-/* TITAN's RPG heraldry, drawn in code: seven rank crests (Éclaireur → Légende) that grow richer with the rank, and the beacon of a chapter.
-   Vector, so sharp on every screen and free of any image licence; the palette is the house one (steel → cyan for progression, amber for the
-   rare). Purely visual: a crest is earned by the rank the server confirms, it is never sold or unlocked by anything else. */
+/* TITAN's RPG heraldry: seven rank crests (Éclaireur → Légende) that grow richer with the rank, and the beacon of a chapter.
+   A rank whose sculpted badge was approved (core/images.ts `rankImages`, shipped in the app so it shows offline) is drawn from that image;
+   the others keep the vector crest below until theirs is approved. The palette is the house one (steel → cyan for progression, amber for
+   the rare). Purely visual: a crest is earned by the rank the server confirms, it is never sold or unlocked by anything else. */
 import { useId } from "react";
+import { Image } from "react-native";
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Polygon, RadialGradient, Rect, Stop } from "react-native-svg";
 import { EffortRules } from "../core";
+import { rankImages } from "../core/images";
 import { colors } from "../theme/tokens";
 
 export const RANK_IDS = ["eclaireur", "explorateur", "sentinelle", "gardien", "champion", "titan", "legende"] as const;
@@ -21,15 +24,36 @@ export const rankIdOf = (level: number): RankId => {
 const SHIELD = "M60 14 L100 26 V64 C100 94 82 116 60 128 C38 116 20 94 20 64 V26 Z";
 const INNER = "M60 23 L92 33 V64 C92 89 77 107 60 117 C43 107 28 89 28 64 V33 Z";
 
-/** The crest of a rank. `size` is the width of the whole drawing (wings, crown and rays included, so the shield itself is about 46 % of it). */
-export function RankCrest({ rank, size = 96, glow = true }: { rank: RankId; size?: number; glow?: boolean }) {
+/** Above this width the large file is used: 86 dp is 258 px on a 3x screen, the limit of the small one. */
+const LARGE_BADGE_FROM = 86;
+
+/** The crest of a rank. `size` is the width of the whole drawing (wings, crown and rays included, so the vector shield itself is about 46 % of it).
+    An approved badge fills the same box, so a screen keeps its layout whichever rank is shown. `vector` forces the drawn crest. */
+export function RankCrest({ rank, size = 96, glow = true, vector = false }: { rank: RankId; size?: number; glow?: boolean; vector?: boolean }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const t = RANK_IDS.indexOf(rank);
   const accent = RANK_ACCENT[rank];
   const chevrons = CHEVRONS[rank];
   const h = (size * 182) / 172;
+  const label = `Blason ${EffortRules.RANKS.find((r: { id: string }) => r.id === rank)?.name ?? ""}`;
+  const badge = vector ? undefined : rankImages[rank];
+  if (badge) {
+    return (
+      <Image
+        source={size > LARGE_BADGE_FROM ? badge.large : badge.small}
+        style={{ width: size, height: h }}
+        resizeMode="contain"
+        fadeDuration={0}
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel={label}
+        accessibilityIgnoresInvertColors
+        testID={`rank-badge-${rank}`}
+      />
+    );
+  }
   return (
-    <Svg width={size} height={h} viewBox="-26 -16 172 182" accessibilityLabel={`Blason ${EffortRules.RANKS.find((r: { id: string }) => r.id === rank)?.name ?? ""}`}>
+    <Svg width={size} height={h} viewBox="-26 -16 172 182" accessibilityLabel={label}>
       <Defs>
         <RadialGradient id={`g${uid}`} cx="60" cy="72" r="70" gradientUnits="userSpaceOnUse">
           <Stop offset="0" stopColor={accent} stopOpacity={0.18 + t * 0.05} />

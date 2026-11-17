@@ -111,20 +111,20 @@
         <span class="asc-ascent thin" role="progressbar" aria-label="Jours actifs à deux" aria-valuemin="0" aria-valuemax="${Number(data.target)}" aria-valuenow="${Math.min(Number(data.target), Number(data.together))}"><span style="--p:${percent}%"></span></span>
         <p class="asc-small asc-muted" data-bd-days>À deux : <strong>${Number(data.together)}</strong> / ${Number(data.target)} jours actifs · toi ${Number(data.myDays)}, ${name} ${Number(data.partnerDays)}</p>
         ${Number(data.nudgesReceived) > 0 ? `<p class="asc-small asc-muted" data-bd-received>${name} t’a encouragé${Number(data.nudgesReceived) > 1 ? ` ${Number(data.nudgesReceived)} fois` : ""}.</p>` : ""}
-        <div class="asc-row"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-bd-nudge="${esc(data.id)}" ${data.nudgedToday ? "disabled" : lock}>${data.nudgedToday ? "Encouragement envoyé" : `Encourager ${name}`}</button>
+        <div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-bd-nudge="${esc(data.id)}" ${data.nudgedToday ? "disabled" : lock}>${data.nudgedToday ? "Encouragement envoyé" : `Encourager ${esc(String(data.partner?.name || "ton ami").split(/\s+/)[0])}`}</button>
         <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-bd-end="${esc(data.id)}" ${lock}>Arrêter le binôme</button></div>`;
     } else if (data.status === "pending" && data.role === "invitee") {
       body = `<p><strong>${name}</strong> te propose une expédition à deux pendant 14 jours. Rien d’obligatoire : tu peux refuser, ou arrêter quand tu veux.</p>
-        <div class="asc-row"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-bd-respond="true" data-bd-id="${esc(data.id)}" ${lock}>Accepter</button>
+        <div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-bd-respond="true" data-bd-id="${esc(data.id)}" ${lock}>Accepter</button>
         <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-bd-respond="false" data-bd-id="${esc(data.id)}" ${lock}>Refuser</button></div>`;
     } else if (data.status === "pending") {
       body = `<p>Invitation envoyée à <strong>${name}</strong>. Elle attend sa réponse.</p>
-        <div class="asc-row"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-bd-end="${esc(data.id)}" ${lock}>Annuler l’invitation</button></div>`;
+        <div class="asc-actions"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-bd-end="${esc(data.id)}" ${lock}>Annuler l’invitation</button></div>`;
     } else {
       const friends = Array.isArray(data.friends) ? data.friends : [];
       body = friends.length
         ? `<p class="asc-muted">Propose une expédition de 14 jours à un ami et avancez à votre rythme. Facultatif, et chacun peut arrêter quand il veut.</p>
-           <div class="asc-row"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-bd-choose ${lock}>Choisir un ami</button></div>`
+           <div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-bd-choose ${lock}>Choisir un ami</button></div>`
         : `<p class="asc-muted">Quand tu auras ajouté un ami disponible, tu pourras lui proposer une expédition de 14 jours.</p>`;
     }
     return frame(data.status, `${body}${notice ? `<p class="asc-small" role="status" data-bd-notice>${esc(notice)}</p>` : ""}
@@ -142,7 +142,7 @@
     body.noValidate = true;
     body.innerHTML = `<p class="asc-muted">Ton ami pourra accepter ou refuser. L’expédition de 14 jours commence seulement après son accord.</p>
       <fieldset style="border:0;padding:0;margin:0;display:grid;gap:8px"><legend class="sr-only">Choisis un ami</legend>${friends.map((f, i) => `<label class="rv-share"><input type="radio" name="friend" value="${esc(f.id)}" ${i === 0 ? "checked" : ""}> <span>${esc(f.name)}</span></label>`).join("")}</fieldset>
-      <div class="asc-row"><button type="submit" class="asc-btn asc-btn-primary">Envoyer l’invitation</button></div>`;
+      <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary">Envoyer l’invitation</button></div>`;
     const d = window.titanShell.sheet({ title: "Choisir un binôme", eyebrow: "Facultatif", body, onClose: () => { if (dialog === d) dialog = null; } });
     dialog = d;
     body.addEventListener("submit", async (e) => {
@@ -174,7 +174,16 @@
   window.addEventListener("offline", () => { data = null; flight = null; if (dialog?.open) dialog.close(); changed(); });
   ["titan:account-changed", "titan:flags-updated", "titan:history-updated", "online"].forEach((ev) => window.addEventListener(ev, () => { sync(); changed(); refresh(); }));
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
-  window.TitanBuddy = { html, refresh };
+  /** One line for the folded row of the QG. */
+  function brief() {
+    sync();
+    if (!on() || missing || !data) return "";
+    const name = String(data.partner?.name || "ton ami").split(/\s+/)[0];
+    if (data.status === "active") return `Avec ${name} · ${Number(data.together)}/${Number(data.target)} jours actifs`;
+    if (data.status === "pending") return data.role === "invitee" ? `${name} te propose une expédition` : `Invitation envoyée à ${name}`;
+    return "Une expédition de 14 jours avec un ami";
+  }
+  window.TitanBuddy = { html, brief, refresh };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(() => refresh(), 0));
   else setTimeout(() => refresh(), 0);
 })();

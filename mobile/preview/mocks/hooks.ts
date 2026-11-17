@@ -19,7 +19,7 @@ export const usePrefs = () => actual.prefsOf(empty ? emptyProfile : profile);
 export const useLogs = () => ({ ...q(list), logs: list, active: Progress.activeLogs(list), archived: empty ? [] : archived, pending: [], confirmed: list });
 export const useGoals = () => q(empty ? [] : goals);
 export const useAdventure = () =>
-  q(empty ? { ...adventure, level: 1, xp: 0, credits: 0, campaigns: adventure.campaigns.map((c) => ({ ...c, chapter: 0 })), rewards: [] } : adventure);
+  q(empty ? { ...adventure, level: 1, xp: 0, next_level_xp: 500, credits: 0, campaigns: adventure.campaigns.map((c) => ({ ...c, chapter: 0 })), rewards: [] } : adventure);
 export const useAtelier = () => q(atelier);
 export const useSocial = () => q(empty ? { ...social, friends: [], requests_in: [], requests_out: [], moments: [], challenges: [], expedition: null, guild: null } : social);
 export const useCardSettings = () => q({ enabled: true, slug: "camille-7k2", show: { name: true, level: true, totals: false, sports: true, titles: true } });

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import { pedometer } from "../lib/pedometer";
 import { applyReading, emptyLedger, type Ledger, type Reading } from "../lib/stepLedger";
-import { ownerKey, readJSON, writeJSON } from "../lib/storage";
+import { onAccountErased, ownerKey, readJSON, writeJSON } from "../lib/storage";
 import { useOwner } from "./auth";
 
 export type PedometerPermissionState = "unknown" | "granted" | "denied" | "blocked";
@@ -44,16 +44,18 @@ let appActive = AppState.currentState !== "background" && AppState.currentState 
 function persistNow() {
   if (persistTimer) clearTimeout(persistTimer);
   persistTimer = null;
-  const { owner, ledger } = state;
-  if (owner) writeJSON(ledgerKey(owner), ledger).catch(() => {});
+  const { owner, ledger, ready } = state;
+  // Until the stored ledger has been read, the one in memory is an empty placeholder: writing it would erase the days already counted.
+  if (owner && ready) writeJSON(ledgerKey(owner), ledger).catch(() => {});
 }
 function schedulePersist() {
   if (!persistTimer) persistTimer = setTimeout(persistNow, 3000);
 }
 
 function apply(owner: string, reading: Reading) {
-  // A reading that arrives after the account changed belongs to nobody any more.
-  if (state.owner !== owner) return;
+  // A reading that arrives after the account changed belongs to nobody any more; one that arrives while the stored ledger
+  // is still being read (the same account signed in again) would be counted on an empty placeholder and then thrown away.
+  if (state.owner !== owner || !state.ready) return;
   set({ ledger: applyReading(state.ledger, reading), liveAt: reading.at });
   schedulePersist();
 }
@@ -137,6 +139,17 @@ async function clear() {
   set({ ledger: emptyLedger() });
   await writeJSON(ledgerKey(owner), emptyLedger()).catch(() => {});
 }
+
+// Account deletion: the ledger held in memory is dropped at once, so no pending or later save can write the erased steps back.
+onAccountErased((owner) => {
+  if (state.owner !== owner) return;
+  epoch++;
+  dropWatch();
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = null;
+  state = blank();
+  listeners.forEach((l) => l());
+});
 
 const subscribe = (l: () => void) => {
   listeners.add(l);

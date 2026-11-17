@@ -205,7 +205,7 @@ test("atelier access: a cached local flag cannot announce active access when the
   const f=await fixture({fail:true,localElite:true});
   try {
     assert.equal(await f.page.getByRole("heading",{name:"Ton accès TITAN+.",exact:true}).count(),0);
-    await root(f.page).getByText(/TITAN\+ : bientôt disponible/).waitFor();
+    await root(f.page).getByText(/TITAN\+ s’achète uniquement dans l’application Android/).waitFor();
     assert.equal(await root(f.page).locator('[data-checkout]').count(),0);
     assert.equal(await root(f.page).getByText(/5 € par mois/).count(),0);
     assert.deepEqual(f.errors,[]);
@@ -225,7 +225,7 @@ test("atelier access: server-confirmed access is neutral about payment and links
 test("atelier access: expired server profile fallback cannot announce active access",async()=>{
   const f=await fixture({missing:true,profileEnds:"2020-01-01T00:00:00Z"});
   try {
-    await root(f.page).getByText(/TITAN\+ : bientôt disponible/).waitFor();
+    await root(f.page).getByText(/TITAN\+ s’achète uniquement dans l’application Android/).waitFor();
     assert.equal(await f.page.getByRole("heading",{name:"Ton accès TITAN+.",exact:true}).count(),0);
     assert.equal(await f.page.evaluate(()=>window.at.profileCalls),1);
     assert.deepEqual(f.errors,[]);

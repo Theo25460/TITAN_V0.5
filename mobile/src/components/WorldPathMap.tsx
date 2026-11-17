@@ -1,7 +1,7 @@
 import { useWindowDimensions, View } from "react-native";
 import Svg, { Circle, G, Path, Text as SvgText } from "react-native-svg";
 import { layoutPath, worldPathHeight, ARC_LABEL } from "../lib/worldPath";
-import { colors, radius, space } from "../theme/tokens";
+import { colors, fonts, radius, space } from "../theme/tokens";
 import { T } from "./Text";
 
 /** A winding map of the nine chapters in three arcs, drawn from the real progress. Static: no motion to reduce, readable by a screen reader through its summary. */
@@ -19,8 +19,9 @@ export function WorldPathMap({ chapter, earned, color, worldName, finished }: { 
         {segments.filter(segment => segment.earned).map(segment => <Path key={segment.to} testID={`world-path-earned-${segment.to}`} d={segment.d} stroke={color} strokeWidth={5} strokeLinecap="round" fill="none" />)}
         {[1, 2, 3].map((a) => {
           const first = nodes.find((n) => n.arc === a)!;
+          // The app's own family, as a static instance (no synthetic weight): without it the label falls back to the system font.
           return (
-            <SvgText key={a} x={first.x < W / 2 ? W - 62 : 8} y={first.y + 4} fill={colors.tx3} fontSize={11} fontWeight="600">
+            <SvgText key={a} x={first.x < W / 2 ? W - 62 : 8} y={first.y + 4} fill={colors.tx3} fontSize={11} fontFamily={fonts.textSemi}>
               {ARC_LABEL[a - 1]}
             </SvgText>
           );
@@ -29,7 +30,7 @@ export function WorldPathMap({ chapter, earned, color, worldName, finished }: { 
           <G key={n.index}>
             {n.state === "current" ? <Circle cx={n.x} cy={n.y} r={22} fill="none" stroke={color} strokeWidth={2} opacity={0.5} /> : null}
             <Circle cx={n.x} cy={n.y} r={n.boss ? 17 : 13} fill={n.state === "done" ? color : colors.bg} stroke={n.state === "locked" ? colors.line3 : n.boss ? colors.am : color} strokeWidth={n.boss ? 3 : 2} />
-            {n.boss ? <Path d={`M ${n.x} ${n.y - 10} l 8 3 v 7 c 0 6 -4 10 -8 12 c -4 -2 -8 -6 -8 -12 v -7 Z M ${n.x - 4} ${n.y + 1} l 4 4 l 5 -7`} fill="none" stroke={n.state === "done" ? colors.bg : colors.am} strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" /> : <SvgText x={n.x} y={n.y + 4} fill={n.state === "done" ? colors.bg : n.state === "current" ? colors.tx : colors.tx3} fontSize={12 * Math.min(1.3, fontScale)} fontWeight="700" textAnchor="middle">{n.index}</SvgText>}
+            {n.boss ? <Path d={`M ${n.x} ${n.y - 10} l 8 3 v 7 c 0 6 -4 10 -8 12 c -4 -2 -8 -6 -8 -12 v -7 Z M ${n.x - 4} ${n.y + 1} l 4 4 l 5 -7`} fill="none" stroke={n.state === "done" ? colors.bg : colors.am} strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" /> : <SvgText x={n.x} y={n.y + 4} fill={n.state === "done" ? colors.bg : n.state === "current" ? colors.tx : colors.tx3} fontSize={12 * Math.min(1.3, fontScale)} fontFamily={fonts.textBold} textAnchor="middle">{n.index}</SvgText>}
           </G>
         ))}
       </Svg>

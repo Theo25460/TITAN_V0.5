@@ -22,7 +22,7 @@
  function content(world,s){
   const nodes=root.TitanAdventureRpg.path(world),worldInfo=root.TitanAdventureRpg.worlds.find(w=>w.id===world);
   if(!s)return '<p role="status">Le journal des rencontres se prépare…</p>';
-  if(!s.active)return `<h2 class="asc-h2">Les chemins de ${esc(worldInfo.name)}</h2><p>Trois arcs, six jalons chacun : lieux, récits, rencontres et trésors cosmétiques. Facultatif, gratuit, sans échéance ni pénalité.</p><p class="asc-small asc-muted">Les prochaines séances confirmées seront attribuées une seule fois à ce monde pour les rencontres. Tes XP et coins suivent leurs règles habituelles. Aucun capteur requis.</p><button class="asc-btn asc-btn-secondary" type="button" data-rpg-action="start">Ouvrir ce chemin</button>`;
+  if(!s.active)return `<h2 class="asc-h2">Les chemins de ${esc(worldInfo.name)}</h2><p>Trois arcs, six jalons chacun : lieux, récits, rencontres et trésors cosmétiques. Facultatif, gratuit, sans échéance ni pénalité.</p><p class="asc-small asc-muted">Les prochaines séances confirmées seront attribuées une seule fois à ce monde pour les rencontres. Tes XP et crédits suivent leurs règles habituelles. Aucun capteur requis.</p><button class="asc-btn asc-btn-secondary" type="button" data-rpg-action="start">Ouvrir ce chemin</button>`;
   const first=s.milestones.find(n=>!n.earned),model=first&&nodes.find(n=>n.ordinal===first.ordinal),rewards=s.rewards||[];
   const bestiary=rewards.map(r=>nodes.find(n=>n.ordinal===r.ordinal)).filter(n=>['monster','miniboss'].includes(n?.kind));
   let scene='';

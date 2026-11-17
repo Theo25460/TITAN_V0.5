@@ -2,7 +2,8 @@
    No Android API here, so every rule is testable in Node. Positions never leave the phone from this module. */
 export type Fix = { lat: number; lon: number; alt: number | null; altAcc: number | null; acc: number | null; t: number };
 export type Seg = Fix[];
-export type Track = { segs: Seg[]; rejected: number };
+/** `every` (ms) appears only once a very long trace has been thinned: fixes closer in time than this are no longer kept. */
+export type Track = { segs: Seg[]; rejected: number; every?: number };
 
 const R = 6371008.8;
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -17,30 +18,64 @@ export const haversine = (a: Pick<Fix, "lat" | "lon">, b: Pick<Fix, "lat" | "lon
 export const MAX_ACCURACY_M = 30;
 export const MAX_SPEED_MS = 28;
 export const MOVING_MS = 0.5; // below 1.8 km/h the athlete is considered stopped
-export const MAX_POINTS = 20000;
+/* The recording is one value in the phone's key-value store, whose rows cannot be read back above about 2 MB (Android CursorWindow).
+   12 000 compact fixes stay near 1.1 MB. A trace that reaches the ceiling is not frozen: it is thinned to one fix in two and goes on
+   at twice the spacing (4 s after about 6 h 40 of continuous movement, 8 s after about 13 h), so a 24 h outing keeps recording. */
+export const MAX_POINTS = 12000;
+const THIN_FROM_MS = 2000;
+const THIN_MAX_MS = 16000; // never coarser than this: beyond it the distance of a winding path would be cut short
 
 export const emptyTrack = (): Track => ({ segs: [], rejected: 0 });
 
 const valid = (f: Fix) => Number.isFinite(f.lat) && Number.isFinite(f.lon) && Math.abs(f.lat) <= 90 && Math.abs(f.lon) <= 180 && Number.isFinite(f.t) && !(f.lat === 0 && f.lon === 0);
 
+const rounded = (x: number | null, per: number) => (x === null || !Number.isFinite(x) ? null : Math.round(x * per) / per);
+/** What is stored for a fix: about 0.1 m in position, 0.1 m in altitude and accuracy, whole milliseconds. The sensor's raw doubles
+    (4.288000106811523…) carry no more information and make a long recording too large to be read back. */
+export function compactFix(f: Fix): Fix {
+  return {
+    lat: Number.isFinite(f.lat) ? Math.round(f.lat * 1e6) / 1e6 : f.lat,
+    lon: Number.isFinite(f.lon) ? Math.round(f.lon * 1e6) / 1e6 : f.lon,
+    alt: rounded(f.alt, 10),
+    altAcc: rounded(f.altAcc, 10),
+    acc: rounded(f.acc, 10),
+    t: Number.isFinite(f.t) ? Math.round(f.t) : f.t,
+  };
+}
+
+const count = (segs: Seg[]) => segs.reduce((n, s) => n + s.length, 0);
+/** One fix in two of every stretch, keeping its first and last fix (a pause is still never bridged, the ends never move). */
+function thin(segs: Seg[]): Seg[] {
+  return segs.map((s) => (s.length <= 2 ? s : s.filter((_, i) => i === 0 || i === s.length - 1 || i % 2 === 0)));
+}
+
+/** Room for one more fix: the stretches as they are, or thinned once the ceiling is reached; null when even thinning cannot make room. */
+function withRoom(track: Track): { segs: Seg[]; every?: number } | null {
+  if (count(track.segs) < MAX_POINTS) return { segs: track.segs.map((s) => s), every: track.every };
+  const segs = thin(track.segs);
+  return count(segs) < MAX_POINTS ? { segs, every: Math.min(THIN_MAX_MS, (track.every ?? THIN_FROM_MS) * 2) } : null;
+}
+
 /** Adds a fix to the open segment (a new one when `newSegment`), or counts it as rejected. Pure: returns a new track. */
 export function addFix(track: Track, fix: Fix, newSegment = false): Track {
-  if (!valid(fix) || (fix.acc !== null && fix.acc > MAX_ACCURACY_M)) return { ...track, rejected: track.rejected + 1 };
-  const segs = track.segs.map((s) => s);
-  let last = segs[segs.length - 1];
-  if (!last || newSegment) {
-    segs.push([fix]);
-    return { segs, rejected: track.rejected };
+  const refused = (): Track => ({ ...track, rejected: track.rejected + 1 });
+  if (!valid(fix) || (fix.acc !== null && fix.acc > MAX_ACCURACY_M)) return refused();
+  const open = track.segs[track.segs.length - 1];
+  if (open && !newSegment) {
+    const prev = open[open.length - 1]!;
+    const dt = (fix.t - prev.t) / 1000;
+    if (dt <= 0) return refused();
+    if (haversine(prev, fix) / dt > MAX_SPEED_MS) return refused();
+    // A thinned trace keeps its new spacing: a fix that comes sooner is simply not kept (it is no glitch, so it is not counted as rejected).
+    if (track.every && fix.t - prev.t < track.every * 0.75) return track;
   }
-  const prev = last[last.length - 1];
-  const dt = (fix.t - prev.t) / 1000;
-  if (dt <= 0) return { ...track, rejected: track.rejected + 1 };
-  const d = haversine(prev, fix);
-  if (d / dt > MAX_SPEED_MS) return { ...track, rejected: track.rejected + 1 };
-  if (segs.reduce((n, s) => n + s.length, 0) >= MAX_POINTS) return { ...track, rejected: track.rejected + 1 };
-  last = [...last, fix];
-  segs[segs.length - 1] = last;
-  return { segs, rejected: track.rejected };
+  // Only a trace that thinning cannot shrink (thousands of two-fix stretches) refuses a valid fix.
+  const room = withRoom(track);
+  if (!room) return refused();
+  const { segs, every } = room;
+  if (!open || newSegment) segs.push([fix]);
+  else segs[segs.length - 1] = [...segs[segs.length - 1]!, fix];
+  return { segs, rejected: track.rejected, ...(every ? { every } : {}) };
 }
 
 /** Distance in metres. Never bridges a pause: each segment is measured on its own. Stops within GPS jitter add nothing. */

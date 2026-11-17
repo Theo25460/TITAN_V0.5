@@ -93,7 +93,7 @@
       <div class="asc-panel qg-steps-card"><p><strong>${esc(data.title)}</strong></p>${data.detail ? `<p class="asc-small asc-muted">${esc(data.detail)}</p>` : ""}
         <span class="asc-ascent thin" role="progressbar" aria-label="Progression de la quête commune" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="--p:${percent}%"></span></span>
         <p class="asc-small asc-muted"><strong data-cq-total>${n(data.minutes)}</strong> / ${n(data.target)} min d’effort · ${n(data.members)} participant${Number(data.members) > 1 ? "s" : ""}${data.joined ? ` · ta part : ${n(data.mine)} min` : ""}</p>
-        ${status}${action || (done || closed) && Number(data.minutes) > 0 ? `<div class="asc-row">${action}${(done || closed) && Number(data.minutes) > 0 && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cq-card>${icon("share")} Partager</button>` : ""}</div>` : ""}
+        ${status}${action || (done || closed) && Number(data.minutes) > 0 ? `<div class="asc-actions">${action}${(done || closed) && Number(data.minutes) > 0 && window.TitanCard ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cq-card>${icon("share")} Partager</button>` : ""}</div>` : ""}
         ${notice ? `<p class="asc-small" role="status" data-cq-notice>${esc(notice)}</p>` : ""}
         <p class="asc-small asc-faint">Facultative : seules les séances faites après ton inscription comptent, chaque sport à égalité, et chacun ne voit que sa propre part. Aucun XP ni crédit à gagner.</p>
       </div></section>`;
@@ -115,7 +115,16 @@
   });
   window.addEventListener("titan:account-changing", () => { owner = null; reset(); });
   ["titan:account-changed", "titan:flags-updated", "titan:history-updated", "online"].forEach((ev) => window.addEventListener(ev, () => { sync(); refresh(ev === "titan:history-updated"); }));
-  window.TitanCommonQuest = { html, refresh };
+  /** One line for the folded row of the QG. */
+  function brief() {
+    sync();
+    if (!on() || missing || !data) return "";
+    if (data.state === "done") return "Objectif atteint ensemble";
+    if (data.state === "closed") return "Semaine terminée";
+    const percent = data.target > 0 ? Math.min(100, Math.round((Number(data.minutes) / Number(data.target)) * 100)) : 0;
+    return `${percent} % · ${data.joined ? "tu participes" : "à rejoindre si tu veux"}`;
+  }
+  window.TitanCommonQuest = { html, brief, refresh };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(() => refresh(), 0));
   else setTimeout(() => refresh(), 0);
 })();

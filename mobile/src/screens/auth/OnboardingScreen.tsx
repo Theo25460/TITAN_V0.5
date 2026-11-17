@@ -133,9 +133,9 @@ export function OnboardingScreen() {
               <Card tone="amber" style={styles.demo} testID="onboarding-adventure-demo">
                 <Icon name="compass" color={colors.am} />
                 <View style={styles.demoCopy}>
-                  <T variant="eyebrow" tone="amber">Démo · Aventure</T>
+                  <T variant="eyebrow" tone="amber">Aperçu · ce qui se passe ensuite</T>
                   <T variant="bodyStrong">Séance · {firstLabel}</T>
-                  <T variant="small">Une séance éligible peut ajouter un jour actif à ta quête si tu as déjà lancé une campagne.</T>
+                  <T variant="small">TITAN vérifie ta séance, calcule ton XP et fait avancer ton niveau. Quand tu auras choisi un monde, tes séances feront aussi avancer son histoire. Rien n’est gagné avant cette vérification.</T>
                 </View>
               </Card>
             ) : null}
@@ -170,5 +170,5 @@ const styles = StyleSheet.create({
   targets: { flexDirection: "row", gap: 6 },
   target: { flex: 1, aspectRatio: 0.8, minHeight: 48, borderRadius: radius.r2, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line2, alignItems: "center", justifyContent: "center" },
   targetOn: { backgroundColor: colors.cy, borderColor: colors.cy },
-  promise: { flexDirection: "row", gap: space.s3, padding: space.s4, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
+  promise: { flexDirection: "row", gap: space.s3, padding: space.s4, borderRadius: radius.r3, backgroundColor: colors.bg2 },
 });

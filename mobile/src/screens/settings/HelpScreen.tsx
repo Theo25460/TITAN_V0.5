@@ -10,7 +10,7 @@ import type { RootParams } from "../../navigation/types";
 
 const FAQ: [string, string][] = [
   ["Mes séances sont-elles sauvegardées hors ligne ?", "Oui. Une séance est d’abord enregistrée sur ton téléphone, puis envoyée dès que la connexion revient. Le badge orange de l’onglet Progrès indique les séances en attente."],
-  ["Comment est calculée l’XP ?", "Environ 10 XP par minute d’effort modéré, pondérée par ton ressenti (RPE). Plafonds : 1 800 XP par jour, 9 600 par semaine. Le serveur fait foi, avec les mêmes règles que le site."],
+  ["Comment est calculée l’XP ?", "Environ 10 XP par minute d’effort modéré, pondérée par ton ressenti (de 1 à 10). Plafonds : 1 800 XP par jour, 9 600 par semaine. Le serveur fait foi, avec les mêmes règles que le site."],
   ["Pourquoi une séance ancienne ne rapporte pas d’XP ?", "Une séance datée de plus de 30 jours rejoint ton historique, sans XP ni crédits ni contribution à l’aventure."],
   ["Je retrouve mon compte du site ?", "Oui : c’est le même compte. Tes séances, ton niveau, ton aventure et tes cosmétiques sont partagés entre l’application et titan-app.fr."],
   ["Les crédits s’achètent-ils ?", "Non. Ils se gagnent uniquement avec tes séances (10 % de l’XP) et ne servent qu’à des cosmétiques, sans avantage sportif."],
@@ -24,6 +24,7 @@ export function HelpScreen({ navigation }: NativeStackScreenProps<RootParams, "H
   return (
     <Screen>
       <Group title="Premiers pas">
+        <ListRow icon="compass" title="Revoir la visite guidée" subtitle="Les quatre espaces de TITAN en moins d’une minute" onPress={() => navigation.navigate("Tour", { replay: true })} testID="help-tour" />
         <ListRow icon="play" title="Visite guidée de TITAN" subtitle="12 étapes courtes, facultatif, reprise possible" onPress={() => navigation.navigate("Guide")} />
         <ListRow icon="edit" title="Envoyer un retour" subtitle="Un problème ou une idée" onPress={() => navigation.navigate("Feedback")} last />
       </Group>

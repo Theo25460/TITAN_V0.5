@@ -31,50 +31,28 @@ export function StepsCard() {
 
 type StepsState = ReturnType<typeof useSteps>;
 
-/** The compact tile of the "today" strip: the ring, the number, the goal. Only shown once there is a number to show. */
-export function StepsTile({ s }: { s: StepsState }) {
-  const navigation = useNavigation();
-  const v = s.view;
-  const status = stepsStatus(s, Date.now());
-  const reached = v.ratio !== null && v.ratio >= 1;
-  const tint = reached ? colors.ok : colors.cy;
-  const label = v.today === null ? "Pas de chiffre pour aujourd’hui" : `${stepsText(v.today)} pas aujourd’hui`;
-  return (
-    <Card onPress={() => go(navigation, "Steps")} testID="steps-tile" style={styles.tile} accessibilityLabel={`${label}${v.goal ? `, objectif ${stepsText(v.goal)}` : ""}. ${status.text}. Ouvrir le détail des pas.`}>
-      <View style={styles.tileTop}>
-        <Ring value={v.ratio ?? 0} size={56} stroke={6} color={tint}>
-          <Icon name={reached ? "check" : "run"} size={20} color={tint} />
-        </Ring>
-        {status.live ? (
-          <View style={styles.live} testID="steps-live">
-            <View style={styles.dot} />
-            <T variant="caption" tone="accent">
-              En direct
-            </T>
-          </View>
-        ) : null}
-      </View>
-      <View>
-        {v.today !== null ? (
-          <T variant="num" numberOfLines={1} adjustsFontSizeToFit>
-            {stepsText(v.today)}
-          </T>
-        ) : (
-          <T variant="small" tone="muted">
-            Pas de chiffre
-          </T>
-        )}
-        <T variant="caption" tone="faint" numberOfLines={2}>
-          {v.goal ? `pas · sur ${stepsText(v.goal)}` : "pas aujourd’hui"}
-        </T>
-      </View>
-    </Card>
-  );
-}
-
-export function StepsCardView({ s }: { s: StepsState }) {
+/** `quiet` (the QG): while nothing is counted, one line that opens the steps screen instead of an activation or connection button.
+    The buttons and their permission explanation stay on the steps screen, where the player went on purpose. */
+export function StepsCardView({ s, quiet = false }: { s: StepsState; quiet?: boolean }) {
   const navigation = useNavigation();
   if (s.failed) return null;
+
+  if (quiet && !s.hasAny) {
+    if (s.loading) return <View style={{ minHeight: TOUCH + space.s4 }} testID="steps-loading" accessibilityLabel="Chargement des pas du jour" />;
+    if (!(s.own.supported && !s.own.enabled) && !(s.connected === false || !s.own.supported)) return null;
+    return (
+      <Card tone="flat" onPress={() => go(navigation, "Steps")} testID="steps-invite" style={styles.invite} accessibilityLabel="Compter mes pas, facultatif. Les pas ne donnent ni XP ni récompense. Ouvrir Mes pas.">
+        <View style={[styles.badge, { backgroundColor: colors.bg3 }]}>
+          <Icon name="run" size={22} color={colors.tx2} />
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <T variant="bodyStrong">Compter mes pas</T>
+          <T variant="caption" tone="muted">Facultatif. Les pas ne donnent ni XP ni récompense.</T>
+        </View>
+        <Icon name="chevron" size={18} color={colors.tx3} />
+      </Card>
+    );
+  }
 
   // Room is kept while the sensor, the storage and the permission check answer: the QG below must not slide down (V12-05).
   if (s.loading && !s.hasAny)
@@ -171,11 +149,10 @@ export function StepsCardView({ s }: { s: StepsState }) {
 }
 
 const styles = StyleSheet.create({
-  tile: { flex: 1, minWidth: 0, justifyContent: "space-between", gap: space.s3, padding: space.s3 },
-  tileTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: space.s2 },
+  invite: { flexDirection: "row", alignItems: "center", gap: space.s3, paddingVertical: space.s2, minHeight: TOUCH + space.s4 },
   row: { flexDirection: "row", alignItems: "center", gap: space.s4 },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.s2 },
   live: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 20 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.cy },
-  badge: { width: TOUCH, height: TOUCH, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: colors.cySoft },
+  badge: { width: TOUCH, height: TOUCH, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: colors.cySoft },
 });

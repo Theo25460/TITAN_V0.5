@@ -88,7 +88,7 @@
     let body;
     if (!data.optedIn) {
       body = `<p class="asc-muted">Un classement entre amis qui récompense la régularité et le progrès plutôt que le volume. Facultatif : tant que tu n’y participes pas, tu n’apparais pas et tu ne vois personne.</p>
-        <div class="asc-row"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-rk-opt="true" ${lock}>Participer</button></div>`;
+        <div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-rk-opt="true" ${lock}>Participer</button></div>`;
     } else {
       const entries = Array.isArray(data.entries) ? data.entries : [];
       const options = sports();
@@ -96,7 +96,7 @@
       const list = entries.length
         ? `<ol class="rv-list" data-rk-list>${entries.map((e) => `<li class="asc-between" data-rk-entry${e.me ? " data-me" : ""}><span><strong>${Number(e.rank)}.</strong> ${esc(e.name)}${e.me ? " (toi)" : ""}<br><span class="asc-small asc-muted">${Number(e.activeDays)} jour${Number(e.activeDays) > 1 ? "s" : ""} actif${Number(e.activeDays) > 1 ? "s" : ""} · progrès ${Number(e.progressPct)} %</span></span><strong>${Number(e.score)}</strong></li>`).join("")}</ol>`
         : `<p class="asc-muted" data-rk-empty>Personne n’a encore de score sur les 28 derniers jours${sport ? " pour ce sport" : ""}. Une séance suffit pour apparaître.</p>`;
-      body = `${filter}${list}<div class="asc-row"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-rk-opt="false" ${lock}>Ne plus participer</button></div>`;
+      body = `${filter}${list}<div class="asc-actions"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-rk-opt="false" ${lock}>Ne plus participer</button></div>`;
     }
     return `<section class="asc-section asc-appear qg-rk" data-rk aria-labelledby="rk-title"><div class="asc-section-head"><h2 id="rk-title">Classement entre amis</h2></div>
       <div class="asc-panel qg-steps-card">${body}${formula}${notice ? `<p class="asc-small" role="status" data-rk-notice>${esc(notice)}</p>` : ""}
@@ -113,7 +113,15 @@
   });
   window.addEventListener("titan:account-changing", () => { owner = null; reset(); });
   ["titan:account-changed", "titan:flags-updated", "titan:history-updated", "online"].forEach((ev) => window.addEventListener(ev, () => { sync(); refresh(ev === "titan:history-updated"); }));
-  window.TitanRanking = { html, refresh };
+  /** One line for the folded row of the QG. */
+  function brief() {
+    sync();
+    if (!on() || missing || !data) return "";
+    if (!data.optedIn) return "Tu n’y participes pas";
+    const entries = Array.isArray(data.entries) ? data.entries : [], me = entries.find((e) => e.me);
+    return me ? `${Number(me.rank)}${Number(me.rank) === 1 ? "er" : "e"} sur ${entries.length}` : "Tu participes";
+  }
+  window.TitanRanking = { html, brief, refresh };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(() => refresh(), 0));
   else setTimeout(() => refresh(), 0);
 })();

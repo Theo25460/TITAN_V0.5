@@ -35,9 +35,9 @@ export function RpeSelector({ value, onChange }: { value: number | null; onChang
               accessibilityRole="radio"
               accessibilityState={{ checked: value === n }}
               accessibilityLabel={`${n}, ${RPE_TEXT[n]}`}
-              style={[styles.option, value === n && styles.selected, value !== null && n < value && { backgroundColor: colors.cySoft }]}
+              style={[styles.option, value === n && styles.selected, value !== null && n < value && { backgroundColor: colors.bg4 }]}
             >
-              <T variant="bodyStrong" color={value === n ? colors.cyInk : colors.tx}>{n}</T>
+              <T variant="bodyStrong" color={value === n ? colors.bg : colors.tx}>{n}</T>
             </Tap>
           ))}
         </View>
@@ -49,6 +49,6 @@ export function RpeSelector({ value, onChange }: { value: number | null; onChang
 const styles = StyleSheet.create({
   grid: { gap: GAP },
   row: { flexDirection: "row", gap: GAP },
-  option: { flex: 1, minWidth: TOUCH, minHeight: TOUCH, borderRadius: radius.r1, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
-  selected: { backgroundColor: colors.cy, borderColor: colors.cy },
+  option: { flex: 1, minWidth: TOUCH, minHeight: TOUCH, borderRadius: radius.r1, backgroundColor: colors.bg2, alignItems: "center", justifyContent: "center" },
+  selected: { backgroundColor: colors.tx, borderColor: colors.tx },
 });

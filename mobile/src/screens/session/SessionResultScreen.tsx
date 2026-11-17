@@ -1,8 +1,13 @@
+import { SpaceProvider } from "../../theme/space";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSessionInterstitial } from "../../ads/useSessionInterstitial";
+import { maybeAskForReview } from "../../lib/review";
+import { shareCardImage } from "../../lib/shareImage";
+import { ShareCard, type ShareCardData } from "../../components/ShareCard";
+import { DiscoveryBanner } from "../settings/SaveAccountScreen";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -17,6 +22,9 @@ import { worldImages } from "../../core/images";
 import { recordText, sessionMetrics, sessionRecords } from "../../core/moment";
 import type { TrainingLog } from "../../core/types";
 import { momentShare } from "../../data/api";
+import { useSocial } from "../../data/hooks";
+import { contributions, readAutoShare } from "../../lib/community";
+import { useEvents } from "../community/EventsScreen";
 import { useAdventure, useLogs, usePrefs, useProfile } from "../../data/hooks";
 import { useQueue } from "../../data/queue";
 import { useReceipt } from "../../data/receipts";
@@ -26,11 +34,47 @@ import { errorMessage } from "../../lib/errors";
 import { haptic } from "../../lib/haptics";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
-import { colors, familyColors, fonts, radius, space } from "../../theme/tokens";
+import { colors, familyColors, fonts, radius, space, spaces } from "../../theme/tokens";
 
-/** The moment after a session: what was done, what the server granted, and what it moved — week, mastery, records, chapter. */
+const INK = spaces.seance.ink;
+import { LiveSettleCard } from "../../components/LiveSettleCard";
+
+type Objective = { id: string; remaining: number };
+
+/** "Et maintenant": the one next step after a session, in plain words. It only speaks of a chapter when the fresh server snapshot is
+    the source (`chapterKnown`), and never announces a gain: a pending, refused, held or historical session says what will happen by itself. */
+export function resultNextStep(i: {
+  status: "confirmed" | "pending" | "error";
+  held: boolean;
+  historical: boolean;
+  /** True only when the adventure snapshot was fetched after this screen opened and belongs to this account. */
+  chapterKnown: boolean;
+  chapter?: { number: number; worldName: string; ready: boolean; objectives: Objective[] } | null;
+  week: { paused: boolean; remaining: number };
+}): string {
+  if (i.status === "error") return "Ouvre les envois en attente : tu peux corriger cette séance ou la renvoyer. Rien n’est perdu.";
+  if (i.status === "pending") return "Rien à faire : la séance part toute seule dès que le réseau revient. L’XP s’affichera une fois confirmée par le serveur.";
+  if (i.held) return "Rien à faire : la récompense arrive d’elle-même à la fin du contrôle. Tu peux enregistrer d’autres séances normalement.";
+  if (i.historical) return "Cette séance nourrit tes statistiques, tes records et ta maîtrise. Les séances saisies dans les 30 jours rapportent aussi de l’XP.";
+  if (i.chapterKnown && i.chapter) {
+    const { number, worldName, ready, objectives } = i.chapter;
+    if (ready) return `La balise du chapitre ${number} est prête : va l’allumer dans ${worldName}.`;
+    const days = objectives.find((o) => o.id === "days")?.remaining ?? 0;
+    const effort = Math.round(objectives.find((o) => o.id === "effort")?.remaining ?? 0);
+    const parts = [days > 0 ? `${days} jour${days > 1 ? "s" : ""} actif${days > 1 ? "s" : ""}` : null, effort > 0 ? `${effort} min d’effort` : null].filter(Boolean);
+    if (parts.length) return `Encore ${parts.join(" et ")} pour allumer la balise du chapitre ${number}. Un seul jour actif compte par jour, quel que soit le sport.`;
+  }
+  if (i.chapterKnown && !i.chapter) return "Choisis un monde dans Aventure : tes prochaines séances y allumeront des balises.";
+  if (i.week.paused) return "Ta cadence est en pause : reprends quand tu veux, ta séance est dans ton journal.";
+  return i.week.remaining > 0
+    ? `Encore ${i.week.remaining} jour${i.week.remaining > 1 ? "s" : ""} actif${i.week.remaining > 1 ? "s" : ""} pour tenir ta semaine.`
+    : "Semaine tenue. Le repos compte aussi : la suite t’attend quand tu veux.";
+}
+
+/** The moment after a session, in four beats: what was done, what the server confirmed, what it moved in the adventure, what to do next. */
 /** Receipts whose cinematic already played in this run: coming back to the screen never replays a celebration. */
 const revealed = new Set<string>();
+const autoShared = new Set<string>();
 
 export function SessionResultScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionResult">) {
   const { eventId, stored } = route.params;
@@ -49,6 +93,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const [shared, setShared] = useState(false);
   const [revealing, setRevealing] = useState(() => !revealed.has(eventId));
   const [sharing, setSharing] = useState(false);
+  const social = useSocial().data;
+  const events = useEvents().data;
   const queued = queue.owner === owner ? queue.items.find((i) => i.payload.details.client_event_id === eventId) : undefined;
   const payload = queued?.payload ?? (stored?.owner === owner && stored.payload.details.client_event_id === eventId ? stored.payload : undefined);
   const localLog = useMemo<TrainingLog | null>(() => payload ? { ...payload, id: eventId, client_event_id: eventId, cat: payload.category, xp: 0 } : null, [payload, eventId]);
@@ -57,6 +103,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
 
   // One tactile "done" when the server confirms, not on every re-render.
   const confirmedOnce = useRef(false);
+  const cardRef = useRef<View>(null);
+  const [imageBusy, setImageBusy] = useState(false);
   useEffect(() => {
     if (status === "confirmed" && !confirmedOnce.current) {
       confirmedOnce.current = true;
@@ -78,6 +126,20 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const world = campaign ? Codex.worlds.find((w) => w.id === campaign.id) : undefined;
   const chapterDays = campaign ? Math.min(Number(campaign.evidence?.days ?? 0), campaign.target) : 0;
 
+  // C3: with « Partager mes séances automatiquement » on, a confirmed session reaches friends' moments once, without a tap.
+  const shareRef = useRef<(() => Promise<void>) | null>(null);
+  const autoTried = useRef(false);
+  const canAutoShare = status === "confirmed" && !!log && !log.details?.historical && online && !shared && !autoShared.has(eventId);
+  useEffect(() => {
+    if (!canAutoShare || autoTried.current) return;
+    autoTried.current = true;
+    readAutoShare(owner).then((on) => {
+      if (!on || autoShared.has(eventId)) return;
+      autoShared.add(eventId);
+      return shareRef.current?.();
+    }).catch(() => {});
+  }, [canAutoShare, owner, eventId]);
+
   if (!log)
     return (
       <View style={[styles.root, { paddingTop: insets.top + space.s6, paddingHorizontal: space.s4, gap: space.s4 }]}>
@@ -87,6 +149,14 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
     );
 
   const historical = Boolean(log.details?.historical);
+  const held = Boolean(receipt?.reward_held);
+  const cp = campaign && campaign.chapter > 0 && campaign.chapter <= 9 ? Progress.campaignProgress(campaign) : null;
+  const next = resultNextStep({
+    status, held, historical,
+    chapterKnown: impact.state === "confirmed",
+    chapter: campaign && world && cp ? { number: campaign.chapter, worldName: world.name, ready: cp.ready, objectives: cp.objectives } : null,
+    week: { paused: Boolean(cadence.currentPaused), remaining: cadence.remaining },
+  });
   const effort = Progress.effortOf(log);
   const fam = Sports.familyOf(log.sport);
   const tint = familyColors[fam] ?? colors.cy;
@@ -125,28 +195,55 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
     }
   }
 
+  shareRef.current = share;
+  const counts = status === "confirmed" && !historical ? contributions(social, events) : [];
+
+  // AUD-21: the story card mirrors this screen — a record first, otherwise the session's main measure, and the week in notches.
+  const cardRecord = records.find((r) => !r.first);
+  const cardData: ShareCardData = {
+    eyebrow: cardRecord ? "Nouveau record" : "Séance du jour",
+    title: Sports.label(log.sport),
+    value: cardRecord ? recordText(cardRecord) : headline?.[1] ?? Sports.label(log.sport),
+    caption: cardRecord ? `${cardRecord.label}${cardRecord.previous ? ` · avant : ${recordText(cardRecord, cardRecord.previous.value)}` : ""}` : headline?.[0] ?? null,
+    facts: facts.filter(([k]) => k !== "Ressenti").slice(0, 3),
+    icon: Sports.iconOf(log.sport),
+    week: thisWeek && !historical && !cadence.currentPaused ? { done: cadence.currentDays, target: cadence.target } : null,
+    record: !!cardRecord,
+  };
+  async function shareImage() {
+    if (imageBusy) return;
+    setImageBusy(true);
+    try {
+      await shareCardImage(cardRef, "Partager ma séance");
+    } catch (e) {
+      toast({ kind: "err", title: "Image impossible à partager", message: errorMessage(e) });
+    } finally {
+      setImageBusy(false);
+    }
+  }
+
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Reveal order={0} style={{ gap: space.s4 }}>
+    <SpaceProvider space="seance">
+    <View style={styles.root}>
+      <ScrollView>
+        {/* The effort first, on the lime field of the session: the sport, then the one figure that says what was done, in the
+            field's ink. What TITAN grants for it comes under it, on the ground, in the colour of progression. */}
+        <Reveal order={0} style={[styles.field, { paddingTop: insets.top + space.s5 }]}>
           <View style={styles.head}>
-            <View style={[styles.sportDisc, { backgroundColor: `${tint}26`, borderColor: `${tint}66` }]}>
-              <Icon name={Sports.FAMILY_ICON[fam]} size={26} color={tint} />
-            </View>
+            <Icon name={Sports.iconOf(log.sport)} size={28} color={INK} />
             <View style={{ flex: 1 }}>
-              <T variant="eyebrow" tone="accent">
+              <T variant="caption" color={INK} style={{ opacity: 0.78 }}>
                 {historical ? "Ajoutée à ton historique" : "Séance enregistrée"} · {Format.relativeDay(log.date)}
               </T>
-              <T variant="h2" numberOfLines={1}>
+              <T variant="h2" color={INK} numberOfLines={2}>
                 {Sports.label(log.sport)}
               </T>
             </View>
           </View>
           {headline ? (
             <View>
-              <T variant="eyebrow">Tu as fait</T>
-              <T style={styles.hero}>{headline[1]}</T>
-              <T variant="caption" tone="faint">
+              <T style={styles.hero} numberOfLines={1} adjustsFontSizeToFit>{headline[1]}</T>
+              <T variant="caption" color={INK} style={{ opacity: 0.78 }}>
                 {headline[0]}
                 {effort.effortMinutes > 0 ? ` · ${Math.round(effort.effortMinutes)} min d’effort${effort.estimated ? " (durée estimée)" : ""}` : ""}
               </T>
@@ -154,21 +251,27 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           ) : null}
           {facts.length ? (
             <View style={styles.facts}>
-              {facts.map(([k, v], i) => (
-                <View key={k} style={[styles.fact, i > 0 && styles.factLine]}>
-                  <T variant="caption" tone="faint">
+              {facts.map(([k, v]) => (
+                <View key={k} style={styles.fact}>
+                  <T variant="num" color={INK}>{v}</T>
+                  <T variant="caption" color={INK} style={{ opacity: 0.78 }}>
                     {k}
                   </T>
-                  <T variant="num">{v}</T>
                 </View>
               ))}
             </View>
           ) : null}
         </Reveal>
 
+        <View style={styles.scroll}>
         <Reveal order={1}>
-          <Card tone={status === "confirmed" ? "accent" : "flat"} style={{ gap: space.s3 }}>
-            <T variant="eyebrow">{status === "confirmed" ? "TITAN a confirmé" : "Confirmation en attente"}</T>
+          <LiveSettleCard owner={owner} eventId={eventId} payload={payload} confirmed={status === "confirmed"} />
+          {/* The accent tone and "TITAN a confirmé" are reserved for what the server really granted: a held reward, a refusal or a
+              pending send never borrow them. */}
+          <Card tone={status === "confirmed" && !held ? "accent" : "flat"} style={{ gap: space.s3 }} testID="result-reward">
+            <T variant="eyebrow" tone={status === "error" ? "err" : status === "confirmed" && !held ? "accent" : "warn"}>
+              {status === "error" ? "Envoi refusé" : status !== "confirmed" ? "Confirmation en attente" : held ? "Séance enregistrée · récompense en attente" : "TITAN a confirmé"}
+            </T>
             {status === "confirmed" && receipt?.reward_held ? (
               <View style={{ flexDirection: "row", gap: space.s3, alignItems: "center" }}>
                 <Icon name="clock" size={22} color={colors.warn} />
@@ -177,8 +280,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                     Récompense en vérification
                   </T>
                   <T variant="small">
-                    {Format.number(receipt.held_xp ?? 0)} XP et {Format.number(receipt.held_credits ?? 0)} crédits sont retenus par précaution, au plus{" "}
-                    {Math.max(1, Math.ceil((new Date(receipt.release_at ?? Date.now()).getTime() - Date.now()) / 3600000)) || 24} h : ils arrivent d’eux-mêmes si rien n’est trouvé. Ta séance est bien enregistrée.
+                    Ta séance est bien enregistrée. Tes {Format.number(receipt.held_xp ?? 0)} XP et {Format.number(receipt.held_credits ?? 0)} crédits arrivent d’eux-mêmes d’ici{" "}
+                    {Math.max(1, Math.ceil((new Date(receipt.release_at ?? Date.now()).getTime() - Date.now()) / 3600000)) || 24} h, après une vérification de routine.
                   </T>
                 </View>
               </View>
@@ -202,9 +305,9 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                 <T variant="small" accessibilityLiveRegion="polite">
                   {capped
                     ? xp > 0
-                      ? `XP confirmés, plafond de fair-play atteint : ${Format.number(xp)} comptés sur ${Format.number(receipt!.requested_xp)}.`
+                      ? `Plafond de fair-play atteint : ${Format.number(xp)} XP comptés sur ${Format.number(receipt!.requested_xp)}.`
                       : "Plafond de fair-play du jour ou de la semaine atteint : la séance compte pour tes statistiques, pas pour l’XP."
-                    : "XP confirmés par le serveur."}
+                    : "Bien joué : ton effort est compté."}
                 </T>
                 {leveledUp ? (
                   <View style={styles.levelUp}>
@@ -231,7 +334,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                 <Icon name={status === "confirmed" ? "journal" : status === "error" ? "alert" : "offline"} size={22} color={status === "confirmed" ? colors.cy : status === "error" ? colors.err : colors.warn} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <T variant="bodyStrong" accessibilityLiveRegion="polite">
-                    {status === "confirmed" ? "Ajoutée à ton historique" : status === "error" ? "Le serveur a refusé cette séance" : online && queue.sending ? "Envoi en cours…" : "Gardée sur ce téléphone"}
+                    {status === "confirmed" ? "Ajoutée à ton historique" : status === "error" ? "Cette séance n’a pas pu être enregistrée" : online && queue.sending ? "Envoi en cours…" : "Gardée sur ce téléphone"}
                   </T>
                   <T variant="small">
                     {status === "confirmed"
@@ -274,10 +377,8 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </Reveal>
         ) : null}
 
-        {(thisWeek && !historical) || mastery ? <Tap accessibilityLabel="Mes repères sportifs" accessibilityState={{ expanded: detailsExpanded }} onPress={() => setDetailsExpanded(!detailsExpanded)} style={styles.between}>
-          <T variant="bodyStrong">Mes repères sportifs</T><Icon name="chevron" size={18} color={colors.tx4} />
-        </Tap> : null}
-        {detailsExpanded && thisWeek && !historical ? (
+        {/* The week is TITAN's return mechanic: it is shown at the moment of reward, never folded away (AUD-17). Mastery stays one tap away. */}
+        {thisWeek && !historical ? (
           <Reveal order={3}>
             <View style={styles.block}>
               <View style={styles.between}>
@@ -302,6 +403,9 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           </Reveal>
         ) : null}
 
+        {mastery ? <Tap accessibilityLabel={`Ma maîtrise ${mastery.label}`} accessibilityState={{ expanded: detailsExpanded }} onPress={() => setDetailsExpanded(!detailsExpanded)} style={styles.between}>
+          <T variant="bodyStrong">Ma maîtrise · {mastery.label}</T><Icon name="chevron" size={18} color={colors.tx4} />
+        </Tap> : null}
         {detailsExpanded && mastery ? (
           <Reveal order={4}>
             <View style={styles.block}>
@@ -330,7 +434,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                 <T variant="caption" color={world.color}>
                   {world.name} · chapitre {campaign.chapter}
                 </T>
-                <T variant="bodyStrong" numberOfLines={1}>
+                <T variant="bodyStrong" numberOfLines={2}>
                   {world.chapters[campaign.chapter - 1]?.name}
                 </T>
                 {impact.campaignId ? <ProgressBar value={chapterDays / Math.max(1, campaign.target)} color={world.color} height={5} delay={800} accessibilityLabel="Avancée du chapitre confirmée" /> : null}
@@ -341,6 +445,20 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
             </Tap>
           </Reveal>
         ) : !historical ? <Reveal order={5}><Card style={{ gap: space.s3 }}><T variant="eyebrow">Dans ton aventure</T><T accessibilityLiveRegion="polite">{impact.text}</T><Button label="Découvrir les mondes" kind="secondary" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} /></Card></Reveal> : null}
+        {counts.length ? (
+          <Reveal order={6}>
+            <Card style={{ gap: 4 }} testID="result-contributions">
+              <T variant="eyebrow" tone="accent">Ta séance compte aussi pour</T>
+              {counts.map((c) => <T key={c} variant="small">· {c}</T>)}
+            </Card>
+          </Reveal>
+        ) : null}
+
+        <View style={styles.block} testID="result-next">
+          <T variant="eyebrow">Et maintenant</T>
+          <T accessibilityLiveRegion="polite">{next}</T>
+        </View>
+        </View>
       </ScrollView>
       {/* The signature moment: only for a gain the server confirmed (a receipt with XP), never for a held, historical or pending session, and never in the end-to-end build (it would sit over the buttons the flow taps). */}
       {revealing && !IS_E2E && status === "confirmed" && !historical && receipt && !receipt.reward_held && xp > 0 ? (
@@ -352,26 +470,47 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           }}
         />
       ) : null}
+      {status === "confirmed" ? <View style={{ paddingHorizontal: space.s4 }}><DiscoveryBanner onPress={() => navigation.navigate("SaveAccount")} /></View> : null}
+      {status === "confirmed" && !historical ? (
+        <View style={styles.offscreen} pointerEvents="none">
+          <ShareCard ref={cardRef} data={cardData} />
+        </View>
+      ) : null}
       <View style={[styles.actions, { paddingBottom: insets.bottom + space.s4 }]}>
         {status !== "confirmed" ? <Button small label="Voir les envois en attente" kind="secondary" onPress={() => navigation.replace("Pending")} /> : null}
-        <View style={{ flexDirection: "row", gap: space.s3 }}>
-          {status === "confirmed" && !shared && !historical ? <Button small label="Partager" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={{ flex: 1 }} /> : null}
-          <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={{ flex: 1 }} />
+        {/* Whole buttons, each label on one line: those that do not fit side by side go to the next line and share its width. */}
+        <View style={styles.secondary}>
+          {status === "confirmed" && !historical ? <Button small label="En image" kind="secondary" icon="share" loading={imageBusy} onPress={shareImage} style={styles.secondaryButton} testID="share-image" /> : null}
+          {status === "confirmed" && !shared && !historical ? <Button small label="Aux amis" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={styles.secondaryButton} /> : null}
+          <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={styles.secondaryButton} />
         </View>
-        <Button label="Terminer" onPress={() => { maybeAd().catch(() => {}); navigation.navigate("Tabs", { screen: "QG" }); }} testID="result-done" />
+        <Button
+          label="Terminer"
+          onPress={() => {
+            maybeAd().catch(() => {});
+            // AUD-13: a rare Play rating request at a proud moment (new record or tenth session), never for an unconfirmed or historical one.
+            if (status === "confirmed" && log)
+              void maybeAskForReview(owner, { confirmedSessions: logs.filter((l) => l.syncStatus === "confirmed" || !l.syncStatus).length, newRecord: records.some((r) => !r.first), historical: !!log.details?.historical });
+            navigation.navigate("Tabs", { screen: "QG" });
+          }}
+          testID="result-done"
+        />
       </View>
     </View>
+    </SpaceProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  offscreen: { position: "absolute", left: -10000, top: 0 },
   root: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: space.s4, paddingTop: space.s5, gap: space.s5 },
+  field: { backgroundColor: spaces.seance.accent, paddingHorizontal: space.s5, paddingBottom: space.s5, gap: space.s4 },
+  scroll: { padding: space.s5, gap: space.s5 },
   head: { flexDirection: "row", alignItems: "center", gap: space.s3 },
   sportDisc: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  hero: { fontFamily: fonts.display, fontSize: 56, lineHeight: 60, color: colors.tx, fontVariant: ["tabular-nums"] },
-  facts: { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.line, paddingVertical: space.s3 },
-  fact: { flex: 1, gap: 2, paddingHorizontal: space.s2 },
+  hero: { fontFamily: fonts.figure, fontSize: 96, lineHeight: 92, letterSpacing: -1.5, color: spaces.seance.ink, fontVariant: ["tabular-nums"] },
+  facts: { flexDirection: "row", gap: space.s5, borderTopWidth: 1.5, borderColor: "rgba(22,28,0,0.28)", paddingTop: space.s3 },
+  fact: { flex: 1, gap: 0 },
   factLine: { borderLeftWidth: 1, borderLeftColor: colors.line },
   rewardRow: { flexDirection: "row", alignItems: "flex-end", gap: 6 },
   xp: { fontFamily: fonts.display, fontSize: 48, lineHeight: 52, fontVariant: ["tabular-nums"] },
@@ -386,5 +525,7 @@ const styles = StyleSheet.create({
   dayBonus: { backgroundColor: colors.am },
   quest: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: radius.r3, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line2 },
   questImg: { width: 64, height: 64, borderRadius: radius.r2 },
+  secondary: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
+  secondaryButton: { flexGrow: 1, flexShrink: 0, flexBasis: "auto" },
   actions: { paddingHorizontal: space.s4, paddingTop: space.s3, gap: space.s3, borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: colors.bg },
 });

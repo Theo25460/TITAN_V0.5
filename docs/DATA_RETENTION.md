@@ -28,6 +28,7 @@ Décision de Théo du 20/10/2026 (Q-002) : déterminer les durées **les plus co
 | `reward_holds` | retenues de récompenses réglées | 3 mois après le règlement | trace utile au support récent | supprimées avec le compte |
 | `verification_requests` | demandes de vérification et réponses du joueur | 12 mois | preuve que la vérification a eu lieu en cas de recours ; ouverte, répondue ou close, elle expire à 12 mois pour ne pas garder un texte libre indéfiniment | supprimées avec le compte |
 | `social_action_log` | journal des actions sociales | 90 jours | limitation de débit et diagnostic | identité détachée |
+| `cache_reconciliation` | rapports techniques de cohérence entre l'appareil et le compte (résumés chiffrés, au plus 20 par compte et par jour) | 90 jours | diagnostic d'un écart de synchronisation ; migration `20261116100000` | supprimés avec le compte |
 
 ## Conservé volontairement, sans purge
 
@@ -40,6 +41,8 @@ Décision de Théo du 20/10/2026 (Q-002) : déterminer les durées **les plus co
 ## Compte, séances et social
 
 Tout ce que le joueur a produit (profil, séances, objectifs, social, coaching, achats, appels de recours) est supprimé avec le compte, par la fonction de suppression (`delete_own_account`) ou en cascade. La suppression d'un compte par l'administration ou par la purge d'inactivité (`delete_inactive_users`) passe aussi par les déclencheurs de la migration 25, qui effacent en plus ses messages et signalements de bug, vident les contenus qui survivraient et retirent les copies d'`audit_logs`.
+
+Tables par joueur ajoutées par les migrations du 17/11/2026 (paquet v14, **non appliqué en production** à la date de ce document) : `private.titan_cadence_claims` (semaines tenues réclamées), `private.titan_time_capsules` (lettres à soi-même), `private.titan_life_chapters` (chapitres de vie), `private.titan_live_settlements`, `titan_live_wallets`, `titan_live_buildings` et `titan_live_collection` (monde TITAN LIVE). Aucune règle de purge : elles sont conservées tant que le compte existe, supprimées en cascade depuis `auth.users` et incluses dans l'export du compte (`cadenceWeekClaims`, `timeCapsules`, `lifeChapters`, clés TITAN LIVE). L'import d'historique (`titan_import_history_v1`) n'ajoute aucune table : les séances rejoignent le journal et leur provenance la table d'import existante. La politique de confidentialité (version 13) et la page de suppression (version 3) les nomment ; `tests/coherence-offers.test.mjs` refuse une nouvelle table par joueur qui n'y figurerait pas.
 
 Défaut trouvé et corrigé par cette migration : le déclencheur d'audit générique copiait les lignes supprimées (messages, inventaire) dans `audit_logs`, qui les gardait après la suppression du compte.
 

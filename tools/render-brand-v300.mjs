@@ -71,7 +71,7 @@ await page.setContent(
     <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,7,10,.97) 0%,rgba(5,7,10,.75) 55%,rgba(5,7,10,.35) 100%)"></div>
     <div style="position:absolute;left:72px;top:64px;display:flex;align-items:center;gap:16px;font-family:Archivo;font-weight:800;font-stretch:85%;font-size:40px;letter-spacing:.08em;color:#eef3f7">${mark(56, { pad: 0.14, radius: 0.24, bg: "#0b1117" })}TITAN</div>
     <div style="position:absolute;left:72px;top:208px;font-family:Archivo;font-weight:800;font-stretch:76%;font-size:92px;line-height:.95;color:#eef3f7">Ton sport réel.<br><span style="color:${CY}">Une progression<br>qui dure.</span></div>
-    <div style="position:absolute;left:72px;bottom:56px;font-family:Manrope;font-weight:700;font-size:24px;color:#a8b6c3">Journal multisport · progression · aventure — gratuit, sans publicité</div>
+    <div style="position:absolute;left:72px;bottom:56px;font-family:Archivo;font-weight:700;font-size:24px;color:#a8b6c3">Journal multisport · progression · aventure — gratuit, sans publicité</div>
   </body></html>`,
   { waitUntil: "load" },
 );

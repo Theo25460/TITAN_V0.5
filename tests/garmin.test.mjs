@@ -104,6 +104,30 @@ test('a push is handed to the database activity by activity, deregistrations too
     }, { rpc: () => Response.json({}, { status: 500 }) });
 });
 
+test('an activity the journal rules refuse for good is acknowledged and never holds back the rest of the envelope', async () => {
+    const refusal = (status, code, message) => (name, body) => body?.p_activity?.summaryId === 'poison'
+        ? Response.json({ code, message, details: null, hint: null }, { status }) : successRpc(name);
+    const envelope = { activities: [activity('poison'), activity('2', 'garmin-user-2')] };
+    for (const [status, code, message] of [[400, '23514', 'TRAINING_REJECTED'], [400, '22023', 'TRAINING_VALUE_OUT_OF_RANGE'], [409, '23505', 'EVENT_CONTENT_CONFLICT']]) {
+        await run(async (calls, logs) => {
+            assert.equal((await handler(push(envelope))).status, 200, `${message} can never succeed on a retry`);
+            assert.deepEqual(rpcCalls(calls).map(c => c.body.p_activity.summaryId), ['poison', '2'], 'the next athlete\'s activity is still imported');
+            assert.ok(logs.some(line => line.includes('refused')) && !logs.join('').includes('garmin-user'), 'a count is logged, never an identity');
+        }, { rpc: refusal(status, code, message) });
+    }
+    // Quotas, locks, serialization conflicts, authorization errors and outages can succeed later: Garmin must resend.
+    for (const [status, code, message] of [[400, '23514', 'TRAINING_RATE_LIMIT'], [429, 'PT429', 'RATE_LIMITED'], [409, '40001', 'could not serialize access'],
+        [400, '55P03', 'could not obtain lock on row'], [403, '42501', 'PROFILE_UNAVAILABLE'], [500, 'XX000', 'TRAINING_REJECTED'], [400, '22023', 'GARMIN_DAILIES_INVALID']]) {
+        await run(async calls => {
+            assert.equal((await handler(push(envelope))).status, 503, `${message} (${status}) stays retryable`);
+            assert.equal(rpcCalls(calls).length, 1, 'the envelope stops at the first retryable failure');
+        }, { rpc: refusal(status, code, message) });
+    }
+    await run(async () => {
+        assert.equal((await handler(push(envelope))).status, 503, 'an error without a readable reason stays retryable');
+    }, { rpc: (name, body) => body?.p_activity?.summaryId === 'poison' ? new Response('upstream', { status: 400 }) : successRpc(name) });
+});
+
 test('a Garmin push applies consent withdrawals before ingesting and skips their activities in the same batch', async () => {
     const body = {
         activities: [activity('1', 'removed-user'), activity('2', 'permission-user'), activity('3', 'other-user')],

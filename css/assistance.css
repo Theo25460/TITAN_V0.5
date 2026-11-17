@@ -44,7 +44,7 @@
 }
 #support-fields textarea { resize: vertical; }
 .help-choice { display: flex; gap: var(--s3); align-items: flex-start; }
-.help-choice input { margin-top: 5px; flex-shrink: 0; accent-color: var(--cy); }
+.help-choice input { margin-top: 5px; flex-shrink: 0; accent-color: var(--space); }
 .help-message { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 30rem; overflow-y: auto; }
 .help-notice { margin-bottom: var(--s3); overflow-wrap: anywhere; }
 .help-preview code { white-space: normal; overflow-wrap: anywhere; user-select: all; }
@@ -54,7 +54,7 @@
 .help-report .help-form-card { padding: var(--s3) 0; }
 .help-report .pub-cta { display: flex; flex-wrap: wrap; gap: var(--s3); }
 .help-report h3 { font-size: 1.125rem; }
-.help-report a { color: var(--cy); overflow-wrap: anywhere; }
+.help-report a { color: var(--space); overflow-wrap: anywhere; }
 .help-report [data-report-fallback][hidden] { display: none; }
 .help-report [data-report-close]:disabled { opacity: .5; cursor: wait; }
 .help-report .help-message { max-height: none; }

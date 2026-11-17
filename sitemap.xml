@@ -14,8 +14,10 @@
   <url><loc>https://titan-app.fr/journal-course-a-pied</loc><priority>0.7</priority></url>
   <url><loc>https://titan-app.fr/carnet-musculation</loc><priority>0.7</priority></url>
   <url><loc>https://titan-app.fr/suivi-escalade</loc><priority>0.7</priority></url>
+  <url><loc>https://titan-app.fr/suivi-velo</loc><priority>0.7</priority></url>
   <url><loc>https://titan-app.fr/progression-sportive</loc><priority>0.6</priority></url>
   <url><loc>https://titan-app.fr/motivation-sport</loc><priority>0.6</priority></url>
+  <url><loc>https://titan-app.fr/defis-sportifs</loc><priority>0.6</priority></url>
   <url><loc>https://titan-app.fr/changelog</loc><priority>0.4</priority></url>
   <url><loc>https://titan-app.fr/service</loc><priority>0.4</priority></url>
   <url><loc>https://titan-app.fr/partenariats</loc><priority>0.4</priority></url>

@@ -1,69 +1,80 @@
 import { Image, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Format } from "../core";
 import { avatarImages, heroImage } from "../core/images";
-import { colors, radius, space, TOUCH } from "../theme/tokens";
+import { colors, space, TOUCH } from "../theme/tokens";
 import { Avatar } from "./Avatar";
 import { RankCrest, rankIdOf } from "./Crest";
 import { Brand } from "./Brand";
 import { Tap } from "./Pressable";
+import { ProgressBar } from "./Progress";
 import { Shade } from "./Shade";
 import { T } from "./Text";
 
-/** The QG's welcome: the world the player is walking through as a backdrop, the brand, the rank, and TITAN's voice (immersion).
-    One block replaces the bare top bar and greeting, so the first screen feels like arriving somewhere, not opening a form. */
-export function QgBanner({ greeting, line, level, rankName, avatar, frame, image, accent, onProfile, worldName, chapterText }: {
+const fr = (n: number) => Format.number(Math.round(n));
+
+/** The QG opens on the world the player is walking through: the painting runs edge to edge and under the status bar, then
+    dissolves into the ground, so the page starts in the adventure and continues in the sport. On it: the brand, the greeting set
+    large, the character (crest, level, rank) and the XP towards the next level drawn as one line across the screen. No frame:
+    the picture is the header, not a card inside it. */
+export function QgBanner({ greeting, line, level, rankName, xp, need, avatar, frame, image, accent, onProfile }: {
   greeting: string;
   line: string;
   level?: number;
   rankName: string;
+  /** XP inside the current level and what the next level asks, both from the server snapshot. Without them the line is not drawn. */
+  xp?: number;
+  need?: number;
   avatar?: string;
   frame?: string;
   image?: number | null;
-  /** The world's colour, used once, for the rank line. */
+  /** The world's colour, used once, for the rank. */
   accent?: string;
   onProfile: () => void;
-  worldName?: string;
-  chapterText?: string;
 }) {
+  const insets = useSafeAreaInsets();
+  const hasXp = level !== undefined && xp !== undefined && need !== undefined && need > 0;
   return (
-    <View style={styles.wrap} testID="qg-banner">
-      <Image source={image ?? heroImage} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityIgnoresInvertColors />
-      <Shade from={0.55} start={0.05} to={0.94} />
+    <View style={[styles.wrap, { paddingTop: insets.top + space.s2 }]} testID="qg-banner">
+      <Image source={image ?? heroImage} style={styles.art} resizeMode="cover" accessibilityIgnoresInvertColors />
+      <Shade from={0.28} start={0.18} to={1} />
       <View style={styles.top}>
         <Brand size={26} />
         <Tap onPress={onProfile} accessibilityLabel={level === undefined ? "Profil" : `Profil, niveau ${level}, ${rankName}`} style={styles.me} testID="qg-profile">
-          {level !== undefined ? <View style={{ alignItems: "flex-end" }}>
-            <T variant="caption" tone="default">
-              Niv. {level}
-            </T>
-            <T variant="caption" color={accent ?? colors.cy2} numberOfLines={1}>
-              {rankName}
-            </T>
-          </View> : null}
-          <Avatar id={avatar && avatarImages[avatar] ? avatar : "scout"} frame={frame} size={36} />
+          <Avatar id={avatar && avatarImages[avatar] ? avatar : "scout"} frame={frame} size={38} />
         </Tap>
       </View>
-      {level !== undefined ? <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-        <RankCrest rank={rankIdOf(level)} size={48} />
-        <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-          <T variant="bodyStrong">{worldName ?? "Ton prochain monde t’attend"}</T>
-          <T variant="caption" tone="muted">{chapterText ?? "Choisis une campagne : tes prochaines séances y allumeront les balises."}</T>
-        </View>
-      </View> : null}
       <View style={styles.bottom}>
-        <T variant="h2">
-          {greeting}
-        </T>
-        <T variant="small" tone="default" style={{ opacity: 0.92 }}>
-          {line}
-        </T>
+        <T variant="display">{greeting}</T>
+        <T variant="small" tone="default" style={{ opacity: 0.9, maxWidth: 520 }}>{line}</T>
+        {level !== undefined ? (
+          <View style={styles.identity} testID="qg-identity">
+            <View style={{ flex: 1, minWidth: 0, gap: space.s2 }}>
+              <T variant="title">
+                Niveau {level} · <T variant="title" color={accent ?? colors.cy2}>{rankName}</T>
+              </T>
+              {hasXp ? (
+                <>
+                  <ProgressBar value={xp! / need!} height={4} track="rgba(241,243,239,0.2)" accessibilityLabel={`Progression vers le niveau ${level + 1}`} />
+                  <T variant="caption" tone="default" style={{ opacity: 0.86 }}>
+                    {fr(xp!)} / {fr(need!)} XP vers le niveau {level + 1}
+                  </T>
+                </>
+              ) : null}
+            </View>
+            <RankCrest rank={rankIdOf(level)} size={72} />
+          </View>
+        ) : null}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { minHeight: 176, borderRadius: radius.r3, overflow: "hidden", borderWidth: 1, borderColor: colors.line2, backgroundColor: colors.bg1, padding: space.s4, justifyContent: "space-between", gap: space.s5 },
+  wrap: { minHeight: 300, paddingHorizontal: space.s5, paddingBottom: space.s2, justifyContent: "space-between", gap: space.s8, backgroundColor: colors.bg },
+  art: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, width: "100%", height: "100%" },
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 },
-  me: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: TOUCH, paddingLeft: 10, borderRadius: radius.pill },
-  bottom: { gap: 4 },
+  me: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", minHeight: TOUCH, minWidth: TOUCH },
+  bottom: { gap: space.s2 },
+  identity: { flexDirection: "row", gap: space.s4, alignItems: "flex-end", marginTop: space.s3 },
 });

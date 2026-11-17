@@ -2,6 +2,10 @@
 /* TITAN — Shared design system
    Loaded last on every page: this file is the visual source of truth. */
 
+/* Netlify adds its review drawer to deploy previews; the site's Content-Security-Policy refuses its frame, which leaves a grey bar
+   fixed over the bottom navigation of every preview page. The drawer does not exist on the live site. */
+[data-netlify-deploy-id] { display: none !important; }
+
 :root {
   color-scheme: dark;
   --titan-bg: #0b121b;
@@ -33,8 +37,8 @@
   --accent-glow: rgba(126, 220, 255, 0.2);
   --text-main: var(--titan-text);
   --text-muted: var(--titan-muted);
-  --font-ui: "Manrope", "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-display: "Manrope", "Segoe UI", sans-serif;
+  --font-ui: "Archivo", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-display: "Archivo", "Segoe UI", sans-serif;
 }
 
 html {

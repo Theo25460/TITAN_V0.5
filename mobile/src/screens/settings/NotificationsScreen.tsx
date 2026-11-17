@@ -9,10 +9,11 @@ import { T } from "../../components/Text";
 import { ToggleRow } from "../../components/Toggle";
 import { useToast } from "../../components/Toast";
 import { useOwner } from "../../data/auth";
-import { useSavePrefs } from "../../data/hooks";
+import { useLogs, useSavePrefs } from "../../data/hooks";
 import { ask } from "../../components/Dialog";
 import { PERMISSION_COPY } from "../../lib/permissionCopy";
-import { applyReminders, DEFAULT_REMINDERS, ensurePermission, type ReminderSettings } from "../../lib/reminders";
+import { applyReminders, DEFAULT_REMINDERS, ensurePermission, localDayOf, type ReminderSettings } from "../../lib/reminders";
+import { usualHour } from "../../lib/habits";
 import { ownerKey, readJSON, writeJSON } from "../../lib/storage";
 import { space } from "../../theme/tokens";
 
@@ -23,6 +24,7 @@ export function NotificationsScreen() {
   const owner = useOwner();
   const toast = useToast();
   const savePrefs = useSavePrefs();
+  const { active } = useLogs();
   const [s, setS] = useState<ReminderSettings | null>(null);
   const [denied, setDenied] = useState(false);
   useEffect(() => {
@@ -39,7 +41,7 @@ export function NotificationsScreen() {
     setS(next);
     await writeJSON(ownerKey("reminders", owner), next);
     try {
-      await applyReminders(next);
+      await applyReminders(next, { activeDays: new Set(active.map((l) => localDayOf(l.date))) });
       savePrefs.mutate({ prefs: { notifications: { weeklyRecap: next.weeklyRecap, training: next.training, days: next.days, hour: next.hour, minute: next.minute } } });
     } catch {
       toast({ kind: "err", title: "Rappels non programmés", message: "Android a refusé la programmation. Vérifie les autorisations de TITAN." });
@@ -53,6 +55,16 @@ export function NotificationsScreen() {
         <ToggleRow label="Récap de la semaine" hint="Le lundi à 9 h : volume, records et prochaine étape." value={s.weeklyRecap} onChange={(v) => update({ ...s, weeklyRecap: v })} />
         <ToggleRow label="Rappel d’entraînement" hint="Les jours et à l’heure de ton choix." value={s.training} onChange={(v) => update({ ...s, training: v })} last />
       </Group>
+      {(() => {
+        // H3: the hour learned from the journal, offered as the reminder time (30 minutes before).
+        const h = usualHour(active);
+        if (h === null || !s.training) return null;
+        const at = { hour: h === 0 ? 23 : h - 1, minute: 30 };
+        if (s.hour === at.hour && s.minute === at.minute) return null;
+        return (
+          <Button small kind="secondary" icon="clock" label={`Tu t’entraînes souvent vers ${h} h : rappel à ${at.hour} h 30`} onPress={() => update({ ...s, ...at })} testID="usual-hour" />
+        );
+      })()}
       {s.training ? (
         <View style={{ gap: space.s3 }}>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>

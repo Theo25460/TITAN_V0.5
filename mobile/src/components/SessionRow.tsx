@@ -24,8 +24,8 @@ export function SessionRow({ log, onPress, record = false }: { log: TrainingLog;
   return (
     <Tap onPress={onPress} accessibilityLabel={`${Sports.label(log.sport)}, ${sessionHeadline(log)}, ${Format.relativeDay(log.date)}${record ? ", record actuel" : ""}${pending ? ", en attente d’envoi" : ""}`} style={styles.tap}>
       <View style={styles.row}>
-        <View style={[styles.icon, { backgroundColor: `${familyColors[fam]}22` }]}>
-          <Icon name={Sports.FAMILY_ICON[fam]} size={20} color={familyColors[fam]} />
+        <View style={styles.icon}>
+          <Icon name={Sports.iconOf(log.sport)} size={20} color={familyColors[fam]} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
           <T variant="bodyStrong" numberOfLines={1}>
@@ -45,7 +45,7 @@ export function SessionRow({ log, onPress, record = false }: { log: TrainingLog;
 }
 
 const styles = StyleSheet.create({
-  tap: { borderRadius: 14 },
-  row: { flexDirection: "row", alignItems: "center", gap: space.s3, padding: space.s3, borderRadius: 14, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line },
-  icon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  tap: { borderRadius: 4 },
+  row: { flexDirection: "row", alignItems: "center", gap: space.s3, paddingVertical: space.s3, minHeight: 60, borderBottomWidth: 1, borderBottomColor: colors.line },
+  icon: { width: 28, height: 40, alignItems: "flex-start", justifyContent: "center" },
 });

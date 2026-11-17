@@ -14,6 +14,12 @@ grant anon, authenticated, service_role to postgres;
 create schema if not exists extensions;
 create schema if not exists auth;
 create schema if not exists storage;
+-- The columns of Supabase Storage that the migrations read or bound, with production's single public bucket.
+create table if not exists storage.buckets (
+  id text primary key, name text not null, public boolean default false,
+  file_size_limit bigint, allowed_mime_types text[], created_at timestamptz default now()
+);
+insert into storage.buckets (id, name, public) values ('avatars', 'avatars', true) on conflict (id) do nothing;
 create extension if not exists pgcrypto with schema extensions;
 create extension if not exists "uuid-ossp" with schema extensions;
 create extension if not exists pg_trgm with schema extensions;

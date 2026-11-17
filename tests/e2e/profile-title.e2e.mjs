@@ -103,8 +103,12 @@ test('a refusal from the server never changes the worn title nor the profile', a
   try {
     await page.locator('[data-title-block]').waitFor();
     // The server refuses an insignia that is not earned: the profile keeps its state and says so.
-    await page.evaluate(() => { document.querySelector('[data-title-block] ul').insertAdjacentHTML('beforeend', '<li><button type="button" data-wear-title="chapter:aube:2">x</button></li>'); });
-    await page.locator('[data-wear-title="chapter:aube:2"]').click();
+    // The button is injected by the test, so a redraw of the profile (a late load) removes it for good, unlike a real one that is
+    // drawn again: inject it again until the click lands (it failed in CI with "element was detached from the DOM").
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await page.evaluate(() => { if (!document.querySelector('[data-wear-title="chapter:aube:2"]')) document.querySelector('[data-title-block] ul').insertAdjacentHTML('beforeend', '<li><button type="button" data-wear-title="chapter:aube:2">x</button></li>'); });
+      try { await page.locator('[data-wear-title="chapter:aube:2"]').click({ timeout: 2000 }); break; } catch (error) { if (attempt === 4) throw error; }
+    }
     await page.waitForFunction(() => window.titanSetCalls.includes('chapter:aube:2'));
     assert.equal(await page.evaluate(() => window.titanWornKey), null);
     assert.equal(await page.locator('[data-pf-title]').count(), 0);

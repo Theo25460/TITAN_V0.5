@@ -10,7 +10,7 @@ jest.mock("../src/lib/supabase", () => ({ supabase: {
     return Promise.resolve({ data: name === "titan_feature_flags_v1" ? { flags: { "screens.garmin": mockFlags, "screens.garmin_dailies": mockDailiesFlag } } : name === "titan_garmin_status_v1" ? { linked: false } : name === "titan_sources_v1" ? mockSources : name === "titan_economy_limits" ? { messageMaxLength: 280, chatGuildCost: 0 } : name === "titan_list_guild_messages" ? [] : { id: "message-1" }, error: null });
   } }),
 } }));
-import { connectGarmin, disconnectGarmin, garminFailureMessage, garminReturnMessage, readGarmin, loadGuildChat, postGuildMessage } from "../src/lib/nativeConnections";
+import { connectGarmin, disconnectGarmin, garminFailureMessage, garminWithdrawalMessage, garminReturnMessage, readGarmin, loadGuildChat, postGuildMessage } from "../src/lib/nativeConnections";
 beforeEach(() => { mockOwner = "a"; mockFlags = true; mockDailiesFlag = false; mockSources = []; mockCalls.length = 0; });
 const network = (status = 200, url = "https://connect.garmin.com/oauth/confirm") => jest.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => ({ ok: status === 200, status, json: async () => ({ url }) } as Response));
 
@@ -47,8 +47,21 @@ test("Garmin rejects unsafe redirects and a changed account before opening the b
   await expect(connectGarmin("a", true, open, fetcher)).rejects.toThrow("AUTH_REQUIRED"); expect(open).not.toHaveBeenCalled();
 });
 test("Garmin withdrawal still removes local authorization when the provider endpoint is down", async () => {
-  await disconnectGarmin("a", network(503));
+  expect(await disconnectGarmin("a", network(503))).toBe("unconfirmed");
   expect(mockCalls).toEqual(expect.arrayContaining([expect.objectContaining({ name: "titan_set_source_consent_v1", params: { p_source: "garmin", p_granted: false } }), expect.objectContaining({ name: "titan_garmin_unlink_v1" })]));
+});
+test("Garmin withdrawal says whether Garmin confirmed its own side, and never claims it otherwise", async () => {
+  const answer = (provider: unknown) => jest.fn(async () => ({ ok: true, status: 200, json: async () => ({ linked: false, provider }) } as Response));
+  expect(await disconnectGarmin("a", answer("withdrawn"))).toBe("withdrawn");
+  for (const provider of ["refused", "unavailable", "skipped", undefined]) {
+    mockCalls.length = 0;
+    expect(await disconnectGarmin("a", answer(provider))).toBe("unconfirmed");
+    expect(mockCalls.map((c) => c.name)).toEqual(expect.arrayContaining(["titan_set_source_consent_v1", "titan_garmin_unlink_v1"]));
+  }
+  expect(await disconnectGarmin("a", jest.fn(async () => { throw new Error("Network request failed"); }))).toBe("unconfirmed");
+  expect(garminWithdrawalMessage("withdrawn")).toContain("retiré de ton compte Garmin");
+  expect(garminWithdrawalMessage("unconfirmed")).toContain("Garmin n’a pas confirmé");
+  expect(garminWithdrawalMessage("unconfirmed")).toContain("plus aucune activité n’est importée");
 });
 test("guild chat reads current rules, validates content and never sends under a replacement account", async () => {
   expect(await loadGuildChat("a")).toEqual({ messages: [], maxLength: 280, cost: 0 });

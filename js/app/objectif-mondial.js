@@ -102,7 +102,7 @@
         <span class="asc-ascent thin" role="progressbar" aria-label="Progression de l’objectif collectif" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="--p:${percent}%"></span></span>
         <p class="asc-small asc-muted"><strong data-wg-total>${n(data.minutes)}</strong> min d’effort à tous · ${n(data.members)} participant${Number(data.members) > 1 ? "s" : ""}${data.joined ? ` · ta part : ${n(data.mine)} min` : ""}</p>
         <ul class="rv-list" data-wg-levels>${marks}</ul>
-        ${status}${action || share ? `<div class="asc-row">${action}${share}</div>` : ""}
+        ${status}${action || share ? `<div class="asc-actions">${action}${share}</div>` : ""}
         ${notice ? `<p class="asc-small" role="status" data-wg-notice>${esc(notice)}</p>` : ""}
         <p class="asc-small asc-faint">Facultatif, sans obligation ni pénalité : seules les séances faites après ton inscription comptent, chaque sport à égalité et au plus 90 minutes d’effort par jour. Chacun ne voit que sa propre part. Aucun XP ni crédit à gagner.</p>
       </div></section>`;
@@ -123,7 +123,16 @@
   });
   window.addEventListener("titan:account-changing", () => { owner = null; reset(); });
   ["titan:account-changed", "titan:flags-updated", "titan:history-updated", "online"].forEach((ev) => window.addEventListener(ev, () => { sync(); refresh(ev === "titan:history-updated"); }));
-  window.TitanWorldGoal = { html, refresh };
+  /** One line for the folded row of the QG. */
+  function brief() {
+    sync();
+    if (!on() || missing || !data) return "";
+    const level = Number(data.level) || 0;
+    if (data.state === "closed") return "Objectif terminé";
+    if (data.state === "upcoming") return `Commence le ${day(data.startsOn)}`;
+    return `${level ? `${NAMES[level]} atteint` : "En cours"} · ${data.joined ? "tu participes" : "à rejoindre si tu veux"}`;
+  }
+  window.TitanWorldGoal = { html, brief, refresh };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(() => refresh(), 0));
   else setTimeout(() => refresh(), 0);
 })();

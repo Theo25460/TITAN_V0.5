@@ -22,7 +22,7 @@ export const SCREENS = [
   "QG", "QG&state=empty", "Progress", "Progress&state=empty", "Record", "SessionForm?sport=running", "SessionForm?sport=muscu_gym",
   "SessionResult?eventId=record", "SessionResult?eventId=levelup", "SessionDetail?id=p0000000-0000-4000-8000-000000000001",
   "Journal", "Records", "Career", "Career&state=empty", "Goals", "Plan",
-  "Adventure", "Adventure&state=empty", "World?id=aube", "World?id=aube|click=Allumer la balise du chapitre 3", "World?id=marees", "World?id=forge",
+  "Adventure", "Adventure&state=empty", "World?id=aube", "World?id=aube|click=Allumer la balise 3", "World?id=marees", "World?id=forge",
   "Profile", "Atelier", "Community", "PublicCard", "Settings", "Account", "Privacy", "Notifications", "Sports", "Help", "TitanPlus", "DeleteAccount",
 ];
 
@@ -39,18 +39,19 @@ mkdirSync(out, { recursive: true });
 const browser = await chromium.launch();
 const errors = [];
 for (const spec of only.length ? only : SCREENS) {
-  // "Screen|click=Visible text" taps that text first (e.g. to show a confirmation or a reward).
-  const [screen, click] = spec.split("|click=");
+  // "Screen|click=Visible text" taps that text first (e.g. to show a confirmation or a reward); several clicks are played in order.
+  const [screen, ...clicks] = spec.split("|click=");
+  const click = clicks.join("+");
   const page = await browser.newPage({ viewport: VIEW, deviceScaleFactor: DSF });
   page.on("pageerror", (e) => errors.push(`${screen}: ${e.message}`));
   await page.goto(`http://127.0.0.1:${port}/#${screen}`);
   await page.waitForSelector("body[data-preview-ready]", { timeout: 20000 }).catch(() => errors.push(`${screen}: not ready`));
   await page.waitForTimeout(700);
-  if (click) {
-    await page.getByText(click, { exact: true }).first().click().catch((e) => errors.push(`${spec}: ${e.message.split("\n")[0]}`));
-    await page.waitForTimeout(1600);
+  for (const text of clicks) {
+    await page.getByText(text, { exact: true }).first().click().catch((e) => errors.push(`${spec}: ${e.message.split("\n")[0]}`));
+    await page.waitForTimeout(clicks.length > 1 ? 700 : 1600);
   }
-  const name = (screen + (click ? `-${click.normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 20)}` : "")).replace(/[?&=]/g, "_").replace(/[^A-Za-z0-9_-]/g, "");
+  const name = (screen + (click ? `-${click.normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 40)}` : "")).replace(/[?&=]/g, "_").replace(/[^A-Za-z0-9_-]/g, "");
   await page.screenshot({ path: join(out, `${name}.png`) });
   if (!PLAY) {
     // The whole screen too (tall viewport), so below-the-fold content is reviewed.

@@ -81,7 +81,7 @@ export function SignupScreen({ navigation }: NativeStackScreenProps<RootParams, 
     <Screen keyboard>
       <View style={{ gap: space.s2 }}>
         <T variant="h1">Rejoins TITAN</T>
-        <T tone="muted">{ADS_BUILD ? "Gratuit, avec des publicités rares et discrètes (retirées avec TITAN+). Ton compte fonctionne aussi sur titan-app.fr." : "Gratuit, sans publicité. Ton compte fonctionne aussi sur titan-app.fr."}</T>
+        <T tone="muted">{ADS_BUILD ? "Gratuit. Des publicités, jamais pendant une séance ; aucune avec TITAN+. Ton compte fonctionne aussi sur titan-app.fr." : "Gratuit, sans publicité. Ton compte fonctionne aussi sur titan-app.fr."}</T>
       </View>
       <Field label="Nom affiché" value={name} onChangeText={setName} error={errors.name} maxLength={24} autoComplete="name" returnKeyType="next" onSubmitEditing={() => emailRef.current?.focus()} testID="signup-name" />
       <Field ref={emailRef} label="E-mail" value={email} onChangeText={setEmail} error={errors.email} autoCapitalize="none" keyboardType="email-address" autoComplete="email" returnKeyType="next" onSubmitEditing={() => passwordRef.current?.focus()} testID="signup-email" />

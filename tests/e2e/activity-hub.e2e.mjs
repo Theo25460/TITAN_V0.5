@@ -21,13 +21,24 @@ async function fixture(url='/training'){
  return {page,context};
 }
 async function enable(page,garmin=false){await page.evaluate(g=>{window.titanFlags.enabled=(k,f=false)=>k==='screens.activityhub'||(g&&k==='screens.garmin')||f;window.dispatchEvent(new Event('titan:flags-updated'));},garmin);}
+// With the flag on the page still opens on the question « Qu’as-tu fait ? »: importing is the second position of the switch under it.
+async function hub(page,garmin=false){await enable(page,garmin);await page.locator('[data-act="hub"]').first().click();await page.locator('[data-activity-hub]').waitFor();}
 const gpx='<gpx><trk><trkseg><trkpt lat="45" lon="6"><time>2026-10-29T07:00:00Z</time></trkpt><trkpt lat="45.001" lon="6"><time>2026-10-29T07:01:00Z</time></trkpt></trkseg></trk></gpx>';
 const upload=(page,text=gpx,name='sortie.gpx')=>page.locator('[data-hub-gpx]').setInputFiles({name,mimeType:'application/gpx+xml',buffer:Buffer.from(text)});
 
-test('hub is off by default; opt-in opens free manual form in two clicks with keyboard focus',async()=>{
+test('the switch is off by default; with the flag the page still opens on the sport question, import is one tap away and manual entry is free',async()=>{
  const {page,context}=await fixture();try{
-  await page.locator('#sport-q').waitFor();assert.equal(await page.locator('[data-activity-hub]').count(),0);
-  await enable(page);await page.locator('[data-activity-hub]').waitFor();
+  await page.locator('#sport-q').waitFor();assert.equal(await page.locator('[data-activity-hub]').count(),0);assert.equal(await page.locator('.seance-modes').count(),0);
+  await enable(page);await page.locator('.seance-modes').waitFor();
+  assert.equal(await page.locator('[data-activity-hub]').count(),0,'the page does not jump to the import view');
+  assert.equal(await page.locator('#sport-q').count(),1);
+  assert.equal(await page.locator('[data-act="manual"]').getAttribute('aria-pressed'),'true');
+  // The switch sits inside the lime field, under the question: the page header stays the first thing of the page.
+  assert.equal(await page.locator('.seance-field .seance-modes').count(),1);
+  assert.equal(await page.evaluate(()=>document.getElementById('seance').firstElementChild.matches('header.asc-page-head')),true);
+  await page.locator('[data-act="hub"]').click();await page.locator('[data-activity-hub]').waitFor();
+  assert.equal(new URL(page.url()).searchParams.get('mode'),'import');
+  assert.equal(await page.evaluate(()=>document.getElementById('seance').firstElementChild.firstElementChild.matches('header.asc-page-head.seance-field')),true);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   await page.locator('[data-act="manual"]').click();assert.equal(await page.locator('#sport-q').evaluate(e=>e===document.activeElement),true);
   await page.locator('[data-sport="running"]').first().click();await page.locator('[data-k="durM"]').fill('25');
@@ -38,7 +49,7 @@ test('hub is off by default; opt-in opens free manual form in two clicks with ke
 
 test('GPX hub uses the chosen compatible sport and keeps precise locations local',async()=>{
  const {page,context}=await fixture();try{
-  await enable(page);await page.locator('[data-hub-query]').fill('vélo');await page.locator('[data-hub-choice="cycling"]').click();await upload(page);
+  await hub(page);await page.locator('[data-hub-query]').fill('vélo');await page.locator('[data-hub-choice="cycling"]').click();await upload(page);
   await page.locator('[data-gpx-preview]').waitFor();assert.equal(new URL(page.url()).searchParams.get('sport'),'cycling');
   await page.locator('[data-act="save"]').click();await page.locator('dialog[open]').waitFor();
   const log=await page.evaluate(()=>window.state.history.at(-1));assert.equal(log.sport,'cycling');assert.equal(log.details.gpxStats.verified,false);
@@ -85,7 +96,7 @@ test('Journal offers a direct free manual link and query bypasses the hub',async
 
 test('hub passes a narrow-screen accessibility scan',async()=>{
  const {page,context}=await fixture();try{
-  await enable(page);await page.locator('[data-activity-hub]').waitFor();
+  await hub(page);
   await page.addScriptTag({content:readFileSync(new URL('../../node_modules/axe-core/axe.min.js',import.meta.url),'utf8')});
   const violations=await page.evaluate(async()=> (await axe.run(document.getElementById('seance'),{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}})).violations);
   assert.deepEqual(violations.map(v=>v.id),[]);
@@ -105,7 +116,7 @@ test('a malformed GPX never replaces a stored draft and replacement can be cance
 
 test('leaving the hub invalidates pending file reads',async()=>{
  const {page,context}=await fixture();try{
-  await enable(page);
+  await hub(page);
   await page.evaluate(()=>{const e=document.querySelector('[data-hub-gpx]');Object.defineProperty(e,'files',{configurable:true,value:[{name:'delayed.gpx',size:100,text:()=>new Promise(r=>{window.resolveHubFile=r;})}]});e.dispatchEvent(new Event('change',{bubbles:true}));});
   await page.locator('[data-act="manual"]').click();
   await page.evaluate(async text=>{window.resolveHubFile(text);await new Promise(requestAnimationFrame);},gpx);
@@ -115,7 +126,7 @@ test('leaving the hub invalidates pending file reads',async()=>{
 
 test('flag refresh preserves chosen GPX discipline and keyboard focus',async()=>{
  const {page,context}=await fixture();try{
-  await enable(page);await page.locator('[data-hub-query]').fill('vélo');await page.locator('[data-hub-choice="cycling"]').click();
+  await hub(page);await page.locator('[data-hub-query]').fill('vélo');await page.locator('[data-hub-choice="cycling"]').click();
   await enable(page,true);
   assert.equal(await page.locator('[data-hub-sport]').inputValue(),'cycling');
   assert.equal(await page.locator('[data-hub-choice="cycling"]').evaluate(e=>e===document.activeElement),true);
@@ -133,7 +144,7 @@ test('an account transition removes another account draft from the hub',async()=
    window.titanAccountTransition.active=false;history.replaceState(null,'','/training');
    window.dispatchEvent(new Event('titan:account-changed'));window.dispatchEvent(new Event('titan:history-updated'));
   });
-  await enable(page);await page.locator('[data-activity-hub]').waitFor();
+  await hub(page);
   assert.equal(await page.locator('[data-act="resume"]').count(),0);
   assert.equal(await page.locator('main').innerText().then(t=>t.includes('Private draft A')),false);
  }finally{await context.close();}
@@ -204,7 +215,7 @@ for (const keepNewer of [false, true]) test(`a session stored for the previous a
 
 test('recording modes stay above the page and the GPX sport picker is searchable by keyboard',async()=>{
  const {page,context}=await fixture();try{
-  await enable(page);
+  await hub(page);
   const modes=page.getByRole('group',{name:'Méthode d’enregistrement'});
   await modes.waitFor();
   assert.equal(await modes.getByRole('button',{name:/Manuel/}).count(),1);
@@ -255,7 +266,7 @@ test('adventure guardian art is centred in its single-column card',async()=>{
 
 test('GPX search can be reset without losing the selected sport',async()=>{
  const {page,context}=await fixture();try{
-  await enable(page);await page.locator('[data-hub-query]').fill('gravel');await page.locator('[data-hub-choice="gravel"]').click();
+  await hub(page);await page.locator('[data-hub-query]').fill('gravel');await page.locator('[data-hub-choice="gravel"]').click();
   await page.locator('[data-hub-query]').fill('introuvable-123');await page.getByRole('button',{name:'Effacer la recherche'}).click();
   assert.equal(await page.locator('[data-hub-query]').inputValue(),'');
   assert.equal(await page.locator('[data-hub-sport]').inputValue(),'gravel');
@@ -264,7 +275,7 @@ test('GPX search can be reset without losing the selected sport',async()=>{
 });
 test('GPX file analysis shows progress while the file is being read',async()=>{
  const {page,context}=await fixture();try{
-  await enable(page);
+  await hub(page);
   await page.evaluate(()=>{const el=document.querySelector('[data-hub-gpx]');Object.defineProperty(el,'files',{configurable:true,value:[{name:'slow.gpx',size:100,text:()=>new Promise(resolve=>window.releaseUXFile=resolve)}]});el.dispatchEvent(new Event('change',{bubbles:true}));});
   await page.locator('[data-hub-status]').filter({hasText:'Analyse du fichier…'}).waitFor();
   await page.evaluate(()=>window.releaseUXFile('invalid'));await page.locator('[data-hub-status]').filter({hasText:/GPX/}).waitFor();

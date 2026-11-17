@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const mockNavigate = jest.fn();
 jest.mock("@react-navigation/native", () => ({ ...jest.requireActual("@react-navigation/native"), useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }) }));
+jest.mock("../src/components/LifeChapters", () => ({ LifeChapters: () => null }));
 
 const NOW = new Date();
 let id = 0;

@@ -137,7 +137,7 @@
     body.innerHTML = `<p class="asc-muted">Un repère facultatif, rien de plus : il ne change ni ta progression ni tes récompenses, et tu peux le retirer à tout moment.</p>
       <label class="asc-field"><span>Pas par jour (1 000 à 100 000)</span><input class="asc-input" type="number" inputmode="numeric" min="1000" max="100000" step="500" name="goal" value="${goal() || 8000}" required></label>
       <p class="asc-small" role="alert" data-goal-error hidden></p>
-      <div class="asc-row"><button type="submit" class="asc-btn asc-btn-primary">Enregistrer</button><button type="button" class="asc-btn asc-btn-secondary" data-goal-clear>Retirer l’objectif</button></div>`;
+      <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary">Enregistrer</button><button type="button" class="asc-btn asc-btn-secondary" data-goal-clear>Retirer l’objectif</button></div>`;
     const d = window.titanShell.sheet({ title: "Objectif de pas", eyebrow: "Facultatif", body, onClose: () => { if (dialog === d) dialog = null; } });
     dialog = d;
     body.addEventListener("submit", (e) => {
@@ -157,7 +157,15 @@
   window.addEventListener("titan:account-changing", () => { owner = null; reset(); });
   window.addEventListener("online", () => refresh(true));
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
-  window.TitanStepsCard = { html, monthHtml, refresh, goal };
+  /** One line for the folded row of the QG. */
+  function brief() {
+    sync();
+    if (guest() || missing || !days || !S()) return "";
+    const s = S().summarize(days, { today: dayKey(), goal: goal() });
+    if (s.empty) return "";
+    return s.today ? `${n(s.today.steps)} pas aujourd’hui` : "Pas encore de donnée aujourd’hui";
+  }
+  window.TitanStepsCard = { html, brief, monthHtml, refresh, goal };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(() => refresh(), 0));
   else setTimeout(() => refresh(), 0);
 })();

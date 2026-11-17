@@ -21,6 +21,8 @@ after(async () => { await browser?.close(); server?.kill(); });
 const GOAL = { id: "g1", title: "Cap sur novembre", detail: "Tous les sports comptent.", startsOn: "2026-10-26", endsOn: "2026-11-22", levels: [5000, 15000, 40000], minutes: 2000, members: 30, joined: false, mine: 0, level: 0, state: "open" };
 async function qg({ goal = GOAL, flag = true, missing = false, signedIn = true } = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 900 }, timezoneId: "UTC", serviceWorkers: "block" });
+  // The optional blocks of the QG are folded rows (js/app/qg.js); these journeys read inside them, as a sportsman who keeps them open.
+  await context.addInitScript(() => { try { localStorage.setItem("titan_qg_open_v1", JSON.stringify(["pas", "rv", "cq", "wg", "bd", "ss", "rk"])); } catch {} });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));

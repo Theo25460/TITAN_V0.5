@@ -4,6 +4,10 @@
 import { writeFileSync } from "node:fs";
 import { icon, C, E, SITE, typical, monthsTo, fmtMonths, MASTERY, page, breadcrumbTrail, faq, finalCta, cards } from "./lib/public-template.mjs";
 
+/* Server figures quoted by the pages below. They are written once here and tests/coherence-offers.test.mjs compares them with the SQL
+   that enforces them (supabase/migrations/20261102090000_coach_seats.sql and 20261117120000_cadence_week_reward.sql). */
+const CADENCE_WEEK_CREDITS = 50;
+
 /* ---------- Offers (single source for landing and /titan-plus) ---------- */
 const FREE = [
   "Journal multisport complet : 260 sports, liste, calendrier, édition, export CSV et JSON",
@@ -22,16 +26,17 @@ const PLUS = [
   "20 routines nommées au lieu de 5",
   "Jusqu’à 20 sportifs dans l’espace coach",
   "Accès temporaire à Aegis, Givre, Aurores et Obsidienne, aussi gagnables gratuitement avec les crédits d’activité",
+  "Aucune publicité dans l’application Android",
 ];
 const offersHtml = `<div class="pub-grid cols-2" style="margin-bottom:16px">
   <article class="pub-card" data-availability="now"><h3>Pour commencer maintenant</h3><p>Essaie sans compte : ton journal multisport et tes premiers repères restent sur cet appareil. Crée ensuite un compte gratuitement pour retrouver tes séances ailleurs. Le journal et ses exports ne demandent pas TITAN+.</p></article>
-  <article class="pub-card" data-availability="planned"><h3>Ce qui est à venir</h3><p>TITAN+ et les offres Coach ne sont pas encore en vente ; aucune publicité n’est affichée sur le site. Tout ce qui figure dans « Classique » est disponible maintenant ; ce que TITAN+ ajoutera est signalé « bientôt disponible ».</p></article>
+  <article class="pub-card" data-availability="planned"><h3>Les abonnements</h3><p>TITAN+ et les offres Coach s’achètent uniquement dans l’application Android, avec Google Play : le site ne vend rien et n’affiche aucune publicité. Tant que l’achat n’y est pas ouvert, ils restent signalés « bientôt disponible » et aucun paiement n’est possible. Tout ce qui figure dans « Classique » est disponible maintenant.</p></article>
 </div><div class="pub-grid cols-2" style="margin-bottom:16px">
   <article class="pub-card" data-plan="coach"><p class="pub-eyebrow">Coach</p><h3>Accompagne 5 sportifs.</h3><p class="pub-price">Tarif affiché par Google Play</p><ul><li>${icon("check")}<span>Toi + 5 sportifs avec TITAN+ inclus tant qu’ils sont rattachés à toi</span></li><li>${icon("check")}<span>Toute la suite Coach : sportifs suivis, calendrier, séances proposées, messages, check-ins, bilans</span></li><li>${icon("check")}<span>TITAN+ pour toi</span></li></ul></article>
   <article class="pub-card" data-plan="coach"><p class="pub-eyebrow">Coach Ultra</p><h3>Accompagne 15 sportifs.</h3><p class="pub-price">Tarif affiché par Google Play</p><ul><li>${icon("check")}<span>Toi + 15 sportifs avec TITAN+ inclus tant qu’ils sont rattachés à toi</span></li><li>${icon("check")}<span>Exactement la même suite que Coach : tu paies la capacité, pas des fonctions</span></li><li>${icon("check")}<span>TITAN+ pour toi</span></li></ul></article>
-</div><p class="pub-fine" style="margin-bottom:16px">Une place TITAN+ est active seulement tant que le sportif accepte le suivi et que le coach paie ; ensuite le sportif retrouve ses droits personnels, sans rien perdre de son historique. Un coach ne voit aucune donnée privée sans le consentement du sportif, pour chaque donnée partagée. Le tarif applicable à ton compte est affiché par Google Play avant tout achat.</p><div class="pub-grid cols-2">
+</div><p class="pub-fine" style="margin-bottom:16px">Une place TITAN+ est active seulement tant que le sportif accepte le suivi et que l’offre du coach est active ; ensuite le sportif retrouve ses droits personnels, sans rien perdre de son historique. Avec Coach ou Coach Ultra, le nombre de sportifs suivis est celui de l’offre (5 ou 15) ; TITAN+ seul permet d’en suivre 20, sans TITAN+ pour eux. Un coach ne voit aucune donnée privée sans le consentement du sportif, pour chaque donnée partagée. Le tarif applicable à ton compte est affiché par Google Play avant tout achat.</p><div class="pub-grid cols-2">
   <article class="pub-card"><p class="pub-eyebrow">Classique</p><h3>Tout ce qui fait progresser.</h3><p class="pub-price">0 € <small>sans limite de durée</small></p><ul>${FREE.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><a class="asc-btn asc-btn-secondary" href="/onboarding">Commencer gratuitement</a></article>
-  <article class="pub-card is-plus"><p class="pub-eyebrow" style="color:var(--am)">TITAN+</p><h3>Du recul sur ta pratique.</h3><p class="pub-price">Bientôt disponible</p><ul>${PLUS.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><p class="pub-fine">Aucun paiement n’est proposé pour le moment. L’abonnement sera proposé dans l’application Android, via Google Play, avec son prix affiché avant tout achat.</p></article>
+  <article class="pub-card is-plus"><p class="pub-eyebrow" style="color:var(--am)">TITAN+</p><h3>Du recul sur ta pratique.</h3><p class="pub-price">Tarif affiché par Google Play</p><ul>${PLUS.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><p class="pub-fine">L’abonnement se souscrit uniquement dans l’application Android, avec Google Play, qui affiche le prix avant tout achat. Tant que l’achat n’y est pas ouvert, aucun paiement n’est possible.</p></article>
 </div>
 <div class="pub-card" style="margin-top:12px"><p class="pub-eyebrow">Ce que TITAN+ ne change jamais</p><p>Pas d’XP en plus, pas de crédits en plus, pas de plafond relevé, pas d’avance sur les gardiens, les classements ou les expéditions. On ne vend pas de progression.</p></div>`;
 
@@ -50,7 +55,7 @@ const homeFaq = faq([
   ["C’est un journal d’entraînement ou un jeu ?", "Un journal d’abord : tes séances, tes mesures, tes records, avec leur source. La progression (rang, maîtrise, aventure) se nourrit de ces séances réelles. Le jeu donne un fil ; il ne remplace jamais la donnée."],
   ["Comment l’XP est-elle calculée ?", `À partir de l’effort : les minutes de la séance, comptées pleinement jusqu’à 90 puis à moitié, multipliées par l’intensité ressentie. Une séance typique de 45 minutes rapporte environ ${typical.xp} XP. Les plafonds sont les mêmes pour tous : ${E.DAILY_XP_CAP.toLocaleString("fr-FR")} XP par jour et ${E.WEEKLY_XP_CAP.toLocaleString("fr-FR")} par semaine. <a href="/niveaux-et-xp">Toutes les règles</a>.`],
   ["Que se passe-t-il si je fais une pause ?", "Rien ne se perd : ni niveau, ni maîtrise, ni insignes. Tu choisis ta cadence (de 1 à 7 jours actifs par semaine) et tu peux déclarer une semaine en pause. Pas de série qui s’effondre, pas de culpabilité."],
-  ["Mes données sont-elles publiques ?", "Non. Tout est privé par défaut. Les amis demandent ton accord, les Moments se partagent un par un, le profil public est désactivé tant que tu ne l’actives pas. Jamais de santé, de poids, de GPS ni de notes dans les espaces partagés."],
+  ["Mes données sont-elles publiques ?", "Non. Tout est privé par défaut. Les amis demandent ton accord, les Moments se partagent un par un, le profil public est désactivé tant que tu ne l’actives pas. Jamais de santé, de poids, de GPS ni de notes dans la Communauté ou sur le profil public."],
   ["Ça marche hors ligne ?", "Oui. Une séance enregistrée sans réseau reste sur ton téléphone et part toute seule au retour de la connexion. L’application s’installe sur l’écran d’accueil."],
   ["Peut-on tricher ?", "Ça ne rapporte rien. Les récompenses sont calculées par le serveur, plafonnées, et une séance saisie plus de 30 jours après sa date rejoint ton historique sans XP. Ton journal reste à toi ; la progression reste équitable."],
 ]);
@@ -67,7 +72,7 @@ const home = page({
     <h1>Ton sport réel.<br><em>Une progression qui dure.</em></h1>
     <p class="pub-lead">Course, musculation, escalade, natation, padel : enregistre ce que tu fais vraiment. TITAN en tire des repères clairs, une maîtrise qui grandit sport par sport et une aventure qui avance avec tes séances. Ici, seul l’effort fait avancer.</p>
     <div class="pub-cta"><a class="asc-btn asc-btn-primary" href="/onboarding">Commencer · 2 minutes ${icon("arrow")}</a><a class="asc-btn asc-btn-secondary" href="#boucle">Voir comment ça marche</a></div>
-    <p class="pub-fine">Gratuit · Sans publicité · Sans carte bancaire · Essai sans compte</p></div>${heroMock}</div></section>
+    <p class="pub-fine">Gratuit · Site sans publicité · Sans carte bancaire · Essai sans compte</p></div>${heroMock}</div></section>
   <div class="pub-wrap"><div class="pub-promises"><span>${icon("layers")} 260 sports, chacun ses mesures</span><span>${icon("offline")} Fonctionne hors ligne</span><span>${icon("lock")} Privé par défaut</span><span>${icon("shield")} Aucune progression à vendre</span></div></div>
 
   <section class="pub-section" id="boucle"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">La boucle</p><h2>Prévoir. Bouger. Comprendre.<br>Et revenir avec envie.</h2><p class="pub-lead">Chaque séance fait tourner la même boucle, sans écran inutile entre toi et ton entraînement.</p></div>
@@ -76,10 +81,10 @@ const home = page({
   <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Un vrai carnet</p><h2>Chaque sport garde<br>ses propres mesures.</h2><p class="pub-lead">Une valeur absente reste absente : TITAN n’invente rien pour remplir un graphique.</p></div>
     ${cards([
       ["weight", "Musculation", "Exercices, séries, charges, répétitions, RIR. Routines réutilisables, progression par exercice et par variante.", "/carnet-musculation"],
-      ["run", "Course à pied", "Distance, durée à la seconde, allure et import GPX. Records sur 5, 10, 21,1 et 42,2 km avec la séance source.", "/journal-course-a-pied"],
+      ["run", "Course à pied", "Distance, durée à la seconde, allure et import GPX. Records sur 1, 5, 10, 21,1 et 42,2 km avec la séance source.", "/journal-course-a-pied"],
       ["mountain", "Escalade", "Bloc ou voie, cotations françaises, Fontainebleau et V-scale tenues séparées. Essais et réussites.", "/suivi-escalade"],
       ["wave", "Et 250 autres", "Natation, padel, yoga, sports de combat, ski… Chaque sport a sa famille, ses champs et ses repères.", "/sports"],
-    ], 4)}</div></section>
+    ], 4)}<a class="pub-link" href="/suivi-velo" style="margin-top:20px">Vélo, gravel et VTT : le journal vélo ${icon("arrow")}</a></div></section>
 
   <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Des statistiques qui répondent</p><h2>Pas des graphiques.<br>Des réponses.</h2><p class="pub-lead">Chaque semaine, TITAN répond aux questions que tu te poses vraiment, et dit sur quoi repose la réponse.</p></div>
     <div class="pub-grid cols-3">${[
@@ -107,11 +112,11 @@ const home = page({
   <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Ensemble, sans pression</p><h2>Avancer avec les autres.<br>Sans tout montrer.</h2></div>
     ${cards([
       ["send", "Moments", "Un record, une balise, une belle semaine : tu choisis ce que tes amis voient, un Moment à la fois. Ils peuvent t’encourager."],
-      ["flag", "Défis sans mise", "Entre amis, en minutes d’effort ou en jours actifs. Aucun crédit en jeu, 90 minutes comptées au plus par jour."],
+      ["flag", "Défis sans mise", "Entre amis, en minutes d’effort ou en jours actifs. Aucun crédit en jeu, 90 minutes comptées au plus par jour.", "/defis-sportifs"],
       ["mountain", "Expéditions", "Une saison, un gardien, toute la communauté. Chaque minute d’effort compte pareil, quel que soit le sport."],
       ["group", "Guilde", "Un objectif d’effort hebdomadaire commun, un fil de discussion, sans coût d’entrée."],
       ["shield", "Coaching consenti", "Le sportif choisit la période, le sport et les détails partagés. Le coach propose, il ne modifie jamais le journal.", "/pour-les-coachs"],
-      ["lock", "Privé par défaut", "Amis sur demande acceptée, profil public désactivé, statistiques d’usage seulement avec ton accord."],
+      ["lock", "Privé par défaut", "Amis sur demande acceptée, profil public désactivé, statistiques d’usage liées à ton compte seulement avec ton accord."],
     ])}</div></section>
 
   <section class="pub-section" id="offres"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Gratuit et TITAN+</p><h2>Le cœur est gratuit.<br>Pour de bon.</h2><p class="pub-lead">TITAN+ soutient le projet avec plus de routines, de capacité pour les coachs et de personnalisation. Les quatre mondes font partie du gratuit ; aucun abonnement n’achète de progression.</p></div>${offersHtml}</div></section>
@@ -156,10 +161,10 @@ guide({
       <p>Le sport ne change pas la formule : 45 minutes de yoga intense et 45 minutes de course au même ressenti pèsent pareil. C’est ton effort qui compte, pas la discipline.</p>`],
     ["plafonds", "Des plafonds identiques pour tous", `<div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Règle</th><th>Valeur</th></tr></thead><tbody>
       <tr><td>XP maximale par jour</td><td class="num">${E.DAILY_XP_CAP.toLocaleString("fr-FR")}</td></tr><tr><td>XP maximale par semaine</td><td class="num">${E.WEEKLY_XP_CAP.toLocaleString("fr-FR")}</td></tr>
-      <tr><td>Crédits</td><td>10 % de l’XP de la séance, plafonnés de la même façon</td></tr><tr><td>Séance saisie plus de ${E.HISTORY_DAYS} jours après sa date</td><td>Historique : journal, records et maîtrise, sans XP</td></tr><tr><td>Abonnés TITAN+</td><td>Exactement les mêmes plafonds</td></tr></tbody></table></div>
+      <tr><td>Crédits</td><td>10 % de l’XP de la séance, plafonnés de la même façon</td></tr><tr><td>Semaine tenue</td><td>${CADENCE_WEEK_CREDITS} crédits, une fois par semaine, à réclamer dans l’application Android lorsqu’elle le propose ; aucune XP</td></tr><tr><td>Séance saisie plus de ${E.HISTORY_DAYS} jours après sa date</td><td>Historique : journal, records et maîtrise, sans XP</td></tr><tr><td>Abonnés TITAN+</td><td>Exactement les mêmes plafonds</td></tr></tbody></table></div>
       <p>Les récompenses sont calculées par le serveur. Le même envoi répété ne crée pas une seconde récompense. Une séance corrigée met à jour tes analyses ; elle ne redonne pas d’XP.</p>`],
     ["niveaux", "Niveaux et rangs", `<p>Le niveau suivant demande <strong>500 × niveau<sup>1,3</sup></strong> XP. Les premiers niveaux arrivent vite pour te mettre en route, les suivants demandent des mois. C’est voulu : un rang doit raconter une histoire.</p>
-      <div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Rang</th><th>Niveau</th><th>À 3 séances de 45 min par semaine</th></tr></thead><tbody>${C.ranks.map((r) => `<tr><td>${r.name}</td><td class="num">${r.level}</td><td>${r.level === 1 ? "Dès le départ" : `environ ${fmtMonths(monthsTo(r.level))}`}</td></tr>`).join("")}</tbody></table></div>
+      <div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Rang</th><th>Niveau</th><th>À 3 séances de 45 min par semaine</th></tr></thead><tbody>${C.ranks.map((r) => `<tr><td>${r.name}</td><td class="num">${r.level}</td><td>${r.level === 1 ? "Dès le départ" : monthsTo(r.level) < 1.5 ? "Quelques semaines" : `Environ ${fmtMonths(monthsTo(r.level))}`}</td></tr>`).join("")}</tbody></table></div>
       <p>Les personnages se débloquent avec les niveaux (2 au départ, puis aux niveaux 3, 6, 10 et 15). Les cadres de rang de l’Atelier aussi. Rien de tout cela ne s’achète.</p>`],
     ["maitrise", "La maîtrise, sport par sport", `<p>La maîtrise mesure ton expérience dans <strong>un</strong> sport. Chaque palier demande à la fois des heures de pratique et des semaines différentes : impossible de l’obtenir en un week-end. Toutes les séances comptent, y compris l’historique, parce que la maîtrise décrit ton expérience ; elle ne rapporte rien.</p>
       <div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Palier</th><th>Heures</th><th>Semaines</th></tr></thead><tbody>${MASTERY.map(([n, h, w], i) => `<tr><td>${i + 1}. ${n}</td><td class="num">${h}</td><td class="num">${w}</td></tr>`).join("")}</tbody></table></div>`],
@@ -170,7 +175,7 @@ guide({
     ["Pourquoi mon ressenti change-t-il l’XP ?", "Parce qu’une heure facile et une heure très dure ne demandent pas le même effort. L’écart reste borné : de ×0,68 à ×1,4. Mentir sur son ressenti ne rapporte presque rien face aux plafonds."],
     ["Les objectifs ou les défis donnent-ils de l’XP ?", "Non. Seules les séances en donnent. Objectifs, défis, Moments et propositions de coach servent à s’organiser, pas à multiplier les récompenses."],
     ["Puis-je perdre un niveau ?", "Non. Un niveau, une maîtrise ou un insigne acquis le restent, même après une longue pause."],
-    ["TITAN+ fait-il progresser plus vite ?", "Non. Mêmes formules, mêmes plafonds. Les quatre campagnes sont gratuites. TITAN+ ajoute des routines, de la capacité coach et un accès temporaire aux pièces cosmétiques."],
+    ["TITAN+ fait-il progresser plus vite ?", "Non. Mêmes formules, mêmes plafonds. Les quatre campagnes sont gratuites. TITAN+ ajoute des comparaisons et des bilans, des routines, de la capacité coach et un accès temporaire à quatre pièces cosmétiques."],
   ],
 });
 
@@ -188,7 +193,7 @@ guide({
       <p>Les quatre campagnes sont gratuites : la vallée de l’Aube, l’archipel des Marées, les forges d’Obsidienne et la citadelle des Aurores, avec exactement les mêmes règles.</p>`],
     ["balises", "Comment une balise s’allume", `<ol><li>Démarre une campagne, choisis ton chemin : <strong>Rythme</strong> (jours actifs) ou <strong>Journal</strong> (jours avec une note de séance d’au moins 10 caractères).</li><li>Chaque chapitre demande un, deux ou trois jours actifs, enregistrés après son départ.</li><li>Un jour compte une fois, quel que soit le volume : trois séances le même jour valent un jour.</li><li>Quand la mission est remplie, allume la balise : l’insigne rejoint ta collection et le chapitre suivant commence.</li></ol>
       <p>Les chapitres n’expirent pas. Les séances archivées, signalées ou ajoutées plus de 30 jours après leur date ne comptent pas.</p>`],
-    ["gardiens", "Les gardiens récompensent la constance", `<p>La cible des nouveaux chapitres est figée au départ selon les 28 derniers jours admissibles. Au neuvième chapitre, le gardien attend <strong>deux à trois jours actifs et 30 à 135 minutes d’effort</strong>, avec <strong>90 minutes au plus par jour</strong>. Les insignes sont les mêmes pour tous, sans record à battre ni échéance. Les chapitres déjà commencés gardent leurs conditions. En découverte et sur l’ancien serveur, le gardien demande toujours trois jours et 150 minutes.</p>`],
+    ["gardiens", "Les gardiens récompensent la constance", `<p>La cible des nouveaux chapitres est figée au départ selon les 28 derniers jours admissibles. Au neuvième chapitre, le gardien attend <strong>deux à trois jours actifs et 30 à 135 minutes d’effort</strong>, avec <strong>90 minutes au plus par jour</strong>. Les insignes sont les mêmes pour tous, sans record à battre ni échéance. Les chapitres déjà commencés gardent leurs conditions. En mode découverte, le gardien demande toujours trois jours et 150 minutes.</p>`],
     ["expeditions", "Les expéditions de saison", `<p>Plusieurs fois par an, une expédition rassemble toute la communauté face à un gardien de saison. Chaque minute d’effort compte pareil, quel que soit ton sport, 90 au plus par jour. Un objectif personnel (par exemple 4 jours et 300 minutes sur la période) donne un titre à garder dans ta collection.</p>`],
     ["recompenses", "Des récompenses qui racontent", `<p>Insignes, titres et cadres sont cosmétiques. Ils ne donnent ni XP ni crédits, et ne se perdent pas après une correction de journal ou la fin d’un abonnement.</p>`],
   ],
@@ -250,14 +255,14 @@ guide({
   title: "TITAN pour les coachs : suivi consenti et séances proposées",
   h1: "Un suivi à deux,<br>décidé par le sportif",
   eyebrow: "Coachs et sportifs",
-  description: "Invitation privée, consentement explicite, périmètre choisi par le sportif, propositions de séances acceptées ou déclinées. 3 sportifs gratuits, 20 avec TITAN+.",
+  description: "Invitation privée, accord explicite, périmètre choisi par le sportif, séances proposées. 3 sportifs sans abonnement, 20 avec TITAN+, 5 ou 15 avec une offre Coach.",
   image: "archipelago",
   lead: "Le coach voit ce que le sportif accepte de partager, propose des séances, et ne touche jamais au journal. Le sportif peut tout arrêter à tout moment.",
   sections: [
     ["invitation", "1. Une invitation à usage unique", `<p>Le coach crée un code privé, valable une fois et pour une durée limitée, et le transmet à son sportif. TITAN ne vérifie pas les qualifications d’un coach : le sportif vérifie à qui il partage.</p><p>Tu accompagnes un club ou une association ? <a href="/partenariats">Découvrir les partenariats TITAN</a>.</p>`],
     ["perimetre", "2. Le sportif choisit le périmètre", `<ul><li>À partir de quelle date ses séances sont visibles.</li><li>Un sport ou tous les sports.</li><li>Les détails techniques (séries, charges, RIR, escalade) ou seulement l’essentiel.</li><li>Ses notes, ou pas.</li></ul><p>Le partage commence uniquement après son accord explicite. Il peut le modifier ou le révoquer à tout moment ; les séances partagées ne sont gardées qu’en mémoire chez le coach.</p>`],
     ["propositions", "3. Des propositions, pas des ordres", `<p>Le coach propose une séance (sport, date, consignes). Le sportif l’accepte ou la décline, puis la relie à la séance réellement faite. Une proposition ne crée jamais d’XP ni de séance à sa place.</p>`],
-    ["capacite", "4. Formules et capacité", `<div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Formule</th><th>Prix</th><th>Sportifs suivis</th><th>TITAN+ pour les sportifs suivis</th></tr></thead><tbody><tr><td>Classique</td><td>Gratuit</td><td class="num">3</td><td>Non</td></tr><tr><td>TITAN+ (individuel)</td><td>Affiché par Google Play</td><td class="num">20</td><td>Non</td></tr><tr><td>Coach</td><td>Tarif affiché par Google Play</td><td class="num">5</td><td>Inclus tant que le sportif est rattaché</td></tr><tr><td>Coach Ultra</td><td>Tarif affiché par Google Play</td><td class="num">15</td><td>Inclus tant que le sportif est rattaché</td></tr></tbody></table></div><p>Coach et Coach Ultra ont exactement la même suite de fonctions : le tarif Ultra achète de la capacité, pas des fonctions en plus. Les offres payantes ne sont pas encore en vente ; elles ouvriront uniquement dans l’application Android, via Google Play. Le sportif ne paie jamais pour être suivi.</p>`],
+    ["capacite", "4. Formules et capacité", `<div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Formule</th><th>Prix</th><th>Sportifs suivis</th><th>TITAN+ pour les sportifs suivis</th></tr></thead><tbody><tr><td>Classique</td><td>Gratuit</td><td class="num">3</td><td>Non</td></tr><tr><td>TITAN+ (individuel)</td><td>Affiché par Google Play</td><td class="num">20</td><td>Non</td></tr><tr><td>Coach</td><td>Tarif affiché par Google Play</td><td class="num">5</td><td>Inclus tant que le sportif est rattaché</td></tr><tr><td>Coach Ultra</td><td>Tarif affiché par Google Play</td><td class="num">15</td><td>Inclus tant que le sportif est rattaché</td></tr></tbody></table></div><p>Coach et Coach Ultra ont exactement la même suite de fonctions : le tarif Ultra achète de la capacité, pas des fonctions en plus. Les offres payantes s’achètent uniquement dans l’application Android, avec Google Play ; tant que l’achat n’y est pas ouvert, aucun paiement n’est possible. Un coach passé de TITAN+ à Coach suit au plus 5 sportifs : les liens déjà acceptés restent, sans nouvelle invitation au-delà. Le sportif ne paie jamais pour être suivi.</p>`],
   ],
   faqItems: [
     ["Le coach peut-il modifier mes séances ?", "Non. Il lit le périmètre que tu as choisi et propose des séances. Ton journal ne change que par toi."],
@@ -268,19 +273,19 @@ guide({
 
 /* ---------- Tarifs ---------- */
 const tarifsFaq = faq([
-  ["Que se passe-t-il à la fin de TITAN+ ?", "Ton journal, tes analyses de base, ta progression, tes insignes et tes crédits restent. L’accès aux comparaisons de périodes, aux bilans et à leur CSV agrégé prend fin. Les pièces acquises avec tes crédits restent à toi ; seul l’accès temporaire aux pièces non acquises prend fin, et la capacité coach revient à 3 pour les nouveaux suivis."],
+  ["Que se passe-t-il à la fin de TITAN+ ?", "Ton journal, tes analyses de base, ta progression, tes insignes et tes crédits restent. L’accès aux comparaisons de périodes, aux bilans détaillés et à leur CSV agrégé prend fin. Les pièces acquises avec tes crédits restent à toi ; seul l’accès temporaire aux pièces non acquises prend fin, et la capacité coach revient à 3 pour les nouveaux suivis. Dans l’application Android, les publicités de l’offre gratuite reviennent."],
   ["TITAN+ ajoute-t-il des analyses sportives ?", "Oui : les comparaisons de 4, 12 ou 26 semaines complètes avec la période précédente, tous sports ou un sport, ajoutent une lecture de ta pratique. Séances, jours actifs et minutes sont calculés depuis ton historique synchronisé. Le récap, les records et les tendances de base restent gratuits."],
-  ["Que contiennent les bilans TITAN+ ?", "Un bilan mensuel ou annuel réunit tes séances, tes jours actifs, tes minutes, leur répartition par sport et leur calendrier, avec un CSV agrégé. La période courante est provisoire, arrêtée à l’instant du calcul ; la précédente est complète. Les durées estimées sont signalées. Le journal et ses exports CSV et JSON restent gratuits. Chaque téléchargement recalcule les données avec ton accès actuel."],
+  ["Que contiennent les bilans TITAN+ ?", "Un bilan mensuel ou annuel réunit tes séances, tes jours actifs, tes minutes, leur répartition par sport et leur calendrier, avec un CSV agrégé. La période courante est provisoire, arrêtée à l’instant du calcul ; la précédente est complète. Les durées estimées sont signalées. Le journal et ses exports CSV et JSON restent gratuits, comme le bilan simple du mois et de l’année dans Progrès. Chaque téléchargement recalcule les données avec ton accès actuel."],
   ["Que sont les vues sauvegardées TITAN+ ?", "Retrouve 10 vues privées de comparaison ou de bilan par compte : seuls le nom et les paramètres sont sauvegardés, puis les données sont recalculées à l’ouverture avec ton accès actuel. À expiration, les vues sont conservées et peuvent être supprimées ; TITAN+ permet de les ouvrir et de les modifier. Tes favoris, ton historique et tes exports de base restent gratuits."],
   ["Les routines au-delà de 5 sont-elles supprimées ?", "Non. Elles restent utilisables. Au-delà de cinq, la création d’une nouvelle routine demande TITAN+ ; tu peux toujours remplacer une routine existante."],
-  ["Comment résilier ?", "TITAN+ n’est pas encore en vente. À son ouverture, l’abonnement se résiliera dans Google Play, et l’accès restera actif jusqu’à la fin de la période payée."],
-  ["Y a-t-il de la publicité ?", "Non, ni dans l’offre gratuite ni dans TITAN+."],
+  ["Comment résilier ?", "L’abonnement se souscrit et se résilie dans Google Play, depuis l’application Android ; l’accès reste actif jusqu’à la fin de la période payée. Supprimer ton compte TITAN ne résilie pas l’abonnement. Tant que l’achat n’est pas ouvert dans l’application, TITAN+ n’est pas encore en vente et il n’y a rien à résilier."],
+  ["Y a-t-il de la publicité ?", "Le site et l’application Web n’affichent aucune publicité. L’application Android gratuite affiche des publicités Google AdMob, jamais avant le formulaire de consentement de Google et jamais pendant une séance. TITAN+, Coach et Coach Ultra n’en affichent aucune."],
 ]);
 // Capacity diagrams describe existing limits, not a fictional application screen.
 const capacityMeter = (free, label) => `<div class="pub-benefit-meter" role="img" aria-label="${free} ${label} en Classique, 20 avec TITAN+">${Array.from({ length: 20 }, (_, i) => `<span${i < free ? ' class="is-free"' : ""}></span>`).join("")}</div>`;
 const concreteBenefits = `<section class="pub-section" id="concret"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">TITAN+, concrètement</p><h2>Prends du recul sur ta pratique.</h2><p class="pub-lead">Compare des périodes de même durée, garde tes routines et retrouve tes repères.</p></div>
   <article class="pub-card" data-benefit="comparisons"><h3>Qu’est-ce qui change entre deux périodes ?</h3><p class="pub-price">4 · 12 · 26 <small>semaines complètes</small></p><p>Compare tes séances, tes jours actifs et ton temps de pratique à la période précédente. Choisis tous tes sports ou un seul, puis consulte les semaines et les séances sources.</p><p class="pub-fine">Historique synchronisé, durées estimées signalées. Plus de volume ne signifie pas meilleure performance.</p><a class="asc-btn asc-btn-secondary" href="/stats#analyses">Ouvrir les comparaisons</a></article>
-  <article class="pub-card" data-benefit="reports"><h3>Garde une vue de ton mois ou de ton année.</h3><p>Consulte tes séances, tes jours actifs et ton temps de pratique, par sport et dans le calendrier. Télécharge le même bilan en CSV agrégé, recalculé au moment de l’export.</p><p class="pub-fine">Période courante provisoire ou période précédente complète, durées estimées signalées. Le journal et ses exports CSV/JSON restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/stats#bilans">Ouvrir mon bilan</a></article>
+  <article class="pub-card" data-benefit="reports"><h3>Garde une vue de ton mois ou de ton année.</h3><p>Consulte tes séances, tes jours actifs et ton temps de pratique, par sport et dans le calendrier. Télécharge le même bilan en CSV agrégé, recalculé au moment de l’export.</p><p class="pub-fine">Période courante provisoire ou période précédente complète, durées estimées signalées. Le journal, ses exports CSV/JSON et le bilan simple du mois et de l’année restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/stats#bilans">Ouvrir mon bilan</a></article>
   <article class="pub-card" data-benefit="views"><h3>Retrouve tes analyses habituelles.</h3><p>Nomme jusqu’à 10 vues de comparaison ou de bilan. Retrouve leurs filtres ; les données sont recalculées à chaque ouverture.</p><p class="pub-fine">Paramètres privés, conservés et supprimables à expiration. Favoris, historique et exports de base restent gratuits.</p><a class="asc-btn asc-btn-secondary" href="/stats#vues">Retrouver mes vues</a></article>
   <div class="pub-grid cols-3">
     <article class="pub-card" data-benefit="routines">${icon("layers")}<h3>Garde plusieurs cycles de musculation.</h3><p class="pub-price">5 → 20 <small>routines nommées</small></p>${capacityMeter(5, "routines")}<p>Retrouve tes exercices, séries, charges et répétitions sans reconstruire la séance. Pratique si tu alternes plusieurs programmes.</p><p class="pub-fine">5 emplacements en Classique ; 15 de plus avec TITAN+.</p><a href="/carnet-musculation" class="asc-btn asc-btn-secondary">Voir le carnet musculation</a></article>
@@ -297,7 +302,7 @@ writeFileSync(
     description: "Journal et progression gratuits. TITAN+, bientôt disponible, ajoutera comparaisons, bilans mensuels et annuels, routines et capacité coach, sans avantage d’XP.",
     image: "aurora",
     schema: [tarifsFaq.schema, { "@type": "Product", name: "TITAN+", description: "Abonnement optionnel : comparaisons de périodes, bilans avec CSV agrégé, routines, capacité coach et cosmétiques, sans avantage de progression.", brand: { "@type": "Brand", name: "TITAN" }, offers: { "@type": "Offer", availability: "https://schema.org/ComingSoon", url: `${SITE}/titan-plus` } }],
-    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">TITAN+</p><h1>TITAN+ — Bientôt disponible.<br>Le cœur de TITAN est gratuit.</h1><p class="pub-lead">TITAN+ et les offres Coach ne sont pas encore en vente : aucun paiement n’est proposé pour le moment. L’achat ouvrira uniquement dans l’application Android, via Google Play, qui affiche le prix et les conditions avant toute validation. Journal, statistiques, progression, aventures, Atelier et Communauté restent gratuits, sans publicité sur le site. Voici ce que TITAN+ et Coach ajouteront.</p><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a></div></header>
+    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">TITAN+</p><h1>TITAN+ — Bientôt disponible.<br>Le cœur de TITAN est gratuit.</h1><p class="pub-lead">TITAN+ et les offres Coach s’achètent uniquement dans l’application Android, avec Google Play, qui affiche le prix et les conditions avant toute validation ; le site ne vend rien. Tant que l’achat n’y est pas ouvert, aucun paiement n’est possible. Journal, statistiques, progression, aventures, Atelier et Communauté restent gratuits, sans publicité sur le site. Voici ce que TITAN+ et Coach ajoutent.</p><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a></div></header>
       <section class="pub-section"><div class="pub-wrap"><h2 class="sr-only">Les deux formules</h2>${offersHtml}</div></section>
       ${concreteBenefits}
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Comparer</p><h2>Ligne par ligne.</h2></div><div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Fonction</th><th>Classique</th><th>TITAN+</th></tr></thead><tbody>${[
@@ -305,7 +310,8 @@ writeFileSync(
         ["Records, objectifs, récap hebdomadaire", "Inclus", "Inclus"],
         ["Analyses de base, tendances et historique", "Inclus", "Inclus"],
         ["Comparaisons de 4, 12 ou 26 semaines complètes, avec filtre sport", "—", "Inclus"],
-        ["Bilans mensuels/annuels et CSV agrégé", "—", "Inclus"],
+        ["Bilan simple du mois et de l’année, avec image à partager", "Inclus", "Inclus"],
+        ["Bilans mensuels et annuels détaillés (tous les sports, calendrier) et CSV agrégé", "—", "Inclus"],
         ["Vues d’analyse sauvegardées et privées", "Conservation et suppression à expiration", "10"],
         ["Rang, maîtrise, cadence, collection", "Inclus", "Inclus"],
         ["Campagnes d’aventure", "4 mondes · 36 chapitres", "4 mondes · 36 chapitres"],
@@ -315,7 +321,7 @@ writeFileSync(
         ["Sportifs suivis dans l’espace coach", "3", "20"],
         ["Profil public et images à partager", "Inclus", "Inclus"],
         ["XP, crédits, plafonds", "Identiques", "Identiques"],
-        ["Publicité", "Aucune", "Aucune"],
+        ["Publicité", "Aucune sur le site ; Google AdMob dans l’application Android", "Aucune"],
       ].map(([a, b, c]) => `<tr><td>${a}</td><td>${b}</td><td>${c}</td></tr>`).join("")}</tbody></table></div></div></section>
       ${tarifsFaq.html}${finalCta("aurora")}`,
   }),
@@ -337,7 +343,7 @@ writeFileSync(
     schema: [featFaq.schema],
     body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">Fonctionnalités</p><h1>Tout ce qu’il faut.<br>Rien de superflu.</h1><p class="pub-lead">Cinq espaces dans l’application : QG, Progrès, Séance, Aventure, Profil. Le reste est à un geste.</p></div></header>
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">S’entraîner</p><h2>Enregistrer et préparer</h2></div>${cards([
-        ["plus", "Séance", "260 sports, champs adaptés à chacun, durée à la seconde, séries détaillées, import GPX, brouillon conservé."],
+        ["plus", "Séance", "260 sports, champs adaptés à chacun, durée à la seconde, séries détaillées, import GPX, brouillon conservé.", "/suivi-sportif"],
         ["calendar", "Prévoir", "Ta semaine type sport par sport ; le QG te rappelle ce qui est prévu aujourd’hui."],
         ["layers", "Routines", "Mémorise tes séances de musculation et recharge-les en un geste."],
         ["offline", "Hors ligne", "Une séance sans réseau reste sur l’appareil et se synchronise toute seule."],
@@ -356,7 +362,7 @@ writeFileSync(
       ], 4)}</div></section>
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Ensemble</p><h2>Communauté et coaching</h2></div>${cards([
         ["send", "Moments", "Partage un record ou une belle semaine avec tes amis, un Moment à la fois."],
-        ["flag", "Défis", "Sans mise, en minutes d’effort ou en jours actifs."],
+        ["flag", "Défis", "Sans mise, en minutes d’effort ou en jours actifs.", "/defis-sportifs"],
         ["group", "Guilde", "Objectif d’effort commun et discussion."],
         ["shield", "Coaching", "Partage consenti et propositions de séances.", "/pour-les-coachs"],
         ["qr", "Profil public", "Une carte d’athlète optionnelle, avec lien privé et QR code."],
@@ -364,7 +370,7 @@ writeFileSync(
       ])}</div></section>
       <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Confiance</p><h2>Tes données t’appartiennent</h2></div>${cards([
         ["lock", "Privé par défaut", "Profil privé, amis sur demande acceptée, profil public désactivé."],
-        ["eye", "Statistiques d’usage", "Seulement avec ton accord, sans santé, poids, GPS ni notes."],
+        ["eye", "Statistiques d’usage", "Liées à ton compte seulement avec ton accord, sans santé, poids, GPS ni notes."],
         ["download", "Export", "Toutes tes données en JSON, ton journal en CSV, à tout moment."],
         ["trash", "Suppression", "Ton compte et ses données, définitivement, depuis Profil."],
       ], 4)}</div></section>
@@ -388,8 +394,10 @@ const INDEXABLE = [
   ["/journal-course-a-pied", 0.7],
   ["/carnet-musculation", 0.7],
   ["/suivi-escalade", 0.7],
+  ["/suivi-velo", 0.7],
   ["/progression-sportive", 0.6],
   ["/motivation-sport", 0.6],
+  ["/defis-sportifs", 0.6],
   ["/changelog", 0.4],
   ["/service", 0.4],
   ["/partenariats", 0.4],

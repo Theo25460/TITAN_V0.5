@@ -185,7 +185,7 @@ test('public build excludes hidden image editor files and directories while pres
     'tools/build-public.mjs':readFileSync(new URL('../tools/build-public.mjs',import.meta.url),'utf8'),
     'index.html':'<h1>TITAN</h1>','sw.js':'const PRECACHE = [/* PRECACHE */];',
     'network-error.html':'offline','manifest.json':'{}','favicon.ico':'icon','image/logo-192.png':'logo',
-    'css/fonts/archivo-latin-variable.woff2':'font','css/fonts/manrope-latin-0.woff2':'font','css/fonts/manrope-latin-1.woff2':'font',
+    'css/fonts/archivo-latin-variable.woff2':'font',
     'js/vendor/qrcode-generator-1.4.4.js':'/* vendor fixture */',
     'js/core/gpx-worker.js':'/* worker fixture */',
     'image/boss/guardian.webp':'real-image', 'image/boss/plain.png':'real-png',
@@ -193,6 +193,7 @@ test('public build excludes hidden image editor files and directories while pres
   };
   for(const page of ['aujourdhui','training','journal','stats','records','carriere','objectifs','prevoir','adventure','profile','social','coaching','boutique','onboarding','login','service']) files[page+'.html']='<h1>Page</h1>';
   for(const asset of ['scout-s','ranger-s','keeper-s','artisan-s','navigator-s','sentinel-s','guardian-aube-s','guardian-marees-s','guardian-forge-s','guardian-aurores-s','valley-small','valley-xs','archipelago-xs','forge-xs','aurora-xs']) files['assets/renaissance/'+asset+'.webp']='image';
+  for(const rank of ['eclaireur','explorateur','sentinelle','gardien']) files['assets/ranks/'+rank+'-256.webp']='rank-badge';
   const dir=sandbox(files,{git:false});
   try{
     const result=spawnSync(process.execPath,[join(dir,'tools/build-public.mjs')],{encoding:'utf8'});

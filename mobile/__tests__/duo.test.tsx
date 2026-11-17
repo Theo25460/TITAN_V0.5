@@ -14,7 +14,7 @@ jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a" }));
 jest.mock("../src/lib/network", () => ({ useOnline: () => mockOnline(), isOnline: () => mockOnline() }));
 jest.mock("../src/data/hooks", () => {
   const { social } = jest.requireActual("../test-fixtures/data");
-  return { keys: { social: (owner: string) => ["social", owner] }, useSocial: () => ({ data: social, refetch: jest.fn() }) };
+  return { keys: { social: (owner: string) => ["social", owner], profile: (owner: string) => ["profile", owner] }, useSocial: () => ({ data: social, refetch: jest.fn() }), useSavePrefs: () => ({ mutateAsync: jest.fn(async () => ({})) }) };
 });
 
 const partner = { id: "friend-1", name: "Alex Duo" };
@@ -75,14 +75,14 @@ test("accept an invitation and render only confirmed active days, then stop afte
   show();
   expect(await screen.findByText(/14 jours/)).toBeTruthy();
   expect(screen.queryByRole("progressbar", { name: "Jours actifs à deux" })).toBeNull();
-  fireEvent.press(screen.getByRole("button", { name: "Accepter l’expédition" }));
+  fireEvent.press(screen.getByRole("button", { name: "Accepter le TITAN Duo" }));
   await screen.findByText(/1 \/ 12 jours actifs/);
   expect(mockRpc).toHaveBeenCalledWith("titan_buddy_respond_v1", { p_id: "duo-1", p_accept: true });
   expect(screen.getByText(/Seul le total de jours actifs est partagé/)).toBeTruthy();
   expect(screen.getByText(/Aucun XP ni crédit/)).toBeTruthy();
   fireEvent.press(screen.getByRole("button", { name: "Encourager Alex Duo" }));
   expect(await screen.findByRole("button", { name: "Encouragement envoyé", disabled: true })).toBeTruthy();
-  fireEvent.press(screen.getByRole("button", { name: "Arrêter l’expédition" }));
+  fireEvent.press(screen.getByRole("button", { name: "Arrêter le TITAN Duo" }));
   expect(mockRpc).not.toHaveBeenCalledWith("titan_buddy_end_v1", expect.anything());
   fireEvent.press(await screen.findByRole("button", { name: "Arrêter" }));
   await screen.findByRole("button", { name: "Choisir un ami" });
@@ -92,13 +92,13 @@ test("accept an invitation and render only confirmed active days, then stop afte
 test("hide private progress offline and exclude the Duo query from persistent storage", async () => {
   fixture.data = active;
   const { client, rerender } = show();
-  await screen.findByText(/Expédition avec Alex Duo/);
+  await screen.findByText(/TITAN Duo avec Alex Duo/);
   const entry = client.getQueryCache().getAll().find((q) => q.queryKey[0] === "duo");
   expect(entry?.queryKey).toEqual(["duo", "owner-a"]);
   expect(shouldPersist(entry!.queryKey)).toBe(false);
   mockOnline.mockReturnValue(false);
   rerender();
-  await screen.findByText(/Reconnecte-toi pour retrouver ton expédition/);
+  await screen.findByText(/Reconnecte-toi pour retrouver ton TITAN Duo/);
   expect(screen.queryByText(/Alex Duo/)).toBeNull();
 });
 

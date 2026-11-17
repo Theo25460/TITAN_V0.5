@@ -13,6 +13,7 @@ jest.mock("../src/data/auth", () => ({ useAuth: () => ({ owner: "a", status: "si
 jest.mock("../src/data/hooks", () => ({ useProfile: () => ({ data: null }) }));
 jest.mock("../src/data/queue", () => ({ useQueue: () => ({ items: [] }) }));
 jest.mock("../src/lib/reminders", () => ({}));
+jest.mock("../src/data/ReminderSync", () => ({ ReminderSync: () => null }));
 jest.mock("@react-navigation/native-stack", () => ({ createNativeStackNavigator: () => ({
   Navigator: ({ screenOptions, children }: { screenOptions: unknown; children: React.ReactNode }) => { mockStackOptions(screenOptions); return children; },
   Screen: ({ name, options }: { name: string; options: unknown }) => { mockStackScreen(name, options); return null; },

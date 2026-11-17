@@ -34,6 +34,8 @@ const PANTHEON = { mine: false, hiddenByTeam: false, profilePublic: true, entrie
 ] };
 async function page_({ flags = { factions: true, pantheon: true }, missing = false, signedIn = true } = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 900 }, timezoneId: "UTC", serviceWorkers: "block" });
+  // The optional panels of the Communauté are folded rows (js/app/communaute-extras.js); these journeys read inside them.
+  await context.addInitScript(() => { try { localStorage.setItem("titan_cm_open_v1", JSON.stringify(["consultations", "duels", "clubs", "factions", "pantheon"])); } catch {} });
   await context.route(/^https?:\/\/(?!127\.0\.0\.1)/, route => route.abort("internetdisconnected"));
   const page = await context.newPage();
   const errors = []; page.on("pageerror", e => errors.push(e.message));
@@ -75,8 +77,8 @@ test("factions: three camps, counts only from five members, joined on purpose, a
     await forge.waitFor();
     const extras = page.locator("#communaute-extras");
     await extras.waitFor();
-    assert.deepEqual(await extras.locator("a").allInnerTexts(), ["Factions", "Panthéon"], "the row lists only the panels that are shown");
-    assert.equal(await extras.locator("a[href='#factions']").count(), 1);
+    assert.deepEqual(await extras.locator("details.asc-fold:visible > summary .asc-row-title").allInnerTexts(), ["Factions", "Panthéon"], "« Plus loin » lists only the panels that are shown");
+    assert.equal(await extras.locator("details.asc-fold[data-extra=factions]").evaluate(d => d.open), true, "the device remembers an opened row");
     assert.equal(await page.locator("[data-faction]").count(), 3);
     assert.match(await forge.innerText(), /12 membres · 3\s?400 min d’effort cette semaine/);
     assert.match(await page.locator("[data-faction=aube]").innerText(), /à partir de cinq membres/);

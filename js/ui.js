@@ -643,161 +643,18 @@ window.updateGlobalUI = function() {
     }
 };
 
+// V1.3.1: the legacy « Bienvenue dans TITAN OS » modal (eight blocks of retired vocabulary, shown over the QG on a first sign-in,
+// with a profile write on close) is gone. A new account now reads the QG itself: one action and three lines of explanation (js/app/qg.js).
+// The entry points stay as harmless functions because older pages and tests still call them.
 (function titanFirstRunGuide() {
     if (window.__titanFirstRunGuideReady) return;
     window.__titanFirstRunGuideReady = true;
-
-    const GUIDE_VERSION = 'v2';
-    const GUIDE_KEY = `titan_first_run_guide_${GUIDE_VERSION}`;
-    const blockedFiles = new Set([
-        'guide.html',
-        'onboarding.html',
-        'service.html',
-        'partenariats.html',
-        'login.html',
-        'update-password.html',
-        'legal_hub.html',
-        'legal_cgu.html',
-        'legal_privacy.html',
-        'legal_mentions.html',
-        'network-error.html',
-        '404.html'
-    ]);
-    let guideOpen = false;
-
-    function currentFile() {
-        if (typeof titanCurrentFile === 'function') return titanCurrentFile();
-        const clean = String(window.location.pathname || '').replace(/\/+$/, '').split('/').pop();
-        return clean || 'index.html';
-    }
-
-    function isCloudUserReady() {
-        const id = window.state?.user?.id || '';
-        return !!id && !String(id).startsWith('guest_');
-    }
-
-    function markSeen() {
-        try { localStorage.setItem(GUIDE_KEY, new Date().toISOString()); } catch (_) {}
-        if (window.state) {
-            window.state.meta = window.state.meta || {};
-            window.state.meta.firstRunGuideSeen = true;
-            window.state.meta.firstRunGuideVersion = GUIDE_VERSION;
-            if (typeof window.saveState === 'function') window.saveState({ forceCloud: true });
-        }
-    }
-
+    window.titanMaybeShowFirstRunGuide = function() { return false; };
+    window.titanResetFirstRunGuide = function() { return false; };
     window.titanCloseFirstRunGuide = function(targetHref = '') {
-        const overlay = document.getElementById('titan-first-run-guide');
-        markSeen();
-        guideOpen = false;
-        if (overlay) {
-            overlay.classList.remove('active');
-            setTimeout(() => overlay.remove(), 180);
-        }
-        if (targetHref) {
-            setTimeout(() => { window.location.href = targetHref; }, 120);
-        }
+        document.getElementById('titan-first-run-guide')?.remove();
+        if (targetHref) window.location.href = targetHref;
     };
-
-    window.titanResetFirstRunGuide = function() {
-        try {
-            localStorage.removeItem(GUIDE_KEY);
-            localStorage.removeItem('titan_first_run_guide_v1');
-        } catch (_) {}
-        if (window.state) {
-            window.state.meta = window.state.meta || {};
-            window.state.meta.firstRunGuideSeen = false;
-            window.state.meta.firstRunGuideVersion = null;
-        }
-        window.titanMaybeShowFirstRunGuide(true);
-    };
-
-    window.titanMaybeShowFirstRunGuide = function(force = false) {
-        let forced = !!force;
-        try {
-            if (localStorage.getItem('titan_force_first_run_guide') === '1') {
-                forced = true;
-                localStorage.removeItem('titan_force_first_run_guide');
-                localStorage.removeItem(GUIDE_KEY);
-            }
-        } catch (_) {}
-        if (guideOpen || document.getElementById('titan-first-run-guide')) return;
-        if (!forced && blockedFiles.has(currentFile())) return;
-        if (!forced && !isCloudUserReady()) return;
-        try {
-            if (!forced && localStorage.getItem(GUIDE_KEY)) return;
-        } catch (_) {}
-        if (!forced && window.state?.meta?.firstRunGuideSeen && window.state?.meta?.firstRunGuideVersion === GUIDE_VERSION) {
-            try { localStorage.setItem(GUIDE_KEY, 'state'); } catch (_) {}
-            return;
-        }
-
-        const overlay = document.createElement('div');
-        overlay.id = 'titan-first-run-guide';
-        overlay.className = 'titan-first-run-guide active';
-        overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-modal', 'true');
-        overlay.setAttribute('aria-labelledby', 'titan-guide-title');
-        overlay.innerHTML = `
-            <div class="titan-guide-panel">
-                <button class="titan-guide-close" type="button" data-act="close-guide" aria-label="Fermer le guide">
-                    ${window.titanIcon ? window.titanIcon('close') : '<i class="ri-close-line"></i>'}
-                </button>
-                <div class="titan-guide-kicker">Première connexion</div>
-                <h2 id="titan-guide-title">Bienvenue dans TITAN OS.</h2>
-                <p class="titan-guide-copy">Le parcours reste volontairement court : tu lis le QG, tu enregistres une séance, puis tu regardes ce qui bouge : XP, crédits, charge, radar, boss, journal et prochain cap.</p>
-                <div class="titan-guide-steps">
-                    <div class="titan-guide-step">
-                        <i class="ri-dashboard-3-line"></i>
-                        <div><strong>1. QG</strong><span>Lis seulement la priorité, le coach et tes limites de semaine. Le reste attend dans les modules.</span></div>
-                    </div>
-                    <div class="titan-guide-step">
-                        <i class="ri-run-line"></i>
-                        <div><strong>2. Sport</strong><span>Ajoute ta première séance avec sa durée et son intensité. Connecté, ton compte sauvegarde et vérifie automatiquement ta progression.</span></div>
-                    </div>
-                    <div class="titan-guide-step">
-                        <i class="ri-coin-line"></i>
-                        <div><strong>3. Économie</strong><span>XP et crédits montent avec les missions, mais les plafonds évitent de finir trop vite.</span></div>
-                    </div>
-                    <div class="titan-guide-step">
-                        <i class="ri-sword-line"></i>
-                        <div><strong>4. Aventure</strong><span>Les boss donnent du sens à tes efforts. Le combat contre toi-meme arrive plus tard dans la campagne.</span></div>
-                    </div>
-                    <div class="titan-guide-step">
-                        <i class="ri-line-chart-line"></i>
-                        <div><strong>5. Progrès</strong><span>Va dans Progrès pour comprendre charge, fraîcheur, radar, records contextualises, plateaux et duels contre toi.</span></div>
-                    </div>
-                    <div class="titan-guide-step">
-                        <i class="ri-team-line"></i>
-                        <div><strong>6. Réseau</strong><span>Amis, guilde et messages restent secondaires: utiles, mais jamais obligatoires pour jouer.</span></div>
-                    </div>
-                    <div class="titan-guide-step">
-                        <i class="ri-store-3-line"></i>
-                        <div><strong>7. Boutique</strong><span>Les cosmétiques personnalisent ton expérience sans modifier ta puissance ni tes récompenses.</span></div>
-                    </div>
-                    <div class="titan-guide-step">
-                        <i class="ri-question-line"></i>
-                        <div><strong>8. Aide</strong><span>Le guide explique l’XP, les crédits, les objectifs, l’aventure, TITAN+ et les particularités de chaque sport.</span></div>
-                    </div>
-                </div>
-                <div class="titan-guide-actions">
-                    <button type="button" class="btn-primary titan-guide-primary" data-act="close-guide" data-href="training.html">
-                        <i class="ri-flashlight-line"></i> Première mission
-                    </button>
-                    <button type="button" class="titan-guide-secondary" data-act="close-guide" data-href="guide.html#guide-demarrage">
-                        <i class="ri-compass-3-line"></i> Guide complet
-                    </button>
-                </div>
-            </div>`;
-        document.body.appendChild(overlay);
-        guideOpen = true;
-    };
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && document.getElementById('titan-first-run-guide')) {
-            window.titanCloseFirstRunGuide();
-        }
-    });
 })();
 
 window.renderSports = function() {

@@ -29,7 +29,7 @@
     const actions = signedIn()
       ? `<button type="button" class="asc-btn asc-btn-primary" data-defi-join>Rejoindre le défi</button>`
       : `<p class="asc-small asc-muted">Pour rejoindre, connecte-toi ou crée un compte : tu reviendras ici ensuite.</p>
-         <div class="asc-row"><a class="asc-btn asc-btn-primary" href="/login?next=${next()}" data-defi-login>Se connecter</a><a class="asc-btn asc-btn-secondary" href="/login?mode=signup&next=${next()}" data-defi-signup>Créer un compte</a></div>`;
+         <div class="asc-actions"><a class="asc-btn asc-btn-primary" href="/login?next=${next()}" data-defi-login>Se connecter</a><a class="asc-btn asc-btn-secondary" href="/login?mode=signup&next=${next()}" data-defi-signup>Créer un compte</a></div>`;
     show(`<section class="asc-panel qg-steps-card" data-defi-card><p class="asc-eyebrow">Défi entre amis</p><h2>${esc(p.title)}</h2>
       <p>Atteindre <strong>${esc(window.TitanFormat.number(p.target))} ${esc(metric)}</strong>${sport}, avant le <strong>${esc(when(p.endsAt))}</strong>.</p>
       <p class="asc-small asc-muted">${Number(p.participants) > 1 ? `${Number(p.participants)} participants déjà.` : "Un participant pour l’instant."} Sans mise : ni XP ni crédit à gagner, le plaisir de se défier.</p>

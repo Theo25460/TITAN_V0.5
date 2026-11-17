@@ -8,6 +8,8 @@ const mockRead = jest.fn(async (_key: string, fallback: unknown) => fallback);
 let mockOwner = "owner-a";
 let mockAccess: boolean | undefined = true;
 let mockLoading = false;
+let mockActive: unknown[] = [];
+let mockRecords: { id: string; label: string; sportLabel: string; unit: string; value: number }[] = [];
 const NAME = "Un pseudo très long de trente-cinq caractères";
 
 jest.mock("@react-navigation/native", () => ({ useNavigation: () => ({ navigate: mockNavigate }) }));
@@ -46,18 +48,21 @@ jest.mock("../src/data/hooks", () => ({
   useAtelier: () => ({ data: mockAccess === undefined ? undefined : { plus: { active: mockAccess } }, isLoading: false, refetch: jest.fn() }),
   useSocial: () => ({ data: { me: { friend_code: "TN-TEST" } }, refetch: jest.fn() }),
   usePrefs: () => ({ weeklyGoalSessions: 3, cadencePauses: [], favoriteSports: [] }),
-  useLogs: () => ({ data: mockLoading ? undefined : [], active: [], isLoading: mockLoading }),
+  useLogs: () => ({ data: mockLoading ? undefined : mockActive, active: mockActive, isLoading: mockLoading }),
 }));
 jest.mock("../src/core", () => ({
   Codex: { avatars: [{ id: "scout", name: "Éclaireuse", level: 1 }, { id: "warden", name: "Gardien", level: 20 }] },
   EffortRules: { rank: () => ({ name: "Sentinelle" }), levelRequirement: () => 1000 },
-  Format: { number: String, hours: (minutes: number) => `${minutes / 60} h`, plural: String },
-  Progress: { dna: () => ({ sessions: 12, minutes: 600, topSports: [{ label: "Natation" }] }), cadence: () => ({ lifetimeHeld: 4 }) },
-  Sports: { label: String },
+  Format: { number: String, hours: (minutes: number) => `${minutes / 60} h`, plural: (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`, recordValue: (unit: string, value: number) => `${value} ${unit}` },
+  Progress: { dna: () => ({ sessions: 12, minutes: 600, topSports: [{ sport: "swimming", label: "Natation", sessions: 9, minutes: 420 }] }), cadence: () => ({ lifetimeHeld: 4 }) },
+  Sports: { label: String, familyOf: () => "endurance", FAMILY_ICON: { endurance: "run" } },
+  CareerRules: { build: () => ({ records: mockRecords }) },
 }));
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockActive = [];
+  mockRecords = [];
   mockOwner = "owner-a";
   mockAccess = true;
   mockLoading = false;
@@ -86,11 +91,14 @@ test("shows the confirmed rank and three metrics, with two actions to sources an
   expect(view.getByText(NAME).props.numberOfLines).toBeUndefined();
   expect(view.getByTestId("rank-crest")).toBeTruthy();
   expect(view.getByTestId("profile-metrics").children).toHaveLength(3);
-  expect(view.getByTestId("career-milestones").props.accessibilityLabel).toBe("owner-a");
   for (const title of ["Mon identité", "Mon sport", "Connexions & compte", "Aide & préférences"]) {
     expect(view.getByLabelText(title).props.accessibilityState.expanded).toBe(false);
   }
-  fireEvent.press(view.getByLabelText("Mon parcours sportif"));
+  // The career milestones are part of « Mon identité » since the profile was shortened (16 November 2026): one tap away, not a panel.
+  expect(view.queryByTestId("career-milestones")).toBeNull();
+  fireEvent.press(view.getByLabelText("Mon identité"));
+  expect(view.getByTestId("career-milestones").props.accessibilityLabel).toBe("owner-a");
+  fireEvent.press(view.getByTestId("profile-sports"));
   expect(mockNavigate).toHaveBeenLastCalledWith("Tabs", { screen: "Progress" });
   expect(view.queryByTestId("profile-sources")).toBeNull();
   fireEvent.press(view.getByLabelText("Connexions & compte"));
@@ -152,4 +160,35 @@ test("a narrow screen at 200% text keeps the full name and rank crest", async ()
   } finally {
     dimensions.mockRestore();
   }
+});
+
+test("the profile says who I am without opening a group: my sports, my best record, my distinctions; the journal is one tap away", async () => {
+  mockActive = [{ id: "l1" }];
+  mockRecords = [{ id: "r1", label: "Plus longue distance", sportLabel: "Natation", unit: "m", value: 2000 }];
+  const view = render(<ProfileScreen />);
+  await act(async () => {});
+  // Sports practised, with the journal's own counts.
+  expect(view.getByTestId("profile-sports").props.accessibilityLabel).toMatch(/Mes sports\. Natation, 9 séances/);
+  // Records only exist when the journal holds some, and open the records screen.
+  expect(view.getByText("Plus longue distance · Natation")).toBeTruthy();
+  expect(view.getByText("2000 m")).toBeTruthy();
+  fireEvent.press(view.getByTestId("profile-records"));
+  expect(mockNavigate).toHaveBeenLastCalledWith("Records");
+  // Distinctions and rewards: insignia out of 36 and credits, each with its destination.
+  fireEvent.press(view.getByLabelText(/Insignes d’aventure : 0 sur 36/));
+  expect(mockNavigate).toHaveBeenLastCalledWith("Tabs", { screen: "Adventure" });
+  fireEvent.press(view.getByLabelText(/Crédits : /));
+  expect(mockNavigate).toHaveBeenLastCalledWith("Atelier");
+  // The journal belongs to Progrès; from the profile it sits in « Mon sport ».
+  expect(view.queryByTestId("profile-journal")).toBeNull();
+  fireEvent.press(view.getByLabelText("Mon sport"));
+  fireEvent.press(view.getByTestId("profile-journal"));
+  expect(mockNavigate).toHaveBeenLastCalledWith("Journal");
+});
+
+test("a profile without any session shows no empty records block, and says how the sheet fills", async () => {
+  const view = render(<ProfileScreen />);
+  await act(async () => {});
+  expect(view.queryByTestId("profile-records")).toBeNull();
+  expect(view.getByTestId("profile-sports")).toBeTruthy();
 });

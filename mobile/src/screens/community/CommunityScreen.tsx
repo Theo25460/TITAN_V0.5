@@ -1,7 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Share, StyleSheet, View } from "react-native";
-import { Alert } from "../../components/Dialog";
+import { Alert, ask } from "../../components/Dialog";
 import { Avatar } from "../../components/Avatar";
 import { GuildChat } from "../../components/GuildChat";
 import { Button } from "../../components/Button";
@@ -21,11 +21,15 @@ import { useToast } from "../../components/Toast";
 import { Format, Sports } from "../../core";
 import * as api from "../../data/api";
 import { useOwner } from "../../data/auth";
-import { keys, useSocial } from "../../data/hooks";
+import { keys, useSavePrefs, useSocial } from "../../data/hooks";
+import { challengeInviteMessage, friendInviteMessage, guildInviteMessage, parseInvite } from "../../lib/invite";
+import type { RootParams } from "../../navigation/types";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import { colors, space, TOUCH } from "../../theme/tokens";
 import { DuoCard, duoKey } from "./DuoCard";
+import { ClubsPanel, RankingPanel } from "../../components/CommunityPanels";
+import { CHALLENGE_TEMPLATES, readAutoShare, writeAutoShare } from "../../lib/community";
 
 type Tab = "friends" | "moments" | "challenges" | "guild";
 const METRIC_LABEL: Record<api.Challenge["metric"], string> = { effort_minutes: "minutes d’effort", active_days: "jours actifs", distance_km: "km", sessions: "séances" };
@@ -33,17 +37,53 @@ const METRIC_LABEL: Record<api.Challenge["metric"], string> = { effort_minutes: 
 type Expedition = { id: string; title: string; story: string; guardian: string; starts_at: string; ends_at: string; status: "upcoming" | "active" | "ended"; collective_goal: number; collective_minutes: number; participants: number; daily_cap: number; personal_days: number; personal_minutes: number; reward_title: string; me: { joined: boolean; minutes?: number; days?: number; personal_done?: boolean } } | null;
 
 /** Community stays secondary: friends by consent, moments, friendly challenges without stakes, effort-based guild. */
-export function CommunityScreen() {
+export function CommunityScreen({ route }: { route?: { params?: RootParams["Community"] } } = {}) {
   const owner = useOwner();
   const qc = useQueryClient();
   const q = useSocial();
   const toast = useToast();
   const online = useOnline();
-  const [tab, setTab] = useState<Tab>("friends");
-  const [code, setCode] = useState("");
+  const savePrefs = useSavePrefs();
+  const invite = parseInvite(route?.params);
+  const [tab, setTab] = useState<Tab>(invite.guild ? "guild" : "friends");
+  const [code, setCode] = useState(invite.friend ?? "");
   const [busy, setBusy] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState(false);
+  const [autoShare, setAutoShare] = useState(false);
+  useEffect(() => {
+    readAutoShare(owner).then(setAutoShare).catch(() => {});
+  }, [owner]);
   const s = q.data;
+
+  /* A link opened while the screen is already shown (AUD-12) fills the matching field and opens its tab. */
+  useEffect(() => {
+    if (invite.friend) {
+      setTab("friends");
+      setCode(invite.friend);
+    } else if (invite.guild) setTab("guild");
+  }, [invite.friend, invite.guild]);
+
+  /* Sharing a code nobody can use was a silent dead end (AUD-06): the server only finds a "findable" profile. Before sharing,
+     an unfindable profile is offered the switch, with what it reveals; refusing cancels the share instead of sending a dead code. */
+  async function shareFriendCode(me: api.SocialOverview["me"]) {
+    if (!me.findable) {
+      const ok = await ask(
+        "Rendre ton profil trouvable ?",
+        "Pour que ton ami puisse t’ajouter, ton profil doit être trouvable : la personne qui a ton code voit ton pseudo et peut t’envoyer une demande, que tu acceptes ou non. Rien d’autre n’est visible. Tu peux le désactiver dans Confidentialité.",
+        { confirmLabel: "Rendre trouvable et partager", cancelLabel: "Annuler" },
+      );
+      if (!ok) return;
+      if (!online) return toast({ kind: "warn", title: "Connexion requise", message: "Rendre ton profil trouvable demande Internet." });
+      const privacy = { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false, ...(qc.getQueryData<{ privacy?: Record<string, boolean> } | null>(keys.profile(owner))?.privacy || {}) };
+      try {
+        await savePrefs.mutateAsync({ prefs: {}, privacy: { ...privacy, publicProfile: true } });
+        await qc.invalidateQueries({ queryKey: keys.social(owner) });
+      } catch (e) {
+        return toast({ kind: "err", title: "Réglage non enregistré", message: errorMessage(e) });
+      }
+    }
+    Share.share({ message: friendInviteMessage(me.friend_code) }).catch(() => {});
+  }
 
   async function act(id: string, fn: () => Promise<unknown>, ok?: string) {
     if (!online) return toast({ kind: "warn", title: "Connexion requise", message: "Les actions de communauté demandent Internet." });
@@ -82,10 +122,18 @@ export function CommunityScreen() {
         {tab === "friends" ? (
           <>
             <DuoCard key={owner} owner={owner} online={online} />
+            <Card style={{ gap: space.s2 }} testID="auto-share">
+              <View style={styles.row}>
+                <T variant="bodyStrong" style={{ flex: 1 }}>Partager mes séances automatiquement</T>
+                <Chip label={autoShare ? "Activé" : "Désactivé"} selected={autoShare} onPress={() => { const v = !autoShare; setAutoShare(v); void writeAutoShare(owner, v); }} testID="auto-share-toggle" />
+              </View>
+              <T variant="caption" tone="faint">Chaque séance confirmée apparaît dans les moments de tes amis, sans que tu aies à y penser. Jamais en public.</T>
+            </Card>
             <Card style={{ gap: space.s3 }}>
               <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
               <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : "Ton profil n’est pas trouvable. Active « Profil trouvable » dans Confidentialité pour recevoir des demandes."}</T>
-              <Button small kind="secondary" icon="share" label="Partager mon code" onPress={() => Share.share({ message: `Ajoute-moi sur TITAN avec mon code ami : ${s.me.friend_code}` }).catch(() => {})} />
+              <T variant="caption" tone="muted">Tes Moments ne sont vus que par les amis que tu as acceptés. Tes réglages : Profil, puis Confidentialité.</T>
+              <Button small kind="secondary" icon="share" label="Partager mon code" testID="share-friend-code" onPress={() => shareFriendCode(s.me)} />
             </Card>
             <Card style={{ gap: space.s3 }}>
               <Field label="Ajouter un ami" value={code} onChangeText={(v) => setCode(v.toUpperCase())} placeholder="TN-XXXX" autoCapitalize="characters" autoCorrect={false} />
@@ -183,7 +231,7 @@ export function CommunityScreen() {
                     <>
                       <Chip label={`${m.cheers} encouragement${m.cheers > 1 ? "s" : ""}`} icon="heart" />
                       <View style={{ flex: 1 }} />
-                      <Tap onPress={() => Alert.alert("Retirer ce moment ?", undefined, [{ text: "Annuler", style: "cancel" }, { text: "Retirer", style: "destructive", onPress: () => act(`del-${m.id}`, () => api.momentDelete(m.id), "Moment retiré") }])} accessibilityLabel="Retirer ce moment" style={styles.iconBtn}>
+                      <Tap onPress={() => Alert.alert("Retirer ce Moment ?", undefined, [{ text: "Annuler", style: "cancel" }, { text: "Retirer", style: "destructive", onPress: () => act(`del-${m.id}`, () => api.momentDelete(m.id), "Moment retiré") }])} accessibilityLabel="Retirer ce moment" style={styles.iconBtn}>
                         <Icon name="trash" size={18} color={colors.tx3} />
                       </Tap>
                     </>
@@ -194,7 +242,8 @@ export function CommunityScreen() {
           )
         ) : tab === "challenges" ? (
           <>
-            <Button label="Lancer un défi" icon="flag" disabled={!s.friends.length} onPress={() => setNewChallenge(true)} />
+            <Button label="Lancer un défi" icon="flag" onPress={() => setNewChallenge(true)} testID="new-challenge" />
+            <RankingPanel />
             {!s.friends.length ? <T variant="caption" tone="faint">Ajoute un ami pour lancer un défi.</T> : null}
             {exp ? (
               <Card tone="accent" style={{ gap: space.s2 }}>
@@ -231,17 +280,21 @@ export function CommunityScreen() {
                     {Format.number(c.target)} {METRIC_LABEL[c.metric]}
                     {c.sport ? ` · ${Sports.label(c.sport)}` : " · tous sports"}
                   </T>
-                  {c.members.filter((m) => m.status === "joined").map((m) => (
-                    <View key={m.id} style={{ gap: 2 }}>
+                  {/* The server names a member only to themselves, their friends and the other player of an invitation link. Anyone else
+                      arrives without id or progress: the line says someone takes part, and shows no bar that would read as zero. */}
+                  {c.members.filter((m) => m.status === "joined").map((m, i) => (
+                    <View key={m.id ?? `participant-${i}`} style={{ gap: 2 }}>
                       <View style={styles.row}>
                         <T variant="small" tone="default" style={{ flex: 1 }}>
                           {m.id === owner ? "Toi" : m.name}
                         </T>
-                        <T variant="caption" tone="muted">
-                          {Format.number(Number(m.progress) || 0, 1)} / {Format.number(c.target)}
-                        </T>
+                        {m.id ? (
+                          <T variant="caption" tone="muted">
+                            {Format.number(Number(m.progress) || 0, 1)} / {Format.number(c.target)}
+                          </T>
+                        ) : null}
                       </View>
-                      <ProgressBar value={(Number(m.progress) || 0) / Math.max(1, c.target)} height={5} accessibilityLabel={`Progression de ${m.name}`} />
+                      {m.id ? <ProgressBar value={(Number(m.progress) || 0) / Math.max(1, c.target)} height={5} accessibilityLabel={`Progression de ${m.name}`} /> : null}
                     </View>
                   ))}
                   {c.my_status === "invited" && c.status === "active" ? (
@@ -251,24 +304,52 @@ export function CommunityScreen() {
                     </View>
                   ) : c.my_status === "joined" && c.status === "active" && !c.mine ? (
                     <Button small kind="ghost" label="Quitter le défi" onPress={() => act(`l-${c.id}`, () => api.challengeRespond(c.id, "leave"))} />
+                  ) : c.mine && c.status === "active" ? (
+                    <Button small kind="secondary" icon="share" label="Inviter par lien" loading={busy === `k-${c.id}`} testID={`challenge-link-${c.id}`} onPress={() => act(`k-${c.id}`, async () => {
+                      const r = await api.challengeLinkCreate(c.id);
+                      await Share.share({ message: challengeInviteMessage(c.title, r.token) }).catch(() => {});
+                    })} />
                   ) : null}
                 </Card>
               ))
             )}
           </>
         ) : (
-          <GuildPanel overview={s} onAct={act} busy={busy} />
+          <>
+          <ClubsPanel />
+          <GuildPanel overview={s} onAct={act} busy={busy} owner={owner} initialCode={invite.guild ?? ""} />
+          </>
         )}
       </Screen>
-      <ChallengeSheet visible={newChallenge} onClose={() => setNewChallenge(false)} friends={s.friends} onCreate={(p) => act("create", () => api.challengeCreate(p), "Défi lancé").then(() => setNewChallenge(false))} />
+      <ChallengeSheet
+        visible={newChallenge}
+        onClose={() => setNewChallenge(false)}
+        friends={s.friends}
+        onCreate={(p) =>
+          act("create", async () => {
+            // AUD-22: without a friend selected, the challenge is open to whoever receives its link.
+            if (!p.invitees.length) {
+              const r = await api.challengeOpenCreate(p);
+              await Share.share({ message: challengeInviteMessage(p.title, r.token) }).catch(() => {});
+            } else await api.challengeCreate(p);
+          }, "Défi lancé").then(() => setNewChallenge(false))
+        }
+      />
     </>
   );
 }
 
-function GuildPanel({ overview, onAct, busy }: { overview: api.SocialOverview; onAct: (id: string, fn: () => Promise<unknown>, ok?: string) => Promise<void>; busy: string | null }) {
-  const [code, setCode] = useState("");
+function GuildPanel({ overview, onAct, busy, owner, initialCode }: { overview: api.SocialOverview; onAct: (id: string, fn: () => Promise<unknown>, ok?: string) => Promise<void>; busy: string | null; owner: string; initialCode: string }) {
+  const [code, setCode] = useState(initialCode);
   const [name, setName] = useState("");
   const g = overview.guild;
+  useEffect(() => {
+    if (initialCode) setCode(initialCode);
+  }, [initialCode]);
+  /* The weekly payload has no join code; the member-only guild RPC has it (AUD-05). Without it nobody could ever be invited. */
+  const identity = useQuery({ queryKey: ["guild-identity", owner, g?.guild_id ?? null], queryFn: () => api.fetchGuildIdentity(owner), enabled: !!g, staleTime: 10 * 60_000 });
+  const team = identity.data && identity.data.id === g?.guild_id ? identity.data : null;
+  const chronicle = useQuery({ queryKey: ["guild-history", owner, g?.guild_id ?? null], queryFn: () => api.fetchGuildHistory(owner).catch(() => null), enabled: !!g, staleTime: 30 * 60_000 });
   if (!g)
     return (
       <>
@@ -298,6 +379,26 @@ function GuildPanel({ overview, onAct, busy }: { overview: api.SocialOverview; o
         </T>
         <ProgressBar value={g.minutes / Math.max(1, g.target)} accessibilityLabel="Objectif de la guilde" />
       </Card>
+      <Card style={{ gap: space.s3 }} testID="guild-invite">
+        <T variant="bodyStrong">{team?.code ? `Code de guilde : ${team.code}` : identity.isError ? "Code de guilde indisponible pour le moment" : "Code de guilde…"}</T>
+        <T variant="small" tone="muted">Invite tes proches : chaque minute d’effort de chacun fait avancer l’objectif de la semaine.</T>
+        <Button small kind="secondary" icon="share" label="Inviter dans la guilde" disabled={!team?.code} onPress={() => {
+            if (team?.code) Share.share({ message: guildInviteMessage(team.name, team.code) }).catch(() => {});
+          }} />
+      </Card>
+      {chronicle.data && chronicle.data.weeks.length ? (
+        <Card style={{ gap: space.s2 }} testID="guild-chronicle">
+          <T variant="eyebrow" tone="accent">Notre chronique · 12 semaines</T>
+          <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 3, height: 48 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            {chronicle.data.weeks.map((w) => (
+              <View key={w.week} style={{ flex: 1, height: Math.max(3, Math.min(48, (w.minutes / Math.max(1, chronicle.data!.target)) * 40)), borderRadius: 3, backgroundColor: w.held ? colors.cy : colors.bg4 }} />
+            ))}
+          </View>
+          <T variant="small">
+            {chronicle.data.held} semaine{chronicle.data.held > 1 ? "s" : ""} réussie{chronicle.data.held > 1 ? "s" : ""} ensemble · meilleure série : {chronicle.data.bestStreak}
+          </T>
+        </Card>
+      ) : null}
       <Section title="Membres">
         {g.members.map((m) => (
           <Card key={m.id} style={styles.row}>
@@ -331,7 +432,6 @@ function ChallengeSheet({ visible, onClose, friends, onCreate }: { visible: bool
     if (title.trim().length < 2) return setError("Donne un nom au défi.");
     if (!(t > 0)) return setError("Choisis un objectif supérieur à zéro.");
     if (!(d >= 1 && d <= 31)) return setError("Un défi dure de 1 à 31 jours.");
-    if (!invitees.length) return setError("Invite au moins un ami.");
     if (metric === "distance_km") return setError("Le défi en distance demande un sport : choisis plutôt minutes, jours ou séances.");
     setBusy(true);
     setError(null);
@@ -339,7 +439,13 @@ function ChallengeSheet({ visible, onClose, friends, onCreate }: { visible: bool
     setBusy(false);
   }
   return (
-    <Sheet visible={visible} onClose={onClose} title="Nouveau défi" footer={<View style={{ gap: 6 }}>{error ? <T variant="small" tone="err">{error}</T> : null}<Button label="Lancer le défi" loading={busy} onPress={submit} /></View>}>
+    <Sheet visible={visible} onClose={onClose} title="Nouveau défi" footer={<View style={{ gap: 6 }}>{error ? <T variant="small" tone="err">{error}</T> : null}<Button label={invitees.length ? "Lancer le défi" : "Créer et partager le lien"} loading={busy} onPress={submit} testID="challenge-submit" /></View>}>
+      <T variant="caption" tone="muted">Idées toutes prêtes</T>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+        {CHALLENGE_TEMPLATES.map((t) => (
+          <Chip key={t.id} label={t.title} selected={title === t.title} onPress={() => { setTitle(t.title); setMetric(t.metric); setTarget(String(t.target)); setDays(String(t.days)); }} testID={`challenge-template-${t.id}`} />
+        ))}
+      </View>
       <Field label="Nom" value={title} onChangeText={setTitle} maxLength={60} placeholder="Une semaine qui bouge" />
       <Segmented value={metric === "distance_km" ? "active_days" : metric} onChange={setMetric} options={[{ value: "active_days", label: "Jours" }, { value: "sessions", label: "Séances" }, { value: "effort_minutes", label: "Minutes" }]} accessibilityLabel="Mesure du défi" />
       <View style={styles.row}>
@@ -347,7 +453,7 @@ function ChallengeSheet({ visible, onClose, friends, onCreate }: { visible: bool
         <Field compact label="Durée (jours)" value={days} onChangeText={setDays} keyboardType="number-pad" />
       </View>
       <T variant="caption" tone="muted">
-        Inviter (1 à 10 amis)
+        {friends.length ? "Inviter des amis (jusqu’à 10), ou n’en choisir aucun pour partager un lien que n’importe qui peut rejoindre." : "Tu recevras un lien à envoyer : n’importe qui peut rejoindre, même sans être ton ami."}
       </T>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
         {friends.map((f) => (

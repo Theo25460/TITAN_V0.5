@@ -40,7 +40,7 @@ const levelTotals = (() => {
 const typical = E.effort({ sport: "running", profile: "endurance", unit: "km", val: 8, details: { duration: 45, bio: { rpe: 6 } } });
 const weekXp = typical.xp * 3;
 const monthsTo = (level) => levelTotals[level] / weekXp / 4.33;
-const fmtMonths = (m) => (m < 1.5 ? "quelques semaines" : m < 12 ? `${Math.round(m)} mois` : `${(Math.round((m / 12) * 2) / 2).toLocaleString("fr-FR")} ans`);
+const fmtMonths = (m) => (m < 1.5 ? "quelques semaines" : m < 12 ? `${Math.round(m)} mois` : ((y) => `${y.toLocaleString("fr-FR")} ${y < 2 ? "an" : "ans"}`)(Math.round((m / 12) * 2) / 2));
 const MASTERY = [
   ["Découverte", 0, 0],
   ["Initiation", 2, 2],
@@ -74,11 +74,11 @@ const PLAY = playStoreUrl();
 const playFooter = (url) => (url ? `<p class="pub-fine"><a data-play-store hidden href="${esc(url)}" rel="noopener">Télécharger sur Google Play</a></p>` : "");
 const footer = `<footer class="pub-footer"><div class="pub-wrap"><div class="pub-footer-cols">
   <div><a class="pub-brand" href="/">${mark()}TITAN</a><p class="pub-fine" style="margin-top:12px;max-width:34ch">Ton sport réel, une progression longue, visible et honnête. Fait en France.</p></div>
-  <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/titan-plus">TITAN+ · bientôt</a><a href="/sports">Les sports</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/changelog">Nouveautés</a></nav></div>
-  <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
-  <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-sportif">Multisport</a></nav></div>
+  <div><h2 class="pub-foot-title">Produit</h2><nav aria-label="Produit"><a href="/fonctionnalites">Fonctionnalités</a><a href="/titan-plus">TITAN+ · bientôt</a><a href="/sports">Les sports</a><a href="/journal-entrainement">Journal d’entraînement</a><a href="/pour-les-coachs">Pour les coachs</a><a href="/partenariats">Partenariats</a><a href="/changelog">Nouveautés</a></nav></div>
+  <div><h2 class="pub-foot-title">Comprendre</h2><nav aria-label="Comprendre"><a href="/debuter-titan">Bien démarrer</a><a href="/niveaux-et-xp">Niveaux et XP</a><a href="/aventures-sportives">L’aventure</a><a href="/defis-sportifs">Défis et quêtes</a><a href="/progression-sportive">Progression</a><a href="/motivation-sport">Motivation</a><a href="/comprendre-mes-donnees">Mes données</a></nav></div>
+  <div><h2 class="pub-foot-title">Par sport</h2><nav aria-label="Par sport"><a href="/journal-course-a-pied">Course à pied</a><a href="/carnet-musculation">Musculation</a><a href="/suivi-escalade">Escalade</a><a href="/suivi-velo">Vélo et gravel</a><a href="/suivi-sportif">Multisport</a></nav></div>
   <div><h2 class="pub-foot-title">Confiance</h2><nav aria-label="Confiance"><a href="/legal_privacy">Confidentialité</a><a href="/legal_cgu">Conditions</a><a href="/legal_mentions">Mentions légales</a><a href="/regles-communaute">Règles de la communauté</a><a href="/service">Assistance</a></nav></div>
-</div>${playFooter(PLAY)}<small>© 2026 TITAN · Sans publicité</small></div></footer>`;
+</div>${playFooter(PLAY)}<small>© 2026 TITAN · Site sans publicité</small></div></footer>`;
 
 // Each scrollable table is a focusable region with its own name (WCAG: keyboard access, unique landmarks).
 const numberTables = (html) => {
@@ -101,11 +101,12 @@ export function breadcrumbTrail(route, label, parent) {
   };
 }
 
-function page({ route, title, description, image = "valley", body, schema = [], indexable = true, breadcrumb }) {
+function page({ route, title, description, image = "valley", body, schema = [], indexable = true, breadcrumb, styles = [], scripts = [] }) {
   const url = `${SITE}${route}`;
   const graph = [
     { "@type": "Organization", "@id": `${SITE}/#organization`, name: "TITAN", url: `${SITE}/`, logo: `${SITE}/image/logo-192.png` },
-    { "@type": "WebPage", "@id": `${url}#page`, url, name: title, description, inLanguage: "fr-FR", isPartOf: { "@type": "WebSite", name: "TITAN", url: `${SITE}/` } },
+    { "@type": "WebSite", "@id": `${SITE}/#website`, name: "TITAN", url: `${SITE}/`, inLanguage: "fr-FR", publisher: { "@id": `${SITE}/#organization` } },
+    { "@type": "WebPage", "@id": `${url}#page`, url, name: title, description, inLanguage: "fr-FR", isPartOf: { "@id": `${SITE}/#website` }, about: { "@id": `${SITE}/#organization` } },
     ...(PLAY && route === "/" ? [{ "@type": "MobileApplication", name: "TITAN", operatingSystem: "ANDROID", applicationCategory: "HealthApplication", downloadUrl: PLAY, installUrl: PLAY, inLanguage: "fr-FR" }] : []),
     ...schema,
     ...(breadcrumb ? [breadcrumb.schema] : []),
@@ -125,9 +126,8 @@ function page({ route, title, description, image = "valley", body, schema = [], 
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${SITE}/image/og-titan.jpg">
 <link rel="icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/image/apple-touch-icon.png"><link rel="manifest" href="/manifest.json">
 <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/css/fonts/manrope-latin-1.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/css/ascension.css?v=300.10"><link rel="stylesheet" href="/css/public.css?v=${breadcrumb ? "300.8" : "300.7"}">
-<script src="/js/pwa.js?v=${V}" defer></script>${PLAY ? `<meta name="titan-play-store" content="${esc(PLAY)}"><script src="/js/play-store.js?v=300.0" defer></script>` : ""}
+<link rel="stylesheet" href="/css/ascension.css?v=300.12"><link rel="stylesheet" href="/css/public.css?v=${breadcrumb ? "300.10" : "300.9"}">${styles.map(h => `<link rel="stylesheet" href="${h}">`).join("")}
+<script src="/js/pwa.js?v=${V}" defer></script>${scripts.map(h => `\n<script src="${h}" defer></script>`).join("")}${PLAY ? `<meta name="titan-play-store" content="${esc(PLAY)}"><script src="/js/play-store.js?v=300.0" defer></script>` : ""}
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c")}</script>
 </head>
 <body class="asc pub">${header(route)}<main id="contenu">${numberTables(body)}</main>${footer}</body>

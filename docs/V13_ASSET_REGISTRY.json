@@ -22,15 +22,7 @@
       "ratio": 1.3333,
       "source": "existing repository asset",
       "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "css/ascension.css",
-          "lines": [
-            698
-          ],
-          "evidence": "literal"
-        }
-      ],
+      "usage": [],
       "platform": "web",
       "distribution": "web-public-build-candidate",
       "expectedDeliveredBytes": 28400,
@@ -46,8 +38,430 @@
       },
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
+        "sourceEvidence": []
+      },
+      "rpgUsage": true,
+      "decision": "fix",
+      "reason": "no literal usage found, verify dynamic consumers before archiving",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/eclaireur-256.webp",
+      "family": "ranks",
+      "bytes": 10486,
+      "sha256": "9d676b3df34af05310d0c5b4e608bda9feab46b11ea6c70a098775dd10db42ef",
+      "version": "sha256:9d676b3df34af05310d0c5b4e608bda9feab46b11ea6c70a098775dd10db42ef",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            28
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 10486,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "css/ascension.css"
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/eclaireur-512.webp",
+      "family": "ranks",
+      "bytes": 28222,
+      "sha256": "63ba8e02607d92e923f64d1048327d47c955c03d63c18e8b71b18500ab5c9e39",
+      "version": "sha256:63ba8e02607d92e923f64d1048327d47c955c03d63c18e8b71b18500ab5c9e39",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            28
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 28222,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/explorateur-256.webp",
+      "family": "ranks",
+      "bytes": 14284,
+      "sha256": "a482142d74d96d30ffbebb8f99ea2f1a8ee779c76ce0eab5d3a4e3b38085d726",
+      "version": "sha256:a482142d74d96d30ffbebb8f99ea2f1a8ee779c76ce0eab5d3a4e3b38085d726",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 14284,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/explorateur-512.webp",
+      "family": "ranks",
+      "bytes": 39548,
+      "sha256": "b14f9d190ace291c05f7b40a2d6ed82efecb43ad2cecf1ff36dcd0d2370589e2",
+      "version": "sha256:b14f9d190ace291c05f7b40a2d6ed82efecb43ad2cecf1ff36dcd0d2370589e2",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 39548,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/gardien-256.webp",
+      "family": "ranks",
+      "bytes": 18104,
+      "sha256": "617f25b0d80b1534c8d9f33638a5f11dfa835a5d23ffef6a61fcdfc26b114b9f",
+      "version": "sha256:617f25b0d80b1534c8d9f33638a5f11dfa835a5d23ffef6a61fcdfc26b114b9f",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            31
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 18104,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/gardien-512.webp",
+      "family": "ranks",
+      "bytes": 46824,
+      "sha256": "1ba4c5900fc6562fc41ad5a4e3626651e466f24f5dfdc34e7c21b47aa8646a34",
+      "version": "sha256:1ba4c5900fc6562fc41ad5a4e3626651e466f24f5dfdc34e7c21b47aa8646a34",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            31
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 46824,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/sentinelle-256.webp",
+      "family": "ranks",
+      "bytes": 14850,
+      "sha256": "0673d6bd483e68d853cfd19da76fc63a017aca2059992d8950fcdb42f6b54486",
+      "version": "sha256:0673d6bd483e68d853cfd19da76fc63a017aca2059992d8950fcdb42f6b54486",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            30
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 14850,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/ranks/sentinelle-512.webp",
+      "family": "ranks",
+      "bytes": 39608,
+      "sha256": "20067706f4358372f1e9fa7d31e61078beeedec8dd3155c8247c993a4e23aed2",
+      "version": "sha256:20067706f4358372f1e9fa7d31e61078beeedec8dd3155c8247c993a4e23aed2",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "js/app/crest.js",
+          "lines": [],
+          "evidence": "dynamic-family"
+        },
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            30
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 39608,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/crest.js",
+          "mobile/src/core/images.ts"
         ]
       },
       "rpgUsage": true,
@@ -73,21 +487,21 @@
         {
           "source": "debuter-titan.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
@@ -180,14 +594,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            28
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            53
+            52
           ],
           "evidence": "literal"
         },
@@ -224,7 +638,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            45
+            44
           ],
           "evidence": "literal"
         }
@@ -549,7 +963,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            50
+            49
           ],
           "evidence": "literal"
         }
@@ -603,14 +1017,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            28
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            53
+            52
           ],
           "evidence": "literal"
         },
@@ -647,7 +1061,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            45
+            44
           ],
           "evidence": "literal"
         }
@@ -777,7 +1191,7 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            32
+            31
           ],
           "evidence": "literal"
         },
@@ -868,14 +1282,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            28
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            53
+            52
           ],
           "evidence": "literal"
         },
@@ -912,7 +1326,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            45
+            44
           ],
           "evidence": "literal"
         }
@@ -1832,7 +2246,7 @@
         {
           "source": "index.html",
           "lines": [
-            33
+            32
           ],
           "evidence": "literal"
         },
@@ -2478,38 +2892,58 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "adventure.html",
+          "lines": [
+            23
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "aujourdhui.html",
+          "lines": [
+            21
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "aventures-sportives.html",
           "lines": [
-            31
+            30
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "css/ascension-app.css",
           "lines": [
-            62,
-            1866
+            2176
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "defis-sportifs.html",
+          "lines": [
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            69
+            68
           ],
           "evidence": "literal"
         },
@@ -2555,49 +2989,56 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            38
+            37
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            37
+            36
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            30
+            31
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            27
+            26
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "suivi-velo.html",
+          "lines": [
+            26
           ],
           "evidence": "literal"
         }
@@ -2618,10 +3059,13 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "adventure.html",
+          "aujourdhui.html",
           "aventures-sportives.html",
           "carnet-musculation.html",
           "comprendre-mes-donnees.html",
           "css/ascension-app.css",
+          "defis-sportifs.html",
           "index.html",
           "js/app/atelier.js",
           "js/app/aventure.js",
@@ -2636,7 +3080,8 @@
           "progression-sportive.html",
           "sports.html",
           "suivi-escalade.html",
-          "suivi-sportif.html"
+          "suivi-sportif.html",
+          "suivi-velo.html"
         ]
       },
       "rpgUsage": true,
@@ -2662,14 +3107,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            28
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            53
+            52
           ],
           "evidence": "literal"
         },
@@ -2706,7 +3151,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            45
+            44
           ],
           "evidence": "literal"
         }
@@ -2759,6 +3204,20 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "adventure.html",
+          "lines": [
+            23
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "aujourdhui.html",
+          "lines": [
+            21
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "js/app/atelier.js",
           "lines": [],
           "evidence": "dynamic-family"
@@ -2805,6 +3264,8 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "adventure.html",
+          "aujourdhui.html",
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
@@ -2913,7 +3374,14 @@
         {
           "source": "css/ascension.css",
           "lines": [
-            13
+            16
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "css/fonts.css",
+          "lines": [
+            9
           ],
           "evidence": "literal"
         },
@@ -2928,6 +3396,13 @@
           "source": "defi.html",
           "lines": [
             13
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "defis-sportifs.html",
+          "lines": [
+            15
           ],
           "evidence": "literal"
         },
@@ -3086,6 +3561,13 @@
           "evidence": "literal"
         },
         {
+          "source": "seance-live.html",
+          "lines": [
+            13
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "service.html",
           "lines": [
             15
@@ -3122,6 +3604,13 @@
         },
         {
           "source": "suivi-sportif.html",
+          "lines": [
+            15
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "suivi-velo.html",
           "lines": [
             15
           ],
@@ -3184,478 +3673,10 @@
           "coaching.html",
           "comprendre-mes-donnees.html",
           "css/ascension.css",
-          "debuter-titan.html",
-          "defi.html",
-          "fonctionnalites.html",
-          "index.html",
-          "journal-course-a-pied.html",
-          "journal-entrainement.html",
-          "journal.html",
-          "legal_cgu.html",
-          "legal_hub.html",
-          "legal_mentions.html",
-          "legal_privacy.html",
-          "login.html",
-          "motivation-sport.html",
-          "niveaux-et-xp.html",
-          "objectifs.html",
-          "onboarding.html",
-          "partenariats.html",
-          "pour-les-coachs.html",
-          "prevoir.html",
-          "profile.html",
-          "progression-sportive.html",
-          "records.html",
-          "recours.html",
-          "regles-communaute.html",
-          "service.html",
-          "social.html",
-          "sports.html",
-          "stats.html",
-          "suivi-escalade.html",
-          "suivi-sportif.html",
-          "supprimer-mon-compte.html",
-          "titan-plus.html",
-          "training.html",
-          "update-password.html"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "css/fonts/manrope-latin-0.woff2",
-      "family": "typography",
-      "bytes": 15120,
-      "sha256": "3911b66d9f2e005a4b989223405d0e5032619c668597ba467cc76a23c8fffcfb",
-      "version": "sha256:3911b66d9f2e005a4b989223405d0e5032619c668597ba467cc76a23c8fffcfb",
-      "format": "woff2",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "css/ascension.css",
-          "lines": [
-            29
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "css/fonts.css",
-          "lines": [
-            7
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "web",
-      "distribution": "web-public-build-candidate",
-      "expectedDeliveredBytes": 15120,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "css/ascension.css",
-          "css/fonts.css"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "css/fonts/manrope-latin-1.woff2",
-      "family": "typography",
-      "bytes": 24836,
-      "sha256": "a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
-      "version": "sha256:a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972",
-      "format": "woff2",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "404.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "adventure.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "athlete.html",
-          "lines": [
-            18
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "aujourdhui.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "aventures-sportives.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "boutique.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "carnet-musculation.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "carriere.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "changelog.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "coaching.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "comprendre-mes-donnees.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "css/ascension.css",
-          "lines": [
-            21
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "css/fonts.css",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "debuter-titan.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "defi.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "fonctionnalites.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "index.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "journal-course-a-pied.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "journal-entrainement.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "journal.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "legal_cgu.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "legal_hub.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "legal_mentions.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "legal_privacy.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "login.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "motivation-sport.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "niveaux-et-xp.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "objectifs.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "onboarding.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "partenariats.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "pour-les-coachs.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "prevoir.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "profile.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "progression-sportive.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "records.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "recours.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "regles-communaute.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "service.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "social.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "sports.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "stats.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "suivi-escalade.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "suivi-sportif.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "supprimer-mon-compte.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "titan-plus.html",
-          "lines": [
-            16
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "training.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "update-password.html",
-          "lines": [
-            14
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "web",
-      "distribution": "web-public-build-candidate",
-      "expectedDeliveredBytes": 24836,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "404.html",
-          "adventure.html",
-          "athlete.html",
-          "aujourdhui.html",
-          "aventures-sportives.html",
-          "boutique.html",
-          "carnet-musculation.html",
-          "carriere.html",
-          "changelog.html",
-          "coaching.html",
-          "comprendre-mes-donnees.html",
-          "css/ascension.css",
           "css/fonts.css",
           "debuter-titan.html",
           "defi.html",
+          "defis-sportifs.html",
           "fonctionnalites.html",
           "index.html",
           "journal-course-a-pied.html",
@@ -3678,12 +3699,14 @@
           "records.html",
           "recours.html",
           "regles-communaute.html",
+          "seance-live.html",
           "service.html",
           "social.html",
           "sports.html",
           "stats.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "titan-plus.html",
           "training.html",
@@ -3747,9 +3770,9 @@
     {
       "path": "docs/play-store/README.md",
       "family": "store-listing",
-      "bytes": 1998,
-      "sha256": "370bf90690694daa088ad5261813a409da0e40dd59d1b68d8a4723c4da4094fd",
-      "version": "sha256:370bf90690694daa088ad5261813a409da0e40dd59d1b68d8a4723c4da4094fd",
+      "bytes": 4879,
+      "sha256": "beffab4294ddf7bae872e9ff68f881d8f69c22a29c104d9911ff458bf760bf70",
+      "version": "sha256:beffab4294ddf7bae872e9ff68f881d8f69c22a29c104d9911ff458bf760bf70",
       "format": "md",
       "width": null,
       "height": null,
@@ -4152,6 +4175,13 @@
           "evidence": "literal"
         },
         {
+          "source": "defis-sportifs.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "dynamic-page.html",
           "lines": [
             33
@@ -4320,6 +4350,13 @@
           "evidence": "literal"
         },
         {
+          "source": "seance-live.html",
+          "lines": [
+            11
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "service.html",
           "lines": [
             14
@@ -4356,6 +4393,13 @@
         },
         {
           "source": "suivi-sportif.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "suivi-velo.html",
           "lines": [
             14
           ],
@@ -4427,6 +4471,7 @@
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
           "defi.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -4451,12 +4496,14 @@
           "records.html",
           "recours.html",
           "regles-communaute.html",
+          "seance-live.html",
           "service.html",
           "social.html",
           "sports.html",
           "stats.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "sys_core_override_99.html",
           "titan-plus.html",
@@ -4528,6 +4575,13 @@
         },
         {
           "source": "debuter-titan.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "defis-sportifs.html",
           "lines": [
             14
           ],
@@ -4667,6 +4721,13 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             14
@@ -4704,6 +4765,7 @@
           "changelog.html",
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -4723,6 +4785,7 @@
           "sports.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "titan-plus.html"
         ]
@@ -7424,7 +7487,7 @@
         {
           "source": "index.html",
           "lines": [
-            26
+            25
           ],
           "evidence": "literal"
         }
@@ -7471,7 +7534,7 @@
         {
           "source": "index.html",
           "lines": [
-            26
+            25
           ],
           "evidence": "literal"
         }
@@ -7518,7 +7581,7 @@
         {
           "source": "404.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
@@ -7533,35 +7596,42 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "changelog.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "debuter-titan.html",
           "lines": [
-            19
+            18
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "defis-sportifs.html",
+          "lines": [
+            18
           ],
           "evidence": "literal"
         },
@@ -7576,56 +7646,56 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "legal_cgu.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "legal_hub.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "legal_mentions.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "legal_privacy.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
@@ -7642,77 +7712,84 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "partenariats.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "regles-communaute.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "service.html",
           "lines": [
-            21
+            20
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            19
+            18
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "suivi-velo.html",
+          "lines": [
+            18
           ],
           "evidence": "literal"
         },
         {
           "source": "supprimer-mon-compte.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         },
@@ -7728,7 +7805,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            19
+            18
           ],
           "evidence": "literal"
         }
@@ -7756,6 +7833,7 @@
           "changelog.html",
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -7776,6 +7854,7 @@
           "sports.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "sys_core_override_99.html",
           "titan-plus.html"
@@ -7968,7 +8047,7 @@
             505,
             543,
             580,
-            863
+            720
           ],
           "evidence": "literal"
         },
@@ -9253,6 +9332,14 @@
           "evidence": "literal"
         },
         {
+          "source": "defis-sportifs.html",
+          "lines": [
+            12,
+            13
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "dynamic-page.html",
           "lines": [
             29,
@@ -9408,6 +9495,14 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            12,
+            13
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             12,
@@ -9448,6 +9543,7 @@
           "changelog.html",
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -9467,6 +9563,7 @@
           "sports.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "titan-plus.html"
         ]
@@ -9820,6 +9917,13 @@
           "evidence": "literal"
         },
         {
+          "source": "defis-sportifs.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "dynamic-page.html",
           "lines": [
             35
@@ -9960,6 +10064,13 @@
           "evidence": "literal"
         },
         {
+          "source": "suivi-velo.html",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "supprimer-mon-compte.html",
           "lines": [
             14
@@ -9997,6 +10108,7 @@
           "changelog.html",
           "comprendre-mes-donnees.html",
           "debuter-titan.html",
+          "defis-sportifs.html",
           "dynamic-page.html",
           "fonctionnalites.html",
           "index.html",
@@ -10017,6 +10129,7 @@
           "sports.html",
           "suivi-escalade.html",
           "suivi-sportif.html",
+          "suivi-velo.html",
           "supprimer-mon-compte.html",
           "titan-plus.html"
         ]
@@ -10044,7 +10157,7 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            104
+            115
           ],
           "evidence": "literal"
         },
@@ -10107,8 +10220,8 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            96,
-            125
+            107,
+            138
           ],
           "evidence": "literal"
         }
@@ -10155,7 +10268,7 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            104
+            115
           ],
           "evidence": "literal"
         }
@@ -10187,194 +10300,6 @@
       "capture": null
     },
     {
-      "path": "mobile/assets/fonts/Manrope-Bold.ttf",
-      "family": "typography",
-      "bytes": 35560,
-      "sha256": "84158bdb6313f55d8aedaa6f4cd3774c6603aebb6f0c54966dec09b37f888b3d",
-      "version": "sha256:84158bdb6313f55d8aedaa6f4cd3774c6603aebb6f0c54966dec09b37f888b3d",
-      "format": "ttf",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "mobile/app.config.ts",
-          "lines": [
-            117
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "native",
-      "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 35560,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "mobile/app.config.ts"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "mobile/assets/fonts/Manrope-ExtraBold.ttf",
-      "family": "typography",
-      "bytes": 35764,
-      "sha256": "0fbef851e2c4d69ff316ee68a9aff97209d82bcd518ce4e2501d8be08853b3c8",
-      "version": "sha256:0fbef851e2c4d69ff316ee68a9aff97209d82bcd518ce4e2501d8be08853b3c8",
-      "format": "ttf",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "mobile/app.config.ts",
-          "lines": [
-            118
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "native",
-      "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 35764,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "mobile/app.config.ts"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "mobile/assets/fonts/Manrope-Regular.ttf",
-      "family": "typography",
-      "bytes": 35652,
-      "sha256": "5217d3a49ceb738b8a8e909e3ebe65e2c6ca26ec44f4b9d22c723aafb90bbfa5",
-      "version": "sha256:5217d3a49ceb738b8a8e909e3ebe65e2c6ca26ec44f4b9d22c723aafb90bbfa5",
-      "format": "ttf",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "mobile/app.config.ts",
-          "lines": [
-            115
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "native",
-      "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 35652,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "mobile/app.config.ts"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
-      "path": "mobile/assets/fonts/Manrope-SemiBold.ttf",
-      "family": "typography",
-      "bytes": 35632,
-      "sha256": "a4e093913c82d1ee776c470710631bbed649cae12e99cf539782f8592a92a342",
-      "version": "sha256:a4e093913c82d1ee776c470710631bbed649cae12e99cf539782f8592a92a342",
-      "format": "ttf",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [
-        {
-          "source": "mobile/app.config.ts",
-          "lines": [
-            116
-          ],
-          "evidence": "literal"
-        }
-      ],
-      "platform": "native",
-      "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 35632,
-      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
-      "safeArea": "focal bounds to measure on rendered surfaces",
-      "background": "dark #05070A and card surface",
-      "colorMode": "dark intended, system/light contrast pending",
-      "density": {
-        "oneX": "rendered size pending",
-        "twoX": "rendered size pending",
-        "threeX": "rendered size pending"
-      },
-      "accessibleAlternative": {
-        "status": "check surrounding label or decorative role",
-        "sourceEvidence": [
-          "mobile/app.config.ts"
-        ]
-      },
-      "rpgUsage": false,
-      "decision": "retain",
-      "reason": "preserve existing artwork and usage",
-      "technicalValidation": "non-raster or dimensions unavailable",
-      "visualValidation": "pending-human-review",
-      "capture": null
-    },
-    {
       "path": "mobile/assets/fonts/TitanDisplay-Bold.ttf",
       "family": "typography",
       "bytes": 40768,
@@ -10390,7 +10315,7 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            114
+            125
           ],
           "evidence": "literal"
         }
@@ -10437,7 +10362,7 @@
         {
           "source": "mobile/app.config.ts",
           "lines": [
-            113
+            124
           ],
           "evidence": "literal"
         }
@@ -10445,6 +10370,288 @@
       "platform": "native",
       "distribution": "native-bundle-candidate",
       "expectedDeliveredBytes": 40648,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanFigure-Bold.ttf",
+      "family": "typography",
+      "bytes": 40456,
+      "sha256": "47ab0062481e6614291f11fffa82a8045301c8ec78515298cc14c46695be0518",
+      "version": "sha256:47ab0062481e6614291f11fffa82a8045301c8ec78515298cc14c46695be0518",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            131
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40456,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanFigure-Light.ttf",
+      "family": "typography",
+      "bytes": 40448,
+      "sha256": "f0557ea79724315b00448e802a5db820cd2a6028769dfdb983fc1de0cf19e55b",
+      "version": "sha256:f0557ea79724315b00448e802a5db820cd2a6028769dfdb983fc1de0cf19e55b",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            130
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40448,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanText-Bold.ttf",
+      "family": "typography",
+      "bytes": 40696,
+      "sha256": "656e9200615e758eabee2fa72d7900c26c3ed0a95958d3147e15cbff5dd8c0f2",
+      "version": "sha256:656e9200615e758eabee2fa72d7900c26c3ed0a95958d3147e15cbff5dd8c0f2",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            128
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40696,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanText-ExtraBold.ttf",
+      "family": "typography",
+      "bytes": 40740,
+      "sha256": "124ba80b26d619b7e753b5ac95059ab6118fd29a0bb0c9bec791971a6e288e86",
+      "version": "sha256:124ba80b26d619b7e753b5ac95059ab6118fd29a0bb0c9bec791971a6e288e86",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            129
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40740,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanText-Regular.ttf",
+      "family": "typography",
+      "bytes": 40796,
+      "sha256": "2dc8d9d7a5c62b853c38d5dd1873cfa2b348d7ed52e52dcf2b16a76654e5b146",
+      "version": "sha256:2dc8d9d7a5c62b853c38d5dd1873cfa2b348d7ed52e52dcf2b16a76654e5b146",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            126
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40796,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/app.config.ts"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "non-raster or dimensions unavailable",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/fonts/TitanText-SemiBold.ttf",
+      "family": "typography",
+      "bytes": 40720,
+      "sha256": "7aac7f164e2b33746d28444ef66fc20df3537e6b20c7be98dfabf0042981b4a2",
+      "version": "sha256:7aac7f164e2b33746d28444ef66fc20df3537e6b20c7be98dfabf0042981b4a2",
+      "format": "ttf",
+      "width": null,
+      "height": null,
+      "ratio": null,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/app.config.ts",
+          "lines": [
+            127
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 40720,
       "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
       "crop": "contain, preserve glyph and proportions",
       "safeArea": "focal bounds to measure on rendered surfaces",
@@ -10506,23 +10713,31 @@
       "capture": null
     },
     {
-      "path": "mobile/assets/fonts/manrope-OFL.txt",
-      "family": "typography",
-      "bytes": 4384,
-      "sha256": "e01b637272e0cbdfb240184dd98ea5cc671556d9894dae2668d92ab2c906787c",
-      "version": "sha256:e01b637272e0cbdfb240184dd98ea5cc671556d9894dae2668d92ab2c906787c",
-      "format": "txt",
-      "width": null,
-      "height": null,
-      "ratio": null,
-      "source": "existing repository asset",
-      "visualOwner": "not established",
-      "usage": [],
+      "path": "mobile/assets/rank/eclaireur-256.webp",
+      "family": "ranks",
+      "bytes": 10486,
+      "sha256": "9d676b3df34af05310d0c5b4e608bda9feab46b11ea6c70a098775dd10db42ef",
+      "version": "sha256:9d676b3df34af05310d0c5b4e608bda9feab46b11ea6c70a098775dd10db42ef",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            28
+          ],
+          "evidence": "literal"
+        }
+      ],
       "platform": "native",
       "distribution": "native-bundle-candidate",
-      "expectedDeliveredBytes": 4384,
+      "expectedDeliveredBytes": 10486,
       "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
-      "crop": "contain, preserve glyph and proportions",
+      "crop": "contain, whole badge on a transparent square",
       "safeArea": "focal bounds to measure on rendered surfaces",
       "background": "dark #05070A and card surface",
       "colorMode": "dark intended, system/light contrast pending",
@@ -10533,12 +10748,343 @@
       },
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
-        "sourceEvidence": []
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
       },
-      "rpgUsage": false,
-      "decision": "fix",
-      "reason": "no literal usage found, verify dynamic consumers before archiving",
-      "technicalValidation": "non-raster or dimensions unavailable",
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/eclaireur-512.webp",
+      "family": "ranks",
+      "bytes": 28222,
+      "sha256": "63ba8e02607d92e923f64d1048327d47c955c03d63c18e8b71b18500ab5c9e39",
+      "version": "sha256:63ba8e02607d92e923f64d1048327d47c955c03d63c18e8b71b18500ab5c9e39",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            28
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 28222,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/explorateur-256.webp",
+      "family": "ranks",
+      "bytes": 14284,
+      "sha256": "a482142d74d96d30ffbebb8f99ea2f1a8ee779c76ce0eab5d3a4e3b38085d726",
+      "version": "sha256:a482142d74d96d30ffbebb8f99ea2f1a8ee779c76ce0eab5d3a4e3b38085d726",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 14284,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/explorateur-512.webp",
+      "family": "ranks",
+      "bytes": 39548,
+      "sha256": "b14f9d190ace291c05f7b40a2d6ed82efecb43ad2cecf1ff36dcd0d2370589e2",
+      "version": "sha256:b14f9d190ace291c05f7b40a2d6ed82efecb43ad2cecf1ff36dcd0d2370589e2",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 39548,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/gardien-256.webp",
+      "family": "ranks",
+      "bytes": 18104,
+      "sha256": "617f25b0d80b1534c8d9f33638a5f11dfa835a5d23ffef6a61fcdfc26b114b9f",
+      "version": "sha256:617f25b0d80b1534c8d9f33638a5f11dfa835a5d23ffef6a61fcdfc26b114b9f",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            31
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 18104,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/gardien-512.webp",
+      "family": "ranks",
+      "bytes": 46824,
+      "sha256": "1ba4c5900fc6562fc41ad5a4e3626651e466f24f5dfdc34e7c21b47aa8646a34",
+      "version": "sha256:1ba4c5900fc6562fc41ad5a4e3626651e466f24f5dfdc34e7c21b47aa8646a34",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            31
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 46824,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/sentinelle-256.webp",
+      "family": "ranks",
+      "bytes": 14850,
+      "sha256": "0673d6bd483e68d853cfd19da76fc63a017aca2059992d8950fcdb42f6b54486",
+      "version": "sha256:0673d6bd483e68d853cfd19da76fc63a017aca2059992d8950fcdb42f6b54486",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            30
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 14850,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "mobile/assets/rank/sentinelle-512.webp",
+      "family": "ranks",
+      "bytes": 39608,
+      "sha256": "20067706f4358372f1e9fa7d31e61078beeedec8dd3155c8247c993a4e23aed2",
+      "version": "sha256:20067706f4358372f1e9fa7d31e61078beeedec8dd3155c8247c993a4e23aed2",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)",
+      "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
+      "usage": [
+        {
+          "source": "mobile/src/core/images.ts",
+          "lines": [
+            30
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 39608,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, whole badge on a transparent square",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "mobile/src/core/images.ts"
+        ]
+      },
+      "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -10558,21 +11104,21 @@
         {
           "source": "debuter-titan.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
@@ -10683,7 +11229,7 @@
         {
           "source": "titan-plus.html",
           "lines": [
-            50
+            49
           ],
           "evidence": "literal"
         }
@@ -10731,7 +11277,7 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            32
+            31
           ],
           "evidence": "literal"
         },
@@ -11068,7 +11614,7 @@
         {
           "source": "index.html",
           "lines": [
-            33
+            32
           ],
           "evidence": "literal"
         },
@@ -11262,38 +11808,58 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "adventure.html",
+          "lines": [
+            23
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "aujourdhui.html",
+          "lines": [
+            21
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "aventures-sportives.html",
           "lines": [
-            31
+            30
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "css/ascension-app.css",
           "lines": [
-            62,
-            1866
+            2176
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "defis-sportifs.html",
+          "lines": [
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            69
+            68
           ],
           "evidence": "literal"
         },
@@ -11314,49 +11880,56 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            38
+            37
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            29
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            27
+            26
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            37
+            36
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            30
+            31
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            27
+            26
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "suivi-velo.html",
+          "lines": [
+            26
           ],
           "evidence": "literal"
         }
@@ -11377,10 +11950,13 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "adventure.html",
+          "aujourdhui.html",
           "aventures-sportives.html",
           "carnet-musculation.html",
           "comprendre-mes-donnees.html",
           "css/ascension-app.css",
+          "defis-sportifs.html",
           "index.html",
           "js/app/atelier.js",
           "mobile/src/core/images.ts",
@@ -11390,7 +11966,8 @@
           "progression-sportive.html",
           "sports.html",
           "suivi-escalade.html",
-          "suivi-sportif.html"
+          "suivi-sportif.html",
+          "suivi-velo.html"
         ]
       },
       "rpgUsage": true,
@@ -11440,9 +12017,9 @@
     {
       "path": "mobile/docs/play-store/phone-01-qg.png",
       "family": "store-listing",
-      "bytes": 188054,
-      "sha256": "89ef31e8ce59cac32afef20eede4ed2258ca1affab22aab019f23e00eae45f82",
-      "version": "sha256:89ef31e8ce59cac32afef20eede4ed2258ca1affab22aab019f23e00eae45f82",
+      "bytes": 767035,
+      "sha256": "b71816ca339aa91a773fff40a6da51194cb20f1c9d2addb7c904dd65f7dfc965",
+      "version": "sha256:b71816ca339aa91a773fff40a6da51194cb20f1c9d2addb7c904dd65f7dfc965",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -11477,9 +12054,9 @@
     {
       "path": "mobile/docs/play-store/phone-02-apres-seance.png",
       "family": "store-listing",
-      "bytes": 161039,
-      "sha256": "89f6d2951060c0cdc9de04a919470d13aef9f7aba0c5f4665e9be21804e4058c",
-      "version": "sha256:89f6d2951060c0cdc9de04a919470d13aef9f7aba0c5f4665e9be21804e4058c",
+      "bytes": 136127,
+      "sha256": "a89e22cb0d930b9020332d587ec6cd4bdefe6840c1f85273696dcbf266ca8ff6",
+      "version": "sha256:a89e22cb0d930b9020332d587ec6cd4bdefe6840c1f85273696dcbf266ca8ff6",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -11514,9 +12091,9 @@
     {
       "path": "mobile/docs/play-store/phone-03-tes-questions.png",
       "family": "store-listing",
-      "bytes": 210663,
-      "sha256": "0fcf9ca287880b4ab79afdb95f5d4b3837eeee9e82fb3e2b82a76888db6b2cd8",
-      "version": "sha256:0fcf9ca287880b4ab79afdb95f5d4b3837eeee9e82fb3e2b82a76888db6b2cd8",
+      "bytes": 195028,
+      "sha256": "f42196ea34c4cf41b1357a7187d795e9eb8a847bfbd1ab9aaac189673fde4fb4",
+      "version": "sha256:f42196ea34c4cf41b1357a7187d795e9eb8a847bfbd1ab9aaac189673fde4fb4",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -11551,9 +12128,9 @@
     {
       "path": "mobile/docs/play-store/phone-04-monde.png",
       "family": "store-listing",
-      "bytes": 834638,
-      "sha256": "55349768143eeb3c2cbe442bf24cd15dc3324d25b4a3aa0c42241969736e571f",
-      "version": "sha256:55349768143eeb3c2cbe442bf24cd15dc3324d25b4a3aa0c42241969736e571f",
+      "bytes": 856811,
+      "sha256": "d1cf1d74d6a277f07e40188cf7cc9a1b1755f985af8004b1e980566020f3aa9c",
+      "version": "sha256:d1cf1d74d6a277f07e40188cf7cc9a1b1755f985af8004b1e980566020f3aa9c",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -11588,9 +12165,9 @@
     {
       "path": "mobile/docs/play-store/phone-05-aventure.png",
       "family": "store-listing",
-      "bytes": 2094859,
-      "sha256": "d7e996dde6cb3cf2c701ab5100fcacb7fe2bbe617e6b92b5743865aff0fb6723",
-      "version": "sha256:d7e996dde6cb3cf2c701ab5100fcacb7fe2bbe617e6b92b5743865aff0fb6723",
+      "bytes": 1570677,
+      "sha256": "f6b25415c9cbd406a3ba7966fbc16d47672a1a628ada6e3a5167e7275b225f86",
+      "version": "sha256:f6b25415c9cbd406a3ba7966fbc16d47672a1a628ada6e3a5167e7275b225f86",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -11625,9 +12202,9 @@
     {
       "path": "mobile/docs/play-store/phone-06-records.png",
       "family": "store-listing",
-      "bytes": 192398,
-      "sha256": "31ae52e1e9f150e38de04ee6e124f4f85dc90db6574822aa66ad4ce2927fab08",
-      "version": "sha256:31ae52e1e9f150e38de04ee6e124f4f85dc90db6574822aa66ad4ce2927fab08",
+      "bytes": 189616,
+      "sha256": "4fbbe8ff5cd50855c5009e92354341a6e0389f6064eb1a3979d2fe94cc1d40a0",
+      "version": "sha256:4fbbe8ff5cd50855c5009e92354341a6e0389f6064eb1a3979d2fe94cc1d40a0",
       "format": "png",
       "width": 1080,
       "height": 2160,
@@ -11671,8 +12248,8 @@
       ],
       "source": "index.html",
       "description": "Inline SVG brand and public header",
-      "bytes": 37948,
-      "version": "sha256:6fc3caf23e57ad36a6668e77c1945906bc561e419073c942d565eca0a603447f",
+      "bytes": 39334,
+      "version": "sha256:d919c638e15842170e6a4fe5cf740590986fccd842098307e2ab08e83d246c2e",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11732,8 +12309,8 @@
       ],
       "source": "mobile/src/core/icons.generated.ts",
       "description": "Native vector icon catalogue",
-      "bytes": 7961,
-      "version": "sha256:f5371999ed3da4be981bfc0591c9052f93985f208b35cd8adf899c7fb9423b38",
+      "bytes": 8535,
+      "version": "sha256:bbf25f70ffed1a4d4e68e2cf1e90766c038598d946dbc6e4880b061b4009785e",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11803,8 +12380,8 @@
       ],
       "source": "js/app/crest.js",
       "description": "Seven heraldic ranks",
-      "bytes": 7305,
-      "version": "sha256:423720666f429fe34c5e44cf028cbc8b75d873e31d6f436ac4a8a67703c9ed3a",
+      "bytes": 8529,
+      "version": "sha256:9d95f58032989b6e192897d66473e88a4722f911169ed145daa8b413d13ae83a",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11821,8 +12398,8 @@
       ],
       "source": "mobile/src/components/Crest.tsx",
       "description": "Seven native heraldic ranks",
-      "bytes": 8160,
-      "version": "sha256:d17fbc906d595bc0ae3cbd9679a4a8a85d67afe191f7f52de6c38385cb936127",
+      "bytes": 9149,
+      "version": "sha256:c543c579ea9064dadb7e830096b3e670027a6d7cceaeca64a87c5b11a2b809ad",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11839,8 +12416,8 @@
       ],
       "source": "js/app/profil.js",
       "description": "Earned distinctions and passport",
-      "bytes": 83663,
-      "version": "sha256:102f9bea4fb2d0edee5a05cec107e3b61cffb0da0a1c2f9187bac0ecb8b71019",
+      "bytes": 91664,
+      "version": "sha256:0f81719f74f6d11264998d957e8c74905f7e6e0f91ecd56259f72ba7b518d3cd",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11877,8 +12454,8 @@
       ],
       "source": "js/app/aventure.js",
       "description": "Landscapes, guardian and chapters",
-      "bytes": 35537,
-      "version": "sha256:ccf84dd557ad6e6df0841bcaf7879124554aaca4d92b553edb62529939495002",
+      "bytes": 36890,
+      "version": "sha256:c7b784fe1caed4e8ddafee01a4c4a445ea57b22b45d04a66bb87924d2456d2de",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11915,8 +12492,8 @@
       ],
       "source": "mobile/src/components/JourneyCard.tsx",
       "description": "Trail and discovery views",
-      "bytes": 10233,
-      "version": "sha256:25a1f783d4d529ad38c62160d2bf64699ce3bfd9d3ea44fdcae985c581ad61e1",
+      "bytes": 10242,
+      "version": "sha256:d607499d506ed937625bd5770fad2b0b94346ecda6b718ae95698521fb443559",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11932,8 +12509,8 @@
       ],
       "source": "mobile/src/lib/notificationChannels.ts",
       "description": "System channels and monochrome mark",
-      "bytes": 2745,
-      "version": "sha256:a69d3588d0dfef8b815063b390aa8abd906599e55797fc8ddcb487102f28913e",
+      "bytes": 2924,
+      "version": "sha256:22edf1f1fd83480820e94ef230e118565a94f41f6909af134a98f0b58e817edc",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -11986,8 +12563,8 @@
       ],
       "source": "js/app/atelier.js",
       "description": "Cosmetic frames, map and card styles",
-      "bytes": 42369,
-      "version": "sha256:5fe9d1b3cd5a21e4e38edf15634693a0c0e2cfe7b1eefb3991c99b00a4518e04",
+      "bytes": 42373,
+      "version": "sha256:54faa00c024c431fde63e701162c73162be6e64267e4d901681803d800e4e60e",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12003,8 +12580,8 @@
       ],
       "source": "mobile/src/screens/session/GpsRecordScreen.tsx",
       "description": "Native GPS recording",
-      "bytes": 12634,
-      "version": "sha256:2337ea2d1fd88bce22d47018ad165f9c8db1705d5fc1b07d9cb264ed4ef984ee",
+      "bytes": 15796,
+      "version": "sha256:1af9b90dc8f7885131d44b78429b5d22ac3353e06374c3be48d47807c7cfbee8",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -14423,6 +15000,11 @@
       "capture": null
     },
     {
+      "source": "defis-sportifs.html",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "dynamic-page.html",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -14593,6 +15175,11 @@
       "capture": null
     },
     {
+      "source": "js/app/live.js",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "js/app/moment.js",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -14634,6 +15221,11 @@
     },
     {
       "source": "js/app/profil.js",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "js/app/program.js",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -14783,6 +15375,11 @@
       "capture": null
     },
     {
+      "source": "mobile/src/screens/auth/TourScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "mobile/src/screens/auth/WelcomeScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -14798,12 +15395,37 @@
       "capture": null
     },
     {
+      "source": "mobile/src/screens/community/EventsScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "mobile/src/screens/home/HomeScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },
     {
+      "source": "mobile/src/screens/live/CampScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/live/LivePanels.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/live/LiveSessionScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "mobile/src/screens/profile/AtelierScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/profile/CapsuleScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -14849,6 +15471,11 @@
     },
     {
       "source": "mobile/src/screens/progress/RecordsScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/progress/RetroScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -14943,6 +15570,11 @@
       "capture": null
     },
     {
+      "source": "mobile/src/screens/settings/HistoryImportScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "mobile/src/screens/settings/LegalScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -14954,6 +15586,11 @@
     },
     {
       "source": "mobile/src/screens/settings/PrivacyScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/settings/SaveAccountScreen.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -15053,6 +15690,11 @@
       "capture": null
     },
     {
+      "source": "seance-live.html",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "service.html",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -15079,6 +15721,11 @@
     },
     {
       "source": "suivi-sportif.html",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "suivi-velo.html",
       "visualValidation": "pending-human-review",
       "capture": null
     },

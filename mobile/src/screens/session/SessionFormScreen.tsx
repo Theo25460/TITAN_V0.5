@@ -4,7 +4,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import { usePreventRemove } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { type ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { Alert } from "../../components/Dialog";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -19,7 +19,7 @@ import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { EffortRules, Format, Gpx, Sports } from "../../core";
-import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_SYSTEMS, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
+import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_LADDER, GRADE_SYSTEMS, lastPerformance, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
 import type { TrainingLog } from "../../core/types";
 import { useOwner } from "../../data/auth";
 import { draftCleanup, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../../data/drafts";
@@ -27,7 +27,7 @@ import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
 import { shareTextFile } from "../../lib/exportFile";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
-import { colors, familyColors, space, TOUCH } from "../../theme/tokens";
+import { colors, familyColors, space, spaces, TOUCH } from "../../theme/tokens";
 import { GPS_SPORTS } from "../../lib/gpsTrack";
 import { ExerciseEditor } from "./ExerciseEditor";
 import { SportMetricsEditor } from "./SportMetricsEditor";
@@ -65,7 +65,7 @@ function prefillFrom(log: TrainingLog, base: SessionDraft): SessionDraft {
 
 export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionForm">) {
   const owner = useOwner();
-  const { sport, duplicateOf } = route.params;
+  const { sport, duplicateOf, quickMinutes } = route.params;
   const drafts = useDrafts();
   const { logs } = useLogs();
   const profile = useProfile().data;
@@ -77,6 +77,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   const [gpxOriginal, setGpxOriginal] = useState<{ owner: string; sport: string; name: string; text: string } | null>(null);
   const [exportingGpx, setExportingGpx] = useState(false);
   const gpxRead = useRef(0);
+  const [gpxBusy, setGpxBusy] = useState(false);
   const mounted = useRef(true);
   const gpxScope = useRef({ owner, sport });
   gpxScope.current = { owner, sport };
@@ -93,6 +94,8 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     if (stored && stored.sport === sport && !duplicateOf) return stored;
     const base = freshDraft(sport);
     const source = duplicateOf ? logs.find((l) => l.id === duplicateOf || l.client_event_id === duplicateOf) : null;
+    // H5: « Juste 10 minutes » opens the form with the duration already filled; the player only confirms.
+    if (!source && quickMinutes && quickMinutes > 0 && quickMinutes <= 60) return { ...base, durM: String(Math.round(quickMinutes)) };
     return source ? prefillFrom(source, base) : base;
   });
   const draftRef = useRef(draft);
@@ -198,8 +201,15 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       let source: string;
       try {
         if (!current()) return;
-        if ((file.size ?? 0) > 15 * 1024 * 1024) return toast({ kind: "warn", title: "Fichier trop lourd", message: "Le GPX doit faire moins de 15 Mo." });
+        // Some document providers give no size: the cached copy is measured instead, so a huge file is refused before it is read.
+        const size = file.size ?? (await FileSystem.getInfoAsync(file.uri).then((info) => (info.exists ? info.size : null)).catch(() => null));
+        if (!current()) return;
+        if (size == null) return toast({ kind: "warn", title: "Taille du fichier inconnue", message: "TITAN n’a pas pu vérifier la taille de ce fichier. Copie-le sur ton téléphone, puis réessaie." });
+        if (size > 15 * 1024 * 1024) return toast({ kind: "warn", title: "Fichier trop lourd", message: "Le GPX doit faire moins de 15 Mo." });
+        setGpxBusy(true);
         source = await FileSystem.readAsStringAsync(file.uri);
+        // The analysis is synchronous: let « Analyse du fichier… » reach the screen before it starts.
+        await new Promise((resolve) => setTimeout(resolve, 0));
       } finally {
         // DocumentPicker makes its own cache copy. Never delete the source supplied by a document provider.
         if (FileSystem.cacheDirectory && file.uri.startsWith(`${FileSystem.cacheDirectory}DocumentPicker/`)) {
@@ -215,6 +225,8 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       toast({ kind: "ok", title: "Trace importée", message: `${Format.distance(result.distanceKm)} · ${result.points} points${result.ignoredPoints ? `, ${result.ignoredPoints} aberrants ignorés` : ""}.` });
     } catch {
       if (current()) toast({ kind: "warn", title: "GPX illisible", message: "Le fichier n’a pas pu être lu. Réessaie." });
+    } finally {
+      if (mounted.current) setGpxBusy(false);
     }
   }
 
@@ -298,23 +310,28 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         </View>
       }
     >
+      {/* The kind of session keeps its line; the links sit beside it when there is room and under it, on the right, otherwise. */}
       <View style={styles.sportHead}>
-        <View style={[styles.famDot, { backgroundColor: familyColors[fam] }]} />
-        <T variant="caption" tone="muted" style={{ flex: 1 }}>
-          {Sports.FAMILY_LABEL[fam]} · {Sports.FORMS[form].label}
-        </T>
-        {GPS_SPORTS.has(sport) ? (
-          <Tap onPress={() => navigation.navigate("GpsRecord", { sport })} accessibilityLabel="Enregistrer avec le GPS" testID="gps-open" style={styles.change}>
-            <T variant="caption" color={colors.cy}>
-              Enregistrer en GPS
+        <View style={styles.sportKind}>
+          <View style={[styles.famDot, { backgroundColor: familyColors[fam] }]} />
+          <T variant="caption" tone="muted" style={styles.sportLabel}>
+            {Sports.FAMILY_LABEL[fam]} · {Sports.FORMS[form].label}
+          </T>
+        </View>
+        <View style={styles.sportLinks}>
+          {GPS_SPORTS.has(sport) ? (
+            <Tap onPress={() => navigation.navigate("GpsRecord", { sport })} accessibilityLabel="Enregistrer avec le GPS" testID="gps-open" style={styles.change}>
+              <T variant="caption" tone="accent">
+                Enregistrer en GPS
+              </T>
+            </Tap>
+          ) : null}
+          <Tap onPress={() => navigation.goBack()} accessibilityLabel="Changer de sport" style={styles.change}>
+            <T variant="caption" tone="accent">
+              Changer
             </T>
           </Tap>
-        ) : null}
-        <Tap onPress={() => navigation.goBack()} accessibilityLabel="Changer de sport" style={styles.change}>
-          <T variant="caption" color={colors.cy}>
-            Changer
-          </T>
-        </Tap>
+        </View>
       </View>
 
       <Section title="Quand">
@@ -337,7 +354,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         {fieldError("date") || fieldError("time") ? <T variant="caption" tone="err">{fieldError("date") || fieldError("time")}</T> : null}
         {historical ? (
           <T variant="caption" tone="warn">
-            Séance de plus de 30 jours : elle rejoint ton journal comme historique, sans XP ni crédits (règle du serveur).
+            Séance de plus de 30 jours : elle rejoint ton journal comme historique, sans XP ni crédits.
           </T>
         ) : null}
       </Section>
@@ -345,7 +362,16 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       <Section title="Mesures">
         {form === "distance" ? (
           <>
-            <Button small kind="secondary" icon="route" label={draft.gpx ? `Trace GPX importée (${draft.gpx.points} points)` : "Importer un fichier GPX"} onPress={importGpx} />
+            <Field label="Distance" value={draft.distance} onChangeText={(distance) => setDraft({ distance })} keyboardType="decimal-pad" suffix="km" placeholder="10" error={fieldError("distance")} testID="distance" />
+            {durationBlock("Durée", true)}
+            {km && dur ? (
+              <T variant="small" tone="accent">
+                {Sports.paceMode(sport) === "pace" ? `Allure ${Format.pace(km, dur)}` : `Vitesse ${Format.speed(km, dur)}`}
+              </T>
+            ) : null}
+            {Sports.hasElevation(sport) ? <Field label="Dénivelé positif (facultatif)" value={draft.elevation} onChangeText={(elevation) => setDraft({ elevation })} keyboardType="number-pad" suffix="m" placeholder="0" /> : null}
+            {/* The file import comes after the fields: distance and duration stay above the keyboard while typing. */}
+            <Button small kind="secondary" icon="route" label={gpxBusy ? "Analyse du fichier…" : draft.gpx ? `Trace GPX importée (${draft.gpx.points} points)` : "Importer un fichier GPX"} loading={gpxBusy} onPress={importGpx} testID="gpx-import" />
             {draft.gpx ? <>
               {draft.gpx.timing === "missing" ? <T tone="muted">Pas de données de temps dans ce GPX.</T> :
                 draft.gpx.movingMinutes ? <T tone="muted">Temps en mouvement du fichier : {Format.duration(draft.gpx.movingMinutes)}.</T> :
@@ -358,14 +384,6 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
                 setDraft(removeGpxImport);
               }} />
             </> : null}
-            <Field label="Distance" value={draft.distance} onChangeText={(distance) => setDraft({ distance })} keyboardType="decimal-pad" suffix="km" placeholder="10" error={fieldError("distance")} testID="distance" />
-            {durationBlock("Durée", true)}
-            {km && dur ? (
-              <T variant="small" tone="accent">
-                {Sports.paceMode(sport) === "pace" ? `Allure ${Format.pace(km, dur)}` : `Vitesse ${Format.speed(km, dur)}`}
-              </T>
-            ) : null}
-            {Sports.hasElevation(sport) ? <Field label="Dénivelé positif (facultatif)" value={draft.elevation} onChangeText={(elevation) => setDraft({ elevation })} keyboardType="number-pad" suffix="m" placeholder="0" /> : null}
           </>
         ) : form === "swim" ? (
           <>
@@ -384,7 +402,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
           </>
         ) : form === "strength" || form === "bodyweight" ? (
           <>
-            <ExerciseEditor exercises={draft.exercises} onChange={(exercises) => setDraft({ exercises })} bodyweight={form === "bodyweight"} error={errors?.field === "exercises"} suggestions={[...new Set(logs.filter((l) => l.sport === sport).flatMap((l) => (l.details?.exercises || []).map((e) => e.name)))].slice(0, 8)} />
+            <ExerciseEditor exercises={draft.exercises} onChange={(exercises) => setDraft({ exercises })} bodyweight={form === "bodyweight"} error={errors?.field === "exercises"} suggestions={[...new Set(logs.filter((l) => l.sport === sport).flatMap((l) => (l.details?.exercises || []).map((e) => e.name)))].slice(0, 8)} lastFor={(name) => lastPerformance(logs.filter((l) => l.sport === sport), name)} />
             {fieldError("exercises") ? <T variant="caption" tone="err">{fieldError("exercises")}</T> : null}
             {durationBlock("Durée de la séance", true)}
           </>
@@ -426,6 +444,12 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
               <Field compact label="Réussites" value={draft.climbing.successes} onChangeText={(successes) => setDraft((d) => ({ ...d, climbing: { ...d.climbing, successes } }))} keyboardType="number-pad" placeholder="5" error={fieldError("climbing.successes") ? " " : null} />
               <Field compact label="Meilleure cotation" value={draft.climbing.best} onChangeText={(best) => setDraft((d) => ({ ...d, climbing: { ...d.climbing, best } }))} autoCapitalize="none" placeholder={draft.climbing.system === "V-scale bloc" ? "V4" : "6a+"} error={fieldError("climbing.best") ? " " : null} />
             </View>
+            <T variant="caption" tone="muted">Meilleure cotation réussie</T>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }} testID="grade-ladder">
+              {(GRADE_LADDER[draft.climbing.system] ?? []).map((g) => (
+                <Chip key={g} label={g} selected={draft.climbing.best.trim().toLowerCase() === g.toLowerCase()} onPress={() => setDraft((d) => ({ ...d, climbing: { ...d.climbing, best: d.climbing.best === g ? "" : g } }))} />
+              ))}
+            </ScrollView>
             {fieldError("climbing.successes") || fieldError("climbing.best") ? <T variant="caption" tone="err">{fieldError("climbing.successes") || fieldError("climbing.best")}</T> : null}
             {durationBlock("Durée")}
           </>
@@ -443,7 +467,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
 
       <Card tone="flat" style={{ gap: space.s3 }}>
         <View style={styles.row}>
-          <Icon name="timer" size={22} color={running ? colors.cy : colors.tx3} />
+          <Icon name="timer" size={22} color={running ? spaces.seance.accent : colors.tx3} />
           <T variant="num" style={{ flex: 1 }} accessibilityLabel={`Chronomètre ${clock}`}>
             {clock}
           </T>
@@ -461,7 +485,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         )}
       </Card>
 
-      <Section title="Ressenti (RPE)">
+      <Section title="Ressenti (de 1 à 10)">
         <RpeSelector value={draft.rpe} onChange={(rpe) => setDraft({ rpe })} />
         <T variant="caption" tone="faint">
           {draft.rpe ? `${draft.rpe}/10 · ${RPE_TEXT[draft.rpe]}` : "Facultatif. 5 = modéré par défaut pour le calcul de l’effort."}
@@ -480,7 +504,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
           </View>
           <T variant="caption" tone="muted">
             {preview.estimated ? "Durée estimée d’après la distance ou les séries. " : ""}
-            {Math.round(preview.counted)} min comptées × intensité {String(preview.intensity).replace(".", ",")}. Estimation : le serveur confirme l’XP réelle (plafonds 1 800/jour, 9 600/semaine).
+            {Math.round(preview.counted)} min d’effort × intensité {String(preview.intensity).replace(".", ",")}. Le total exact s’affiche dès que la séance est enregistrée.
           </T>
         </Card>
       ) : null}
@@ -491,7 +515,10 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
 const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: space.s2, alignItems: "center" },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  sportHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  sportHead: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8 },
+  sportKind: { flexDirection: "row", alignItems: "center", gap: 8, flexGrow: 1, flexShrink: 1, minHeight: 32 },
+  sportLabel: { flexShrink: 1 },
+  sportLinks: { flexDirection: "row", alignItems: "center", marginLeft: "auto" },
   famDot: { width: 10, height: 10, borderRadius: 5 },
   change: { minHeight: TOUCH, paddingHorizontal: 8, justifyContent: "center" },
 });

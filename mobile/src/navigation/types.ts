@@ -11,6 +11,8 @@ export type TabParams = {
 
 export type RootParams = {
   // Signed out
+  /** The guided visit before sign-up. `replay`: opened again on purpose, from Help or the welcome screen. */
+  Tour: { replay?: boolean } | undefined;
   Welcome: undefined;
   Login: { email?: string } | undefined;
   Signup: undefined;
@@ -18,8 +20,10 @@ export type RootParams = {
   // Signed in
   Onboarding: undefined;
   Tabs: NavigatorScreenParams<TabParams> | undefined;
-  SessionForm: { sport: string; duplicateOf?: string } ;
+  SessionForm: { sport: string; duplicateOf?: string; quickMinutes?: number } ;
   GpsRecord: { sport: string };
+  LiveSession: { sport: string };
+  Camp: undefined;
   Routes: undefined;
   Route: { id: string };
   SessionResult: { eventId: string; stored?: { owner: string; payload: TrainingPayload } };
@@ -33,7 +37,12 @@ export type RootParams = {
   World: { id: string };
   Sentiers: undefined;
   Atelier: undefined;
-  Community: undefined;
+  Community: { ami?: string; guilde?: string } | undefined;
+  Events: undefined;
+  Retro: { year?: number; month?: number } | undefined;
+  SaveAccount: undefined;
+  Capsules: undefined;
+  HistoryImport: undefined;
   Settings: undefined;
   Account: undefined;
   Privacy: undefined;

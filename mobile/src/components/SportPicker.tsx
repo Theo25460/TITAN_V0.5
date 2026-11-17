@@ -12,8 +12,8 @@ export function SportChip({ id, selected, onPress, testID }: { id: string; selec
   const fam = Sports.familyOf(id);
   return (
     <Tap onPress={onPress} testID={testID} accessibilityRole="button" accessibilityState={{ selected: !!selected }} accessibilityLabel={Sports.label(id)} style={[styles.chip, selected && styles.chipOn]}>
-      <Icon name={Sports.FAMILY_ICON[fam] ?? "run"} size={18} color={selected ? colors.cyInk : familyColors[fam]} />
-      <T variant="caption" color={selected ? colors.cyInk : colors.tx} style={styles.chipLabel}>
+      <Icon name={Sports.iconOf(id)} size={18} color={selected ? colors.bg : familyColors[fam]} />
+      <T variant="caption" color={selected ? colors.bg : colors.tx} style={styles.chipLabel}>
         {Sports.label(id)}
       </T>
     </Tap>
@@ -52,5 +52,5 @@ const styles = StyleSheet.create({
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
   chip: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: TOUCH, paddingHorizontal: 14, paddingVertical: 6, borderRadius: radius.pill, backgroundColor: colors.bg2, borderWidth: 1, borderColor: colors.line2, maxWidth: "100%" },
   chipLabel: { flexShrink: 1 },
-  chipOn: { backgroundColor: colors.cy, borderColor: colors.cy },
+  chipOn: { backgroundColor: colors.tx, borderColor: colors.tx },
 });

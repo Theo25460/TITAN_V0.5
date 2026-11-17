@@ -88,7 +88,7 @@
     if (isGuest()) return { state: "local", big: "Gardée sur cet appareil", sub: "Tu pourras ajouter cette séance à ton compte après inscription." };
     if (log.syncStatus === "confirmed" && r && r.reward_held) {
       const hours = Math.max(1, Math.ceil((new Date(r.release_at) - Date.now()) / 3600000)) || 24;
-      return { state: "pending", big: "Récompense en vérification", sub: `${F().number(r.held_xp)} XP et ${F().number(r.held_credits)} crédits sont retenus par précaution, au plus ${F().number(hours)} h : ils arrivent d’eux-mêmes si rien n’est trouvé.` };
+      return { state: "pending", big: "Récompense en vérification", sub: `Tes ${F().number(r.held_xp)} XP et ${F().number(r.held_credits)} crédits arrivent d’eux-mêmes d’ici ${F().number(hours)} h, après une vérification de routine.` };
     }
     if (log.syncStatus === "confirmed" && r) {
       const capped = Number(r.requested_xp) > Number(r.xp);
@@ -156,7 +156,7 @@
       <div class="moment-ring">
         <svg viewBox="0 0 120 120"><circle class="mr-track" cx="60" cy="60" r="52"/><circle class="mr-fill" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${(100 * (1 - (animate ? from : to))).toFixed(2)}"/></svg>
         <div class="moment-ring-center"><span class="moment-ring-xp asc-num" data-count="${rw.xp}">+${F().number(rw.xp)}</span><small>XP</small></div>
-        ${rw.levelUp ? `<div class="moment-crest">${window.TitanCrest.svg(rank, 132)}</div>` : ""}
+        ${rw.levelUp ? `<div class="moment-crest">${window.TitanCrest.svg(rank, 104)}</div>` : ""}
         <div class="moment-embers"></div>
       </div>
     </section>`;
@@ -178,27 +178,53 @@
     }));
   }
 
+  /* One reasonable next step, in one sentence (V13-43). It never promises a gain: it says what is left to do, or that nothing is. */
+  function nextStep(log, rw) {
+    if (rw.state === "pending" && log.syncStatus === "error") return "Ouvre le journal pour vérifier cette séance : elle y reste, avec les options de reprise.";
+    if (isGuest()) return "Crée un compte pour garder cette séance partout, ou continue en mode découverte.";
+    if (rw.state === "history") return "Rien d’autre à faire : ton journal et tes records sont à jour.";
+    if (log.syncStatus !== "confirmed") return "Rien à faire : la confirmation arrive d’elle-même, tu peux fermer cette fenêtre.";
+    if (rw.state === "pending") return "Rien à faire : la récompense arrive d’elle-même si rien n’est trouvé.";
+    const s = window.TitanAdventure?.snapshot, C = window.TitanCodex;
+    if (s && C && s.owner === window.state?.user?.id) {
+      const c = (s.campaigns || []).find((x) => x.id === s.selected_world && x.chapter > 0 && x.chapter <= 9) || (s.campaigns || []).find((x) => x.chapter > 0 && x.chapter <= 9);
+      if (!c) return "Choisis un monde dans l’aventure : tes prochains jours actifs y compteront.";
+      const progress = P().campaignProgress?.(c);
+      if (progress?.ready) return "Ton chapitre est prêt : ouvre l’aventure pour allumer la balise.";
+      const left = (progress?.objectives || []).filter((o) => o.remaining > 0).map((o) => `${F().number(o.remaining)} ${o.id === "days" ? `jour${o.remaining > 1 ? "s" : ""} actif${o.remaining > 1 ? "s" : ""}` : "min d’effort"}`).join(" et ");
+      if (left) return `Encore ${left} pour terminer ton chapitre.`;
+    }
+    return "Reviens quand tu veux : un jour de repos ne te retire rien.";
+  }
+
+  /* Three parts, in the order the session happened: what you did, what it changed (only what is confirmed, or an explicit wait),
+     what comes next. The XP figure is shown once: in the ring when the server confirmed it, in plain text otherwise. */
   function html(log, play) {
     const rw = reward(log);
     const recs = records(log);
     const m = metrics(log);
+    const ring = hero(log, play);
     return `<div class="moment" data-state="${rw.state}">
-      <h3 class="asc-eyebrow">Ton effort</h3>
+      <h3 class="asc-eyebrow">Tu as fait</h3>
       <dl class="moment-metrics">${m.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
-      <section class="moment-reward" data-state="${rw.state}" aria-live="polite">
-        <p class="moment-xp asc-num">${esc(rw.big)}</p>
-        <p class="asc-small">${esc(rw.sub)}</p>
-        ${rw.credits > 0 ? `<p class="asc-small">+${F().number(rw.credits)} crédits</p>` : ""}
-        ${rw.levelUp ? `<p class="moment-level">${icon("ascent")} Niveau ${F().number(rw.levelUp)} · ${esc(E().rank(rw.levelUp).name)}</p>` : ""}
-      </section>
-      ${hero(log, play)}
       ${recs.length ? `<section class="moment-block moment-records"><p class="asc-eyebrow am">${recs.every((r) => r.first) ? (recs.length > 1 ? "Premiers repères" : "Premier repère") : recs.length > 1 ? "Records" : "Record"}</p>${recs
         .map((r) => `<div class="moment-record"><span class="moment-record-label">${esc(r.label)}</span><strong class="asc-num">${esc(fmtRecord(r))}</strong><span class="asc-small asc-faint">${r.previous ? `avant : ${esc(fmtRecord(r, r.previous.value))}` : "ta référence pour la suite"}</span></div>`)
         .join("")}</section>` : ""}
+      <h3 class="asc-eyebrow">Ce que ça change</h3>
+      <div class="moment-gain${ring ? " has-ring" : ""}">
+        ${ring}
+        <section class="moment-reward" data-state="${rw.state}" aria-live="polite">
+          <p class="moment-xp asc-num${ring ? " sr-only" : ""}">${esc(rw.big)}</p>
+          <p class="asc-small">${esc(rw.sub)}</p>
+          ${rw.credits > 0 ? `<p class="asc-small">+${F().number(rw.credits)} crédits</p>` : ""}
+          ${rw.levelUp ? `<p class="moment-level">${icon("ascent")} Niveau ${F().number(rw.levelUp)} · ${esc(E().rank(rw.levelUp).name)}</p>` : ""}
+        </section>
+      </div>
       ${cadenceHtml(log)}
       ${masteryHtml(log)}
       ${adventureHtml(log)}
       <h3 class="asc-eyebrow">Et ensuite ?</h3>
+      <p class="moment-next">${esc(nextStep(log, rw))}</p>
       <div class="moment-actions">
         ${window.TitanShare?.available() && !E().isHistorical(log.date) ? `<button type="button" class="asc-btn asc-btn-ghost moment-share" data-moment="share">${icon("send")} Partager avec mes amis</button>` : ""}
         ${isGuest() ? `<a class="asc-btn asc-btn-primary" href="/login?mode=signup" data-moment-signup>${icon("user")} Créer un compte et garder ma séance</a>` : ""}
@@ -229,6 +255,11 @@
       onClose: () => {
         closed = true;
         clearTimeout(focusTimer);
+        // The session page redraws its list behind the sheet (history update): the element that had the focus may be gone, and the
+        // focus would fall on the page body. Hand it to the page title instead, once the browser has finished closing the dialog.
+        setTimeout(() => {
+          if (document.activeElement === document.body && !document.querySelector("dialog[open]")) document.querySelector("[data-pick-title], [data-hub-title]")?.focus({ preventScroll: true });
+        }, 0);
         window.removeEventListener("titan:history-updated", update);
         window.removeEventListener("titan:adventure-updated", update);
         window.removeEventListener("titan:account-changing", closeForAccount);
@@ -260,8 +291,11 @@
         window.TitanAdventure?.refresh?.({ force: true });
       }
     }
+    const openedAt = performance.now();
     body.addEventListener("click", (e) => {
       if (!live()) { if (dialog.open) dialog.close(); return; }
+      // The sheet opens under the pointer that just saved: the second click of a double click on « Enregistrer » is not a choice made here.
+      if (e.detail > 1 && performance.now() - openedAt < 700) return;
       if (e.target.closest("[data-moment='done']")) dialog.close();
       if (e.target.closest("[data-moment='share']")) {
         const l = current(log);

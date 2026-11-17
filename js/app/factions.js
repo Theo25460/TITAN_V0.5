@@ -86,7 +86,7 @@
       const action = mine ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-faction-leave ${lock || (canChange ? "" : "disabled")}>Quitter</button>`
         : `<button type="button" class="asc-btn ${data.mine ? "asc-btn-secondary" : "asc-btn-primary"} asc-btn-sm" data-faction-join="${esc(f.key)}" ${lock || (data.mine && !canChange ? "disabled" : "")}>${data.mine ? "Passer à cette faction" : "Rejoindre"}</button>`;
       return `<article class="asc-panel qg-steps-card" data-faction="${esc(f.key)}" ${mine ? 'data-mine="true"' : ""}><p><strong>${esc(f.name)}</strong>${mine ? ` <span class="asc-chip cy">${window.titanIcon ? window.titanIcon("check") : ""} La tienne</span>` : ""}</p>
-        <p class="asc-small asc-muted">${esc(f.motto)}</p>${stats}<div class="asc-row">${action}</div></article>`;
+        <p class="asc-small asc-muted">${esc(f.motto)}</p>${stats}<div class="asc-actions">${action}</div></article>`;
     }).join("");
     const lockNote = data.canChangeAt && !canChange ? `<p class="asc-small asc-muted" data-faction-lock>Tu pourras changer de faction à partir du ${esc(when(data.canChangeAt))}.</p>` : "";
     root.innerHTML = `<section class="asc-section asc-appear" aria-labelledby="faction-title"><div class="asc-section-head"><h2 id="faction-title">Factions</h2></div>
