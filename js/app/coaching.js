@@ -546,7 +546,7 @@
       root.innerHTML = `<section class="asc-hero co-intro"><p class="asc-eyebrow cy">Sportifs · coachs · éducateurs</p><h2 class="cm-exp-title">Un suivi qui se construit à deux.</h2>
         <p class="asc-lead">Le coach crée une invitation. Le sportif choisit la période, le sport et les détails qu’il partage, et peut tout arrêter à tout moment. Le coach propose des séances ; le sportif les accepte ou non.</p>
         <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login">Se connecter</a><a class="asc-btn asc-btn-ghost" href="/pour-les-coachs">Comment ça marche</a></div>
-        <ul class="ob-promises"><li>${icon("user")}<span><strong>3 sportifs suivis gratuitement</strong>, 20 avec TITAN+. Le sportif n’a pas besoin d’abonnement.</span></li><li>${icon("lock")}<span><strong>Rien n’est partagé sans accord</strong> explicite, révocable.</span></li></ul></section>`;
+        <ul class="ob-promises"><li>${icon("user")}<span><strong>3 sportifs suivis gratuitement</strong>, 5 ou 15 avec une offre Coach. Le sportif n’a pas besoin d’abonnement.</span></li><li>${icon("lock")}<span><strong>Rien n’est partagé sans accord</strong> explicite, révocable.</span></li></ul></section>`;
       return;
     }
     if (loading) {

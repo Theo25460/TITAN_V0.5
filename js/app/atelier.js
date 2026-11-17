@@ -365,11 +365,11 @@
     if (p.active)
       return `<section class="at-plus is-active" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+ actif</p><h2 class="asc-h2">Ton accès TITAN+.</h2>
         <p class="asc-small asc-muted">${p.ends_at ? `Accès jusqu’au ${esc(date(p.ends_at))}.` : p.renews_at ? `Prochain renouvellement le ${esc(date(p.renews_at))}.` : "Ton accès TITAN+ est actif."}</p>
-        <ul class="at-includes"><li>${icon("layers")} 20 routines nommées</li><li>${icon("group")} Espace coach : 20 sportifs suivis avec TITAN+ seul ; 5 ou 15 avec une offre Coach</li><li>${icon("sparkle")} Accès temporaire à 4 pièces, aussi gagnables avec tes crédits</li></ul>
+        <ul class="at-includes"><li>${icon("layers")} 20 routines nommées</li><li>${icon("sparkle")} Accès temporaire à 4 pièces, aussi gagnables avec tes crédits</li></ul>
         <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
         <p class="asc-small asc-faint">Un accès actif peut être offert, de test ou inclus par un coach : il ne prouve pas un paiement. Pour un abonnement, utilise le prestataire indiqué sur ton reçu ; les <a href="/legal_cgu">conditions d’utilisation</a> expliquent la résiliation et les remboursements. Pour une aide : écris à <a href="mailto:${esc(support)}">${esc(support)}</a>. Ton journal, tes insignes et tes crédits restent à toi.</p></section>`;
     return `<section class="at-plus" id="plus"><p class="asc-eyebrow am">${icon("crown")} TITAN+</p><h2 class="asc-h2">Plus de confort pour ta pratique.</h2>
-      <ul class="at-includes"><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("group")} <span><strong>20 sportifs</strong> suivis avec TITAN+ seul ; 5 ou 15 avec une offre Coach</span></li><li>${icon("sparkle")} <span><strong>Accès temporaire à 4 pièces</strong> : Aegis, Givre, Aurores, Obsidienne, aussi gagnables avec tes crédits</span></li></ul>
+      <ul class="at-includes"><li>${icon("layers")} <span><strong>20 routines</strong> nommées au lieu de 5</span></li><li>${icon("sparkle")} <span><strong>Accès temporaire à 4 pièces</strong> : Aegis, Givre, Aurores, Obsidienne, aussi gagnables avec tes crédits</span></li></ul>
       ${never}
       <a class="asc-btn asc-btn-secondary" href="/titan-plus#concret">Voir les bénéfices en détail ${icon("arrow")}</a>
       ${pending && !data ? `<p class="asc-small asc-faint">Le catalogue et ses conditions d’acquisition s’afficheront dès que l’Atelier répond.</p>` : ""}

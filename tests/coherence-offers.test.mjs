@@ -50,8 +50,8 @@ const coachCapacity = latestFunction("private.titan_coach_capacity");
 const SEATS = {
   coach: int(coachPlan, /case pp\.plan when 'coach_pro' then \d+ else (\d+) end/, "the Coach seats"),
   coach_pro: int(coachPlan, /case pp\.plan when 'coach_pro' then (\d+) else \d+ end/, "the Coach Ultra seats"),
-  plus: int(coachCapacity, /then (\d+) else \d+ end/, "the capacity of a personal TITAN+"),
-  free: int(coachCapacity, /then \d+ else (\d+) end/, "the free capacity"),
+  // Owner decision 20261121140000: without a Coach offer the Classique capacity applies, with or without TITAN+.
+  free: int(coachCapacity, /then v_seats else (\d+) end/, "the capacity without a Coach offer"),
 };
 const seatsMigration = sql(MIGRATIONS.filter((f) => sql(f).includes("create table if not exists private.titan_plan_products")).at(-1));
 const SERVER_PLANS = seatsMigration.match(/plan text not null check \(plan in \(([^)]+)\)\)/)[1].split(",").map((s) => s.trim().replace(/'/g, "")).sort();
@@ -81,8 +81,9 @@ test("the higher coach offer has one public name everywhere: Coach Ultra", () =>
 });
 
 test("coached-athlete capacities: SQL, Android offers, public pages, legal terms and the web application state the same four numbers", () => {
-  assert.deepEqual(SEATS, { coach: 5, coach_pro: 15, plus: 20, free: 3 }, "a capacity changed on the server: every text below must change with it");
-  const { coach, coach_pro: ultra, plus, free } = SEATS;
+  assert.deepEqual(SEATS, { coach: 5, coach_pro: 15, free: 3 }, "a capacity changed on the server: every text below must change with it");
+  const { coach, coach_pro: ultra, free } = SEATS;
+  assert.ok(!/then 20 else/.test(coachCapacity), "TITAN+ alone gives no coaching places (owner decision 20261121140000)");
 
   // Android: the offer cards and the first-use tour.
   assert.equal(androidPlan("coach").tagline, `Pour accompagner ${coach} sportifs`);
@@ -97,20 +98,19 @@ test("coached-athlete capacities: SQL, Android offers, public pages, legal terms
     assert.ok(text.includes(`Accompagne ${coach} sportifs.`) && text.includes(`Toi + ${coach} sportifs avec TITAN+ inclus`), `${name}: Coach`);
     assert.ok(text.includes(`Accompagne ${ultra} sportifs.`) && text.includes(`Toi + ${ultra} sportifs avec TITAN+ inclus`), `${name}: Coach Ultra`);
     assert.ok(text.includes(`coaching jusqu’à ${free} sportifs`), `${name}: free capacity`);
-    assert.ok(text.includes(`Jusqu’à ${plus} sportifs dans l’espace coach`), `${name}: TITAN+ capacity`);
-    assert.ok(text.includes(`celui de l’offre (${coach} ou ${ultra}) ; TITAN+ seul permet d’en suivre ${plus}`), `${name}: the rule in one sentence`);
+    assert.ok(!text.includes("sportifs dans l’espace coach"), `${name}: TITAN+ promises no coaching places`);
+    assert.ok(text.includes(`celui de l’offre (${coach} ou ${ultra}) ; sans offre Coach, ${free} sportifs, avec ou sans TITAN+`), `${name}: the rule in one sentence`);
   }
-  assert.ok(page("titan-plus.html").includes(`Sportifs suivis dans l’espace coach ${free} ${plus}`), "comparison table");
-  assert.ok(page("titan-plus.html").includes(`${free} → ${plus} sportifs suivis`), "capacity card");
-  assert.ok(page("titan-plus.html").includes(`la capacité coach revient à ${free} : les suivis au-delà sont mis en pause`), "end of TITAN+");
+  assert.ok(page("titan-plus.html").includes(`Sportifs suivis dans l’espace coach ${free} ${free} (${coach} ou ${ultra} avec une offre Coach)`), "comparison table");
+  assert.ok(!page("titan-plus.html").includes("sportifs suivis</small>"), "no TITAN+ capacity card");
   assert.ok(page("fonctionnalites.html").includes("le suivi de trois sportifs"), "features FAQ");
 
   // The coach guide: its table and its search description.
   const guide = page("pour-les-coachs.html");
-  for (const row of [`Classique Gratuit ${free} Non`, `TITAN+ (individuel) Affiché par Google Play ${plus} Non`, `Coach Tarif affiché par Google Play ${coach} Inclus`, `Coach Ultra Tarif affiché par Google Play ${ultra} Inclus`]) {
+  for (const row of [`Classique Gratuit ${free} Non`, `TITAN+ (individuel) Affiché par Google Play ${free} Non`, `Coach Tarif affiché par Google Play ${coach} Inclus`, `Coach Ultra Tarif affiché par Google Play ${ultra} Inclus`]) {
     assert.ok(guide.includes(row), `coach guide table: ${row}`);
   }
-  assert.ok(readFileSync(join(output, "pour-les-coachs.html"), "utf8").includes(`${free} sportifs sans abonnement, ${plus} avec TITAN+, ${coach} ou ${ultra} avec une offre Coach.`), "coach guide description");
+  assert.ok(readFileSync(join(output, "pour-les-coachs.html"), "utf8").includes(`${free} sportifs sans offre Coach, ${coach} ou ${ultra} avec une offre Coach.`), "coach guide description");
   // 20261121100000: the places apply to every coach action; links beyond them are paused, never revoked (sql/tests/300_monetisation_coach_capacity.sql).
   assert.ok(guide.includes("au-delà (passage de Coach Ultra à Coach, fin de l’offre), les suivis les plus récents sont mis en pause. Rien n’est supprimé ni révoqué"), "coach guide: the pause rule");
   assert.ok(readFileSync(join(root, "supabase/migrations/20261121100000_coach_capacity_enforced.sql"), "utf8").includes("'COACH_CAPACITY_PAUSED'"), "the rule the guide states is the server's");
@@ -118,15 +118,14 @@ test("coached-athlete capacities: SQL, Android offers, public pages, legal terms
   // Terms and partnerships.
   const terms = page("legal_cgu.html");
   assert.ok(terms.includes(`Coach comprend le coach et ${coach} sportifs avec TITAN+ inclus ; Coach Ultra comprend le coach et ${ultra} sportifs`), "terms 4.2 bis: seats");
-  assert.ok(terms.includes(`celui de l’offre : ${coach} ou ${ultra}. Sans offre Coach, un compte peut suivre ${free} sportifs, ou ${plus} avec TITAN+`), "terms 4.2 bis: capacities");
+  assert.ok(terms.includes(`celui de l’offre : ${coach} ou ${ultra}. Sans offre Coach, un compte peut suivre ${free} sportifs, avec ou sans TITAN+`), "terms 4.2 bis: capacities");
   assert.ok(terms.includes("le coaching de trois sportifs sont gratuits"), "terms 3: free capacity");
   const words = { 3: "Trois", 5: "cinq", 15: "quinze", 20: "vingt" };
-  assert.ok(page("partenariats.html").includes(`${words[free]} sportifs suivis sans abonnement, ${words[plus]} avec TITAN+ ; ${words[coach]} avec Coach et ${words[ultra]} avec Coach Ultra`), "partnerships");
+  assert.ok(page("partenariats.html").includes(`${words[free]} sportifs suivis sans offre Coach ; ${words[coach]} avec Coach et ${words[ultra]} avec Coach Ultra`), "partnerships");
 
   // Web application.
-  assert.ok(atelier.includes(`<strong>${plus} sportifs</strong> suivis avec TITAN+ seul ; ${coach} ou ${ultra} avec une offre Coach`), "Atelier offer");
-  assert.ok(atelier.includes(`Espace coach : ${plus} sportifs suivis avec TITAN+ seul ; ${coach} ou ${ultra} avec une offre Coach`), "Atelier active offer");
-  assert.ok(coaching.includes(`<strong>${free} sportifs suivis gratuitement</strong>, ${plus} avec TITAN+`), "coach workspace");
+  assert.ok(!/sportifs<\/strong> suivis avec TITAN\+ seul|sportifs suivis avec TITAN\+ seul/.test(atelier), "Atelier: TITAN+ promises no coaching places");
+  assert.ok(coaching.includes(`<strong>${free} sportifs suivis gratuitement</strong>, ${coach} ou ${ultra} avec une offre Coach`), "coach workspace");
 
   // No other number of coached athletes anywhere an offer is described.
   const allowed = new Set(Object.values(SEATS));
