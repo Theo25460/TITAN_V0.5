@@ -60,6 +60,16 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v15 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // Social excellence (« Opération Connexion », 20 November 2026): personal friend links, request expiry, blocks list, the social
+  // limits that never applied, confirmed sessions only in every collective count, Duo outcome, club goal, the Grande Cordée and the
+  // « Depuis ta dernière visite » digest. NOT applied: additive, rehearsed on a replica (tools/db/test-migrations.sh).
+  v17: {
+    out: "supabase/release-v17", after: "20261119090000", until: "20261120090000",
+    before: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
+    expected: { private: [107, "d47d6bb616ea", "b4a45b7ed5d6"], public: [315, "275f07821afc", "5f4b15f0832e"] },
+    beforeNote: "This is the state production reaches at the end of the v16 bundle.",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

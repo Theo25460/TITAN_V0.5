@@ -242,7 +242,7 @@ export type SocialOverview = {
   me: { id: string; friend_code: string; findable: boolean };
   friends: Friend[];
   requests_in: { id: string; name: string; avatar: string; at: string }[];
-  requests_out: { id: string; name: string; at: string }[];
+  requests_out: { id: string; name: string; at: string; expires_at?: string }[];
   moments: Moment[];
   challenges: Challenge[];
   expedition: unknown;
@@ -253,6 +253,14 @@ export const friendRequest = (code: string) => rpc<{ status: string }>("titan_so
 export const friendRespond = (user: string, accept: boolean) => rpc<{ status: string }>("titan_social_respond", { p_user: user, p_accept: accept });
 export const friendRemove = (user: string) => rpc("titan_social_remove", { p_user: user });
 export const blockUser = (user: string) => rpc("titan_block_user", { p_blocked_id: user, p_reason: "android" });
+/* Social lot A: personal invitation links (one use, 7 days, revocable) and one's own blocks. */
+export type FriendLinkPreview = { valid: boolean; expiresAt?: string; own?: boolean; friends?: boolean; inviter?: { name: string; avatar: string } };
+export const friendLinkCreate = (owner: string) => ownerRpc<{ id: string; token: string; expiresAt: string }>(owner, "titan_friend_link_create_v1", {});
+export const friendLinkPreview = (owner: string, token: string) => ownerRpc<FriendLinkPreview>(owner, "titan_friend_link_preview_v1", { p_token: token });
+export const friendLinkAccept = (owner: string, token: string) => ownerRpc<{ status: "friends"; id: string; name: string; spent: boolean }>(owner, "titan_friend_link_accept_v1", { p_token: token });
+export type BlockedAccount = { id: string; name: string; at: string };
+export const fetchBlocks = (owner: string) => ownerRpc<BlockedAccount[]>(owner, "titan_blocks_v1", {});
+export const unblockUser = (owner: string, user: string) => ownerRpc<boolean>(owner, "titan_unblock_user", { p_blocked_id: user });
 export const momentCheer = (id: string) => rpc("titan_moment_cheer", { p_id: id });
 export const momentDelete = (id: string) => rpc("titan_moment_delete", { p_id: id });
 export const momentShare = (p: { kind: string; title: string; detail?: string | null; sport?: string | null; logId?: string | null; visibility?: "friends" | "private" }) =>
