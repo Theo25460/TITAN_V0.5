@@ -18,6 +18,7 @@ export const MODULES = [
   "js/core/effort.js",
   "js/core/sports-catalog.js",
   "js/core/sports.js",
+  "js/core/sport-contracts.js",
   "js/sport-insights.js",
   "js/core/progress.js",
   "js/core/questions.js",

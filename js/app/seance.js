@@ -518,9 +518,12 @@
     if (Array.isArray(w.in)) return w.in.includes(cur);
     return true;
   };
+  /* The sport contract (js/core/sport-contracts.js) keeps only the fields that describe this discipline: a historical field of the
+     catalogue that does not (a cadence under freediving, a generic 1–10 score) is no longer asked, and a value already typed stays. */
   function sportMeasures(skip = []) {
-    const all = (window.SPORTS_CONFIG?.[S.sport]?.extraFields || [])
-      .filter((f) => f && f.id && ["number", "select", "checkbox", "text"].includes(f.type) && !skip.includes(f.id))
+    const raw = (window.SPORTS_CONFIG?.[S.sport]?.extraFields || []).filter((f) => f && f.id && ["number", "select", "checkbox", "text"].includes(f.type));
+    const contract = window.TitanSportContracts;
+    const all = (contract ? contract.entryFields(S.sport, raw, { values: S.extras, skip: [...new Set([...skip, ...contract.structuredKeys(S.sport)])] }) : raw.filter((f) => !skip.includes(f.id)))
       .sort((a, b) => (a.priority || 99) - (b.priority || 99));
     const shown = all.filter(extraVisible);
     const primary = shown.filter((f) => f.type !== "text" && !f.eliteOnly).slice(0, 3);

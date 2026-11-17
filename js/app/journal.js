@@ -430,8 +430,10 @@
     const climbing = SP().formOf(l.sport) === "climbing" || Boolean(l.details?.extras?.grade_system);
     const previousExtras = l.details?.extras || {};
     const managed = climbing ? ["max_done", "attempts", "successful_routes"] : [];
-    const metricFields = (window.SPORTS_CONFIG?.[l.sport]?.extraFields || [])
-      .filter(f => f && /^[a-zA-Z0-9_-]+$/.test(f.id) && !managed.includes(f.id) && ["number", "select", "checkbox", "text"].includes(f.type) && !f.eliteOnly)
+    const catalogFields = (window.SPORTS_CONFIG?.[l.sport]?.extraFields || [])
+      .filter(f => f && /^[a-zA-Z0-9_-]+$/.test(f.id) && !managed.includes(f.id) && ["number", "select", "checkbox", "text"].includes(f.type) && !f.eliteOnly);
+    // Same contract as the entry form: irrelevant historical fields are not offered, but one that holds a value stays editable.
+    const metricFields = (window.TitanSportContracts ? window.TitanSportContracts.entryFields(l.sport, catalogFields, { values: previousExtras, skip: managed }) : catalogFields)
       .sort((a, b) => (a.priority || 99) - (b.priority || 99));
     const metricInput = f => {
       const v = previousExtras[f.id] ?? "";

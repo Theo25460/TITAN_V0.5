@@ -9,6 +9,7 @@ require("./web/training-store.js");
 require("./web/effort.js");
 require("./web/sports-catalog.js");
 require("./web/sports.js");
+require("./web/sport-contracts.js");
 require("./web/sport-insights.js");
 require("./web/progress.js");
 require("./web/questions.js");
@@ -109,6 +110,16 @@ export const Sports = g.TitanSports as {
   conf(id: string): { label: string; unit: string; cat: string; balanceProfile?: string } | null;
 };
 Sports.ensure();
+
+export type SportContractField = { id: string; priority?: number; legacy?: boolean };
+/** Which catalogue fields a form asks for each discipline (js/core/sport-contracts.js, shared with the website). */
+export const SportContracts = g.TitanSportContracts as {
+  version: number;
+  structuredKeys(sport: string): string[];
+  retiredReason(sport: string, field: SportContractField): string;
+  entryFields<F extends SportContractField>(sport: string, fields: F[], opts?: { values?: Record<string, unknown>; skip?: string[] }): F[];
+  contract(sport: string): { form: SportForm; profile: string; label: string; structured: string[]; progress: string };
+};
 
 export const Insights = g.TitanInsights as {
   records(logs: TrainingLog[], sport?: string, now?: number | Date): RecordEntry[];

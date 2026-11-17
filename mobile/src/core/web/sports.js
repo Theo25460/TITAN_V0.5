@@ -150,9 +150,12 @@
     return PACE_PROFILES.has(profileOf(id)) ? "pace" : "speed";
   }
 
+  /** The distance form asks for a positive elevation when the family climbs, or when the discipline's own catalogue measures it
+      (orienteering, obstacle course, rogaining): the form owns that field, so it must not vanish from both places. */
   function hasElevation(id) {
     const p = profileOf(id);
-    return ["trail", "mountain_endurance", "hiking", "cycling", "mtb", "glide"].includes(p) || /trail|rando|hiking|ski|vtt/i.test(id);
+    if (["trail", "mountain_endurance", "hiking", "cycling", "mtb", "glide"].includes(p) || /trail|rando|hiking|ski|vtt/i.test(id)) return true;
+    return formOf(id) === "distance" && (conf(id)?.extraFields || []).some((f) => f && f.id === "elevation");
   }
 
   function all() {

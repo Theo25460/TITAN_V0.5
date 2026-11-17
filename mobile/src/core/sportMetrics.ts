@@ -1,4 +1,4 @@
-import { Sports } from "./index";
+import { SportContracts, Sports } from "./index";
 
 export type MetricField = { id: string; label: string; type: "number" | "select" | "text" | "checkbox"; unit?: string; min?: number; max?: number; step?: number; priority?: number; eliteOnly?: boolean; options?: string[]; visibleWhen?: { field: string; equals?: unknown; in?: unknown[] } };
 export type MetricValues = Record<string, unknown>;
@@ -52,8 +52,13 @@ export function metricPatch(sport: string, previous: MetricValues, next: MetricV
   return patch;
 }
 
-/** Avoid two controls for the same structured measure. */
+/** Avoid two controls for the same structured measure: the keys the entry form itself owns (shared sport contract). */
 export function structuredMetricKeys(sport: string): string[] {
-  const form = Sports.formOf(sport);
-  return form === "distance" ? ["elevation", "avg_speed", "avg_pace", "distance"] : form === "swim" ? ["pool", "distance"] : form === "climbing" ? ["attempts", "successful_routes", "max_done", "max_tried", "climbing_discipline", "grade_system", "location", "belay"] : form === "strength" ? ["sets", "reps", "top_load", "volume"] : form === "bodyweight" ? ["sets", "best_set", "reps"] : [];
+  return SportContracts.structuredKeys(sport);
+}
+
+/** Fields a form asks for this discipline (shared contract with the website): irrelevant historical catalogue fields are not
+    offered for a new entry, a field that already holds a value stays visible and editable. Validation keeps the full catalogue. */
+export function entryMetricFields(sport: string, plus = false, values: MetricValues = {}, skip: string[] = structuredMetricKeys(sport)): MetricField[] {
+  return SportContracts.entryFields(sport, metricFields(sport, plus), { values, skip }) as MetricField[];
 }

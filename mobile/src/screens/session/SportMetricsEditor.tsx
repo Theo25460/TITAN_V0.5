@@ -5,11 +5,11 @@ import { Chip } from "../../components/Chip";
 import { Field } from "../../components/Field";
 import { Section } from "../../components/Section";
 import { T } from "../../components/Text";
-import { metricFields, metricVisible, structuredMetricKeys, type MetricField, type MetricValues } from "../../core/sportMetrics";
+import { entryMetricFields, metricVisible, structuredMetricKeys, type MetricField, type MetricValues } from "../../core/sportMetrics";
 
 export function SportMetricsEditor({ sport, values = {}, onChange, plus = false, error, skip = structuredMetricKeys(sport) }: { sport: string; values?: MetricValues; onChange: (values: MetricValues) => void; plus?: boolean; error?: string | null; skip?: string[] }) {
   const [expanded, setExpanded] = useState(false);
-  const fields = metricFields(sport, plus).filter((f) => !skip.includes(f.id) && metricVisible(f, values));
+  const fields = entryMetricFields(sport, plus, values, skip).filter((f) => metricVisible(f, values));
   const primary = fields.filter((f) => f.type !== "text" && !f.eliteOnly).slice(0, 3);
   const rest = fields.filter((f) => !primary.includes(f));
   const update = (f: MetricField, value: unknown) => onChange({ ...values, [f.id]: value });
