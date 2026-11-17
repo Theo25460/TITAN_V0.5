@@ -5,7 +5,7 @@
 -- the save goes through; an offline phone never loses its other preferences). A library that is already larger, because TITAN+ ended, is
 -- kept: routines stay loadable, replaceable and removable; nothing is deleted. TITAN+ eligibility is the one the server gates use
 -- (is_elite, not refunded, not ended). A non-array value is ignored.
--- Same function as 20261005190000 otherwise. Additive. The caller owns the transaction: never BEGIN/COMMIT here.
+-- Same function as 20261005190000 otherwise, with the PT409 conflict code of 20261104085851. Additive. The caller owns the transaction: never BEGIN/COMMIT here.
 -- Rollback: re-apply public.titan_save_profile_state of 20261005190000.
 
 create or replace function public.titan_save_profile_state(p_state jsonb, p_username text default null::text, p_avatar text default null::text, p_inventory jsonb default null::jsonb, p_privacy jsonb default null::jsonb, p_streak_count integer default null::integer, p_last_week_id text default null::text, p_last_seen_news_version text default null::text)
@@ -56,7 +56,7 @@ begin
     raise exception 'PROFILE_UNAVAILABLE' using errcode='42501';
   end if;
   if v_state #>> '{meta,profileVersion}' is not null and (v_state #>> '{meta,profileVersion}')::integer <> v_existing.state_version then
-    raise exception 'PROFILE_VERSION_CONFLICT' using errcode='40001';
+    raise exception 'PROFILE_VERSION_CONFLICT' using errcode='PT409';
   end if;
   select coalesce(jsonb_object_agg(key,value),'{}'::jsonb) into v_preferences
   from jsonb_each(coalesce(v_state->'user','{}'::jsonb)) where key in
