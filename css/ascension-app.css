@@ -2091,7 +2091,7 @@
   background: var(--space);
 }
 .wk-col-l {
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--tx-3);
   text-align: center;
   white-space: nowrap;
@@ -2984,13 +2984,19 @@
   list-style: none;
 }
 .av-more > summary::-webkit-details-marker { display: none; }
+/* In a narrow mission (320 px, or the 300 px column beside the map) the name of the badge goes under the label as one piece. */
+.av-more > summary {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
 .av-more-prize {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   min-width: 0;
+  margin-right: auto;
   font-weight: 800;
-  text-align: right;
+  white-space: nowrap;
 }
 .av-more-prize .t-icon { width: 15px; height: 15px; flex: none; }
 .av-more[open] > summary { margin-bottom: var(--s2); }
@@ -3100,6 +3106,44 @@
   font-stretch: var(--w-title);
   font-size: 18px;
   color: var(--tx);
+}
+/* On a phone the plate in the corner sat on the ninth beacon and the eighth: the name of the world and its count become one
+   line across the foot of the map, under the lowest beacons. */
+@media (max-width: 479px) {
+  .av-map-caption {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s3);
+    padding: var(--s5) var(--s3) 7px;
+    border-radius: 0;
+    background: linear-gradient(180deg, transparent, rgba(9, 12, 16, 0.88) 62%);
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+  .av-map-caption strong {
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .av-map {
+    aspect-ratio: 4 / 3.7;
+  }
+}
+/* At 320 px the name and the count do not share a line: the count goes under the name, the map gains the height of that line. */
+@media (max-width: 359px) {
+  .av-map-caption {
+    display: grid;
+    gap: 0;
+    justify-content: start;
+  }
+  .av-map {
+    aspect-ratio: 4 / 4.2;
+  }
 }
 /* A block of the adventure opens under a rule, on the ground. Only the mission in progress is a slab. */
 .av-panel {
@@ -3314,9 +3358,9 @@
   border-radius: 6px;
   background: var(--bg);
   border: 1px solid var(--line-2);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
-  color: var(--tx-3);
+  color: var(--tx-2);
   text-align: center;
 }
 .av-badge.is-earned {
