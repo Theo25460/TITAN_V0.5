@@ -1,6 +1,6 @@
 {
   "scope": "Proposals by family and target use, with unchanged original Web/Android fallback mappings. Original characters retained; new guardian objects and role tokens are alternatives awaiting review.",
-  "updated_at": "2026-11-14T16:01:46.664Z",
+  "updated_at": "2026-11-17T15:31:25.995892+00:00",
   "proposals": {
     "new_vector_masters": 134,
     "photo_remasters": 15,
@@ -950,6 +950,26 @@
         ],
         "preview": "design/titan-visual-library/global-v2/preview/contact-ranks-final-candidates-20261117.webp",
         "notes": "À examiner dans le produit et sur appareil."
+      },
+      "latest_candidate": {
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/mission-1-20261117/champion.png",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-512.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-96.webp"
+        ],
+        "status": "proposed",
+        "decision": "approval_required",
+        "source_candidate": "design/titan-visual-library/global-v2/proposed/masters/ranks/final-candidates-20261117/champion.png",
+        "technique": "Image generation edit of existing candidate, guided by approved Gardien crest",
+        "sha256": {
+          "design/titan-visual-library/global-v2/proposed/masters/ranks/mission-1-20261117/champion.png": "ee876d45d14535cf7fb6e6c65afda1788a3a4cfc208c4bfb1d73a812b220b4d7",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-512.png": "36e1041b17febb4de959b922df2c7b439b18ec81aa3a395008c3152ed5f632ae",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-512.webp": "65b477d464a65005abc88420dd6a05ca9ace38ffa139557096df576c1052abfb",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-256.webp": "58cbfc7d33d3842422a727c14a35eb04a2a3bc2b3bea8c43de261c513b137011",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/champion-96.webp": "fb5b4626ff4f1d6609ca46954f2a920e2231c3b77a8659982d5ff3c811e70b74"
+        }
       }
     },
     {
@@ -1016,6 +1036,26 @@
         ],
         "preview": "design/titan-visual-library/global-v2/preview/contact-ranks-final-candidates-20261117.webp",
         "notes": "À examiner dans le produit et sur appareil."
+      },
+      "latest_candidate": {
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/mission-1-20261117/titan.png",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-512.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-96.webp"
+        ],
+        "status": "proposed",
+        "decision": "approval_required",
+        "source_candidate": "design/titan-visual-library/global-v2/proposed/masters/ranks/final-candidates-20261117/titan.png",
+        "technique": "Image generation edit of existing candidate, guided by approved Gardien crest",
+        "sha256": {
+          "design/titan-visual-library/global-v2/proposed/masters/ranks/mission-1-20261117/titan.png": "601f2815e352f588e3474d834e32ec73b73a60d983ced6c494e7539e26bf298b",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-512.png": "b0f8b80c5e14ff5c6ac99b5ac2d6692db25ba65c006599e748189b89589ef120",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-512.webp": "ddba7eee7b79671bcffc0858b0b7519283d6daa282a8ac9f40a55a95b65b77d4",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-256.webp": "cf21135dec56bc0e9bb638dfb3041204f79ef450e480666a7ecab9aa42071662",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/titan-96.webp": "b871e0dda32d3642870260353c5b59f2ca2778b9a19d23b449b79cec785d0957"
+        }
       }
     },
     {
@@ -1082,6 +1122,26 @@
         ],
         "preview": "design/titan-visual-library/global-v2/preview/contact-ranks-final-candidates-20261117.webp",
         "notes": "Motif de forteresse proche du grade Gardien ; différenciation à revoir."
+      },
+      "latest_candidate": {
+        "master": "design/titan-visual-library/global-v2/proposed/masters/ranks/mission-1-20261117/legende.png",
+        "derived": [
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-512.png",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-512.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-256.webp",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-96.webp"
+        ],
+        "status": "proposed",
+        "decision": "approval_required",
+        "source_candidate": "design/titan-visual-library/global-v2/proposed/masters/ranks/final-candidates-20261117/legende.png",
+        "technique": "Image generation edit of existing candidate, guided by approved Gardien crest",
+        "sha256": {
+          "design/titan-visual-library/global-v2/proposed/masters/ranks/mission-1-20261117/legende.png": "72ec7d06ad99287731f3d07a9bb526a7cee43da1609fa153b757a6df4ebc5486",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-512.png": "31053e4658d07d430cd092e2a6a5c083299a1df8eb16bf536de2e4394d4e04b4",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-512.webp": "da1e84d3e5818d275c814525a7bbeee7f904ad790001682e4f18ff08081e8cf9",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-256.webp": "aee4c89a98a1aa516d9e704b88b727842b3e421b56f59598d705cfa2cc378595",
+          "design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117/legende-96.webp": "006023b2dacf97cb325f4162d3340ccb08a802931e90b922438aac363599b433"
+        }
       }
     },
     {
