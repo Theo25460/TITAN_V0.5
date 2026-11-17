@@ -27,6 +27,37 @@ d'accomplissement, sans jamais changer **la valeur** de la séance.
 
 Les trois rapportent le **même** maximum d'éclats (test `fairness: the three intents are worth the same`).
 
+### 2 bis. Ce que chaque intention change réellement (Opération Épopée, 19 novembre 2026)
+
+Jusqu'ici l'intention filtrait surtout les missions. Elle change désormais **ce que l'écran montre et ce que le moteur
+mesure**, sans changer la valeur de la séance ni la saisie sportive (`tests/live-intents.test.mjs`).
+
+| | Atteindre | Se dépasser | Explorer |
+|---|---|---|---|
+| Avant | Le plan ou l'objectif est découpé en **étapes** (4 au plus), affichées avant de commencer. | **Un seul seuil**, tiré de la dernière séance réellement comparable, avec sa justification. Sans séance comparable : « TITAN observe », aucun seuil. | Ni objectif ni plan à régler. |
+| Pendant | Les étapes se cochent ; le compagnon annonce chaque étape, une fois. Aucune comparaison. | Force : sous l'exercice saisi, « La dernière fois : 60 kg × 8 » et le seuil du jour (« 60 kg × 9, ou 62,5 kg, en gardant une répétition en réserve »). Endurance : un peu plus longtemps que la médiane récente (+5 %, 10 min au plus), **jamais plus vite**. | **Aucun chiffre** sur la vue aventure. Un carnet de découvertes : une à 8, 20, 35 et 50 min, plus une par nouveauté réelle (lieu, exercice, technique, condition). |
+| Garde-fous | — | Le seuil se compte une fois par exercice, exige de la réserve (RIR ≥ 1), ignore un saut de charge de plus de 10 %, se retire en récupération ou dès que l'effort ressenti atteint 8. Aucun seuil chiffré en collectif, raquettes, combat, escalade, pratiques à risque ou sereines. | Les découvertes sont du texte : aucune valeur, aucune rareté, aucune récompense. |
+| Après | « Plan tenu jusqu'au bout » ou « 2 étapes sur 4 franchies. Ce qui est fait reste fait. » | « Seuil franchi, avec de la réserve » ou « mis de côté quand il le fallait ». | Un récit sans un seul chiffre. |
+
+- **Référence comparable** (`js/core/live-prepare.js`, partagé) : seulement les séances comptées par le serveur et
+  plausibles (`TitanTraining.counted` / `plausible`), même discipline, dix dernières ; en force, la meilleure série de la
+  **dernière** séance où l'exercice a été fait (jamais de 1RM estimé). La ligne « La dernière fois » est un fait sportif :
+  elle s'affiche aussi en Atteindre, sans seuil.
+- **Moments calmes** : entre deux efforts (repos de série, changement de côté, pause, repos de cloche), une ligne de la
+  Voie s'affiche, à l'écran seulement : jamais de voix, jamais de notification, rien à toucher, rien en mode Silencieux
+  ni pendant le jeu d'un sport en concentration totale. C'est là que l'aventure avance pendant que le corps récupère.
+- **Récit de fin** (`TitanLiveEngine.recap`) : construit depuis ce qui s'est réellement passé (étapes, seuil,
+  découvertes, événements, repos tenus, missions). C'est la seule chose qu'une séance silencieuse montre.
+- **Voies sereines** (Sanctuaire : yoga, pilates, étirements, taï-chi, qi gong…) : immersion Silencieux par défaut,
+  aucune référence, aucun Écho, aucun seuil.
+- **Contrats sportifs** : les missions de rapport et les champs d'après-séance passent par
+  `TitanSportContracts` ; 48 missions qui visaient une statistique qu'aucun formulaire ne demande plus ont disparu
+  (gêne avant/après du yoga, dénivelé du patinage artistique, ateliers du triathlon). « Les relances » n'est plus
+  proposée sur route (gravel) : elle était réservée au home trainer mais le filtre ne s'appliquait pas.
+- **La boucle** : avant la séance, « Ce que cette séance fait avancer » (`TitanLiveWorld.stake`) ; au Camp, « Ce qui
+  vient » (`TitanLiveWorld.horizon`) : le bâtiment le plus proche, la prochaine terre, le prochain chapitre. Formulé au
+  conditionnel tant que le serveur n'a pas confirmé ; rien n'expire.
+
 ## 3. Le moteur commun
 
 Un seul automate, pur et rejouable (`js/core/live-engine.js`), partagé à l'octet près par le Web et Android :
