@@ -1094,43 +1094,116 @@
   gap: var(--s4);
 }
 .moment > * { min-width: 0; }
-.moment-metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-  gap: var(--s3) var(--s4);
+/* The end of a session: the sheet opens on a flat field of the Séance lime (amber when a record fell), with the figure that says
+   the session set large in the ink of the field. What it changed follows on the ground, under hairlines: no box inside the sheet. */
+.moment-sheet .asc-sheet-body {
+  padding-top: 0;
+}
+.moment-sheet .asc-sheet-head {
+  margin: 0 calc(-1 * var(--s5));
+  padding: var(--s5) var(--s5) var(--s2);
+  background: var(--space);
+  color: var(--space-ink);
+}
+.moment-sheet[data-record] {
+  --space: var(--am);
+  --space-ink: var(--am-ink);
+}
+.moment-sheet .asc-sheet-head :where(h2, .asc-eyebrow) {
+  color: var(--space-ink);
+}
+.moment-sheet .asc-sheet-head .asc-btn-ghost {
+  color: var(--space-ink);
+}
+.moment-sheet .asc-sheet-head .asc-btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+.moment-sheet .asc-sheet-head :focus-visible,
+.moment-field :focus-visible {
+  outline-color: var(--space-ink);
+}
+.moment-field {
+  margin: 0 calc(-1 * var(--s5));
+  padding: 0 var(--s5) var(--s5);
+  background: var(--space);
+  color: var(--space-ink);
+}
+.moment-field ::selection {
+  background: var(--space-ink);
+  color: var(--space);
+}
+.moment-label {
   margin: 0;
+  font-family: var(--font);
+  font-stretch: 100%;
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--tx-2);
+}
+.moment-label.am {
+  color: var(--am);
+}
+.moment-field .moment-label {
+  color: var(--space-ink);
+  opacity: 0.84;
+}
+.moment-lead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 var(--s3);
+  margin: 2px 0 0;
+}
+.moment-lead .asc-num {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-weight: 300;
+  font-size: clamp(64px, 21vw, 104px);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.moment-lead small {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 0.84;
+}
+.moment-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3) var(--s6);
+  margin: var(--s4) 0 0;
+  padding-top: var(--s3);
+  border-top: 1.5px solid rgba(0, 0, 0, 0.22);
+}
+.moment-metrics:not(:has(> div:not(.sr-only))) {
+  display: none;
+}
+.moment-metrics > div {
+  display: flex;
+  flex-direction: column-reverse;
 }
 .moment-metrics dt {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
-  color: var(--tx-3);
+  opacity: 0.84;
 }
 .moment-metrics dd {
-  margin: 2px 0 0;
+  margin: 0;
   font-family: var(--font-display);
   font-stretch: var(--w-figure); font-variant-numeric: tabular-nums;
   font-weight: 700;
   font-size: 24px;
-  color: var(--tx);
+  line-height: 1.1;
 }
+/* What the server said about the reward when there is no confirmed gain to draw: a sentence under a hairline. */
 .moment-reward {
   display: grid;
   gap: 4px;
-  padding: var(--s4);
-  border-radius: var(--r3);
-  border: 1px solid var(--cy-line);
-  background: var(--cy-soft);
-}
-.moment-reward[data-state="pending"],
-.moment-reward[data-state="local"] {
-  border-style: dashed;
-  background: var(--bg-2);
-  border-color: var(--line-2);
-}
-.moment-reward[data-state="history"],
-.moment-reward[data-state="capped"] {
-  border-color: var(--line-2);
-  background: var(--bg-2);
 }
 .moment-xp {
   font-family: var(--font-display);
@@ -1143,9 +1216,11 @@
 .moment-reward[data-state="pending"] .moment-xp,
 .moment-reward[data-state="local"] .moment-xp,
 .moment-reward[data-state="history"] .moment-xp {
-  color: var(--tx-2);  /* A sentence, not a figure: it reads as a status and does not shout. */
-  font-size: 26px;
-  line-height: 1.1;
+  color: var(--tx);  /* A sentence, not a figure: it reads as a status and does not shout. */
+  font-stretch: var(--w-title);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.15;
 }
 .moment-reward .asc-small {
   color: var(--tx-2);
@@ -1161,15 +1236,15 @@
 .moment-block {
   display: grid;
   gap: var(--s2);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line-2);
+}
+.moment-field + .moment-block {
+  padding-top: 0;
+  border-top: 0;
 }
 .moment-notches .asc-notch {
   height: 12px;
-}
-.moment-records {
-  padding: var(--s4);
-  border-radius: var(--r3);
-  border: 1px solid var(--am-line);
-  background: var(--am-soft);
 }
 .moment-record {
   display: grid;
@@ -1180,7 +1255,8 @@
 .moment-record strong {
   font-family: var(--font-display);
   font-stretch: var(--w-figure); font-variant-numeric: tabular-nums; font-weight: 700;
-  font-size: 24px;
+  font-size: 30px;
+  line-height: 1;
   color: var(--am);
 }
 .moment-record .asc-small {
@@ -1188,6 +1264,9 @@
 }
 .moment-record-label {
   font-weight: 700;
+}
+.moment-adventure {
+  border-top: 1px solid var(--line-2);
 }
 .moment-actions {
   display: grid;
@@ -1302,6 +1381,25 @@
 @media (min-width: 640px) and (max-width: 1279px) {
   .jr-summary {
     --jr-fig: 48px;
+  }
+}
+/* On a phone the journal is its list: the four totals share one line of row figures, so the first sessions are on the first
+   screen instead of under two rows of display figures. */
+@media (max-width: 639px) {
+  .jr-summary {
+    --jr-fig: clamp(23px, 7.2vw, 30px);
+    grid-template-columns: repeat(4, auto);
+    justify-content: space-between;
+    gap: var(--s2) var(--s3);
+    margin-bottom: var(--s5);
+    padding-top: var(--s3);
+  }
+  .jr-summary dd {
+    font-weight: 700;
+    line-height: 1;
+  }
+  .jr-summary dt {
+    font-size: 12.5px;
   }
 }
 .jr-month + .jr-month {
@@ -4737,36 +4835,33 @@
 .qg-crest { flex: none; display: block; }
 .qg-crest .crest { width: 48px; height: auto; }
 .qg-rank-reward { display: flex; flex: none; align-items: center; margin-left: auto; }
-.moment-hero { display: grid; place-items: center; padding: var(--s4) 0 var(--s3); }
-.moment-ring { position: relative; width: 132px; height: 132px; }
-/* Confirmed gain: the ring carries the figure, the text beside it says what the server confirmed (the figure is not repeated). */
-.moment-gain.has-ring { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--s4); padding: var(--s3) var(--s4); border: 1px solid var(--cy-line); border-radius: var(--r3); background: var(--cy-soft); }
-.moment-gain.has-ring .moment-hero { padding: 0; }
-.moment-gain.has-ring .moment-reward { padding: 0; border: 0; background: none; }
-.moment-next { margin: calc(var(--s2) * -1) 0 0; color: var(--tx-2); font-size: 14px; line-height: 1.5; }
-@media (max-width: 359px) { .moment-ring { width: 104px; height: 104px; } .moment-ring-xp { font-size: 1.6rem !important; font-stretch: var(--w-figure); font-variant-numeric: tabular-nums; font-weight: 700; } }
-.moment-ring > svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.mr-track { fill: none; stroke: var(--bg-4); stroke-width: 9; }
-.mr-fill { fill: none; stroke: var(--cy); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s, stroke 0.3s; }
-.moment-hero[data-level-up="1"].struck .mr-fill { stroke: var(--accent, var(--am)); }
-.moment-ring-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; transition: opacity 0.25s; }
-.moment-ring-xp { font-family: var(--font-display); font-stretch: var(--w-figure); font-weight: 700; font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.moment-ring-center small { color: var(--cy); font-weight: 800; }
-.moment-hero[data-level-up="1"].struck .moment-ring-center { opacity: 0; }
-.moment-crest { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; transform: scale(0.3) rotate(-12deg); }
-.moment-hero[data-level-up="1"].struck .moment-crest { animation: crestStrike 0.5s var(--ease) forwards; }
+/* Confirmed gain: the figure counts up while the level bar moves from where it stood (the quieter tone) to where it stands. The
+   same bar as the rank line of the QG; the text beside says what the server confirmed (the figure is not repeated). Class names
+   keep their first words (« ring ») for the journeys that read them. */
+.moment-hero { display: block; }
+.moment-ring { position: relative; display: grid; gap: var(--s2); min-width: 0; }
+.moment-gain.has-ring { display: grid; gap: var(--s2); }
+.moment-climb-figure { display: flex; align-items: baseline; gap: 6px; margin: 0; color: var(--cy); }
+.moment-ring-xp { font-family: var(--font-display); font-stretch: var(--w-figure); font-weight: 300; font-size: clamp(56px, 17vw, 72px); line-height: 0.9; font-variant-numeric: tabular-nums; }
+.moment-climb-figure small { font-family: var(--font-display); font-stretch: var(--w-figure); font-size: 22px; font-weight: 700; }
+.moment-climb-bar { position: relative; height: 6px; border-radius: 3px; background: var(--bg-4); overflow: hidden; }
+.moment-climb-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+.mc-before { background: rgba(61, 217, 232, 0.34); }
+.mc-fill { background: var(--cy); transition: width 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s; }
+.moment-hero[data-level-up="1"].struck .mc-fill { background: var(--accent, var(--am)); }
+.moment-climb-legend { display: flex; justify-content: space-between; gap: var(--s3); margin: 0; font-size: 12.5px; font-weight: 600; color: var(--tx-3); font-variant-numeric: tabular-nums; }
+.moment-climb-legend span:first-child { color: var(--tx-2); font-weight: 700; }
+.moment-hero[data-level-up="1"] .moment-ring { grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--s4); align-items: center; }
+.moment-hero[data-level-up="1"] .moment-ring > :not(.moment-crest) { grid-column: 1; }
+.moment-crest { grid-column: 2; grid-row: 1 / span 3; width: 88px; opacity: 0; transform: translateY(8px) scale(0.92); }
+.moment-crest .crest, .moment-crest img, .moment-crest svg { width: 100%; height: auto; display: block; }
+.moment-hero[data-level-up="1"].struck .moment-crest { animation: crestStrike 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .moment-hero[data-level-up="1"][data-play="0"] .moment-crest { opacity: 1; transform: none; animation: none; }
-.moment-ring::after { content: ""; position: absolute; inset: 8px; border-radius: 50%; border: 3px solid var(--accent, var(--am)); opacity: 0; pointer-events: none; }
-.moment-hero[data-level-up="1"].struck[data-play="1"] .moment-ring::after { animation: crestShock 0.9s ease-out; }
-.moment-embers { position: absolute; inset: 0; pointer-events: none; }
-.ember { position: absolute; left: 50%; top: 50%; width: var(--s); height: var(--s); border-radius: 50%; background: var(--c); opacity: 0; animation: ember var(--d) var(--dl) ease-out forwards; }
-@keyframes crestStrike { to { opacity: 1; transform: scale(1) rotate(0); } }
-@keyframes crestShock { 0% { opacity: 0.9; transform: scale(0.7); } 100% { opacity: 0; transform: scale(2.1); } }
-@keyframes ember { 0% { opacity: 0; transform: translate(0, 0) scale(1); } 12% { opacity: 1; } 70% { opacity: 0.7; } 100% { opacity: 0; transform: translate(var(--dx), var(--ry)) scale(0.3); } }
+.moment-next { margin: calc(var(--s2) * -1) 0 0; color: var(--tx-2); font-size: 14.5px; line-height: 1.5; }
+@keyframes crestStrike { to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .mr-fill, .moment-ring-center { transition: none; }
+  .mc-fill { transition: none; }
   .moment-crest { opacity: 1; transform: none; animation: none !important; }
-  .ember, .moment-ring::after { display: none; }
 }
 
 /* ---------- Thumb-size targets (EQ-016) ----------
