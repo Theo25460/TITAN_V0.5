@@ -1637,9 +1637,19 @@
   line-height: 1;
   white-space: nowrap;
 }
+/* The three large figures of the week keep their size and wrap as whole figures: « 27,1 km » beside « 2 h 24 » does not fit a
+   third of a 320 px screen, and a figure is never cut or pushed off the page. */
+.wk-hero .wk-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s4) var(--s6);
+}
+.wk-hero .wk-stats > div {
+  flex: 0 0 auto;
+}
 .wk-hero .wk-stats dd {
   font-weight: 300;
-  font-size: clamp(48px, 13vw, 76px);
+  font-size: clamp(44px, 13vw, 76px);
   line-height: 0.92;
 }
 .wk-stats dd small {
@@ -3277,8 +3287,14 @@
     grid-template-columns: 1.2fr 1fr;
   }
 }
+.pf-collection,
+.pf-collection > * {
+  min-width: 0;
+}
 .pf-col-block {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: var(--s3);
   align-content: start;
   padding: var(--s4);

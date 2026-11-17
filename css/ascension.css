@@ -773,6 +773,12 @@ body.asc {
     font-size: 38px;
   }
 }
+/* Three figures on a narrow phone: a figure with a unit (« 27,1 km », « 34 h ») keeps inside its third of the field. */
+@media (max-width: 379px) {
+  .asc-field-figures dd {
+    font-size: clamp(26px, 9.2vw, 34px);
+  }
+}
 /* The top row of a phone takes the ink of what it sits on: light on the ground or on a painting, the field's ink on a field.
    Knowing that the page opens on a field needs :has(). The default is therefore the safe one — light ink on a band of the ground,
    whatever is under it — and the row only sits on the field, in the field's ink, in a browser that can tell (see .asc-topbar). */
