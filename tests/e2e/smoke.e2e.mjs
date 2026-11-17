@@ -6349,7 +6349,7 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
     .map(async ([path, marker]) => [path, marker, await (await fetch(BASE + path)).text(), (deployedRefs[marker] || []).filter(url => url.split("?")[0] === path)]));
   await page.evaluate(async (staleScripts) => {
     const cache = await caches.open("titan-os-v300-ascension");
-    await cache.put("/css/ascension-app.css?v=302.0", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
+    await cache.put("/css/ascension-app.css?v=302.1", new Response(".rc-sport { display: block; }", { headers: { "content-type": "text/css" } }));
     await cache.put("/service", new Response('<!doctype html><html lang="fr"><body><h1>Ancienne aide en cache</h1></body></html>', { headers: { "content-type": "text/html" } }));
     for (const version of ['300.0','300.1','300.2','300.3']) {
       await cache.put(`/js/app/analytics.js?v=${version}`, new Response('window.TitanAnalytics = {EVENTS: new Set(["first_session"]), track: async () => false};', { headers: { "content-type": "text/javascript" } }));
