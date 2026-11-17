@@ -16,12 +16,29 @@ begin
     perform set_config('titan.fl_' || k, v::text, true);
   end loop;
   update public.profiles set is_suspended = true where id = current_setting('titan.fl_s')::uuid;
+  insert into private.titan_feature_flags(key, enabled, rollout, description) values ('screens.friendlinks', false, 100, 'QA')
+    on conflict (key) do update set enabled = false, rollout = 100;
   assert not has_table_privilege('authenticated', 'private.titan_friend_invites', 'select'), 'no API grant on the invitation table';
   assert not has_function_privilege('anon', 'public.titan_friend_link_accept_v1(text)', 'execute')
      and not has_function_privilege('anon', 'public.titan_friend_link_create_v1()', 'execute')
      and has_function_privilege('anon', 'public.titan_friend_link_preview_v1(text)', 'execute'), 'anonymous visitors only preview';
 end $$;
 
+set local role authenticated;
+do $$
+declare
+  a uuid := current_setting('titan.fl_a')::uuid; b uuid := current_setting('titan.fl_b')::uuid;
+  c uuid := current_setting('titan.fl_c')::uuid; d uuid := current_setting('titan.fl_d')::uuid; s uuid := current_setting('titan.fl_s')::uuid;
+  r jsonb; t1 text; t2 text; t3 text; id2 uuid; ok boolean; i integer; xp0 integer; cr0 integer;
+begin
+  -- With the flag closed, nobody creates a link.
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  ok := false; begin perform public.titan_friend_link_create_v1(); exception when others then ok := sqlerrm = 'FEATURE_DISABLED'; end;
+  assert ok, 'closed flag: no link';
+  perform set_config('titan.fl_flag', 'open', true);
+end $$;
+reset role;
+update private.titan_feature_flags set enabled = true where key = 'screens.friendlinks';
 set local role authenticated;
 do $$
 declare

@@ -13,9 +13,10 @@
 --   4. A player could block but never see whom they blocked, nor unblock without writing to support: titan_blocks_v1 lists one's own blocks
 --      (titan_unblock_user already existed and stays the only way to lift one; unblocking never restores the friendship).
 --   5. The export of the account gains the links one created (dates and state, never a token).
+-- Creating a link opens with the server flag screens.friendlinks (absent = closed), checked by the server (private.titan_flag_on).
 -- Nothing here grants XP, credits or anything bought. Additive: signatures, return shapes and grants of existing functions are kept.
 -- The caller owns the transaction: never BEGIN/COMMIT here.
--- Rollback: drop the five titan_friend_link_* functions, public.titan_blocks_v1(), private.titan_social_export_v1(uuid) and table
+-- Rollback: drop the five titan_friend_link_* functions, public.titan_blocks_v1(), private.titan_social_export_v1(uuid), private.titan_flag_on(text) and table
 -- private.titan_friend_invites; re-apply titan_social_rate_limit from the baseline, titan_guard_friendship_insert from 20261005200000,
 -- titan_guard_friendship_delete, titan_social_request and titan_social_overview from 20261114160000, titan_social_respond from 20261005200000,
 -- and export_own_data from 20261117170000.
@@ -251,6 +252,16 @@ set search_path = ''
 as $$ select p_i.id is not null and p_i.revoked_at is null and p_i.used_at is null and p_i.expires_at > now() $$;
 revoke all on function private.titan_friend_invite_live(private.titan_friend_invites) from public, anon, authenticated;
 
+-- New social features open with a server flag (absent = closed), checked here and not only by the clients.
+create or replace function private.titan_flag_on(p_key text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$ select coalesce((public.titan_feature_flags_v1() -> 'flags' ->> p_key)::boolean, false) $$;
+revoke all on function private.titan_flag_on(text) from public, anon, authenticated;
+
 create or replace function public.titan_friend_link_create_v1()
 returns jsonb
 language plpgsql
@@ -265,6 +276,8 @@ declare
 begin
   if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
   if exists (select 1 from public.profiles p where p.id = v_uid and coalesce(p.is_suspended, false)) then raise exception 'ACCOUNT_SUSPENDED' using errcode = '42501'; end if;
+  -- Creating links opens with the flag screens.friendlinks; a link already given keeps working if the flag closes again.
+  if not private.titan_flag_on('screens.friendlinks') then raise exception 'FEATURE_DISABLED' using errcode = '42501'; end if;
   if (select count(*) from private.titan_friend_invites i where i.created_by = v_uid and i.revoked_at is null and i.used_at is null and i.expires_at > now()) >= 5 then
     raise exception 'LINK_LIMIT_5' using errcode = '22023';
   end if;

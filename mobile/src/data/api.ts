@@ -272,6 +272,12 @@ export const challengeOpenCreate = (p: { title: string; metric: Challenge["metri
   rpc<{ id: string; token: string; expiresAt: string }>("titan_challenge_open_create_v1", { p_title: p.title, p_metric: p.metric, p_sport: p.sport, p_target: p.target, p_days: p.days });
 export const challengeLinkCreate = (id: string) => rpc<{ id: string; token: string; expiresAt: string }>("titan_challenge_link_create_v1", { p_challenge: id });
 export const challengeRespond = (id: string, action: "join" | "decline" | "leave") => rpc("titan_challenge_respond", { p_id: id, p_action: action });
+/* Social lot C: La Grande Cordée (a cooperative mode of the friends' challenge). The server counts longueurs, summit and title. */
+export type CordeeList = { cordees: import("../core/cordee").CordeeState[]; titles: string[] };
+export const fetchCordees = (owner: string) => ownerRpc<CordeeList>(owner, "titan_cordees_v1", {});
+export const cordeeCreate = (owner: string, p: { route: string; pace: string; days: number; invitees: string[] }) =>
+  ownerRpc<{ id: string; invited: number }>(owner, "titan_cordee_create_v1", { p_route: p.route, p_pace: p.pace, p_days: p.days, p_invitees: p.invitees });
+export const wearTitle = (owner: string, key: string | null) => ownerRpc<{ key: string | null; label: string | null }>(owner, "titan_set_displayed_title", { p_key: key });
 export const expeditionJoin = (id: string) => rpc("titan_expedition_join", { p_id: id });
 type DuoFriend = { id: string; name: string };
 type DuoPair = { id: string; role: "inviter" | "invitee"; partner: DuoFriend };

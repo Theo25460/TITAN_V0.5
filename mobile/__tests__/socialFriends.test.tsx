@@ -28,7 +28,7 @@ const TOKEN = "ab".repeat(32);
 
 function answers(map: Record<string, unknown>) {
   mockRpc.mockImplementation((name: string, params: unknown) => {
-    const value = typeof map[name] === "function" ? (map[name] as (p: unknown) => unknown)(params) : map[name] ?? (name === "titan_feature_flags_v1" ? { flags: {} } : null);
+    const value = typeof map[name] === "function" ? (map[name] as (p: unknown) => unknown)(params) : map[name] ?? (name === "titan_feature_flags_v1" ? { flags: { "screens.friendlinks": true } } : null);
     const result = value instanceof Error ? { data: null, error: value } : { data: value, error: null };
     return { setHeader: () => Promise.resolve(result), then: (yes: (v: unknown) => unknown) => Promise.resolve(result).then(yes) };
   });

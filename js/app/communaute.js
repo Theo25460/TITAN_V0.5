@@ -39,6 +39,8 @@
   let invitation = null;
   const inviteNext = () => (INVITE.ami || INVITE.guilde || INVITE.invitation ? `next=${encodeURIComponent(location.pathname + location.search)}` : "");
   const friendLink = (code) => `${location.origin}/social?ami=${encodeURIComponent(code)}`;
+  /* Creating personal links opens with the server flag screens.friendlinks (an opened link is always readable). */
+  const linksOn = () => window.titanFlags?.enabled?.("screens.friendlinks", false) === true;
   const personalLink = (token) => `${location.origin}/social?invitation=${encodeURIComponent(token)}`;
 
   let root = null;
@@ -305,10 +307,10 @@
       <p class="cm-section-intro">Un lien personnel ou vos codes. Chacun choisit ce qu’il partage.</p>
       ${invitationHtml()}
       ${requestsHtml()}
-      <div class="cm-code cm-invite-link"><div><p class="asc-small asc-muted">Inviter un ami</p><p class="asc-small">Un lien pour une seule personne, valable 7 jours. Ton profil reste privé : seule la personne qui l’ouvre te voit et choisit d’accepter.</p></div>
-        <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-friend-link>${icon("share")} Créer un lien</button></div>
+      ${linksOn() ? `<div class="cm-code cm-invite-link"><div><p class="asc-small asc-muted">Inviter un ami</p><p class="asc-small">Un lien pour une seule personne, valable 7 jours. Ton profil reste privé : seule la personne qui l’ouvre te voit et choisit d’accepter.</p></div>
+        <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-friend-link>${icon("share")} Créer un lien</button></div>` : ""}
       <div class="cm-code"><div><p class="asc-small asc-muted">Ton code ami</p><p class="cm-code-value asc-num">${esc(me.friend_code || "—")}</p>
-        <p class="asc-small ${me.findable ? "asc-muted" : "cm-warn"}">${me.findable ? "Trouvable : on peut te demander en ami avec ce code." : `Ton code ne sert que si tu es trouvable (<a href="/profile#reglages">Confidentialité</a>). Le lien personnel, lui, marche toujours.`}</p></div>
+        <p class="asc-small ${me.findable ? "asc-muted" : "cm-warn"}">${me.findable ? "Trouvable : on peut te demander en ami avec ce code." : `Ton code ne sert que si tu es trouvable (<a href="/profile#reglages">Confidentialité</a>).${linksOn() ? " Le lien personnel, lui, marche toujours." : ""}`}</p></div>
         <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-copy-code="${esc(me.friend_code || "")}">${icon("copy")} Copier</button></div>
       <form class="cm-add" data-add-friend><label class="sr-only" for="cm-code">Code ami</label><input id="cm-code" class="asc-input" name="code" placeholder="Code d’un ami : TN-AB12" autocapitalize="characters" autocomplete="off" maxlength="12"><button type="submit" class="asc-btn asc-btn-primary">${icon("userPlus")} Demander</button></form>
       ${out.length ? `<div class="asc-list cm-requests-out" aria-label="Demandes envoyées">${out.map((r) => `<div class="asc-row"><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">Demande envoyée${r.expires_at ? ` · expire ${esc(F().relativeDay(r.expires_at))}` : ""}</span></span>

@@ -29,6 +29,8 @@ import { useOnline } from "../../lib/network";
 import { colors, space, TOUCH } from "../../theme/tokens";
 import { DuoCard, duoKey } from "./DuoCard";
 import { BlockedAccounts, FriendLinkCard, InvitationCard } from "./FriendLinks";
+import { CordeePanel } from "./CordeePanel";
+import { useServerFlag } from "../../data/flags";
 import { ClubsPanel, RankingPanel } from "../../components/CommunityPanels";
 import { CHALLENGE_TEMPLATES, readAutoShare, writeAutoShare } from "../../lib/community";
 
@@ -52,6 +54,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
   const [newChallenge, setNewChallenge] = useState(false);
   const [autoShare, setAutoShare] = useState(false);
   const [invitation, setInvitation] = useState<string | null>(invite.invitation);
+  const linksOn = useServerFlag("screens.friendlinks");
   useEffect(() => {
     readAutoShare(owner).then(setAutoShare).catch(() => {});
   }, [owner]);
@@ -137,7 +140,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
             </Card>
             <Card style={{ gap: space.s3 }}>
               <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
-              <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : "Ton code ne sert que si ton profil est trouvable. Le lien personnel ci-dessous marche toujours."}</T>
+              <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : `Ton code ne sert que si ton profil est trouvable.${linksOn ? " Le lien personnel ci-dessous marche toujours." : ""}`}</T>
               <T variant="caption" tone="muted">Tes Moments ne sont vus que par les amis que tu as acceptés. Tes réglages : Profil, puis Confidentialité.</T>
               <Button small kind="secondary" icon="share" label="Partager mon code" testID="share-friend-code" onPress={() => shareFriendCode(s.me)} />
             </Card>
@@ -176,7 +179,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
                 ))}
               </Section>
             ) : null}
-            <FriendLinkCard owner={owner} online={online} />
+            {linksOn ? <FriendLinkCard owner={owner} online={online} /> : null}
             {s.requests_out.length ? (
               <Section title="Demandes envoyées">
                 {s.requests_out.map((r) => (
@@ -258,6 +261,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
           )
         ) : tab === "challenges" ? (
           <>
+            <CordeePanel owner={owner} online={online} friends={s.friends.map((f) => ({ id: f.id, name: f.name }))} />
             <Button label="Lancer un défi" icon="flag" onPress={() => setNewChallenge(true)} testID="new-challenge" />
             <RankingPanel />
             {!s.friends.length ? <T variant="caption" tone="faint">Ajoute un ami pour lancer un défi.</T> : null}

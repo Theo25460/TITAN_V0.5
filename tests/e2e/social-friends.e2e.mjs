@@ -45,6 +45,8 @@ async function page_({ query = "", preview = { valid: true, own: false, friends:
       if (name === "titan_unblock_user") { window.blocks = window.blocks.filter(b => b.id !== args.p_blocked_id); out = { data: true, error: null }; }
       const result = Promise.resolve(out); result.setHeader = () => result; return result;
     };
+    const flags = { enabled: (key, fallback) => key === "screens.friendlinks" ? true : fallback, refresh: async () => {} };
+    Object.defineProperty(window, "titanFlags", { configurable: true, get: () => flags, set: () => {} });
     let pinned = window.state.user; pinned.id = owner;
     Object.defineProperty(window.state, "user", { configurable: true, get: () => pinned, set: (next) => { pinned = Object.assign(next || {}, { id: owner }); } });
   }, { owner: OWNER, preview, blocks });
