@@ -82,6 +82,16 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v17 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // Incident of 18 November 2026 (play-notifications answered 503 to every Google push while billing was off, ~40 000 calls a day):
+  // a private inbox keeps each notification so the function can acknowledge it and play-reconcile processes it once billing is on.
+  // Additive, service role only, rehearsed on a replica (sql/tests/300_play_notification_inbox.sql).
+  v20: {
+    out: "supabase/release-v20", after: "20261121130000", until: "20261122090000",
+    before: { private: [119, "43c6cececcca", "6266862d9620"], public: [321, "32c8b51edcd3", "3992427182c7"] },
+    expected: { private: [119, "43c6cececcca", "6266862d9620"], public: [324, "39442f678587", "4a49c3fa2d15"] },
+    beforeNote: "This is the state production reaches at the end of the v18 bundle (v19, the coach-places decision of PR #155, is not part of this chain).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

@@ -1,7 +1,10 @@
 // Hourly safety net for Google Play subscriptions: a lost real-time notification must not leave an ended subscription
 // with Premium access. Re-reads, from Google, the few subscriptions the database names as due and records the answer.
-// Disabled unless PLAY_BILLING_ENABLED=true. Never trusts anything but Google's answer; never grants access to a new token.
+// Second job (incident of 18 November 2026): processes the real-time notifications kept in the private inbox while billing was off or while a
+// try failed (titan_play_notifications_due_v1 schedules each retry with a bounded back-off). A new token is only granted to the account Google binds.
+// Disabled unless PLAY_BILLING_ENABLED=true. Never trusts anything but Google's answer.
 import { acknowledgePlaySubscription, allowsPlayTestPurchases, googleAccessToken, interpretSubscription, network, playEntitlementPayload } from './play-billing.mjs';
+import { lazyGoogleHeaders, playNotificationConfig, processPlayNotification } from './play-notifications.mjs';
 
 const PUBLISHER = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications';
 const env = name => String(globalThis.Netlify?.env?.get(name) || '');
@@ -27,10 +30,32 @@ export default async function handler(_request, { budgetMs = 20_000, now = () =>
     const rpc = (name, payload) => network(`${url}/rest/v1/rpc/${name}`, { method: 'POST', headers: databaseHeaders, body: JSON.stringify(payload) });
     const started = now();
     let checked = 0, updated = 0, failed = 0;
+    // Kept notifications first (half the budget at most): a purchase waiting there is a player who already paid.
+    async function processInbox(begin) {
+        const config = playNotificationConfig();
+        const rows = await rpc('titan_play_notifications_due_v1', { p_limit: 25 });
+        // Inbox missing (migration not applied yet) or unreachable: the entitlement sweep below still runs.
+        if (!rows.ok || !Array.isArray(rows.data) || rows.data.length === 0) return {};
+        const counts = { notifications: 0, notificationsFailed: 0 };
+        const headers = lazyGoogleHeaders(account);
+        for (const row of rows.data) {
+            if (now() - begin > budgetMs / 2) break; // claimed rows not reached are retried after their scheduled back-off
+            counts.notifications++;
+            let result;
+            try {
+                result = await processPlayNotification({ purchaseToken: row.purchase_token, kind: row.kind, notificationType: row.notification_type }, config, headers);
+            } catch (_) { result = { outcome: 'exception', final: false }; }
+            if (!result.final) counts.notificationsFailed++;
+            try { await rpc('titan_finish_play_notification_v1', { p_message_id: row.message_id, p_outcome: result.outcome, p_final: result.final }); }
+            catch (_) { counts.notificationsFailed++; }
+        }
+        return counts;
+    }
     try {
         const due = await rpc('titan_play_entitlements_due_v1', { p_limit: 50 });
         if (!due.ok || !Array.isArray(due.data)) return summary(503);
-        if (due.data.length === 0) return summary(200);
+        const inbox = await processInbox(started);
+        if (due.data.length === 0) return summary(200, inbox);
         const accessToken = await googleAccessToken(account);
         const googleHeaders = { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' };
         for (const row of due.data) {
@@ -63,6 +88,6 @@ export default async function handler(_request, { budgetMs = 20_000, now = () =>
                 updated++;
             } catch (_) { failed++; }
         }
-        return summary(200, { checked, updated, failed });
+        return summary(200, { checked, updated, failed, ...inbox });
     } catch (_) { return summary(503, { checked, updated, failed }); }
 }

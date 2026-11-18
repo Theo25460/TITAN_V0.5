@@ -1,0 +1,133 @@
+-- Incident of 18 November 2026 (play-notifications): Google Play real-time developer notifications are pushed by Pub/Sub, which re-sends every
+-- message that is not answered with a 2xx. With PLAY_BILLING_ENABLED absent on Netlify, the function answered 503 to every push, so each
+-- notification (including the one for the TITAN+ purchase of build 1301) was re-sent for days: about 40 000 failed calls a day.
+-- This inbox lets the function KEEP each notification (purchase token + type only: the content is never trusted, Google is re-read before any
+-- decision) and acknowledge it. The hourly play-reconcile job processes the kept rows once billing is enabled, with its own bounded back-off, so a
+-- legitimate purchase is not lost and Google stops re-sending. Duplicate deliveries of one Pub/Sub message are recognised by its messageId.
+-- Service role only: RLS on, no policy, no grant to anon/authenticated. Additive. The caller owns the transaction: never BEGIN/COMMIT here.
+-- Rollback: drop function public.titan_finish_play_notification_v1(text, text, boolean);
+--           drop function public.titan_play_notifications_due_v1(integer);
+--           drop function public.titan_record_play_notification_v1(text, text, text, integer, boolean);
+--           drop table private.titan_play_notification_inbox;
+
+create table if not exists private.titan_play_notification_inbox (
+  message_id text primary key check (char_length(message_id) between 1 and 200),
+  purchase_token text not null check (purchase_token ~ '^[A-Za-z0-9._~-]{16,2048}$'),
+  kind text not null check (kind in ('subscription', 'voided')),
+  notification_type integer check (notification_type between 0 and 100),
+  authenticated boolean not null default false,
+  received_at timestamptz not null default now(),
+  deliveries integer not null default 1 check (deliveries >= 1),
+  last_delivery_at timestamptz not null default now(),
+  attempts integer not null default 0 check (attempts >= 0),
+  next_attempt_at timestamptz not null default now(),
+  processed_at timestamptz,
+  outcome text check (outcome is null or char_length(outcome) <= 60)
+);
+
+alter table private.titan_play_notification_inbox enable row level security;
+revoke all on table private.titan_play_notification_inbox from public, anon, authenticated;
+grant select, insert, update, delete on table private.titan_play_notification_inbox to service_role;
+
+create index if not exists titan_play_notification_inbox_due_idx
+  on private.titan_play_notification_inbox (next_attempt_at)
+  where processed_at is null;
+create index if not exists titan_play_notification_inbox_token_idx
+  on private.titan_play_notification_inbox (purchase_token);
+
+-- Keeps one delivery. Returns 'new', 'duplicate' (already kept, not processed yet), 'done' (already processed) or 'full'.
+-- 'full' bounds what an unauthenticated sender could store: at most 5 000 pending unauthenticated rows.
+create or replace function public.titan_record_play_notification_v1(
+  p_message_id text, p_purchase_token text, p_kind text, p_notification_type integer, p_authenticated boolean)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_processed timestamptz;
+begin
+  if p_message_id is null or char_length(p_message_id) not between 1 and 200
+     or p_purchase_token is null or p_purchase_token !~ '^[A-Za-z0-9._~-]{16,2048}$'
+     or p_kind not in ('subscription', 'voided') then
+    raise exception 'PLAY_NOTIFICATION_INVALID' using errcode = '22023';
+  end if;
+
+  update private.titan_play_notification_inbox
+     set deliveries = least(deliveries + 1, 1000000), last_delivery_at = now(),
+         authenticated = authenticated or coalesce(p_authenticated, false)
+   where message_id = p_message_id
+  returning processed_at into v_processed;
+  if found then
+    return case when v_processed is null then 'duplicate' else 'done' end;
+  end if;
+
+  if not coalesce(p_authenticated, false) and (
+       select count(*) from private.titan_play_notification_inbox
+        where processed_at is null and not authenticated) >= 5000 then
+    return 'full';
+  end if;
+
+  -- Processed rows are only an audit trail: keep 90 days.
+  delete from private.titan_play_notification_inbox
+   where ctid in (select ctid from private.titan_play_notification_inbox
+                   where processed_at < now() - interval '90 days' limit 100);
+
+  insert into private.titan_play_notification_inbox (message_id, purchase_token, kind, notification_type, authenticated)
+  values (p_message_id, p_purchase_token, p_kind, p_notification_type, coalesce(p_authenticated, false))
+  on conflict (message_id) do update
+     set deliveries = least(private.titan_play_notification_inbox.deliveries + 1, 1000000), last_delivery_at = now();
+  return 'new';
+end;
+$function$;
+
+-- Claims up to p_limit kept rows that are due, oldest first, and schedules their next try (5 min, then doubling, at most 24 h) BEFORE they are
+-- processed, so a crash mid-way can never loop. Concurrent callers skip each other's rows.
+create or replace function public.titan_play_notifications_due_v1(p_limit integer default 25)
+returns table (message_id text, purchase_token text, kind text, notification_type integer, authenticated boolean, attempts integer)
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  return query
+  with due as (
+    select i.message_id
+      from private.titan_play_notification_inbox i
+     where i.processed_at is null and i.next_attempt_at <= now()
+     order by i.received_at asc
+     limit least(greatest(coalesce(p_limit, 25), 1), 100)
+     for update skip locked
+  )
+  update private.titan_play_notification_inbox i
+     set attempts = i.attempts + 1,
+         next_attempt_at = now() + least(interval '5 minutes' * power(2, least(i.attempts, 12)), interval '24 hours')
+    from due
+   where i.message_id = due.message_id
+  returning i.message_id, i.purchase_token, i.kind, i.notification_type, i.authenticated, i.attempts;
+end;
+$function$;
+
+-- Records the outcome. p_final = false leaves the row pending for its scheduled retry (transient failure). After 30 attempts a row is closed
+-- as 'abandoned': the hourly entitlement sweep (titan_play_entitlements_due_v1) still re-reads every known token, and a player can restore.
+create or replace function public.titan_finish_play_notification_v1(p_message_id text, p_outcome text, p_final boolean default true)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  update private.titan_play_notification_inbox
+     set outcome = left(coalesce(p_outcome, 'unknown'), 60),
+         processed_at = case when coalesce(p_final, true) or attempts >= 30 then now() else null end
+   where message_id = p_message_id and processed_at is null;
+  return found;
+end;
+$function$;
+
+revoke all on function public.titan_record_play_notification_v1(text, text, text, integer, boolean) from public, anon, authenticated;
+revoke all on function public.titan_play_notifications_due_v1(integer) from public, anon, authenticated;
+revoke all on function public.titan_finish_play_notification_v1(text, text, boolean) from public, anon, authenticated;
+grant execute on function public.titan_record_play_notification_v1(text, text, text, integer, boolean) to service_role;
+grant execute on function public.titan_play_notifications_due_v1(integer) to service_role;
+grant execute on function public.titan_finish_play_notification_v1(text, text, boolean) to service_role;

@@ -24,7 +24,7 @@ const push = (notification, token = PUSH) => new Request(`https://titan.example.
 });
 const event = (type = 2, extra = {}) => ({ version: '1.0', packageName: 'fr.titanapp.app', eventTimeMillis: String(Date.now()), subscriptionNotification: { version: '1.0', notificationType: type, purchaseToken: TOKEN, subscriptionId: 'titan_plus' }, ...extra });
 
-async function run(callback, { env = {}, owner = USER, google = { status: 200, data: subscription() }, dbOk = true, ackStatus = 200 } = {}) {
+async function run(callback, { env = {}, owner = USER, google = { status: 200, data: subscription() }, dbOk = true, ackStatus = 200, kept = 'new' } = {}) {
     const previousNetlify = globalThis.Netlify, previousFetch = globalThis.fetch;
     const calls = [];
     globalThis.Netlify = { env: { get: name => ({ ...ENV, ...env })[name] || '' } };
@@ -34,6 +34,8 @@ async function run(callback, { env = {}, owner = USER, google = { status: 200, d
         if (u.host === 'www.googleapis.com' && u.pathname === '/oauth2/v3/certs') return Response.json({ keys: [{ ...pushJwk, kid: 'k1', alg: 'RS256', use: 'sig' }] });
         if (u.host === 'oauth2.googleapis.com') return Response.json({ access_token: 'google-access-token-synthetic' });
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) return Response.json(google.data, { status: google.status });
+        if (u.pathname.endsWith('/titan_record_play_notification_v1')) return dbOk ? Response.json(kept) : Response.json({}, { status: 500 });
+        if (u.pathname.endsWith('/titan_finish_play_notification_v1')) return Response.json(true);
         if (u.pathname.endsWith('/titan_entitlement_owner_v1')) return dbOk ? Response.json(owner) : Response.json({}, { status: 500 });
         if (u.pathname.endsWith('/titan_apply_play_entitlement_v1')) return dbOk ? Response.json(true) : Response.json({}, { status: 500 });
         if (u.pathname.endsWith(':acknowledge')) return Response.json({}, { status: ackStatus });
@@ -42,6 +44,8 @@ async function run(callback, { env = {}, owner = USER, google = { status: 200, d
     try { return await callback(calls); } finally { globalThis.Netlify = previousNetlify; globalThis.fetch = previousFetch; }
 }
 const applied = calls => calls.filter(c => c.path.endsWith('/titan_apply_play_entitlement_v1'));
+const kept = calls => calls.filter(c => c.path.endsWith('/titan_record_play_notification_v1'));
+const finished = calls => calls.filter(c => c.path.endsWith('/titan_finish_play_notification_v1')).map(c => c.body);
 
 test('a wrong or missing push secret, a disabled service and bad payloads do nothing', async () => {
     await run(async calls => {
@@ -51,8 +55,40 @@ test('a wrong or missing push secret, a disabled service and bad payloads do not
         assert.equal((await handler(new Request('https://titan.example.test/x?token=' + PUSH, { method: 'POST', body: 'not json' }))).status, 400);
         assert.deepEqual(calls, [], 'no database or Google call for a refused request');
     });
-    await run(async calls => { assert.equal((await handler(push(event()))).status, 503); assert.deepEqual(calls, []); }, { env: { PLAY_BILLING_ENABLED: 'false' } });
-    await run(async () => assert.equal((await handler(push(event()))).status, 503), { env: { PLAY_RTDN_TOKEN: 'short' } });
+});
+
+// Incident of 18 November 2026: with billing off, every push answered 503 and Pub/Sub re-sent each message for days (~40 000 calls a day).
+test('billing off: the notification is kept (token and type only) and acknowledged, so Pub/Sub stops re-sending; nothing is read or granted', async () => {
+    await run(async calls => {
+        const r = await handler(push(event(4)));
+        assert.equal(r.status, 202);
+        assert.deepEqual(kept(calls).map(c => c.body), [{ p_message_id: '1', p_purchase_token: TOKEN, p_kind: 'subscription', p_notification_type: 4, p_authenticated: true }]);
+        assert.equal(calls.length, 1, 'no Google call, no entitlement write while billing is off');
+    }, { env: { PLAY_BILLING_ENABLED: 'false' } });
+    await run(async calls => { assert.equal((await handler(push(event(4)))).status, 202); assert.equal(calls.length, 1); }, { env: { PLAY_BILLING_ENABLED: '', PLAY_SERVICE_ACCOUNT_JSON: '', PLAY_PRODUCT_IDS: '' } });
+    // No push authentication configured: kept as unauthenticated (bounded by the database) and never processed inline.
+    await run(async calls => {
+        assert.equal((await handler(push(event(4)))).status, 202);
+        assert.equal(kept(calls)[0].body.p_authenticated, false);
+        assert.equal(calls.length, 1);
+    }, { env: { PLAY_RTDN_TOKEN: 'short' } });
+});
+
+test('only a notification that cannot be kept is retried by Pub/Sub (5xx): database not configured, unreachable or inbox full', async () => {
+    await run(async calls => { assert.equal((await handler(push(event()))).status, 503); assert.deepEqual(calls, []); }, { env: { SUPABASE_SECRET_KEY: '' } });
+    await run(async calls => { assert.equal((await handler(push(event()))).status, 503); assert.equal(applied(calls).length, 0); }, { dbOk: false });
+    await run(async calls => { assert.equal((await handler(push(event()))).status, 503); assert.equal(applied(calls).length, 0); }, { env: { PLAY_RTDN_TOKEN: '' }, kept: 'full' });
+});
+
+test('a Pub/Sub message delivered twice is processed once', async () => {
+    await run(async calls => {
+        const r = await handler(push(event(2)));
+        assert.equal(r.status, 200);
+        assert.equal(applied(calls).length, 0, 'already processed: no second write');
+        assert.ok(!calls.some(c => c.host.includes('google')));
+    }, { kept: 'done' });
+    // Kept earlier but never finished (billing was off, or a transient failure): a new delivery processes it.
+    await run(async calls => { assert.equal((await handler(push(event(2)))).status, 200); assert.equal(applied(calls).length, 1); assert.deepEqual(finished(calls).map(f => f.p_final), [true]); }, { kept: 'duplicate' });
 });
 
 test('a renewal re-reads Google and records the answer for the linked account', async () => {
@@ -76,7 +112,10 @@ test('RTDN processes a purchased subscription while the app is closed and acknow
         const ack = calls.find(c => c.path.endsWith(':acknowledge'));
         assert.ok(ack && calls.indexOf(ack) > calls.indexOf(recorded));
     }, { owner: null, google: { status: 200, data } });
-    await run(async () => assert.equal((await handler(push(event(4)))).status, 503), { google: { status: 200, data }, ackStatus: 500 });
+    await run(async calls => {
+        assert.equal((await handler(push(event(4)))).status, 202, 'acknowledgement failed: kept for the hourly retry instead of a Pub/Sub storm');
+        assert.deepEqual(finished(calls).map(f => [f.p_outcome, f.p_final]), [['acknowledge-failed', false]]);
+    }, { google: { status: 200, data }, ackStatus: 500 });
     await run(async calls => {
         assert.equal((await handler(push(event(4, { userId: USER })))).status, 200);
         assert.equal(applied(calls).length, 0);
@@ -116,8 +155,8 @@ test('a purchase whose first notification was lost is recorded from the next ren
         { owner: null, google: { status: 200, data: { ...bound, subscriptionState: 'SUBSCRIPTION_STATE_EXPIRED', lineItems: [{ productId: 'titan_plus', expiryTime: new Date(Date.now() - 1000).toISOString() }] } } });
 });
 
-test('an outage makes Pub/Sub retry (5xx) and never changes access', async () => {
-    await run(async calls => { assert.equal((await handler(push(event()))).status, 503); assert.equal(applied(calls).length, 0); }, { google: { status: 500, data: {} } });
+test('an outage never changes access: kept and retried by play-reconcile, or retried by Pub/Sub when it cannot even be kept', async () => {
+    await run(async calls => { assert.equal((await handler(push(event()))).status, 202); assert.equal(applied(calls).length, 0); assert.deepEqual(finished(calls).map(f => [f.p_outcome, f.p_final]), [['google-500', false]]); }, { google: { status: 500, data: {} } });
     await run(async () => assert.equal((await handler(push(event()))).status, 503), { dbOk: false });
     await run(async calls => { assert.equal((await handler(push(event()))).status, 200, 'a purchase Google no longer knows ends the access it gave'); assert.equal(applied(calls).length, 1); assert.equal(applied(calls)[0].body.p_is_active, false); assert.equal(applied(calls)[0].body.p_status, 'gone'); }, { google: { status: 404, data: {} } });
 });

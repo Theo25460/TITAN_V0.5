@@ -22,7 +22,7 @@ const answers = {
     'tok-other-0123456789abc': { status: 200, data: sub('SUBSCRIPTION_STATE_ACTIVE', future(), 'unlisted_product') },
     'tok-pending-0123456789a': { status: 200, data: { ...sub('SUBSCRIPTION_STATE_ACTIVE', future()), acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING', externalAccountIdentifiers: { obfuscatedExternalAccountId: '00000000-0000-4000-8000-0000000000a6' } } },
 };
-async function run(callback, { env = {}, rows = due } = {}) {
+async function run(callback, { env = {}, rows = due, inbox = [], owner = null } = {}) {
     const pn = globalThis.Netlify, pf = globalThis.fetch;
     const calls = [];
     globalThis.Netlify = { env: { get: name => ({ ...ENV, ...env })[name] || '' } };
@@ -31,6 +31,9 @@ async function run(callback, { env = {}, rows = due } = {}) {
         calls.push({ host: u.host, path: u.pathname, body });
         if (u.host === 'oauth2.googleapis.com') return Response.json({ access_token: 'google-access-token-synthetic' });
         if (u.pathname.endsWith('/titan_play_entitlements_due_v1')) return Response.json(rows);
+        if (u.pathname.endsWith('/titan_play_notifications_due_v1')) return Response.json(inbox);
+        if (u.pathname.endsWith('/titan_finish_play_notification_v1')) return Response.json(true);
+        if (u.pathname.endsWith('/titan_entitlement_owner_v1')) return Response.json(owner);
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) { const a = answers[decodeURIComponent(u.pathname.split('/').pop())]; return Response.json(a.data, { status: a.status }); }
         if (u.pathname.endsWith('/titan_apply_play_entitlement_v1')) return Response.json(true);
         if (u.pathname.endsWith(':acknowledge')) return Response.json({});
@@ -86,4 +89,25 @@ test('a purchase recorded while pending is opened and acknowledged once Google c
         assert.ok(ack > calls.findIndex(c => c.path.endsWith('/titan_apply_play_entitlement_v1')), 'acknowledged after the write, before the three-day refund');
         assert.deepEqual(await r.json(), { checked: 1, updated: 1, failed: 0 });
     }, { rows });
+});
+
+test('notifications kept in the inbox while billing was off are processed once it is on: a paid purchase is granted, not lost', async () => {
+    const USER6 = '00000000-0000-4000-8000-0000000000a6';
+    const inbox = [
+        { message_id: 'm-paid', purchase_token: 'tok-pending-0123456789a', kind: 'subscription', notification_type: 4, authenticated: false, attempts: 1 },
+        { message_id: 'm-down', purchase_token: 'tok-down-0123456789abcd', kind: 'subscription', notification_type: 4, authenticated: true, attempts: 1 },
+    ];
+    await run(async calls => {
+        const body = await (await handler(new Request('https://x.test'))).json();
+        assert.equal(body.notifications, 2);
+        assert.equal(body.notificationsFailed, 1, 'Google unavailable for one row: it stays pending for its scheduled retry');
+        const granted = applied(calls).find(b => b.p_external_id === 'tok-pending-0123456789a');
+        assert.equal(granted?.p_user_id, USER6, 'granted to the account Google bound the purchase to');
+        assert.equal(granted.p_is_active, true);
+        assert.ok(calls.some(c => c.path.endsWith(':acknowledge')), 'acknowledged after the write');
+        const finished = calls.filter(c => c.path.endsWith('/titan_finish_play_notification_v1')).map(c => c.body);
+        assert.deepEqual(finished.map(f => [f.p_message_id, f.p_final]), [['m-paid', true], ['m-down', false]]);
+    }, { rows: [], inbox });
+    // Billing still off: the inbox is not touched at all.
+    await run(async calls => { await handler(new Request('https://x.test')); assert.deepEqual(calls, []); }, { env: { PLAY_BILLING_ENABLED: '' }, inbox });
 });

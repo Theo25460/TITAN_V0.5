@@ -47,6 +47,9 @@ for (const reader of ['billing', 'notifications', 'reconcile']) {
       if (path === '/auth/v1/user') return Response.json({ id: OWNER, is_anonymous: false });
       if (path.endsWith('/titan_entitlement_owner_v1')) return Response.json(OWNER);
       if (path.endsWith('/titan_play_entitlements_due_v1')) return Response.json([{ user_id: OWNER, external_id: TOKEN }]);
+      if (path.endsWith('/titan_play_notifications_due_v1')) return Response.json([]);
+      if (path.endsWith('/titan_record_play_notification_v1')) return Response.json('new');
+      if (path.endsWith('/titan_finish_play_notification_v1')) return Response.json(true);
       if (path.includes('/purchases/subscriptionsv2/tokens/')) {
         if (++lookups === 1) {
           const delayed = new Promise(resolve => { releaseOld = () => resolve(Response.json(resource(true))); });
