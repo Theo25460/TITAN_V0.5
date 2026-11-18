@@ -1,6 +1,11 @@
 # Déconnexion et changement de compte sans fuite de données
 appId: fr.titanapp.app
 ---
+# Check the server's actual decision; no test enables the flag.
+- runFlow:
+    when:
+      true: ${LIVE_FOR_A == 't'}
+    file: ../live/session.yaml
 - launchApp
 - runFlow:
     when:
@@ -14,6 +19,24 @@ appId: fr.titanapp.app
 - tapOn:
     id: "tab-profile"
 - takeScreenshot: 19-profil
+- scrollUntilVisible:
+    element: "Mon identité"
+    direction: DOWN
+- tapOn: "Mon identité"
+- scrollUntilVisible:
+    element: "Mon Atelier.*"
+    direction: DOWN
+- tapOn: "Mon Atelier.*"
+- scrollUntilVisible:
+    element:
+      id: "atelier-preview-cos_frame_neon"
+    direction: DOWN
+- tapOn:
+    id: "atelier-preview-cos_frame_neon"
+- assertVisible: "Encore .* crédits à gagner en séance."
+- takeScreenshot: 19a-apercu-atelier
+- back
+- back
 - scrollUntilVisible:
     element: "Connexions & compte"
     direction: DOWN

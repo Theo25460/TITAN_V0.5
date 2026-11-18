@@ -28,7 +28,8 @@ adb shell am start -W -n fr.titanapp.app/.MainActivity > "$OUT/startup-resume.tx
 adb shell am force-stop fr.titanapp.app
 cd "$OUT"
 status=0
-"$HOME/.maestro/bin/maestro" test "$ROOT/mobile/e2e/flows" --format junit --output "$OUT/maestro-report.xml" --test-output-dir "$OUT/maestro" || status=$?
+echo "screens.live for A: ${E2E_LIVE_FOR_A:?missing replica capability check}" > "$OUT/live-capability.txt"
+"$HOME/.maestro/bin/maestro" test -e LIVE_FOR_A="$E2E_LIVE_FOR_A" "$ROOT/mobile/e2e/flows" --format junit --output "$OUT/maestro-report.xml" --test-output-dir "$OUT/maestro" || status=$?
 # Exercise the same installed APK at 320 and 800 dp, including search with the keyboard open.
 if [ "$status" -eq 0 ]; then
   for viewport in 640x1136 1600x2560; do

@@ -63,4 +63,15 @@ done
 psql_ -tAc "select count(*) from public.profiles where username like 'Athlete %'" | grep -qx 2 || { echo "::error::profiles not created by the signup trigger"; exit 1; }
 # A's code is stable in the disposable replica. Discoverability still requires A's in-app opt-in.
 psql_ -c "update public.profiles set friend_code='TN-TITAN' where id=(select id from auth.users where email='e2e-a@titan.test')"
+# Use the same per-athlete decision as the Android client, including staged rollouts.
+live_for_a=$(psql_ -tAX <<'SQL'
+begin;
+select id::text as athlete from auth.users where email='e2e-a@titan.test' \gset
+set local role authenticated;
+select set_config('request.jwt.claims',json_build_object('sub', :'athlete','role','authenticated')::text,true) as claims \gset
+select coalesce((public.titan_feature_flags_v1()->'flags'->>'screens.live')::boolean,false);
+rollback;
+SQL
+)
+echo "E2E_LIVE_FOR_A=$live_for_a" >> "${GITHUB_ENV:-/dev/null}"
 echo "Backend ready at $API_URL"

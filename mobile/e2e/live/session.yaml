@@ -53,6 +53,11 @@ appId: fr.titanapp.app
     id: "live-keep"
 - tapOn:
     id: "session-save"
+- runFlow:
+    when:
+      visible: "Cette séance semble déjà dans ton journal"
+    commands:
+      - tapOn: "Enregistrer quand même"
 - extendedWaitUntil:
     visible: ".*(TITAN a confirmé|Récompense en vérification).*"
     timeout: 30000
