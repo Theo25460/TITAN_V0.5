@@ -229,14 +229,15 @@
     });
   }
 
-  /** Draws the card and returns the canvas. */
-  async function draw(o, { qr = null } = {}) {
+  /** Draws the card and returns the canvas. `style` draws it in a given card piece instead of the worn one (the Atelier's
+      « essayer »): nothing is saved, the worn style is untouched. */
+  async function draw(o, { qr = null, style: tried = null } = {}) {
     await fonts();
     const c = document.createElement("canvas");
     c.width = W;
     c.height = H;
     const ctx = c.getContext("2d");
-    const st = style();
+    const st = tried ? STYLES[tried] || STYLES.default : style();
     background(ctx, st);
     header(ctx, st, o.eyebrow);
     const maxW = W - PAD * 2;
@@ -441,5 +442,5 @@
     return u && !u.guest ? u.name : "";
   };
 
-  window.TitanCard = { draw, open, userName, loadQr, STYLES, resetLink };
+  window.TitanCard = { draw, open, userName, loadQr, STYLES, resetLink, tryStyle: true };
 })();

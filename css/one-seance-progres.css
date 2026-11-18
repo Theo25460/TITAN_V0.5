@@ -1,0 +1,798 @@
+/* =====================================================================
+   TITAN ONE — « Séances et progression sportive ».
+   Loaded after signature.css by /training, /prevoir, /journal, /stats,
+   /records, /carriere and /objectifs only. Tokens of ascension.css and the
+   Signature layer (the cut, the relief, the object) — nothing else.
+
+   Séance is fast and plain: one question, the sports one already does,
+   then the form of the sport. Progrès is precise: the figure first, the
+   explanation after it, records and ranks as objects.
+   ===================================================================== */
+
+/* ---------- 0. Shared by the seven pages ---------- */
+
+/* The first-visits note (js/app/hints.js) used to take the first screen before any figure. It now closes the page: a quiet line
+   under a hairline, read after the data it explains. The column becomes a flex column only while the note is there. */
+.asc-main:has(> [data-hint]) {
+  display: flex;
+  flex-direction: column;
+}
+.asc-main > .asc-hint {
+  order: 20;
+  margin: var(--s8) 0 0;
+  padding: var(--s4) 0 0;
+  border-radius: 0;
+  border-top: 1px solid var(--line-2);
+  background: none;
+  gap: var(--s3) var(--s4);
+  align-items: center;
+}
+.asc-main > .asc-hint p {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--tx-2);
+  max-width: 78ch;
+}
+.asc-main > .asc-hint p::before {
+  content: "À savoir. ";
+  font-weight: 800;
+  color: var(--tx);
+}
+
+/* A family colour for whatever carries data-family. */
+[data-family="endurance"] { --fam: var(--fam-endurance); }
+[data-family="force"] { --fam: var(--fam-force); }
+[data-family="technique"] { --fam: var(--fam-technique); }
+[data-family="jeu"] { --fam: var(--fam-jeu); }
+[data-family="mobilite"] { --fam: var(--fam-mobilite); }
+
+/* ---------- 1. Carrière : the ascent ---------- */
+#carriere { gap: var(--s6); }
+#carriere .cr-ascent {
+  display: grid;
+  justify-items: stretch;
+  text-align: left;
+  gap: var(--s5);
+  padding: 0;
+  border-top: 0;
+}
+/* An entrance belongs to the page, not to a figure: nothing here replays when the period changes. */
+.cr-crest,
+.cr-num { animation: none; }
+
+.cr-rank {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s5) var(--s4) var(--s6);
+}
+.cr-rank .cr-crest { --obj: clamp(96px, 30vw, 150px); }
+.cr-rank .cr-crest > img,
+.cr-rank .cr-crest > svg { height: auto; }
+.cr-rank-text { display: grid; gap: 2px; min-width: 0; }
+.cr-rank-level {
+  margin: 0;
+  color: var(--tx-2);
+  font-weight: 700;
+  font-size: 14px;
+}
+.cr-rank-level strong {
+  margin-left: 2px;
+  color: var(--cy);
+  font-size: 24px;
+  line-height: 1;
+}
+.cr-rank h2 {
+  font-size: clamp(30px, 9vw, 46px);
+  line-height: 0.98;
+  overflow-wrap: anywhere;
+}
+.cr-xp { display: grid; gap: 6px; margin-top: var(--s3); }
+.cr-xp .asc-ascent { height: 8px; background: var(--bg-4); }
+.cr-xp p { margin: 0; color: var(--tx-2); }
+.cr-xp p strong { color: var(--tx); font-size: 15px; }
+
+.cr-ladder-wrap { display: grid; gap: var(--s3); min-width: 0; align-content: end; }
+.cr-next { margin: 0; color: var(--tx-2); font-size: 14.5px; }
+.cr-next strong { color: var(--tx); }
+/* Seven ranks, each one a step higher than the last. The tread under a crest is cyan where one has walked, a dashed line ahead. */
+.cr-ladder {
+  list-style: none;
+  margin: 0;
+  padding: var(--s2) 0 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
+.cr-step {
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-bottom: calc(var(--i) * 7px);
+}
+.cr-step[data-state="current"] { flex-grow: 1.9; }
+.cr-step .sig-object { --obj: 100%; max-width: 76px; }
+.cr-step[data-state="current"] .sig-object { max-width: 112px; }
+.cr-step .sig-object > img,
+.cr-step .sig-object > svg { height: auto; }
+.cr-step-text {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding-top: 6px;
+  border-top: 3px solid var(--cy);
+  text-align: center;
+  line-height: 1.2;
+}
+.cr-step[data-state="ahead"] .cr-step-text { border-top: 3px dashed var(--line-3); }
+.cr-step-text strong {
+  display: none;
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-weight: 800;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.cr-step[data-state="current"] .cr-step-text strong { display: block; font-size: 15px; }
+.cr-step-level {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--tx-2);
+  white-space: nowrap;
+}
+.cr-step[data-state="current"] .cr-step-level { color: var(--cy); }
+.cr-step-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--tx-3);
+  white-space: nowrap;
+}
+.cr-step-state .t-icon { width: 13px; height: 13px; }
+.cr-step[data-state="reached"] .cr-step-state { color: var(--tx-2); }
+.cr-step[data-state="current"] .cr-step-state { color: var(--tx); }
+/* On a phone a step is 40 px wide: the word stays for the rank worn, the others keep their mark (a tick, a lock). */
+.cr-step:not([data-state="current"]) .cr-step-state > span { display: none; }
+@media (min-width: 720px) {
+  .cr-ladder { gap: var(--s2); }
+  .cr-step { margin-bottom: calc(var(--i) * 10px); }
+  .cr-step-text strong { display: block; }
+  .cr-step:not([data-state="current"]) .cr-step-state > span { display: inline; }
+}
+@media (min-width: 1100px) {
+  #carriere .cr-ascent {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    column-gap: var(--s8);
+    align-items: stretch;
+  }
+  .cr-rank { padding: var(--s6) var(--s6) var(--s7); gap: var(--s5); }
+  .cr-rank .cr-crest { --obj: 168px; }
+}
+
+/* Period: one segmented control, the current one in the colour of the space. */
+.cr-ranges { gap: 3px; padding: 3px; border-radius: var(--r2); background: var(--bg-2); flex-wrap: nowrap; }
+.cr-range { min-width: 0; padding: 2px var(--s1); background: transparent; border-radius: 5px; font-size: 14px; line-height: 1.1; text-wrap: balance; }
+@media (min-width: 720px) { .cr-ranges { max-width: 560px; } }
+.cr-since { margin: 0; }
+
+/* Records in the career are records: the value is amber, the mark is the trophy. */
+[data-career-records] .cr-list li > .t-icon { color: var(--am); }
+[data-career-records] .cr-list li strong {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+  color: var(--am);
+  white-space: nowrap;
+}
+/* Great moments are waypoints on one trail. */
+#carriere .cr-moments {
+  position: relative;
+  gap: 0;
+  padding: 0;
+}
+#carriere .cr-moments::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: var(--line-2);
+}
+#carriere .cr-moments li { position: relative; padding: var(--s3) 0; gap: var(--s4); }
+#carriere .cr-dot { width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; box-shadow: 0 0 0 4px var(--bg); }
+#carriere .cr-moments strong { font-size: 16px; }
+#carriere .cr-moments li[data-tone="amber"] strong { color: var(--am); }
+@media (min-width: 1100px) {
+  #carriere .cr-moments { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--s8); }
+  #carriere .cr-moments::before { display: none; }
+}
+
+/* ---------- 2. Records : precious things ---------- */
+.rc-vault {
+  display: grid;
+  gap: var(--s4);
+  margin: var(--s2) 0 var(--s6);
+  padding: var(--s5) var(--s4) var(--s6);
+}
+.rc-vault-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s4);
+}
+.rc-relic { --obj: clamp(76px, 22vw, 120px); }
+.rc-vault h2 {
+  font-size: clamp(21px, 5.6vw, 30px);
+  line-height: 1.05;
+  color: var(--am);
+  text-wrap: balance;
+}
+.rc-vault-count { margin: var(--s1) 0 0; color: var(--tx-2); font-size: 14px; }
+.rc-vault .rc-recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+.rc-vault .rc-recent-item {
+  width: 100%;
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: minmax(84px, auto) minmax(0, 1fr);
+  grid-template-areas: "value what" "value prev";
+  align-items: center;
+  column-gap: var(--s4);
+  row-gap: 0;
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--am-line);
+  cursor: pointer;
+}
+.rc-vault .rc-recent-item strong {
+  grid-area: value;
+  font-weight: 300;
+  font-size: clamp(34px, 9.5vw, 46px);
+  white-space: nowrap;
+}
+.rc-recent-what { grid-area: what; display: grid; min-width: 0; align-self: end; }
+.rc-recent-label { font-weight: 800; font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+.rc-recent-sport { font-size: 13px; color: var(--tx-2); }
+.rc-recent-prev {
+  grid-area: prev;
+  align-self: start;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--am);
+}
+.rc-vault .rc-recent-item:hover .rc-recent-label { text-decoration: underline; text-underline-offset: 3px; }
+@media (min-width: 720px) {
+  .rc-vault { padding: var(--s6) var(--s6) var(--s7); grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); column-gap: var(--s7); align-items: center; }
+  .rc-relic { --obj: 132px; }
+}
+@media (min-width: 1100px) {
+  .rc-vault .rc-recent-list { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--s6); }
+  .rc-vault .rc-recent-item {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "value" "what" "prev";
+    row-gap: 2px;
+    align-content: start;
+    border-top: 0;
+    border-left: 1px solid var(--am-line);
+    padding: 0 0 0 var(--s5);
+  }
+  .rc-vault .rc-recent-item strong { font-size: 52px; }
+}
+.rc-none { margin: var(--s2) 0 var(--s6); }
+.rc-none .rc-relic { --obj: 96px; }
+
+/* Finding a sport: the search, then the three filters on one line, instead of five stacked rows. */
+#records .sn-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s2) var(--s2);
+  align-items: end;
+  margin: 0 0 var(--s2);
+}
+#records .sn-search { grid-column: 1 / -1; }
+#records .sn-selects { display: contents; }
+#records .sn-selects select { width: 100%; min-width: 0; }
+#records .sn-hide { align-self: end; min-height: 48px; }
+#records .sn-controls > .asc-btn { grid-column: 1 / -1; justify-self: start; }
+@media (min-width: 720px) {
+  #records .sn-controls { grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); }
+  #records .sn-search { grid-column: auto; }
+  #records .sn-hide { grid-column: 1 / -1; min-height: 44px; }
+}
+
+/* A sport and its marks. The family colours the icon; each mark is a small plate of figures under one hairline. */
+.rc-sport { margin-top: var(--s7); }
+/* On a wide screen two sports share a line; a sport with many marks takes the whole line. */
+@media (min-width: 1100px) {
+  .rc-sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s8); align-items: start; }
+  .rc-sport:has(.rc-card:nth-child(4)) { grid-column: 1 / -1; }
+}
+.rc-sport-icon { color: var(--fam, var(--tx-2)); }
+.rc-sport .asc-section-head h2 { min-width: 0; overflow-wrap: anywhere; }
+.rc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--s4); }
+@media (min-width: 620px) { .rc-grid { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); } }
+.rc-card {
+  position: relative;
+  min-height: 104px;
+  padding: var(--s3) 0 var(--s4);
+  cursor: pointer;
+}
+.rc-card .rc-value { font-size: 30px; }
+.rc-card:hover .rc-label,
+.rc-card:focus-visible .rc-label { color: var(--tx); }
+.rc-card[data-fresh] { border-top-color: var(--am); }
+.rc-fresh { margin-top: 2px; }
+
+/* The staircase of one record, in its sheet. */
+.rc-chart { margin: 0 0 var(--s3); display: grid; gap: 6px; }
+.rc-chart svg { display: block; width: 100%; height: 104px; overflow: visible; }
+.rc-chart-line { fill: none; stroke: var(--am); stroke-width: 2.5; stroke-linejoin: round; }
+.rc-chart-area { fill: var(--am-soft); stroke: none; }
+.rc-chart figcaption { display: flex; justify-content: space-between; gap: var(--s3); font-size: 12.5px; color: var(--tx-3); }
+.rc-chart figcaption span:last-child { text-align: right; }
+.rc-chart figcaption strong { color: var(--tx); font-size: 15px; margin-right: 4px; }
+.rc-chart figcaption span:last-child strong { color: var(--am); }
+
+/* An empty state that carries a level-2 heading keeps the size of the Signature empty state. */
+.sig-empty.asc-empty { padding: var(--s6) var(--s5); color: var(--tx-2); }
+.sig-empty h2 { margin: 0; font-size: 19px; color: var(--tx); }
+
+/* ---------- 3. Journal : the list first ---------- */
+/* One bar (search and the two views), one line to refine (period and families, sliding sideways on a phone). Adding and
+   importing are entries, not filters: on a phone they leave the top of the list and sit with the archive and the export. */
+#journal { display: flex; flex-direction: column; }
+#journal > * { min-width: 0; }
+.jr-tools { gap: var(--s2); margin: var(--s2) 0 var(--s4); }
+.jr-bar { display: flex; gap: var(--s2); align-items: stretch; min-width: 0; }
+.jr-bar .jr-search { flex: 1 1 auto; min-width: 0; }
+.jr-bar .jr-search .asc-input { min-height: 48px; font-size: 16px; }
+.jr-view { flex: none; }
+.jr-view button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 42px; }
+.jr-view button .t-icon { width: 18px; height: 18px; }
+@media (max-width: 719px) {
+  /* Two icon keys: their names stay for assistive technology. */
+  .jr-view button > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .jr-view button { padding: 0 var(--s2); }
+}
+.jr-refine {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+  margin: 0 calc(-1 * var(--s4));
+  padding: 0 var(--s4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.jr-refine::-webkit-scrollbar { display: none; }
+.asc .jr-refine select.jr-select { flex: none; min-height: 40px; padding-top: 0; padding-bottom: 0; font-size: 14.5px; font-weight: 650; }
+.jr-refine .jr-fams { flex: none; margin: 0; padding: 0; overflow: visible; }
+.jr-refine .jr-fams .seance-chip { min-height: 40px; padding: 0 var(--s3); }
+.jr-refine .jr-fams .seance-chip:not([data-family="all"]) .t-icon { color: var(--fam); }
+.jr-refine .jr-fams .seance-chip[aria-pressed="true"] .t-icon,
+.jr-refine .jr-fams .seance-chip:hover .t-icon { color: currentColor; }
+.jr-add { order: 5; margin: var(--s6) 0 0; }
+#journal > .jr-foot { order: 6; margin-top: var(--s3); }
+.jr-add .asc-btn { min-height: 44px; }
+@media (min-width: 960px) {
+  .jr-refine { margin: 0; padding: 0; overflow: visible; flex-wrap: wrap; }
+  .jr-refine .jr-fams { flex: 0 1 auto; flex-wrap: wrap; }
+}
+@media (min-width: 1100px) {
+  /* A wide screen has the room: the entries sit at the right of the bar, the filters under it on one line. */
+  #journal { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--s5); align-items: start; }
+  #journal > * { grid-column: 1 / -1; }
+  #journal > .jr-tools { grid-row: 1; }
+  #journal > .jr-add { grid-column: 2; grid-row: 1; justify-self: end; z-index: 1; margin: var(--s2) 0 0; flex-wrap: nowrap; }
+  #journal > .jr-add .asc-btn { min-height: 48px; }
+  .jr-bar { max-width: 760px; }
+  #journal:has(> .jr-add) .jr-bar { max-width: min(760px, calc(100% - 360px)); }
+}
+
+/* A session row. The date, the sport in its family colour, then one figure that leads. */
+.jr-row { cursor: pointer; }
+.jr-lead {
+  justify-self: end;
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.jr-title { font-size: 16px; }
+@media (max-width: 1099px) {
+  .jr-row { grid-template-columns: 36px 26px minmax(0, 1fr) auto; grid-template-areas: "date icon text lead" "date icon text tags"; grid-template-rows: auto auto; align-content: center; column-gap: var(--s3); row-gap: 2px; min-height: 68px; }
+  .jr-row > .jr-date { grid-area: date; }
+  .jr-row > .jr-icon { grid-area: icon; }
+  .jr-row > .jr-text { grid-area: text; }
+  .jr-row > .jr-lead { grid-area: lead; align-self: end; }
+  .jr-row > .jr-tags { grid-area: tags; align-self: start; }
+  .jr-row:not(:has(.jr-tags > *)) > .jr-lead { grid-row: 1 / -1; align-self: center; }
+  .jr-row:not(:has(.jr-tags > *)) > .jr-tags { display: none; }
+  .jr-row > .jr-fig { display: none; }
+  .jr-badge,
+  .jr-badge.am { background: transparent; padding: 0; min-height: 18px; }
+}
+@media (min-width: 1100px) {
+  .jr-lead { display: none; }
+}
+.jr-month-head h2 { font-size: 24px; }
+.jr-summary { margin-bottom: var(--s5); }
+
+/* ---------- 4. Séance : one of 260 sports, without effort ---------- */
+/* While something is typed, the results take the place of the lists; the live entry stays under them, as the other way in. */
+#seance[data-searching] > .seance-pick,
+#seance[data-searching] > .sp-queue { display: none; }
+.seance-results { margin: var(--s4) 0 var(--s5); }
+.seance-results:empty { margin: 0; }
+.sp-count {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin: 0;
+  padding-bottom: var(--s2);
+  border-bottom: 2px solid var(--tx);
+  color: var(--tx);
+  font-weight: 800;
+}
+.sp-keys { display: none; color: var(--tx-3); font-weight: 600; }
+@media (hover: hover) and (min-width: 960px) { .sp-keys { display: inline; } }
+.sp-result { min-height: 68px; padding-left: var(--s2); padding-right: var(--s2); cursor: pointer; }
+.sp-result .asc-row-icon { color: var(--fam, var(--tx-2)); }
+.sp-result .asc-row-title { font-size: 17px; }
+.sp-result mark { background: var(--space); color: var(--space-ink); border-radius: 2px; padding: 0 1px; }
+.sp-result[aria-selected="true"] { background: var(--bg-2); outline: 2px solid var(--space); outline-offset: -2px; border-radius: var(--r1); }
+.sp-result[aria-selected="true"] .asc-row-title { color: var(--space); }
+.sp-done { flex: none; }
+@media (max-width: 359px) { .sp-done { display: none; } }
+.sp-none { margin-top: var(--s2); }
+
+/* The live entry is the other way to record: a cut plate under the field, not a line among others. */
+.seance-live-entry {
+  margin: var(--s4) 0 0;
+  padding: var(--s3) var(--s4);
+  border-bottom: 0;
+  border-radius: var(--r2) var(--r2) 0 var(--r2);
+  background: var(--bg-2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+}
+.seance-live-entry:hover { background: var(--bg-3); }
+.seance-live-entry:focus-visible { outline-offset: -2px; }
+
+/* Sessions waiting on the device. */
+.sp-queue {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 48px;
+  margin-top: var(--s3);
+  padding: var(--s2) var(--s4);
+  border-radius: var(--r2);
+  background: var(--bg-2);
+  color: var(--tx-2);
+  font-size: 14px;
+  text-decoration: none;
+}
+.sp-queue > .t-icon { flex: none; color: var(--warn); }
+.sp-queue[data-kind="err"] > .t-icon { color: var(--err); }
+.sp-queue > span { flex: 1; min-width: 0; }
+.sp-queue > strong { color: var(--space); }
+
+/* « Tes sports » : what one already does, as keys one can hit without reading a list. */
+.sp-mine { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+.sp-tile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s2) 10px;
+  min-height: 64px;
+  padding: var(--s2) var(--s3);
+  text-align: left;
+  cursor: pointer;
+}
+.sp-tile-icon { display: grid; place-items: center; color: var(--fam, var(--tx-2)); }
+.seance-chip .sp-tile-icon .t-icon { width: 22px; height: 22px; color: inherit; }
+.sp-tile-text { display: grid; gap: 1px; min-width: 0; line-height: 1.2; }
+.sp-tile-text strong { font-weight: 750; font-size: 15px; overflow-wrap: break-word; hyphens: auto; }
+.sp-tile-text small { font-size: 12.5px; font-weight: 600; color: var(--tx-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-tile:hover .sp-tile-icon,
+.sp-tile:hover .sp-tile-text small { color: var(--space-ink); }
+@media (max-width: 359px) {
+  .sp-mine { grid-template-columns: minmax(0, 1fr); }
+  .sp-tile { min-height: 56px; }
+}
+
+/* Families are tabs: one is open, its count is said, the others are one tap away. */
+.sp-fams {
+  display: flex;
+  gap: var(--s1);
+  margin: 0 calc(-1 * var(--s4)) var(--s3);
+  padding: 2px var(--s4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sp-fams::-webkit-scrollbar { display: none; }
+.sp-fam {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 var(--s3);
+  border: 0;
+  border-radius: var(--r2);
+  background: var(--bg-2);
+  color: var(--tx-2);
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sp-fam .t-icon { width: 17px; height: 17px; color: var(--fam); }
+.sp-fam small {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--tx-3);
+}
+.sp-fam:hover { color: var(--tx); }
+.sp-fam[aria-selected="true"] { background: var(--tx); color: var(--bg); }
+.sp-fam[aria-selected="true"] .t-icon,
+.sp-fam[aria-selected="true"] small { color: var(--bg); }
+.sp-fam:focus-visible { outline: 2px solid var(--space); outline-offset: 2px; }
+.seance-families { display: block; }
+.sp-panel { display: grid; gap: var(--s3); }
+.sp-panel-head { margin: 0; color: var(--tx-3); font-weight: 600; }
+.sp-sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+.sp-sport { justify-content: flex-start; min-height: 48px; padding: var(--s2) var(--s3); line-height: 1.2; text-align: left; cursor: pointer; }
+.sp-letter-group {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: var(--s2);
+  align-items: start;
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line-2);
+}
+.sp-letter {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 48px;
+  color: var(--tx-3);
+}
+.sp-panel .seance-chip-more { justify-self: start; cursor: pointer; }
+@media (min-width: 620px) {
+  .sp-mine { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .sp-sports { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+}
+@media (min-width: 960px) {
+  .sp-fams { margin: 0 0 var(--s3); padding: 2px 0; flex-wrap: wrap; overflow: visible; }
+}
+@media (min-width: 1100px) {
+  .seance-pick.has-mine { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+  .sp-mine { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ---------- 5. Séance : the form of a sport, and its states ---------- */
+.seance-head { align-items: center; }
+.seance-contract {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--space-ink);
+  opacity: 0.86;
+}
+.seance-contract .t-icon { flex: none; width: 15px; height: 15px; }
+.seance-fav { flex: none; color: var(--space-ink); }
+.seance-fav[aria-pressed="true"] .t-icon { fill: currentColor; }
+.seance-resume {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s2) var(--s3);
+  margin: var(--s4) 0 0;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r2);
+  background: var(--space-soft);
+}
+.seance-resume > .t-icon { color: var(--space); }
+.seance-resume p { display: grid; margin: 0; line-height: 1.3; }
+.seance-resume p strong { color: var(--space); }
+.seance-resume p span { font-size: 13.5px; color: var(--tx-2); }
+@media (max-width: 479px) {
+  .seance-resume > .asc-btn { grid-column: 2 / -1; justify-self: start; }
+}
+.seance-last {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-top: var(--s4);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r2);
+  background: var(--bg-2);
+}
+.seance-last p { display: grid; gap: 2px; margin: 0; min-width: 0; }
+.seance-last p span { font-size: 12.5px; font-weight: 700; color: var(--tx-3); }
+.seance-last p strong {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.seance-last .asc-btn { flex: none; }
+.seance-resume + .seance-chrono,
+.seance-last + .seance-chrono { margin-top: var(--s4); }
+.seance-net { flex-basis: 100%; margin: 0; padding-right: var(--s2); color: var(--warn); font-weight: 700; }
+.seance-net[hidden] { display: none; }
+/* Saving: the key says it is at work; the page waits. */
+.seance-save[aria-busy="true"] { position: relative; overflow: hidden; }
+.seance-save[aria-busy="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 38%;
+  height: 3px;
+  background: var(--space-ink);
+  animation: seance-busy 900ms linear infinite;
+}
+@keyframes seance-busy { from { transform: translateX(-100%); } to { transform: translateX(270%); } }
+/* The first frame of the page is its field: the question is there before the script. */
+.seance-skel-key { height: 56px; margin-top: var(--s2); border-radius: var(--r2); border: 1.5px solid var(--space-ink); opacity: 0.35; max-width: 264px; }
+.seance-skel-search { height: 60px; border-radius: var(--r2); background: var(--space-ink); }
+.seance-skel-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); margin-top: var(--s8); }
+.seance-skel-tiles > i { height: 64px; border-radius: var(--r2); }
+
+/* ---------- 6. Objectifs : where it stands, what remains ---------- */
+.ob-top { margin-bottom: var(--s4); }
+.ob-card { gap: var(--s3); padding-top: var(--s4); padding-bottom: var(--s5); }
+.ob-card h3 { font-size: 20px; line-height: 1.15; text-wrap: balance; }
+.ob-figure { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+.ob-value { margin: 0; line-height: 1; }
+.ob-value strong { font-weight: 300; font-size: clamp(44px, 12vw, 56px); line-height: 0.95; }
+.ob-value .asc-muted { font-size: 15px; font-weight: 600; }
+.ob-state { margin-bottom: 4px; }
+.ob-bar { height: 12px; border-radius: 3px; background: var(--bg-3); }
+.ob-bar span { border-radius: 3px; }
+.ob-bar i { top: -4px; bottom: -4px; width: 2px; background: var(--tx); }
+.ob-card[data-state="done"] .ob-bar span { background: var(--cy); }
+.ob-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin: -4px 0 0;
+  font-size: 12.5px;
+  color: var(--tx-3);
+}
+.ob-scale strong { color: var(--cy); font-size: 15px; }
+.ob-line { font-size: 15px; color: var(--tx); font-weight: 600; align-items: flex-start; }
+.ob-card[data-state="ended"] .ob-line,
+.ob-card[data-state="upcoming"] .ob-line { color: var(--tx-2); font-weight: 500; }
+.ob-card[data-state="done"] .ob-line { color: var(--tx); }
+.ob-sources summary { min-height: 32px; display: flex; align-items: center; gap: 6px; }
+.ob-actions { justify-content: flex-start; margin-left: calc(-1 * var(--s3)); }
+.ob-none { margin-bottom: var(--s6); }
+.ob-templates .ob-template { border: 0; background: var(--bg-2); border-radius: var(--r2); cursor: pointer; }
+.ob-templates .ob-template:hover { background: var(--bg-3); }
+@media (min-width: 1100px) {
+  .ob-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--s7); }
+}
+
+/* ---------- 7. Prévoir : the week, today first ---------- */
+.pv-today { display: grid; gap: var(--s2); margin: var(--s5) 0 0; padding: var(--s5) var(--s5) var(--s6); }
+.pv-today .asc-eyebrow { font-weight: 800; }
+.pv-today-title { font-size: clamp(34px, 9vw, 52px); line-height: 0.98; }
+.pv-today .asc-row-flex { margin-top: var(--s3); }
+.pv-today .asc-btn-primary { background: var(--space-ink); color: var(--space); border-color: var(--space-ink); }
+.pv-today .asc-btn-primary:hover { background: var(--bg); }
+.pv-today .asc-btn-primary:focus-visible { outline-color: var(--space-ink); }
+.pv-none { margin-bottom: var(--s4); }
+.pv-day { cursor: pointer; }
+.pv-day-head strong > span + span { font-weight: inherit; }
+.pv-day[data-state="missed"] { opacity: 1; }
+.pv-day[data-state="missed"] .pv-day-status { color: var(--tx-3); }
+/* On a phone the week is a strip of seven marks in the grammar of the programme: the day, its date, the sport as an icon in its
+   family colour, then where the day stands (a tick when something was done, a dashed frame ahead, a dot behind). The names and
+   the times are in the list right under it; every day keeps its full sentence for assistive technology. */
+@media (max-width: 719px) {
+  .pv-week {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+    margin: 0 0 var(--s4);
+    padding: 0;
+    overflow: visible;
+  }
+  .pv-day {
+    justify-items: center;
+    gap: 6px;
+    min-height: 0;
+    padding: var(--s2) 0 var(--s2);
+    border-top: 0;
+    border-radius: var(--r2);
+    background: var(--bg-2);
+    text-align: center;
+  }
+  .pv-day-head { display: grid; justify-items: center; gap: 2px; }
+  .pv-day-head strong { font-size: 12.5px; }
+  .pv-day-head strong > span + span { display: none; }
+  .pv-day-head .asc-num { font-size: 19px; color: var(--tx); line-height: 1; }
+  .pv-day-plan { display: grid; place-items: center; width: 28px; height: 28px; }
+  .pv-day-plan > span { display: none; }
+  .pv-day-plan .t-icon { width: 20px; height: 20px; margin: 0; }
+  .pv-day:not([data-family]) .pv-day-plan::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--tx-4); }
+  .pv-day-status { margin: 0; min-height: 16px; justify-content: center; }
+  .pv-day-status > span { display: none; }
+  .pv-day[data-state="future"],
+  .pv-day[data-state="today"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line-3); }
+  .pv-day[data-state="future"] { box-shadow: none; outline: 1.5px dashed var(--line-3); outline-offset: -2px; }
+  .pv-day[data-today="true"] { box-shadow: inset 0 0 0 2px var(--space); background: transparent; }
+  .pv-day[data-today="true"] .pv-day-head strong { color: var(--space); }
+  .pv-day:focus-visible { outline: 2px solid var(--space); outline-offset: 2px; }
+}
+@media (min-width: 720px) {
+  .pv-week { grid-auto-columns: minmax(128px, 1fr); }
+  .pv-day[data-today="true"] { border-top: 2px solid var(--space); }
+}
+/* The pause of the cadence is a setting: it closes the page. */
+#prevoir > .asc-section[aria-labelledby="pv-cadence-title"] .asc-section-head { flex-wrap: wrap; row-gap: var(--s2); }
+@media (min-width: 1100px) {
+  /* The usual week reads two days across. */
+  #prevoir .asc-section > .asc-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s8); }
+}
+
+#prevoir > .asc-section:first-child,
+#prevoir > .pv-today + .asc-section { margin-top: var(--s5); }
+
+/* ---------- 8. Ta semaine : graphs one can read ---------- */
+/* A bar chart stands on a baseline; the last bar is where one is now and takes the colour of progression. */
+.wk-chart { height: 132px; gap: 5px; padding-top: var(--s2); }
+.wk-col { position: relative; }
+.wk-col-bar { border-radius: 2px 2px 0 0; background: var(--bg-4); box-shadow: 0 1px 0 var(--line-3); }
+.wk-col.is-last .wk-col-bar { background: var(--cy); }
+.wk-col-l { font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.wk-col.is-last .wk-col-l { color: var(--tx); font-weight: 700; }
+/* A comparison is two lines one can read: the figure of now in the text colour, the one of before under it. */
+.wk-top li { align-items: baseline; min-height: 44px; }
+.wk-top li > .asc-num { flex: none; max-width: 62%; text-align: right; font-size: 16px; color: var(--tx); white-space: normal; }
+.wk-top li > .asc-num small {
+  display: block;
+  font-family: var(--font);
+  font-stretch: 100%;
+  font-weight: 500;
+  font-size: 12.5px;
+  color: var(--tx-3);
+}
+.wk-top li > span:first-child small { display: block; font-size: 12.5px; }
+.wk-answer { font-size: 16px; }
+.wk-answer strong { font-weight: 800; }
+.wk-q h3 { text-wrap: balance; }

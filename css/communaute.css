@@ -1,79 +1,8 @@
 /* TITAN — presentation scoped to the community page. Shared Ascension tokens and icons. */
-/* The four places of the community, as four ruled doors: where each leads and what waits there. No card. */
-.cm-shortcuts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 var(--s5);
-  margin-bottom: var(--s7);
-}
-.cm-entry {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: var(--s1);
-  padding: var(--s3) 0 var(--s4);
-  border-top: 2px solid var(--tx);
-  min-width: 0;
-}
-.cm-entry:hover .cm-entry-title {
-  color: var(--space);
-}
-.cm-entry-title {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  font-family: var(--font-display);
-  font-stretch: var(--w-title);
-  font-weight: 800;
-  font-size: 21px;
-  line-height: 1.15;
-}
-.cm-entry-title > .t-icon:first-child {
-  color: var(--space);
-  width: 19px;
-  height: 19px;
-  flex: none;
-}
-.cm-entry-title > .t-icon:last-child {
-  width: 14px;
-  height: 14px;
-  margin-left: auto;
-  flex: none;
-  color: var(--tx-3);
-}
-.cm-entry-description,
-.cm-entry-status {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--tx-2);
-}
-.cm-entry-status {
-  padding-top: var(--s1);
-  font-weight: 700;
-  color: var(--tx);
-}
+/* The spine of the page (circle, scene, what happened, circle to manage), the scene and La Grande Cordée are in
+   css/one-communaute.css. This sheet keeps what the sections share. */
 .cm-attention {
   color: var(--space);
-}
-.cm-layout {
-  display: grid;
-  gap: var(--s7);
-  align-items: start;
-}
-.cm-stream,
-.cm-circle,
-.cm-teams {
-  min-width: 0;
-}
-/* The labels that sat above each column's heading were kickers: the headings under them say the same. They stay for screen
-   readers as the names of the columns. */
-.cm-column-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
 }
 .cm-section {
   scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4));
@@ -93,39 +22,6 @@
   line-height: 1.6;
   color: var(--tx-2);
 }
-.cm-team-label {
-  margin-top: var(--s7);
-}
-.cm-teams {
-  display: grid;
-  gap: var(--s5);
-  align-items: start;
-}
-.cm-teams > .cm-section {
-  margin-top: 0;
-}
-.cm-teams .cm-challenges {
-  grid-template-columns: minmax(0, 1fr);
-}
-.cm-teams .cm-challenge,
-.cm-teams .cm-guild,
-.cm-circle .cm-code {
-  padding: var(--s3) 0;
-}
-.cm-requests {
-  margin-bottom: var(--s5);
-}
-.cm-requests h3 {
-  margin-bottom: var(--s2);
-  font-size: 17px;
-  color: var(--space);
-}
-.cm-request {
-  flex-wrap: wrap;
-}
-.cm-request .cm-actions {
-  margin-left: auto;
-}
 .cm-section .asc-row-title,
 .cm-section h2,
 .cm-section h3,
@@ -133,9 +29,6 @@
 .cm-moment-title span,
 .cm-moment-detail {
   overflow-wrap: anywhere;
-}
-#communaute .asc-btn {
-  min-height: 44px;
 }
 .cm-section > .asc-btn {
   margin-top: var(--s3);
@@ -168,21 +61,8 @@
   margin-top: 4px;
 }
 @media (min-width: 760px) {
-  .cm-shortcuts {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
   .cm-preview {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (min-width: 1100px) {
-  .cm-layout {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    column-gap: var(--s9);
-  }
-  .cm-teams {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--s9);
   }
 }
 
@@ -202,17 +82,6 @@
 #clubs .asc-stack > * { min-width: 0; }
 #clubs .asc-row { flex-wrap: wrap; }
 
-/* Social lot C — La Grande Cordée: the route's four camps as waypoints of the ascent motif. Existing tokens only; final art comes later. */
-.cm-cordee { margin-top: var(--s7); }
-.cm-cordee-card { display: grid; gap: var(--s3); }
-.cm-cordee-card h3 { font-size: 19px; margin: 0; }
-.cm-cordee-camps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s2); margin: 0; padding: 0; list-style: none; }
-.cm-cordee-camps li { display: grid; gap: var(--s1); justify-items: start; font-size: 13px; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
-.cm-cordee-camp-dot { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line-3); font-weight: 700; font-size: 13px; }
-.cm-cordee-camps li[data-reached="true"] .cm-cordee-camp-dot { border-color: var(--space); background: var(--space-soft); color: var(--space); }
-.cm-cordee-members li > span:first-child small { margin-left: 4px; }
-@media (max-width: 420px) { .cm-cordee-camps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* Social lot D — « Depuis ta dernière visite »: a short list of what happened, each line leading where it happened. */
-.cm-retour-section { margin-bottom: var(--s6); }
 .cm-retour .asc-row { align-items: center; gap: var(--s3); }
 .cm-retour .asc-row-title { white-space: normal; }

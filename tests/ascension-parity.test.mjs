@@ -13,7 +13,8 @@ const S = globalThis.TitanSports;
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("five primary destinations, social and coaching stay secondary", async () => {
-  const shell = await read("js/app/shell.js");
+  // The navigation model lives in shell-nav.js (drawn on the first frame of a page); shell.js reads it from there.
+  const shell = await read("js/app/shell-nav.js");
   const block = (name) => shell.match(new RegExp(`const ${name} = \\[(.*?)\\n  \\];`, "s"))?.[1] || "";
   assert.deepEqual([...block("TERRITORIES").matchAll(/href: "([^"]+)"/g)].map((m) => m[1]), ["/aujourdhui", "/stats", "/training", "/adventure", "/profile"]);
   assert.deepEqual([...block("SECONDARY").matchAll(/href: "([^"]+)"/g)].map((m) => m[1]), ["/social", "/coaching", "/boutique", "/service"]);

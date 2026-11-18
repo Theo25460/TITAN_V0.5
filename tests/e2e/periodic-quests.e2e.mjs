@@ -63,6 +63,8 @@ async function questPage({ guest = false, mode = "open" } = {}) {
     window.TitanPeriodicQuests.refresh(true);
     dispatchEvent(new CustomEvent("titan:adventure-updated"));
   }, { owner: OWNER, quests: QUESTS, guest, mode });
+  // The quests live in the « Quêtes » view of the Aventure page (one view at a time under the scene).
+  await f.page.locator('[data-av-view-btn="quetes"]').click();
   return f;
 }
 

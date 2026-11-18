@@ -1078,3 +1078,79 @@ a.pub-card:hover {
   .pub-brand { min-height: 44px; }
   .pub a.pub-link { min-height: 44px; }
 }
+
+/* =====================================================================
+   « Signature » on the public pages (see DESIGN.md § 11). The landing is
+   the first thing a person sees of TITAN: the valley is alive, the product
+   example is a steel plate with the cut, and a label above a heading is a
+   plain small line like in the application (no uppercase tracked kicker).
+   ===================================================================== */
+.pub-eyebrow { text-transform: none; letter-spacing: 0; font-size: 14.5px; font-weight: 700; }
+.pub-mock-tag { text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 700; border: 0; border-radius: var(--r1); padding: 4px 8px; background: var(--bg-3); color: var(--tx-2); }
+.pub-hero { border-bottom: 0; }
+.pub-hero-bg { filter: saturate(0.92) brightness(0.8) contrast(1.02); object-position: center 35%; }
+.pub-hero::after {
+  background:
+    linear-gradient(90deg, rgba(9, 12, 16, 0.94) 0%, rgba(9, 12, 16, 0.74) 38%, rgba(9, 12, 16, 0.18) 100%),
+    linear-gradient(0deg, var(--bg) 0%, rgba(9, 12, 16, 0) 34%);
+}
+@media (max-width: 1039px) {
+  .pub-hero::after {
+    background:
+      linear-gradient(180deg, rgba(9, 12, 16, 0.5) 0%, rgba(9, 12, 16, 0.82) 46%, var(--bg) 100%);
+  }
+}
+.pub-hero h1 { text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45); }
+.pub-hero .pub-lead { color: var(--tx); text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5); }
+.pub-hero .pub-fine { color: var(--tx-2); }
+/* The example of the product: a plate of steel lit from above, cut at one corner; its blocks sit one tone above, without outline. */
+.pub-mock {
+  border: 0;
+  border-radius: var(--r3) var(--r3) 0 var(--r3);
+  background:
+    linear-gradient(180deg, rgba(226, 234, 236, 0.14), transparent 1px),
+    linear-gradient(165deg, rgba(27, 35, 44, 0.94), rgba(19, 25, 32, 0.94) 55%, rgba(13, 17, 22, 0.96));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%);
+  box-shadow: none;
+  padding: var(--s4) var(--s4) var(--s5);
+}
+.pub-mock-card { border: 0; background: rgba(9, 12, 16, 0.55); }
+.pub-mock-id > div { flex: 1; min-width: 0; }
+.pub-mock-id .pub-mock-crest { width: 64px; height: 64px; border-radius: 0; box-shadow: none; object-fit: contain; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.5)); }
+/* A section opens like in the application: a chalk rule that starts in cyan, then a real heading. */
+.pub-head { padding-top: var(--s5); border-top: 2px solid var(--tx); border-image: linear-gradient(90deg, var(--cy) 0 44px, var(--tx) 44px) 1; }
+/* The four worlds are destinations: the painting is seen, the plate is cut. */
+.pub-world { border: 0; border-radius: var(--r3) var(--r3) 0 var(--r3); min-height: 340px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%); }
+.pub-world img { filter: saturate(0.95) brightness(0.86); transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1); }
+.pub-world::before { background: linear-gradient(0deg, rgba(9, 12, 16, 0.96) 6%, rgba(9, 12, 16, 0.55) 38%, rgba(9, 12, 16, 0) 72%); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  a.pub-world:hover img { transform: scale(1.04); }
+}
+/* A public page opens on the same field as the application: terrain inked in the field's ink, and the cut. */
+.pub-page-head {
+  position: relative;
+  isolation: isolate;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%);
+}
+.pub-page-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--space-ink);
+  -webkit-mask: url(/assets/ascension/contours.svg) right -220px top -160px / 900px auto no-repeat;
+  mask: url(/assets/ascension/contours.svg) right -220px top -160px / 900px auto no-repeat;
+  opacity: 0.55;
+  pointer-events: none;
+}
+@media (min-width: 960px) {
+  .pub-page-head { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 32px), calc(100% - 32px) 100%, 0 100%); }
+  .pub-page-head::before { -webkit-mask-size: 1200px auto; mask-size: 1200px auto; -webkit-mask-position: right -60px top -220px; mask-position: right -60px top -220px; }
+}
+/* Page to page: the public pages cross-fade like the application (js/passage.js is read in their <head>). */
+@view-transition { navigation: auto; }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}

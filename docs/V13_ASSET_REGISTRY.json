@@ -22,7 +22,31 @@
       "ratio": 1.3333,
       "source": "existing repository asset",
       "visualOwner": "not established",
-      "usage": [],
+      "usage": [
+        {
+          "source": "css/one-profil-atelier.css",
+          "lines": [
+            843,
+            844
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "css/public.css",
+          "lines": [
+            1143,
+            1144
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "css/signature.css",
+          "lines": [
+            21
+          ],
+          "evidence": "literal"
+        }
+      ],
       "platform": "web",
       "distribution": "web-public-build-candidate",
       "expectedDeliveredBytes": 28400,
@@ -38,9 +62,406 @@
       },
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
-        "sourceEvidence": []
+        "sourceEvidence": [
+          "css/one-profil-atelier.css",
+          "css/public.css",
+          "css/signature.css"
+        ]
       },
       "rpgUsage": true,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/objects/coffre-tactique-256.webp",
+      "family": "brand",
+      "bytes": 12952,
+      "sha256": "d917eadcb49146b88cb4cbd762a5651ef56d9e77f5633c421c18810cda63686a",
+      "version": "sha256:d917eadcb49146b88cb4cbd762a5651ef56d9e77f5633c421c18810cda63686a",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "js/app/atelier.js",
+          "lines": [
+            348
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 12952,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/atelier.js"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/objects/coffre-tactique-512.webp",
+      "family": "brand",
+      "bytes": 34678,
+      "sha256": "ecadbbdecb9bcde18b2fea69b5c614740595d23bb866b48a2f5ea1b19be68785",
+      "version": "sha256:ecadbbdecb9bcde18b2fea69b5c614740595d23bb866b48a2f5ea1b19be68785",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "js/app/atelier.js",
+          "lines": [
+            348
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 34678,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/atelier.js"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/objects/coffre-tactique-96.webp",
+      "family": "brand",
+      "bytes": 3630,
+      "sha256": "3c64e73a7574df1847665b172ead93e4852edc95f0c1d93b1b2c42213553ce38",
+      "version": "sha256:3c64e73a7574df1847665b172ead93e4852edc95f0c1d93b1b2c42213553ce38",
+      "format": "webp",
+      "width": 96,
+      "height": 96,
+      "ratio": 1,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 3630,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": []
+      },
+      "rpgUsage": false,
+      "decision": "fix",
+      "reason": "no literal usage found, verify dynamic consumers before archiving",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/objects/relique-maitrise-256.webp",
+      "family": "brand",
+      "bytes": 26090,
+      "sha256": "09c6b4a6d8800e007273d39608fd05515b50786d71a976c0aadd0d04886cb0fc",
+      "version": "sha256:09c6b4a6d8800e007273d39608fd05515b50786d71a976c0aadd0d04886cb0fc",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "js/app/records.js",
+          "lines": [
+            87
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 26090,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/records.js"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/objects/relique-maitrise-512.webp",
+      "family": "brand",
+      "bytes": 74324,
+      "sha256": "203c14ad8c221b9fea3b4e1ae3bbfef5b509d5a27ef1aa11d9f0e9f22345387f",
+      "version": "sha256:203c14ad8c221b9fea3b4e1ae3bbfef5b509d5a27ef1aa11d9f0e9f22345387f",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "js/app/records.js",
+          "lines": [
+            87
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 74324,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/records.js"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/objects/relique-maitrise-96.webp",
+      "family": "brand",
+      "bytes": 6306,
+      "sha256": "4155a31651ced2a4b808b96cddd8f252775510175f016534ed8b7fcb3985c160",
+      "version": "sha256:4155a31651ced2a4b808b96cddd8f252775510175f016534ed8b7fcb3985c160",
+      "format": "webp",
+      "width": 96,
+      "height": 96,
+      "ratio": 1,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 6306,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": []
+      },
+      "rpgUsage": false,
+      "decision": "fix",
+      "reason": "no literal usage found, verify dynamic consumers before archiving",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/objects/sceau-exploration-256.webp",
+      "family": "brand",
+      "bytes": 21422,
+      "sha256": "7f93998b871a183e83bfb29387a2a85310b0e4e86d877ad89b1164b1f0d102a7",
+      "version": "sha256:7f93998b871a183e83bfb29387a2a85310b0e4e86d877ad89b1164b1f0d102a7",
+      "format": "webp",
+      "width": 256,
+      "height": 256,
+      "ratio": 1,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "js/app/atelier.js",
+          "lines": [
+            482
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "js/app/aventure.js",
+          "lines": [
+            104,
+            262,
+            412
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 21422,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": [
+          "js/app/atelier.js",
+          "js/app/aventure.js"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/objects/sceau-exploration-512.webp",
+      "family": "brand",
+      "bytes": 65432,
+      "sha256": "16103169214a1e639a859d1acd2cdcf56763637ca5f03be3e3dcb9ac25038a5f",
+      "version": "sha256:16103169214a1e639a859d1acd2cdcf56763637ca5f03be3e3dcb9ac25038a5f",
+      "format": "webp",
+      "width": 512,
+      "height": 512,
+      "ratio": 1,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 65432,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": []
+      },
+      "rpgUsage": false,
+      "decision": "fix",
+      "reason": "no literal usage found, verify dynamic consumers before archiving",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "path": "assets/objects/sceau-exploration-96.webp",
+      "family": "brand",
+      "bytes": 4704,
+      "sha256": "a417392883375d01bff3a3472b3cbc6667d786188394b0729303784128a07f41",
+      "version": "sha256:a417392883375d01bff3a3472b3cbc6667d786188394b0729303784128a07f41",
+      "format": "webp",
+      "width": 96,
+      "height": 96,
+      "ratio": 1,
+      "source": "existing repository asset",
+      "visualOwner": "not established",
+      "usage": [],
+      "platform": "web",
+      "distribution": "web-public-build-candidate",
+      "expectedDeliveredBytes": 4704,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "contain, preserve glyph and proportions",
+      "safeArea": "focal bounds to measure on rendered surfaces",
+      "background": "dark #05070A and card surface",
+      "colorMode": "dark intended, system/light contrast pending",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "check surrounding label or decorative role",
+        "sourceEvidence": []
+      },
+      "rpgUsage": false,
       "decision": "fix",
       "reason": "no literal usage found, verify dynamic consumers before archiving",
       "technicalValidation": "dimensions-read",
@@ -71,6 +492,13 @@
             28
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            32
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "web",
@@ -90,7 +518,8 @@
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
           "js/app/crest.js",
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -177,6 +606,13 @@
             29
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            33
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "web",
@@ -196,7 +632,8 @@
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
           "js/app/crest.js",
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -273,6 +710,13 @@
       "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
       "usage": [
         {
+          "source": "index.html",
+          "lines": [
+            33
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "js/app/crest.js",
           "lines": [],
           "evidence": "dynamic-family"
@@ -281,6 +725,13 @@
           "source": "mobile/src/core/images.ts",
           "lines": [
             31
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            35
           ],
           "evidence": "literal"
         }
@@ -301,8 +752,10 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "index.html",
           "js/app/crest.js",
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -389,6 +842,13 @@
             30
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            34
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "web",
@@ -408,7 +868,8 @@
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
           "js/app/crest.js",
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -487,21 +948,21 @@
         {
           "source": "debuter-titan.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
@@ -521,7 +982,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -565,7 +1026,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -594,14 +1055,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            27
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            52
+            53
           ],
           "evidence": "literal"
         },
@@ -621,7 +1082,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -664,7 +1125,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js",
           "titan-plus.html"
@@ -706,7 +1167,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -740,7 +1201,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -781,7 +1242,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -822,7 +1283,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -864,7 +1325,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -898,7 +1359,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -939,7 +1400,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -987,7 +1448,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js",
@@ -1017,14 +1478,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            27
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            52
+            53
           ],
           "evidence": "literal"
         },
@@ -1044,7 +1505,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1087,7 +1548,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js",
           "titan-plus.html"
@@ -1129,7 +1590,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1163,7 +1624,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -1191,7 +1652,7 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            31
+            32
           ],
           "evidence": "literal"
         },
@@ -1211,7 +1672,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1253,7 +1714,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -1282,14 +1743,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            27
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            52
+            53
           ],
           "evidence": "literal"
         },
@@ -1309,7 +1770,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1352,7 +1813,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js",
           "titan-plus.html"
@@ -1394,7 +1855,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1428,7 +1889,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -1469,7 +1930,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1510,7 +1971,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -1552,7 +2013,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1586,7 +2047,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -1627,7 +2088,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1668,7 +2129,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -1710,7 +2171,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1744,7 +2205,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -1785,7 +2246,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1826,7 +2287,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -1868,7 +2329,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1902,7 +2363,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -1943,7 +2404,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -1984,7 +2445,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -2026,7 +2487,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2060,7 +2521,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -2101,7 +2562,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2142,7 +2603,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -2184,7 +2645,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2218,7 +2679,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -2246,7 +2707,7 @@
         {
           "source": "index.html",
           "lines": [
-            32
+            33
           ],
           "evidence": "literal"
         },
@@ -2266,7 +2727,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2308,7 +2769,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -2350,7 +2811,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2384,7 +2845,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -2425,7 +2886,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2466,7 +2927,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -2508,7 +2969,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2542,7 +3003,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -2583,7 +3044,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2624,7 +3085,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -2666,7 +3127,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2707,7 +3168,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "js/ui.js",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -2749,7 +3210,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2790,7 +3251,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js"
@@ -2832,7 +3293,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2866,7 +3327,7 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js"
         ]
@@ -2892,67 +3353,58 @@
       "visualOwner": "not established",
       "usage": [
         {
-          "source": "adventure.html",
-          "lines": [
-            23
-          ],
-          "evidence": "literal"
-        },
-        {
           "source": "aujourdhui.html",
           "lines": [
-            21
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "aventures-sportives.html",
           "lines": [
-            30
+            31
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "css/ascension-app.css",
           "lines": [
-            2176
+            2576
           ],
           "evidence": "literal"
         },
         {
           "source": "defis-sportifs.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            68
+            69
           ],
           "evidence": "literal"
         },
         {
           "source": "js/app/atelier.js",
-          "lines": [
-            266
-          ],
-          "evidence": "literal"
+          "lines": [],
+          "evidence": "dynamic-family"
         },
         {
           "source": "js/app/aventure.js",
@@ -2965,7 +3417,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -2989,56 +3441,63 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            37
+            38
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            36
+            37
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            31
+            32
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-velo.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         }
@@ -3059,7 +3518,6 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "adventure.html",
           "aujourdhui.html",
           "aventures-sportives.html",
           "carnet-musculation.html",
@@ -3070,12 +3528,13 @@
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/images.ts",
           "mobile/src/core/web/renaissance-catalog.js",
           "motivation-sport.html",
           "niveaux-et-xp.html",
+          "onboarding.html",
           "pour-les-coachs.html",
           "progression-sportive.html",
           "sports.html",
@@ -3107,14 +3566,21 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            27
+            28
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "css/one-entree.css",
+          "lines": [
+            158
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            52
+            53
           ],
           "evidence": "literal"
         },
@@ -3134,7 +3600,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -3173,11 +3639,12 @@
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
           "aventures-sportives.html",
+          "css/one-entree.css",
           "index.html",
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
           "mobile/src/core/web/renaissance-catalog.js",
           "titan-plus.html"
@@ -3204,16 +3671,16 @@
       "visualOwner": "not established",
       "usage": [
         {
-          "source": "adventure.html",
+          "source": "aujourdhui.html",
           "lines": [
-            23
+            27
           ],
           "evidence": "literal"
         },
         {
-          "source": "aujourdhui.html",
+          "source": "css/one-entree.css",
           "lines": [
-            21
+            166
           ],
           "evidence": "literal"
         },
@@ -3233,7 +3700,7 @@
           "evidence": "dynamic-family"
         },
         {
-          "source": "js/app/shell.js",
+          "source": "js/app/shell-nav.js",
           "lines": [],
           "evidence": "dynamic-family"
         },
@@ -3246,6 +3713,13 @@
           "source": "mobile/src/core/web/renaissance-catalog.js",
           "lines": [],
           "evidence": "dynamic-family"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "web",
@@ -3264,14 +3738,15 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "adventure.html",
           "aujourdhui.html",
+          "css/one-entree.css",
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
-          "js/app/shell.js",
+          "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
-          "mobile/src/core/web/renaissance-catalog.js"
+          "mobile/src/core/web/renaissance-catalog.js",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -7487,7 +7962,7 @@
         {
           "source": "index.html",
           "lines": [
-            25
+            26
           ],
           "evidence": "literal"
         }
@@ -7534,7 +8009,7 @@
         {
           "source": "index.html",
           "lines": [
-            25
+            26
           ],
           "evidence": "literal"
         }
@@ -10731,6 +11206,13 @@
             28
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            32
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "native",
@@ -10749,7 +11231,8 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -10825,6 +11308,13 @@
             29
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            33
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "native",
@@ -10843,7 +11333,8 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -10914,9 +11405,23 @@
       "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
       "usage": [
         {
+          "source": "index.html",
+          "lines": [
+            33
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "mobile/src/core/images.ts",
           "lines": [
             31
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            35
           ],
           "evidence": "literal"
         }
@@ -10937,7 +11442,9 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "mobile/src/core/images.ts"
+          "index.html",
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -11013,6 +11520,13 @@
             30
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            34
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "native",
@@ -11031,7 +11545,8 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -11104,21 +11619,21 @@
         {
           "source": "debuter-titan.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
@@ -11277,7 +11792,7 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            31
+            32
           ],
           "evidence": "literal"
         },
@@ -11614,7 +12129,7 @@
         {
           "source": "index.html",
           "lines": [
-            32
+            33
           ],
           "evidence": "literal"
         },
@@ -11808,65 +12323,51 @@
       "visualOwner": "not established",
       "usage": [
         {
-          "source": "adventure.html",
-          "lines": [
-            23
-          ],
-          "evidence": "literal"
-        },
-        {
           "source": "aujourdhui.html",
           "lines": [
-            21
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "aventures-sportives.html",
           "lines": [
-            30
+            31
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "css/ascension-app.css",
           "lines": [
-            2176
+            2576
           ],
           "evidence": "literal"
         },
         {
           "source": "defis-sportifs.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            68
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "js/app/atelier.js",
-          "lines": [
-            266
+            69
           ],
           "evidence": "literal"
         },
@@ -11880,56 +12381,63 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            37
+            38
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            36
+            37
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            31
+            32
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-velo.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         }
@@ -11950,7 +12458,6 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "adventure.html",
           "aujourdhui.html",
           "aventures-sportives.html",
           "carnet-musculation.html",
@@ -11958,10 +12465,10 @@
           "css/ascension-app.css",
           "defis-sportifs.html",
           "index.html",
-          "js/app/atelier.js",
           "mobile/src/core/images.ts",
           "motivation-sport.html",
           "niveaux-et-xp.html",
+          "onboarding.html",
           "pour-les-coachs.html",
           "progression-sportive.html",
           "sports.html",
@@ -12248,8 +12755,8 @@
       ],
       "source": "index.html",
       "description": "Inline SVG brand and public header",
-      "bytes": 39334,
-      "version": "sha256:d919c638e15842170e6a4fe5cf740590986fccd842098307e2ab08e83d246c2e",
+      "bytes": 39489,
+      "version": "sha256:de2c507301ea1e6e8365c9f4c09111af97d96155caed3ece42d8c89316b01d46",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12310,7 +12817,7 @@
       "source": "mobile/src/core/icons.generated.ts",
       "description": "Native vector icon catalogue",
       "bytes": 8535,
-      "version": "sha256:bbf25f70ffed1a4d4e68e2cf1e90766c038598d946dbc6e4880b061b4009785e",
+      "version": "sha256:9511b17ed11e21ac68e9ade27b6e32569097ed0b011ef80430e73148de82e24d",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12326,8 +12833,8 @@
       ],
       "source": "js/core/sports.js",
       "description": "Sport icon and family mapping",
-      "bytes": 10231,
-      "version": "sha256:5556e779697203661337231887c30e68c9d45def4a67c77a9da8ad2f8fb7e1c6",
+      "bytes": 10599,
+      "version": "sha256:c1b92d5f1e270917425ba13a79d1a460b958ced5547e1e014c05169bffb4f37f",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12362,8 +12869,8 @@
       ],
       "source": "js/app/shell.js",
       "description": "Navigation, avatar and menu",
-      "bytes": 26288,
-      "version": "sha256:7af4505379c2138443a6d7041997d7670979646d65b25a613e3ff4c803e2652f",
+      "bytes": 22582,
+      "version": "sha256:3d29f908103d35333b3fc7f1dae0d8bc968b83f671daefcf37c41eb922393346",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12416,8 +12923,8 @@
       ],
       "source": "js/app/profil.js",
       "description": "Earned distinctions and passport",
-      "bytes": 91664,
-      "version": "sha256:0f81719f74f6d11264998d957e8c74905f7e6e0f91ecd56259f72ba7b518d3cd",
+      "bytes": 92744,
+      "version": "sha256:d38911b784bb9d50ba0548afd594c1a92d77c31ce643aefdfba6abc210d76094",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12435,8 +12942,8 @@
       ],
       "source": "mobile/src/components/WorldPathMap.tsx",
       "description": "Chapter path and guardian",
-      "bytes": 3455,
-      "version": "sha256:72419a0ac521d81c8496d6fa3693c194ecb38b1302ecde098207bddcef848fa1",
+      "bytes": 3615,
+      "version": "sha256:f72281ea65853e3190e32d6d32c8a378c3cff15aee7513f13156e8e4034b4f20",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12454,8 +12961,8 @@
       ],
       "source": "js/app/aventure.js",
       "description": "Landscapes, guardian and chapters",
-      "bytes": 36890,
-      "version": "sha256:c7b784fe1caed4e8ddafee01a4c4a445ea57b22b45d04a66bb87924d2456d2de",
+      "bytes": 47353,
+      "version": "sha256:6dd6ef05977ffd445fd57b17aa97f692cd67f6433328c69222efaf9a999afa8b",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12473,8 +12980,8 @@
       ],
       "source": "js/app/journey.js",
       "description": "Trail and discovery views",
-      "bytes": 12692,
-      "version": "sha256:6ec829dc9927d1d2af18d07301145c97cd223043d2b6c9c6e1bb002611e7ec08",
+      "bytes": 14180,
+      "version": "sha256:0a12bdd539c43130217de1a1a8dfc1fdd1491013a8a77b79a0e832589863d4d8",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12563,8 +13070,8 @@
       ],
       "source": "js/app/atelier.js",
       "description": "Cosmetic frames, map and card styles",
-      "bytes": 42373,
-      "version": "sha256:54faa00c024c431fde63e701162c73162be6e64267e4d901681803d800e4e60e",
+      "bytes": 64908,
+      "version": "sha256:388735ebb0be03829da9c63c1e4aacb803dda839a8d2187f257b6c4e302c1e27",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12580,8 +13087,8 @@
       ],
       "source": "mobile/src/screens/session/GpsRecordScreen.tsx",
       "description": "Native GPS recording",
-      "bytes": 15796,
-      "version": "sha256:1af9b90dc8f7885131d44b78429b5d22ac3353e06374c3be48d47807c7cfbee8",
+      "bytes": 16260,
+      "version": "sha256:c92b2b1665dfa84e4533daa61e02d1e30ec955fcbf8fad848122ea6172fd26a5",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12598,8 +13105,8 @@
       ],
       "source": "js/app/records.js",
       "description": "Statistics and record source",
-      "bytes": 13683,
-      "version": "sha256:22a5fa426a85587e46813107bb6e503d03d2f1c3ecb845694d5e4dd81d4cae99",
+      "bytes": 18367,
+      "version": "sha256:b6a09631c23e3e9266f873d9e0a62f96bbe68bbeae7edbfdd3314af0a53d7386",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -15130,6 +15637,11 @@
       "capture": null
     },
     {
+      "source": "js/app/cordee.js",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "js/app/crest.js",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -15265,6 +15777,11 @@
       "capture": null
     },
     {
+      "source": "js/app/retour.js",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "js/app/saison.js",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -15286,6 +15803,11 @@
     },
     {
       "source": "js/app/share.js",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "js/app/shell-nav.js",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -15385,7 +15907,17 @@
       "capture": null
     },
     {
+      "source": "mobile/src/screens/community/CircleDigestCard.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "source": "mobile/src/screens/community/CommunityScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/community/CordeePanel.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },
@@ -15396,6 +15928,11 @@
     },
     {
       "source": "mobile/src/screens/community/EventsScreen.tsx",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "mobile/src/screens/community/FriendLinks.tsx",
       "visualValidation": "pending-human-review",
       "capture": null
     },

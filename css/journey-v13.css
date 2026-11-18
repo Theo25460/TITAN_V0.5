@@ -42,3 +42,4 @@
   .journey-region { min-height: 160px; padding: 12px; }
   .journey-actions > * { width: 100%; }
 }
+.journey-seal.is-object { width: auto; height: auto; margin: 12px auto 4px; border-radius: 0; background: none; }

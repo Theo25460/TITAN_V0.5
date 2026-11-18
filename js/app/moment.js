@@ -96,7 +96,7 @@
       if (capped) lines.push(Number(r.xp) > 0 ? `Plafond de fair-play atteint : ${F().number(r.xp)} XP comptés sur ${F().number(r.requested_xp)}.` : "Plafond de fair-play du jour ou de la semaine atteint : la séance compte pour tes statistiques, pas pour l’XP.");
       else lines.push("Confirmée par le serveur.");
       if (Number(r.leveled_up) > 0) lines.push(`Niveau ${F().number(r.level_after)} atteint.`);
-      return { state: capped ? "capped" : "confirmed", big: `+${F().number(r.xp)} XP`, sub: lines.join(" "), credits: Number(r.credits) || 0, levelUp: Number(r.leveled_up) > 0 ? Number(r.level_after) : null, xp: Number(r.xp) || 0, levelAfter: Number(r.level_after) || null, xpAfter: Number(r.xp_after) || null };
+      return { state: capped ? "capped" : "confirmed", big: `+${F().number(r.xp)} XP`, sub: lines.join(" "), credits: Number(r.credits) || 0, levelUp: Number(r.leveled_up) > 0 ? Number(r.level_after) : null, levels: Number(r.leveled_up) || 0, xp: Number(r.xp) || 0, levelAfter: Number(r.level_after) || null, xpAfter: Number(r.xp_after) || null };
     }
     const offline = !navigator.onLine;
     return { state: "pending", big: "Confirmation en attente", sub: offline ? "Hors ligne, la séance est conservée sur cet appareil et partira dès le retour du réseau." : "Conservée sur cet appareil. Confirmation du serveur en cours…" };
@@ -111,7 +111,7 @@
     const days = c.currentDays;
     const notches = Array.from({ length: c.target }, (_, i) => `<span class="asc-notch" data-state="${i < days ? "held" : "current"}" style="--fill:0%"></span>`).join("");
     const text = days >= c.target ? (days === c.target ? "Semaine tenue. Tout ce qui suit est du bonus, pas une obligation." : `Semaine tenue, ${days} jours actifs.`) : `Encore ${c.remaining} jour${c.remaining > 1 ? "s" : ""} actif${c.remaining > 1 ? "s" : ""} pour tenir ta semaine.`;
-    return `<section class="moment-block"><div class="asc-between"><p class="asc-eyebrow">Ta semaine</p><span class="asc-small asc-muted">${days}/${c.target} jours actifs</span></div>
+    return `<section class="moment-block"><div class="asc-between"><p class="moment-label">Ta semaine</p><span class="asc-small asc-muted">${days}/${c.target} jours actifs</span></div>
       <div class="asc-notches moment-notches" style="grid-template-columns:repeat(${c.target},1fr)" aria-hidden="true">${notches}</div><p class="asc-small asc-muted">${esc(text)}</p></section>`;
   }
 
@@ -119,7 +119,7 @@
     const m = P().mastery(window.state?.history || []).find((x) => x.sport === log.sport);
     if (!m) return "";
     const pct = Math.round(m.progress * 100);
-    return `<section class="moment-block"><div class="asc-between"><p class="asc-eyebrow">Maîtrise · ${esc(m.label)}</p><span class="asc-small asc-muted">${esc(m.name)}</span></div>
+    return `<section class="moment-block"><div class="asc-between"><p class="moment-label">Maîtrise · ${esc(m.label)}</p><span class="asc-small asc-muted">${esc(m.name)}</span></div>
       <span class="asc-ascent thin" aria-hidden="true"><span style="--p:${pct}%"></span></span>
       <p class="asc-small asc-muted">${m.next ? `${pct} % vers ${esc(m.next.name)} · ${F().duration(m.minutes)} sur ${F().number(m.weeks)} semaine${m.weeks > 1 ? "s" : ""}` : "Niveau Référence : le sommet de cette discipline."}</p></section>`;
   }
@@ -138,10 +138,11 @@
       <span class="asc-row-sub">${esc(world?.name || "Aventure")} · ${days}/${c.target} jour${c.target > 1 ? "s" : ""} actif${c.target > 1 ? "s" : ""}${log.syncStatus === "confirmed" ? "" : " · mis à jour après confirmation"}</span></span>${icon("chevron")}</a>`;
   }
 
-  /* La révélation de progression (web): the XP ring fills, the number counts up, embers rise, and on a new level the rank crest strikes into place.
+  /* La révélation de progression (web): the gain counts up while the level bar moves from where it stood to where it stands; on a new level the rank crest settles beside the figure.
      Decorative (aria-hidden: the text of the reward right below says everything); only for a gain the server confirmed; once per opening of the sheet;
      the final state is shown at once with "reduire les animations". */
-  const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  // The system's setting, or TITAN's own « Animations réduites » (shell.js sets data-motion on the document).
+  const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || document.documentElement.getAttribute("data-motion") === "reduced";
   function hero(log, play) {
     const rw = reward(log);
     if (!(rw.state === "confirmed" || rw.state === "capped") || !(rw.xp > 0) || !window.TitanCrest) return "";
@@ -152,29 +153,61 @@
     const to = rw.levelUp ? 1 : after;
     const animate = play && !reducedMotion();
     const rank = window.TitanCrest.rankIdOf(level);
+    const known = rw.levelAfter !== null && rw.xpAfter !== null;
+    // The gain is the figure; the level it moves is the same bar as on the QG. Before this session the bar stood at `from`
+    // (drawn as a quieter tone under the fill), after it at `to`.
+    // A new level is a short scene, played once: the ascent drawn by the shared geometry of « l'Expédition », its trail inked up to
+    // the summit, the crest of the rank standing on the ground. A new rank says so. Decorative (the words under it state the level).
+    const newRank = rw.levelUp && window.TitanCrest.rankIdOf(Math.max(1, level - Math.max(1, rw.levels || 1))) !== rank;
+    const scene = rw.levelUp ? `<div class="moment-scene${newRank ? " is-rank" : ""}">${ascentSvg(rank)}
+        <p class="moment-scene-copy"><span>${newRank ? "Nouveau rang" : "Niveau atteint"}</span><strong class="asc-num">${F().number(level)}</strong><span>${esc(E().rank(level).name)}</span></p>
+        <div class="moment-crest sig-object">${window.TitanCrest.svg(rank, 132)}</div></div>` : "";
     return `<section class="moment-hero${animate ? "" : " struck"}" aria-hidden="true" data-level-up="${rw.levelUp ? 1 : 0}" data-play="${animate ? 1 : 0}" data-to="${to}" style="--accent:${window.TitanCrest.ACCENT[rank]}">
-      <div class="moment-ring">
-        <svg viewBox="0 0 120 120"><circle class="mr-track" cx="60" cy="60" r="52"/><circle class="mr-fill" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${(100 * (1 - (animate ? from : to))).toFixed(2)}"/></svg>
-        <div class="moment-ring-center"><span class="moment-ring-xp asc-num" data-count="${rw.xp}">+${F().number(rw.xp)}</span><small>XP</small></div>
-        ${rw.levelUp ? `<div class="moment-crest">${window.TitanCrest.svg(rank, 104)}</div>` : ""}
-        <div class="moment-embers"></div>
+      ${scene}
+      <div class="moment-ring moment-climb">
+        <p class="moment-climb-figure"><span class="moment-ring-xp asc-num" data-count="${rw.xp}">+${F().number(rw.xp)}</span><small>XP</small></p>
+        ${known ? `<div class="moment-climb-bar"><span class="mc-before" style="width:${(from * 100).toFixed(2)}%"></span><span class="mc-fill" style="width:${((animate ? from : to) * 100).toFixed(2)}%"></span></div>
+        <p class="moment-climb-legend"><span>${rw.levelUp ? `Niveau ${F().number(level)} atteint` : `Niveau ${F().number(level)}`}</span><span>${rw.levelUp ? esc(E().rank(level).name) : `vers le niveau ${F().number(level + 1)}`}</span></p>` : ""}
       </div>
     </section>`;
   }
+  /* The ascent behind a new level: ridges, the trail to the summit and its flag, from js/core/live-scene.js. The session page
+     does not load that file: it is fetched when a moment opens, and the scene is completed when it arrives (it is a backdrop:
+     nothing moves and nothing is missing while it loads, or if it never does). */
+  let sceneLoad = null;
+  function ensureScene() {
+    if (window.TitanLiveScene) return Promise.resolve(true);
+    if (!sceneLoad) sceneLoad = new Promise((resolve) => {
+      const s = document.createElement("script");
+      s.src = "/js/core/live-scene.js?v=1";
+      s.onload = () => resolve(!!window.TitanLiveScene);
+      s.onerror = () => resolve(false);
+      document.head.append(s);
+    });
+    return sceneLoad;
+  }
+  function ascentInner(seed) {
+    const s = window.TitanLiveScene.scene({ beats: 6, planCount: 6, seed: `rank:${seed}`, ended: true, elan: { value: 90, max: 90 } });
+    return `${s.stars.map((p) => `<circle class="ma-star" cx="${p.x}" cy="${p.y}" r="${p.r}"/>`).join("")}${s.ridges.map((d, i) => `<path class="ma-ridge r${i + 1}" d="${d}"/>`).join("")}<path class="ma-trail" pathLength="1" d="${s.trail}"/>${s.nodes.map((n) => `<circle class="ma-node" cx="${n.x}" cy="${n.y}" r="3.2"/>`).join("")}<g class="ma-flag"><path d="M${s.summit.x} ${s.summit.y} v-22"/><path d="M${s.summit.x} ${s.summit.y - 22} l13 5 l-13 5 z"/></g>`;
+  }
+  const ascentSvg = (seed) => `<svg class="moment-ascent" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true"${window.TitanLiveScene ? "" : ` data-ascent="${esc(seed)}"`}>${window.TitanLiveScene ? ascentInner(seed) : ""}</svg>`;
+  function fillScenes(root) {
+    if (!root.querySelector("svg[data-ascent]")) return;
+    if (!window.TitanLiveScene) { ensureScene().then((ok) => { if (ok && root.isConnected) fillScenes(root); }); return; }
+    root.querySelectorAll("svg[data-ascent]").forEach((svg) => { svg.innerHTML = ascentInner(svg.dataset.ascent); svg.removeAttribute("data-ascent"); });
+  }
+
   function playHero(root) {
     const h = root.querySelector(".moment-hero[data-play='1']");
     if (!h) return;
-    const fill = h.querySelector(".mr-fill"), num = h.querySelector(".moment-ring-xp"), embers = h.querySelector(".moment-embers");
+    const fill = h.querySelector(".mc-fill"), num = h.querySelector(".moment-ring-xp");
     const to = Number(h.dataset.to) || 0, xp = Number(num?.dataset.count) || 0;
-    const burst = (n, colors) => { for (let i = 0; i < n; i++) { const e = document.createElement("span"); e.className = "ember"; e.style.cssText = `--s:${(2 + Math.random() * 4).toFixed(1)}px;--c:${colors[i % colors.length]};--dx:${((Math.random() - 0.5) * 120).toFixed(0)}px;--ry:-${(70 + Math.random() * 150).toFixed(0)}px;--d:${(1.1 + Math.random()).toFixed(2)}s;--dl:${(Math.random() * 0.5).toFixed(2)}s;margin-left:${((Math.random() - 0.5) * 120).toFixed(0)}px`; embers.appendChild(e); } };
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      fill.style.strokeDashoffset = String(100 * (1 - to));
-      burst(22, ["#3DD9E8", "#8CEAF2", "#FFFFFF"]);
+      if (fill) fill.style.width = `${(to * 100).toFixed(2)}%`;
       const t0 = performance.now();
-      const step = (now) => { const k = Math.min(1, (now - t0 - 250) / 1000); const v = k <= 0 ? 0 : Math.round(xp * (1 - Math.pow(1 - k, 3))); if (num) num.textContent = "+" + F().number(v); if (k < 1) requestAnimationFrame(step); else if (num) num.textContent = "+" + F().number(xp); };
+      const step = (now) => { const k = Math.min(1, (now - t0 - 200) / 900); const v = k <= 0 ? 0 : Math.round(xp * (1 - Math.pow(1 - k, 4))); if (num) num.textContent = "+" + F().number(v); if (k < 1) requestAnimationFrame(step); else if (num) num.textContent = "+" + F().number(xp); };
       requestAnimationFrame(step);
-      if (h.dataset.levelUp === "1") setTimeout(() => { h.classList.add("struck"); burst(34, [h.style.getPropertyValue("--accent") || "#F4BB54", "#FFFFFF", "#F4BB54"]); }, 1450);
-      else setTimeout(() => h.classList.add("struck"), 1450);
+      setTimeout(() => h.classList.add("struck"), 1300);
     }));
   }
 
@@ -204,13 +237,27 @@
     const recs = records(log);
     const m = metrics(log);
     const ring = hero(log, play);
-    return `<div class="moment" data-state="${rw.state}">
-      <h3 class="asc-eyebrow">Tu as fait</h3>
-      <dl class="moment-metrics">${m.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
-      ${recs.length ? `<section class="moment-block moment-records"><p class="asc-eyebrow am">${recs.every((r) => r.first) ? (recs.length > 1 ? "Premiers repères" : "Premier repère") : recs.length > 1 ? "Records" : "Record"}</p>${recs
+    // The session leads with one figure set large on the field (its distance, its volume, or its time); the rest follows as a row.
+    // A record that fell leads instead: it is what the session will be remembered for, and the field turns amber.
+    const top = recs.find((r) => !r.first) || null;
+    const lead = top ? [`Record · ${top.label}`, fmtRecord(top)] : m.find(([k]) => k === "Distance") || m.find(([k]) => k === "Volume") || m.find(([k]) => k === "Durée") || m[0];
+    const rest = top ? m : m.filter((x) => x !== lead);
+    const others = recs.filter((r) => r !== top);
+    // A record is a mark moved: the bar of the new mark, notched where the previous one stood (the shorter one is the better
+    // one when less is the record). Decorative: both values are written beside it.
+    const was = top && top.previous ? Number(top.previous.value) : 0, now = top ? Number(top.value) : 0;
+    const mark = was > 0 && now > 0 && was !== now ? `<div class="moment-mark${now < was ? " is-lower" : ""}" aria-hidden="true" style="--was:${(Math.max(0.06, Math.min(0.97, Math.min(was, now) / Math.max(was, now))) * 100).toFixed(1)}%"><i class="mm-now"></i><i class="mm-was"></i></div>` : "";
+    return `<div class="moment" data-state="${rw.state}"${top ? ' data-record="1"' : ""}>
+      <div class="moment-field">
+        <h3 class="moment-label">Tu as fait</h3>
+        ${lead ? `<p class="moment-lead"><span class="asc-num">${esc(lead[1])}</span><small>${esc(lead[0])}${top && top.previous ? `<br>avant : ${esc(fmtRecord(top, top.previous.value))}` : ""}</small></p>` : ""}
+        ${mark}
+        <dl class="moment-metrics">${rest.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}${lead && !top ? `<div class="sr-only"><dt>${esc(lead[0])}</dt><dd>${esc(lead[1])}</dd></div>` : ""}</dl>
+      </div>
+      ${others.length ? `<section class="moment-block moment-records"><p class="moment-label am">${others.every((r) => r.first) ? (others.length > 1 ? "Premiers repères" : "Premier repère") : others.length > 1 ? "Autres records" : "Autre record"}</p>${others
         .map((r) => `<div class="moment-record"><span class="moment-record-label">${esc(r.label)}</span><strong class="asc-num">${esc(fmtRecord(r))}</strong><span class="asc-small asc-faint">${r.previous ? `avant : ${esc(fmtRecord(r, r.previous.value))}` : "ta référence pour la suite"}</span></div>`)
         .join("")}</section>` : ""}
-      <h3 class="asc-eyebrow">Ce que ça change</h3>
+      <h3 class="moment-label">Ce que ça change</h3>
       <div class="moment-gain${ring ? " has-ring" : ""}">
         ${ring}
         <section class="moment-reward" data-state="${rw.state}" aria-live="polite">
@@ -223,7 +270,7 @@
       ${cadenceHtml(log)}
       ${masteryHtml(log)}
       ${adventureHtml(log)}
-      <h3 class="asc-eyebrow">Et ensuite ?</h3>
+      <h3 class="moment-label">Et ensuite ?</h3>
       <p class="moment-next">${esc(nextStep(log, rw))}</p>
       <div class="moment-actions">
         ${window.TitanShare?.available() && !E().isHistorical(log.date) ? `<button type="button" class="asc-btn asc-btn-ghost moment-share" data-moment="share">${icon("send")} Partager avec mes amis</button>` : ""}
@@ -245,6 +292,7 @@
     let played = false;
     const firstHtml = () => { const l = current(log); const play = !played && l.syncStatus === "confirmed"; const out = html(l, play); if (play && out.includes("moment-hero")) played = true; return out; };
     body.innerHTML = firstHtml();
+    fillScenes(body);
     const broken = records(current(log)).filter((r) => !r.first);
     if (broken.length) window.TitanAnalytics?.track("record_unlocked", { kind: broken[0].kind, family: S().familyOf(log.sport) });
     const historical = E().isHistorical(log.date);
@@ -267,6 +315,10 @@
       },
     });
     dialog.classList.add("moment-sheet");
+    // The end of a session is set in the lime of the Séance space, whatever page it opens over; a record turns its field amber.
+    dialog.dataset.space = "seance";
+    const markRecord = () => dialog.toggleAttribute("data-record", !!body.querySelector(".moment[data-record]"));
+    markRecord();
     const initialFocus = document.activeElement;
     const live = () => !closed && dialog.isConnected && dialog.open && currentContext();
     const topmost = () => [...document.querySelectorAll("dialog[open]")].at(-1) === dialog;
@@ -284,6 +336,8 @@
         : action ? `a[href="${CSS.escape(action.getAttribute("href"))}"]` : null;
       const l = current(log);
       body.innerHTML = firstHtml();
+      fillScenes(body);
+      markRecord();
       playHero(body);
       if (selector) restoreAction(selector);
       if (!wasConfirmed && l.syncStatus === "confirmed") {

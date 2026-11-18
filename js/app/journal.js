@@ -81,14 +81,6 @@
 
   // Self-explanatory values only: a bare "2" means nothing in a list.
   const LABELLED = { Exercices: (v) => `${v} exercice${v === "1" ? "" : "s"}`, Séries: (v) => `${v} série${v === "1" ? "" : "s"}`, Répétitions: (v) => `${v} rép.`, Réussites: (v) => `${v} réussies`, Meilleure: (v) => `max ${v}` };
-  function shortMetrics(l) {
-    return (window.TitanMoment?.metrics(l) || [])
-      .filter(([k]) => k !== "Ressenti")
-      .slice(0, 3)
-      .map(([k, v]) => (LABELLED[k] ? LABELLED[k](v) : v))
-      .join(" · ");
-  }
-
   function syncBadge(l) {
     if (l.syncStatus === "error") return `<span class="asc-chip jr-badge err" title="Envoi refusé">${icon("alert")}À vérifier</span>`;
     if (l.syncStatus === "pending") return `<span class="asc-chip jr-badge" title="En attente de synchronisation">${icon("cloudUp")}En attente</span>`;
@@ -109,10 +101,15 @@
     const rawRpe = Number(l.details?.bio?.rpe ?? l.details?.rpe);
     const rpe = rawRpe > 0 ? String(Math.round(rawRpe)) : "";
     const rest = mets.filter(([k]) => !["Distance", "Durée", "Ressenti"].includes(k)).slice(0, 3).map(([k, v]) => (LABELLED[k] ? LABELLED[k](v) : v)).join(" · ");
-    return `<button type="button" class="jr-row" data-open="${esc(X().idOf(l))}" data-family="${esc(fam)}">
+    // On a phone one figure leads the row, set like a figure at the right (the distance when the session has one, its time
+    // otherwise); the line under the sport keeps the rest. A session that set a record carries it in amber.
+    const lead = dist ? ["Distance", dist] : mins ? ["Durée", F().duration(mins)] : null;
+    const narrow = mets.filter(([k]) => k !== "Ressenti" && k !== lead?.[0]).slice(0, 3).map(([k, v]) => (LABELLED[k] ? LABELLED[k](v) : v)).join(" · ");
+    return `<button type="button" class="jr-row" data-open="${esc(X().idOf(l))}" data-family="${esc(fam)}"${rec ? ' data-record="true"' : ""}>
       <span class="jr-date"><span class="asc-num">${d.getDate()}</span><small>${d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")}</small></span>
       <span class="jr-icon">${icon(SP().iconOf(l.sport))}</span>
-      <span class="jr-text"><span class="jr-title">${esc(SP().label(l.sport))}</span><span class="jr-sub jr-sub-narrow">${esc(shortMetrics(l))}</span><span class="jr-sub jr-sub-wide">${esc(rest)}</span></span>
+      <span class="jr-text"><span class="jr-title">${esc(SP().label(l.sport))}</span><span class="jr-sub jr-sub-narrow">${esc(narrow)}</span><span class="jr-sub jr-sub-wide">${esc(rest)}</span></span>
+      <span class="jr-lead">${lead ? esc(lead[1]) : ""}</span>
       <span class="jr-fig" data-col="Durée">${mins ? esc(F().duration(mins)) : ""}</span>
       <span class="jr-fig" data-col="Distance">${esc(dist)}</span>
       <span class="jr-fig" data-col="Ressenti">${rpe ? `${rpe}<small>/10</small>` : ""}</span>
@@ -150,9 +147,9 @@
 
   function emptyHtml() {
     const any = source().length;
-    if (ui.archived) return `<div class="asc-empty"><h2>Aucune séance archivée</h2><p>Une séance archivée sort de tes statistiques mais reste ici, restaurable à tout moment.</p></div>`;
-    if (!any) return `<div class="asc-empty"><h2>Ton journal commence à ta première séance</h2><p>Course, musculation, escalade, padel : enregistre ce que tu as vraiment fait, en moins d’une minute.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`;
-    return `<div class="asc-empty"><h2>Aucune séance ne correspond</h2><p>Change la période, la famille ou la recherche.</p><button type="button" class="asc-btn asc-btn-secondary" data-reset>${icon("restore")} Tout afficher</button></div>`;
+    if (ui.archived) return `<div class="asc-empty sig-empty">${icon("archive")}<h2>Aucune séance archivée</h2><p>Une séance archivée sort de tes statistiques mais reste ici, restaurable à tout moment.</p></div>`;
+    if (!any) return `<div class="asc-empty sig-empty">${icon("journal")}<h2>Ton journal commence à ta première séance</h2><p>Course, musculation, escalade, padel : enregistre ce que tu as vraiment fait, en moins d’une minute.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`;
+    return `<div class="asc-empty sig-empty">${icon("search")}<h2>Aucune séance ne correspond</h2><p>Change la période, la famille ou la recherche.</p><button type="button" class="asc-btn asc-btn-secondary" data-reset>${icon("restore")} Tout afficher</button></div>`;
   }
 
   function calendarHtml(list) {
@@ -247,15 +244,17 @@
       })()}
       ${pendingHtml()}
       <div class="jr-tools">
-        <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>
-          <input id="jr-q" class="asc-input" type="search" autocomplete="off" placeholder="Sport, exercice, note…" value="${esc(ui.q)}"></div>
-        <div class="jr-filters">
-          <div class="asc-seg" role="group" aria-label="Vue">${[["list", "Liste"], ["calendar", "Calendrier"]].map(([k, l]) => `<button type="button" data-view="${k}" aria-pressed="${ui.view === k}">${l}</button>`).join("")}</div>
-          <label class="sr-only" for="jr-period">Période</label><select id="jr-period" class="jr-select">${PERIODS.map(([k, l]) => `<option value="${k}" ${ui.period === k ? "selected" : ""}>${l}</option>`).join("")}</select>
+        <div class="jr-bar">
+          <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>
+            <input id="jr-q" class="asc-input" type="search" autocomplete="off" placeholder="Sport, exercice, note…" value="${esc(ui.q)}"></div>
+          <div class="asc-seg jr-view" role="group" aria-label="Vue">${[["list", "Liste"], ["calendar", "Calendrier"]].map(([k, l]) => `<button type="button" data-view="${k}" aria-pressed="${ui.view === k}">${icon(k === "list" ? "menu" : "calendar")}<span>${l}</span></button>`).join("")}</div>
         </div>
-        <div class="seance-chips jr-fams" role="group" aria-label="Famille">
-          <button type="button" class="seance-chip" data-family="all" aria-pressed="${ui.family === "all"}">Tout</button>
-          ${fams.map((f) => `<button type="button" class="seance-chip" data-family="${f}" aria-pressed="${ui.family === f}">${icon(SP().FAMILY_ICON[f])}${esc(SP().FAMILY_LABEL[f])}</button>`).join("")}
+        <div class="jr-refine">
+          <label class="sr-only" for="jr-period">Période</label><select id="jr-period" class="jr-select">${PERIODS.map(([k, l]) => `<option value="${k}" ${ui.period === k ? "selected" : ""}>${l}</option>`).join("")}</select>
+          <div class="seance-chips jr-fams" role="group" aria-label="Famille">
+            <button type="button" class="seance-chip" data-family="all" aria-pressed="${ui.family === "all"}">Tout</button>
+            ${fams.map((f) => `<button type="button" class="seance-chip" data-family="${f}" aria-pressed="${ui.family === f}">${icon(SP().FAMILY_ICON[f])}${esc(SP().FAMILY_LABEL[f])}</button>`).join("")}
+          </div>
         </div>
       </div>
       ${ui.archived ? `<p class="asc-note">${icon("archive")}<span>Archives : ces séances sont hors statistiques. Ouvre une séance pour la restaurer.</span></p>` : ""}

@@ -198,3 +198,72 @@ Still open:
   brought to the system.
 - The first-visit consent banner covers the lower fifth of a phone until answered.
 - Crests for the three highest ranks and the background paintings of TITAN LIVE do not exist yet (see `docs/TITAN_ONE.md`).
+
+## 11. Mission 1 « masterclass » — what was added on the web (17 November 2026, night)
+
+Nothing here adds a token. These are compositions built from the system above; the Android side of each is listed in
+`docs/MISSION_2_RELAIS_ANDROID.md`.
+
+- **The status band of the QG** (`.qg-status`). Under the greeting, before the slab: the week on one line (`.qg-pulse`,
+  `TitanProgramView.days`) — seven days in the grammar of the programme, each inked in the family that took most of that day,
+  then « 2/4 jours actifs » as a figure — and the rank as one row. On a wide screen the two share a row aligned with the two
+  columns. A new account has no pulse (« 0/3 » is an empty figure): the band holds the rank alone. The painting of the QG is
+  shorter on a phone (236 px) so greeting, week, rank and the action of the day share the first screen.
+- **What changed is a sentence** (`.qg-week-change`): under the three figures of the week, « 1 h 33 de plus que d'habitude à ce
+  stade de la semaine. », the figure in cyan when it is a gain.
+- **The moment after a session** (`.moment-sheet`). The sheet takes the Séance space wherever it opens. Its head and
+  `.moment-field` are one flat lime field: the figure that says the session set large in the ink (`.moment-lead`: distance,
+  else volume, else time), the other measures on one line under a hairline of ink. A record that fell leads instead and the
+  field turns amber (`[data-record]`), with the mark it replaced. Under the field, on the panel tone and under hairlines: the
+  confirmed gain as a light cyan figure that counts up over the level bar of the QG (`.moment-climb-bar`: a quieter tone where
+  the level stood, the fill where it stands), the week, the mastery, the chapter, one sentence about what comes next. No ring,
+  no particles, no box inside the sheet.
+- **A beacon lit** (`.av-celebrate-sheet`). The painting of the world edge to edge at the top of the sheet (the guardian's
+  portrait for the ninth), the trail of the nine beacons across its foot (`.av-celebrate-trail`: lit in moss, the one just lit
+  in amber with its number, the ones ahead as outlines, the guardian as a diamond), the name of the badge in amber.
+- **The mission in four lines** (`.av-mission`): what to do, how far, the action, the line of story. What the chapter brings
+  and how it is counted opens on a labelled line (`.av-more`); « Détails du chapitre » stays a visible quiet button. The map of
+  the world is drawn at nearly the light of its painting (brightness 0.86, a vignette at the edges only).
+- **The circle** (`.cm-circle`): on the coral field of the Communauté, the faces of the friends who agreed, their count and
+  how many moved today; the line's height is reserved from the first paint.
+- **Journal on a phone**: the four totals share one line of row figures (bold, 23–30 px) so the list starts on the first screen.
+- **Carrière**: a career figure is a fact and is set in the text colour; cyan and amber keep their meaning.
+
+Motion added: one count-up and one bar on the moment, one beacon settling on the trail. Each has its final state at once under
+`prefers-reduced-motion` and TITAN's own setting.
+
+## 11. « Signature » (17 November 2026, web) — what makes TITAN recognisable without its logo
+
+« Programme » gave TITAN a system; the owner asked for a signature: premium, immersive, with the RPG's character, never
+overloaded. Four ideas, in `css/signature.css` (loaded after `ascension-app.css` by every application page), used everywhere
+and for nothing else. Each space of the app adds its own sheet (`css/one-*.css`) built with them.
+
+| Idea | What it is | Where | Rule |
+|---|---|---|---|
+| **La coupe** | One corner cut at 45°, the angle of the double chevron (`--cut` 18 px, 28 px wide; `--cut-sm`) | The header field, the slab, the record action of the navigation, a plate | Only on what is primary. Never on a row, an input or a chip. It replaces nothing of the 4 / 8 / 12 radii elsewhere |
+| **Le relief** | Contour lines of a summit (`assets/ascension/contours.svg` as a mask) inked in the colour of what they sit on | Fields, slabs, plates, the empty state | Ink of the surface at low strength, never under a figure that must be read at a glance, never a second colour |
+| **L'objet** | Ranks, relics, chests and seals are objects that stand on the ground with their own shadow (`.sig-object`), on a steel plate (`.sig-plate`) when they are the subject | QG rank plate, Records, Atelier, Aventure, Carrière | Never an icon in a ring. Locked is desaturated and said in words (`.sig-state`); nothing shown as owned before the server says so |
+| **Le passage** | Page to page is one movement: the navigation is on the first frame (`js/app/shell-nav.js`) and stays, the content cross-fades (cross-document view transitions) | Every page of the site | 110 ms out, 260 ms in. The system setting and TITAN's « Animations réduites » cut it. No entrance replayed on a data refresh |
+
+What changes in the rules above:
+
+- § 3: a slab and a header field end with la coupe at their lower right corner; a panel that carries a precious thing is a
+  steel plate (three tones, a highlight on its upper edge) instead of a flat tone.
+- § 4: a field carries le relief. Onboarding and sign-in open on the valley like the QG opens on the world in progress.
+- § 7: `@view-transition { navigation: auto }` is in both base sheets (`ascension.css`, `design-system.css`) so that no page
+  disagrees with the next; the rail and the tab bar are named and do not move.
+- § 9: « no uppercase tracked kicker » now holds on the public pages too (`.pub-eyebrow` is a plain small label).
+- Navigation: the rail, the top row and the tab bar are drawn by `shell-nav.js`, the first script of the page, from what the
+  device remembers of the account (`titan_shell_nav_v1`, read strictly, forgotten on sign-out). They used to arrive about
+  80 ms after the first frame and blink at every navigation. The sub-navigation of Progrès and Séance is written in the page.
+  The rank worn in the navigation is the approved sculpted crest, when the rank has one.
+
+The sheets of the spaces, each linked after `signature.css` on its own pages only: `one-entree.css` (QG, onboarding, sign-in),
+`one-seance-progres.css` (Séance, Prévoir, Journal, Progrès, Records, Carrière, Objectifs), `one-aventure-live.css` (Aventure,
+TITAN LIVE), `one-communaute.css` (Communauté, défi, coaching, athlete page), `one-profil-atelier.css` (Atelier, Profil, TITAN+).
+
+Illustrations (see `design/titan-visual-library/global-v2/registry/fusion-20261117.json` for each decision): the four approved
+crests are untouched; three true-alpha objects from the owner's Drive are in use (`assets/objects/`: the chest is the reserve
+of credits in the Atelier, the relic belongs to Records, the seal to the exploration notebook); the Champion, Titan and
+Légende candidates of PR #147 are kept ready and inactive until approved (`BADGES` in `js/app/crest.js`).
+

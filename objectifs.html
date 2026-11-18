@@ -13,12 +13,18 @@
     <link rel="preload" href="/css/fonts/archivo-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/css/ascension.css?v=300.12" />
     <link rel="stylesheet" href="/css/ascension-app.css?v=302.1" />
+    <link rel="stylesheet" href="/css/signature.css?v=1" />
+    <link rel="stylesheet" href="/css/one-seance-progres.css?v=1" />
+    <script src="/js/passage.js?v=1"></script>
   </head>
   <body class="asc" data-territory="progres" data-title="Progrès">
     <a class="asc-skip" href="#contenu">Aller au contenu</a>
+    <script src="/js/app/icons.js?v=300.1-eq2"></script>
+    <script src="/js/app/crest.js?v=301.31.1"></script>
+    <script src="/js/app/shell-nav.js?v=1"></script>
     <main class="asc-main wk-main" id="contenu">
       <header class="asc-page-head"><div><h1>Objectifs</h1></div></header>
-      <nav class="asc-subnav" data-subnav></nav>
+      <nav class="asc-subnav" data-subnav aria-label="Pages de Progrès"><a href="/stats">Semaine</a><a href="/journal">Journal</a><a href="/records">Records</a><a href="/carriere">Carrière</a><a href="/objectifs" aria-current="page">Objectifs</a></nav>
       <script src="/js/app/hints.js?v=300.2"></script>
       <div id="objectifs" aria-busy="true">
         <div class="asc-skeleton" style="height: 56px; border-radius: 16px"></div>
@@ -28,7 +34,6 @@
     <script src="/js/vendor/supabase-2.111.0.js"></script>
     <script src="/js/config.js?v=300.0-v12"></script>
     <script src="/js/data.js?v=300.0"></script>
-    <script src="/js/app/icons.js?v=300.1-eq2"></script>
     <script src="/js/ui.js?v=301.31.2"></script>
     <script src="/js/training-store.js?v=301.profile-sync.20261105.2"></script>
     <script src="/js/state.js?v=301.profile-sync.20261105.2"></script>

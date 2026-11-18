@@ -1,5 +1,7 @@
 /* TITAN 300 — Communauté: an expedition everyone pushes, friends who agreed, Moments that matter,
-   challenges without stakes and a guild with a shared week. No endless feed, nothing public by default. */
+   challenges without stakes and a guild with a shared week. No endless feed, nothing public by default.
+   The page has one spine: who is with me (the circle, on the coral field), what we are doing together now (one scene, the
+   others one tap away), what happened (since the last visit, Moments), then the circle to manage (invite, code, sent, blocks). */
 (function () {
   "use strict";
   const esc = (s) => window.titanEsc(s);
@@ -55,6 +57,11 @@
   let viewContext = null;
   let initialSection = true;
   let mutation = null;
+  let chosen = null; // the scene the player opened; otherwise the liveliest one is featured
+  let navHtml = null;
+  let duoHtml = null;
+  let shown = null; // the scene on screen
+  let wanted = null; // an anchor asked for before its block was drawn (a cordée link, a Duo)
 
   const owner = () => window.state?.user?.id || null;
   const isGuest = () => !owner() || String(owner()).startsWith("guest_");
@@ -114,8 +121,13 @@
     document.querySelectorAll(".asc-sheet[open]:not(.help-report)").forEach(d => d.close());
   }
   const sending = () => mutation && current(mutation.job);
+  /* The blocks other modules draw inside this page (since the last visit, the Cordée, the Duo, the optional panels) answer
+     their own clicks and keep their own pending states: this page never handles or locks what is inside them. */
+  const FOREIGN = "#retour, #cordee, #duo, #communaute-extras";
+  const foreign = (node) => !!node?.closest?.(FOREIGN);
   function lockControls(task, scope) {
     scope.querySelectorAll("button, input, select, textarea").forEach(control => {
+      if (foreign(control)) return;
       if (!task.controls.has(control)) task.controls.set(control, control.disabled);
       control.disabled = true;
     });
@@ -129,18 +141,21 @@
   function showProgress(task, form) {
     if (task.progress.some(node => node.isConnected)) return;
     const notice = document.createElement("p");
-    notice.className = "asc-small asc-muted";
+    notice.className = "asc-small asc-muted cm-progress";
     notice.setAttribute("role", "status");
     notice.textContent = "Envoi en cours…";
-    // Keep the announcement outside the busy form so it remains available to assistive tech.
+    // Keep the announcement outside the busy form so it remains available to assistive tech, and next to what was pressed.
+    const near = task.origin?.isConnected && task.origin.closest(".asc-row, .cm-moment, .cm-challenge, .cm-code, .cm-invitation, .cm-scene");
     if (form) form.before(notice);
+    else if (near && root.contains(near)) near.after(notice);
     else root.prepend(notice);
     task.progress.push(notice);
   }
-  function beginMutation(job, form) {
+  function beginMutation(job, form, origin) {
     if (!current(job) || sending()) return null;
     const formAttribute = form && ["data-add-friend", "data-create-guild", "data-join-guild", "data-guild-target", "data-guild-message"].find(name => form.hasAttribute(name));
-    const task = { job, controls: new Map(), forms: new Map(), progress: [], formAttribute, done: false };
+    const task = { job, controls: new Map(), forms: new Map(), progress: [], formAttribute, origin: origin || null, done: false };
+    if (origin) origin.setAttribute("aria-busy", "true");
     mutation = task;
     lockControls(task, root);
     lockForm(task, form);
@@ -156,11 +171,13 @@
       else form.setAttribute("aria-busy", busy);
     });
     task.progress.forEach(node => node.remove());
+    task.origin?.removeAttribute("aria-busy");
     if (mutation === task) mutation = null;
   }
   function clear(next) {
     ++sequence;
     data = guild = viewContext = sessionContext = null;
+    chosen = shown = wanted = null;
     errorText = "";
     pending = false;
     if (next === "transition" || next === "guest") mutation = null;
@@ -198,11 +215,20 @@
     if (sessionContext && !current(sessionContext)) closeDialogs();
     const job = context(), request = ++sequence;
     const latest = () => request === sequence && current(job);
+    // After an action of the same account, what is on screen stays in place until the server's answer replaces it:
+    // the page does not fold into a skeleton and the reader keeps their place.
+    const soft = status === "ready" && !!data && current(viewContext) && viewContext.owner === job.owner;
     sessionContext = job;
-    data = guild = viewContext = null;
-    pending = false;
-    status = "loading";
-    render();
+    if (soft) root?.setAttribute("aria-busy", "true");
+    else {
+      data = guild = viewContext = null;
+      pending = false;
+      status = "loading";
+      render();
+    }
+    // The Cordée and the Duo are read by their own modules; the first drawing waits a moment for them, so that the featured
+    // scene does not change under the eye.
+    const side = Promise.race([Promise.allSettled([window.TitanCordeeView?.ready?.(), window.TitanBuddy?.ready?.()]), new Promise(done => setTimeout(done, soft ? 0 : 1200))]);
     try {
       const overview = await rpc("titan_social_overview", {}, job);
       if (!latest()) return;
@@ -213,12 +239,15 @@
         invitation = await rpc("titan_friend_link_preview_v1", { p_token: INVITE.invitation }, job).catch(() => ({ valid: false }));
         if (!latest()) return;
       }
+      await side;
+      if (!latest()) return;
       data = overview;
       guild = team;
       viewContext = job;
       status = "ready";
     } catch (e) {
       if (!latest()) return;
+      data = guild = viewContext = null;
       errorText = human(e);
       pending = e?.code === "PGRST202" || String(e?.message || "").includes("Could not find the function");
       reportCode = e?.message === "INVALID_COMMUNITY_RESPONSE" ? "COMMUNITY_RESPONSE_INVALID" : "COMMUNITY_LOAD_FAILED";
@@ -231,22 +260,119 @@
     if (current(job)) return load();
   }
 
-  /* ---------- Sections ---------- */
-  function sectionLinksHtml() {
-    const friends = data?.friends?.length || 0;
-    const requests = data?.requests_in?.length || 0;
-    const moments = data?.moments?.length || 0;
-    const challenges = data?.challenges?.length || 0;
-    const labels = {
-      moments: moments ? `${moments} Moment${moments > 1 ? "s" : ""} · 30 jours` : "Aucun Moment pour le moment",
-      amis: requests ? `${requests} demande${requests > 1 ? "s" : ""} à traiter` : friends ? `${friends} ami${friends > 1 ? "s" : ""}` : "Ajouter un ami",
-      defis: challenges ? `${challenges} défi${challenges > 1 ? "s" : ""}` : "Avec tes amis",
-      guilde: data?.guild ? "Voir mon équipe" : "Rejoindre une équipe",
-    };
-    return `<nav class="cm-shortcuts" aria-label="Dans la communauté">${SECTIONS.map(s => `<a class="cm-entry" href="#${s.id}">
-      <span class="cm-entry-title">${icon(s.icon)}<strong>${s.title}</strong>${icon("chevron")}</span>
-      <span class="cm-entry-description">${s.description}</span><span class="cm-entry-status${s.id === "amis" && requests ? " cm-attention" : ""}">${labels[s.id]}</span>
-    </a>`).join("")}</nav>`;
+  /* ---------- The scene: what we are doing together now ----------
+     One collective thing is featured, the liveliest; the others are one tap away. The Cordée and the Duo are read by their own
+     modules (cordee.js, binome.js): this page only gives them their place and reads their state to word the tab. */
+  const LIVE = [
+    { id: "cordee", title: "Cordée", icon: "route" },
+    { id: "expedition", title: "Expédition", icon: "mountain" },
+    { id: "duo", title: "Duo", icon: "group" },
+    { id: "defis", title: "Défis", icon: "target" },
+    { id: "guilde", title: "Guilde", icon: "shield" },
+  ];
+  const ANCHORS = ["moments", "amis", ...LIVE.map((l) => l.id)];
+  const plural = (n, one, many = one + "s") => `${n} ${n > 1 ? many : one}`;
+
+  function liveState() {
+    const out = {};
+    const k = window.TitanCordeeView?.state?.() || null;
+    if (k?.on) {
+      const list = k.cordees || [];
+      const invited = list.find((c) => c.status === "active" && c.myStatus === "invited");
+      const active = list.find((c) => c.status === "active" && c.myStatus === "joined");
+      const summit = list.find((c) => c.status === "summited");
+      out.cordee = invited ? { score: 96, status: "Une invitation", attention: true }
+        : active ? { score: 100, status: `${plural(Number(active.camps) || 0, "camp")} sur 4` }
+        : summit ? { score: 90, status: "Sommet atteint" } : { score: 10, status: "Former une cordée" };
+    }
+    const x = data?.expedition;
+    if (x) {
+      const left = Math.max(0, Math.ceil((new Date(x.ends_at) - Date.now()) / DAY));
+      out.expedition = x.status === "ended" ? { score: 5, status: "Terminée" }
+        : x.status === "upcoming" ? { score: 20, status: "Bientôt" }
+        : { score: x.me?.joined ? 70 : 30, status: x.me?.joined ? `Encore ${plural(left, "jour")}` : "À rejoindre" };
+    }
+    const b = window.TitanBuddy?.state?.() || null;
+    if (b) out.duo = b.status === "active" ? { score: 80, status: `${Number(b.together) || 0} / ${Number(b.target) || 0} jours` }
+      : b.status === "pending" && b.role === "invitee" ? { score: 97, status: "Une invitation", attention: true }
+      : b.status === "pending" ? { score: 40, status: "En attente" }
+      : b.last ? { score: 45, status: "Résultat" } : { score: 8, status: "14 jours à deux" };
+    const cs = data?.challenges || [];
+    const asked = cs.filter((c) => c.my_status === "invited" && c.status !== "ended").length;
+    const running = cs.filter((c) => c.status !== "ended").length;
+    out.defis = asked ? { score: 95, status: plural(asked, "invitation"), attention: true }
+      : cs.length ? { score: running ? 60 : 15, status: plural(cs.length, "défi") } : { score: 6, status: "Avec tes amis" };
+    out.guilde = data?.guild ? { score: 50, status: "Voir mon équipe" } : { score: 4, status: "Rejoindre une équipe" };
+    return out;
+  }
+  /* The scene shown: the one the player opened, else the one already on screen (a late answer never swaps it under the eye),
+     else the liveliest. */
+  function featured(state) {
+    if (chosen && state[chosen]) return chosen;
+    if (shown && state[shown]) return shown;
+    return LIVE.map((l) => l.id).filter((id) => state[id]).sort((a, b) => state[b].score - state[a].score)[0] || "defis";
+  }
+  const liveNavHtml = (state, on) => LIVE.filter((l) => state[l.id]).map((l) => `<a class="cm-live-tab" href="#${l.id}" data-live="${l.id}"${l.id === on ? ' aria-current="true"' : ""}>${icon(l.icon)}<span class="cm-live-tab-text"><strong>${l.title}</strong><span class="cm-live-tab-status${state[l.id].attention ? " cm-attention" : ""}">${esc(state[l.id].status)}</span></span></a>`).join("");
+
+  /* The tabs and the panel shown follow the state; called after each drawing and each time the Cordée or the Duo changes. */
+  function paintLive() {
+    const scene = root?.querySelector(".cm-live");
+    if (!scene || status !== "ready") return;
+    const duo = scene.querySelector("#duo");
+    const html = window.TitanBuddy?.html?.() || "";
+    if (duo && duoHtml !== html) {
+      const held = duo.contains(document.activeElement) ? [...document.activeElement.attributes].find((a) => a.name.startsWith("data-bd"))?.name : null;
+      duo.innerHTML = html;
+      duoHtml = html;
+      if (held) duo.querySelector(`[${held}]:not(:disabled)`)?.focus({ preventScroll: true });
+    }
+    const state = liveState(), on = featured(state);
+    const nav = scene.querySelector(".cm-live-nav");
+    const tabs = liveNavHtml(state, on);
+    if (nav && navHtml !== tabs) {
+      const held = nav.contains(document.activeElement) ? document.activeElement.dataset.live : null;
+      nav.innerHTML = tabs;
+      navHtml = tabs;
+      if (held) nav.querySelector(`[data-live="${held}"]`)?.focus({ preventScroll: true });
+    }
+    // On a phone the tabs scroll sideways: the one shown is brought fully into the strip (the page itself does not move).
+    const tab = nav?.querySelector('[aria-current="true"]');
+    if (tab && nav.scrollWidth > nav.clientWidth) {
+      const pad = 16, left = tab.offsetLeft - nav.offsetLeft, right = left + tab.offsetWidth;
+      if (left - pad < nav.scrollLeft) nav.scrollLeft = left - pad;
+      else if (right + pad > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = right + pad - nav.clientWidth;
+    }
+    scene.querySelectorAll("[data-live-panel]").forEach((panel) => { panel.hidden = panel.dataset.livePanel !== on; });
+    scene.dataset.live = shown = on;
+    if (wanted && openAnchor(wanted)) wanted = null;
+  }
+
+  /* A link to a block of the page (#defis, #cordee, #amis…): its scene opens, then the block takes the focus. */
+  function openAnchor(id, { scroll = true } = {}) {
+    if (status !== "ready" || !ANCHORS.includes(id)) return false;
+    if (LIVE.some((l) => l.id === id)) {
+      if (!liveState()[id]) return false;
+      if (chosen !== id) { chosen = id; paintLive(); }
+    }
+    const target = document.getElementById(id);
+    if (!target || target.closest("[hidden]")) return false;
+    if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
+    if (scroll) target.scrollIntoView({ block: "start", behavior: "instant" });
+    target.focus({ preventScroll: true });
+    return true;
+  }
+
+  function liveHtml() {
+    const x = data?.expedition;
+    return `<section class="cm-live" id="ensemble" aria-labelledby="cm-live-title">
+      <div class="asc-section-head"><h2 id="cm-live-title">Ensemble, en ce moment</h2></div>
+      <nav class="cm-live-nav" aria-label="Dans la communauté"></nav>
+      <div class="cm-live-panel" data-live-panel="cordee" hidden><div data-cm-mount="cordee"></div></div>
+      ${x ? `<div class="cm-live-panel" data-live-panel="expedition" hidden>${expeditionHtml()}</div>` : ""}
+      <div class="cm-live-panel" data-live-panel="duo" hidden><div class="cm-duo" id="duo" tabindex="-1"></div></div>
+      <div class="cm-live-panel" data-live-panel="defis" hidden>${challengesHtml()}</div>
+      <div class="cm-live-panel" data-live-panel="guilde" hidden>${guildHtml()}</div>
+    </section>`;
   }
 
   function expeditionHtml() {
@@ -258,10 +384,10 @@
     const end = new Date(x.ends_at);
     const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / DAY));
     const personalPct = me.joined ? Math.round(Math.min(1, Math.min(me.days / x.personal_days, me.minutes / x.personal_minutes)) * 100) : 0;
-    return `<section class="asc-hero cm-expedition" aria-labelledby="cm-exp-title">
-      <p class="asc-eyebrow cy">${x.status === "upcoming" ? `Expédition · dès le ${esc(start.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}` : x.status === "ended" ? "Expédition terminée" : `Expédition · encore ${daysLeft} jour${daysLeft > 1 ? "s" : ""}`}</p>
+    return `<section class="cm-scene cm-expedition sig-plate is-relief" id="expedition" tabindex="-1" aria-labelledby="cm-exp-title">
+      <p class="asc-eyebrow">${x.status === "upcoming" ? `Expédition · dès le ${esc(start.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}` : x.status === "ended" ? "Expédition terminée" : `Expédition · encore ${daysLeft} jour${daysLeft > 1 ? "s" : ""}`}</p>
       <h2 id="cm-exp-title" class="cm-exp-title">${esc(x.title)}</h2>
-      <p class="asc-lead">${esc(x.story)}</p>
+      <p class="cm-scene-story">${esc(x.story)}</p>
       <div class="cm-exp-bar"><div class="asc-between"><span>${esc(x.guardian)} recule</span><strong class="asc-num">${F().number(x.collective_minutes)} / ${F().number(x.collective_goal)} min</strong></div>
         <span class="asc-ascent"><span style="--p:${pct}%"></span></span>
         <p class="asc-small asc-muted">${F().number(x.participants)} participant${x.participants > 1 ? "s" : ""} · tous les sports comptent pareil · ${x.daily_cap} min au plus par jour et par personne.</p></div>
@@ -272,20 +398,25 @@
     </section>`;
   }
 
-  function requestsHtml() {
+  /* Who knocks: an opened invitation link and the requests received. First thing of the page, each answered with one thumb. */
+  function doorHtml() {
     const list = data?.requests_in || [];
-    if (!list.length) return "";
-    return `<div class="cm-requests" role="group" aria-labelledby="cm-requests-title"><h3 id="cm-requests-title">Demandes d’amis</h3><div class="asc-list">${list
-      .map((r) => `<div class="asc-row cm-request"><span class="cm-avatar"><img src="/assets/renaissance/${esc(r.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">veut t’ajouter</span></span>
-        <span class="cm-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-accept="${esc(r.id)}">Accepter</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-decline="${esc(r.id)}">Refuser</button></span></div>`)
-      .join("")}</div></div>`;
+    const card = invitationHtml();
+    if (!list.length && !card) return "";
+    return `<section class="cm-door"${list.length ? ' aria-labelledby="cm-requests-title"' : ' aria-label="Invitation"'}>${card}
+      ${list.length ? `<div class="cm-requests"><h2 id="cm-requests-title">${list.length > 1 ? `${list.length} demandes d’amis` : "Une demande d’ami"}</h2>
+        <p class="asc-small asc-muted">En acceptant, vous voyez seulement ce que chacun a choisi de partager. Refuser ne prévient personne.</p>
+        <div class="asc-list">${list
+          .map((r) => `<div class="asc-row cm-request"><span class="cm-avatar"><img src="/assets/renaissance/${esc(r.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">veut t’ajouter</span></span>
+        <span class="cm-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-accept="${esc(r.id)}" aria-label="Accepter ${esc(r.name)}">Accepter</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-decline="${esc(r.id)}" aria-label="Refuser ${esc(r.name)}">Refuser</button></span></div>`)
+          .join("")}</div></div>` : ""}
+    </section>`;
   }
 
   function momentsHtml() {
     const list = data?.moments || [];
     return `<section class="asc-section cm-section" id="moments" tabindex="-1" aria-labelledby="cm-moments-title"><div class="asc-section-head"><h2 id="cm-moments-title">Moments</h2><span class="asc-small asc-muted">30 derniers jours</span></div>
-      <p class="cm-section-intro">Records, objectifs et séances partagés par toi et tes amis.</p>
-      ${list.length ? `<div class="cm-moments">${list
+      ${list.length ? `<p class="cm-section-intro">Ce que tes amis et toi avez choisi de montrer. Rien d’autre n’apparaît ici.</p><div class="cm-moments">${list
         .map((m) => `<article class="cm-moment" data-kind="${esc(m.kind)}">
           <span class="cm-avatar"><img src="/assets/renaissance/${esc(m.author?.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span>
           <div class="cm-moment-main"><p class="asc-small asc-muted"><strong>${esc(m.mine ? "Toi" : m.author?.name)}</strong> · ${esc(F().relativeDay(m.created_at))}</p>
@@ -294,33 +425,42 @@
           </div>
           ${m.mine ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-delete-moment="${esc(m.id)}" aria-label="Supprimer ce Moment">${icon("trash")}</button>` : `<button type="button" class="cm-cheer" data-cheer="${esc(m.id)}" aria-pressed="${!!m.cheered}" aria-label="Encourager ${esc(m.author?.name)}">${icon("heart")}<span class="asc-num">${m.cheers || ""}</span></button>`}
         </article>`)
-        .join("")}</div>` : `<p class="asc-empty asc-small">Un Moment, c’est un record, un objectif, une balise ou une grosse séance que tu choisis de montrer. Partage-le depuis l’écran de fin de séance ou tes records.</p>`}
-      ${list.length ? "" : '<a class="asc-btn asc-btn-secondary asc-btn-sm" href="/records">Voir mes records</a>'}
+        .join("")}</div>` : `<div class="sig-empty">${icon("heart")}<h3>Aucun Moment pour l’instant</h3><p>Un Moment, c’est un record, un objectif, une balise ou une grosse séance que tu choisis de montrer. Partage-le depuis l’écran de fin de séance ou tes records.</p><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/records">Voir mes records</a></div>`}
     </section>`;
+  }
+
+  /* What a friend sees of me, said where the circle is managed, from the choices of the profile (the server applies them). */
+  function privacyHtml() {
+    const p = window.state?.user?.privacy || {};
+    const shown = ["ton pseudo", "ton avatar", "les Moments que tu partages"];
+    if (p.showStats === true) shown.push("ton niveau et tes jours actifs de la semaine");
+    if (p.socialPresence === true) shown.push("le jour de ta dernière séance");
+    const kept = [p.showStats === true ? "" : "ton niveau et tes statistiques", p.socialPresence === true ? "" : "tes jours d’activité"].filter(Boolean);
+    return `<p class="cm-privacy">${icon("eye")}<span><strong>Ce que tes amis voient de toi :</strong> ${shown.join(", ")}.${kept.length ? ` Restent privés : ${kept.join(", ")}.` : ""} Jamais ta santé, ton poids, tes traces GPS ni tes notes. <a href="/profile#reglages">Régler</a></span></p>`;
   }
 
   function friendsHtml() {
     const me = data?.me || {};
     const list = data?.friends || [];
     const out = data?.requests_out || [];
-    return `<section class="asc-section cm-section" id="amis" tabindex="-1" aria-labelledby="cm-friends-title"><div class="asc-section-head"><h2 id="cm-friends-title">Amis</h2><span class="asc-chip">${list.length} ami${list.length > 1 ? "s" : ""}</span></div>
-      <p class="cm-section-intro">Un lien personnel ou vos codes. Chacun choisit ce qu’il partage.</p>
-      ${invitationHtml()}
-      ${requestsHtml()}
-      ${linksOn() ? `<div class="cm-code cm-invite-link"><div><p class="asc-small asc-muted">Inviter un ami</p><p class="asc-small">Un lien pour une seule personne, valable 7 jours. Ton profil reste privé : seule la personne qui l’ouvre te voit et choisit d’accepter.</p></div>
-        <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-friend-link>${icon("share")} Créer un lien</button></div>` : ""}
-      <div class="cm-code"><div><p class="asc-small asc-muted">Ton code ami</p><p class="cm-code-value asc-num">${esc(me.friend_code || "—")}</p>
-        <p class="asc-small ${me.findable ? "asc-muted" : "cm-warn"}">${me.findable ? "Trouvable : on peut te demander en ami avec ce code." : `Ton code ne sert que si tu es trouvable (<a href="/profile#reglages">Confidentialité</a>).${linksOn() ? " Le lien personnel, lui, marche toujours." : ""}`}</p></div>
-        <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-copy-code="${esc(me.friend_code || "")}">${icon("copy")} Copier</button></div>
-      <form class="cm-add" data-add-friend><label class="sr-only" for="cm-code">Code ami</label><input id="cm-code" class="asc-input" name="code" placeholder="Code d’un ami : TN-AB12" autocapitalize="characters" autocomplete="off" maxlength="12"><button type="submit" class="asc-btn asc-btn-primary">${icon("userPlus")} Demander</button></form>
-      ${out.length ? `<div class="asc-list cm-requests-out" aria-label="Demandes envoyées">${out.map((r) => `<div class="asc-row"><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">Demande envoyée${r.expires_at ? ` · expire ${esc(F().relativeDay(r.expires_at))}` : ""}</span></span>
-        <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cancel-request="${esc(r.id)}" aria-label="Annuler la demande à ${esc(r.name)}">Annuler</button></div>`).join("")}</div>` : ""}
-      ${list.length ? `<div class="asc-list">${list
+    return `<section class="asc-section cm-section cm-amis" id="amis" tabindex="-1" aria-labelledby="cm-friends-title"><div class="asc-section-head"><h2 id="cm-friends-title">Ton cercle</h2><span class="asc-chip">${list.length} ami${list.length > 1 ? "s" : ""}</span></div>
+      ${privacyHtml()}
+      ${list.length ? `<div class="asc-list cm-friends">${list
         .map((f) => `<div class="asc-row"><span class="cm-avatar"><img src="/assets/renaissance/${esc(f.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span>
           <span class="asc-row-main"><span class="asc-row-title">${esc(f.name)}</span><span class="asc-row-sub">${[f.level ? `Niveau ${f.level}` : "", f.week_days !== null && f.week_days !== undefined ? `${f.week_days} jour${f.week_days > 1 ? "s" : ""} actif${f.week_days > 1 ? "s" : ""} cette semaine` : "", f.last_active ? `actif ${F().relativeDay(f.last_active + "T12:00:00")}` : ""].filter(Boolean).join(" · ") || "Statistiques privées"}</span></span>
           <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-friend-menu="${esc(f.id)}" aria-label="Options pour ${esc(f.name)}">${icon("more")}</button></div>`)
-        .join("")}</div>` : `<p class="asc-small asc-muted">Envoie un lien ou échangez vos codes : la personne accepte, puis vous voyez seulement ce que chacun a choisi de partager.</p>`}
-      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-blocks>${icon("lock")} Comptes bloqués</button>
+        .join("")}</div>` : `<div class="sig-empty">${icon("group")}<h3>Ton cercle commence par une personne</h3><p>Envoie un lien ou échangez vos codes : la personne accepte, puis vous voyez seulement ce que chacun a choisi de partager.</p></div>`}
+      <div class="cm-invite" id="inviter"><h3>Inviter quelqu’un</h3>
+      ${linksOn() ? `<div class="cm-code cm-invite-link"><div><p class="cm-way">Un lien personnel</p><p class="asc-small asc-muted">Un lien pour une seule personne, valable 7 jours. Ton profil reste privé : seule la personne qui l’ouvre te voit et choisit d’accepter.</p></div>
+        <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-friend-link>${icon("share")} Créer un lien</button></div>` : ""}
+      <div class="cm-code"><div><p class="cm-way">Ton code ami</p><p class="cm-code-value asc-num">${esc(me.friend_code || "—")}</p>
+        <p class="asc-small ${me.findable ? "asc-muted" : "cm-warn"}">${me.findable ? "Trouvable : on peut te demander en ami avec ce code." : `Ton code ne sert que si tu es trouvable (<a href="/profile#reglages">Confidentialité</a>).${linksOn() ? " Le lien personnel, lui, marche toujours." : ""}`}</p></div>
+        <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-copy-code="${esc(me.friend_code || "")}">${icon("copy")} Copier</button></div>
+      <form class="cm-add" data-add-friend><label class="cm-way" for="cm-code">Le code d’un ami</label><div class="cm-add-row"><input id="cm-code" class="asc-input" name="code" placeholder="TN-AB12" autocapitalize="characters" autocomplete="off" maxlength="12"><button type="submit" class="asc-btn asc-btn-primary">${icon("userPlus")} Demander</button></div></form>
+      ${out.length ? `<div class="cm-sent"><h3 id="cm-sent-title">Demandes envoyées</h3><div class="asc-list cm-requests-out" role="group" aria-labelledby="cm-sent-title">${out.map((r) => `<div class="asc-row"><span class="asc-row-main"><span class="asc-row-title">${esc(r.name)}</span><span class="asc-row-sub">En attente de sa réponse${r.expires_at ? ` · expire ${esc(F().relativeDay(r.expires_at))}` : ""}</span></span>
+        <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cancel-request="${esc(r.id)}" aria-label="Annuler la demande à ${esc(r.name)}">Annuler</button></div>`).join("")}</div></div>` : ""}
+      </div>
+      <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm cm-blocks" data-blocks>${icon("lock")} Comptes bloqués</button>
     </section>`;
   }
 
@@ -330,8 +470,8 @@
     if (!invitation.valid) return `<div class="asc-note cm-invitation" role="status">${icon("userPlus")}<span>${esc(MESSAGES.LINK_INVALID)}</span></div>`;
     if (invitation.own) return `<div class="asc-note cm-invitation" role="status">${icon("userPlus")}<span>${esc(MESSAGES.LINK_OWN)}</span></div>`;
     if (invitation.friends) return `<div class="asc-note cm-invitation" role="status">${icon("check")}<span>Vous êtes déjà amis avec ${esc(invitation.inviter?.name || "cette personne")}.</span></div>`;
-    return `<div class="cm-invitation cm-request" role="group" aria-labelledby="cm-invitation-title"><span class="cm-avatar"><img src="/assets/renaissance/${esc(invitation.inviter?.avatar || "scout")}-s.webp" alt="" width="40" height="40" loading="lazy"></span>
-      <div class="asc-row-main"><h3 id="cm-invitation-title" class="asc-row-title">${esc(invitation.inviter?.name || "Un athlète")} t’invite à devenir ami</h3>
+    return `<div class="cm-invitation cm-request" role="group" aria-labelledby="cm-invitation-title"><span class="cm-avatar"><img src="/assets/renaissance/${esc(invitation.inviter?.avatar || "scout")}-s.webp" alt="" width="56" height="56" loading="lazy"></span>
+      <div class="asc-row-main"><h2 id="cm-invitation-title" class="asc-row-title">${esc(invitation.inviter?.name || "Un athlète")} t’invite à devenir ami</h2>
         <p class="asc-row-sub">En acceptant, vous voyez ce que chacun a choisi de partager. Tu peux retirer ou bloquer à tout moment.</p></div>
       <span class="cm-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-accept-invitation>Accepter</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ignore-invitation>Ignorer</button></span></div>`;
   }
@@ -376,16 +516,20 @@
   }
 
   function challengesHtml() {
+    const order = (c) => (c.status === "ended" ? 2 : c.my_status === "invited" ? 0 : 1);
     const list = data?.challenges || [];
     const friends = data?.friends || [];
-    return `<section class="asc-section cm-section" id="defis" tabindex="-1" aria-labelledby="cm-challenges-title"><div class="asc-section-head"><h2 id="cm-challenges-title">Défis</h2><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button></div>
-      <p class="cm-section-intro">Avancez vers le même objectif. La progression de chacun se voit dans son défi.</p>
+    return `<section class="cm-section cm-scene-plain" id="defis" tabindex="-1" aria-labelledby="cm-challenges-title"><div class="cm-scene-head"><h2 id="cm-challenges-title">Défis</h2>${list.length ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button>` : ""}</div>
+      <p class="cm-section-intro">Une période, une mesure commune, aucune mise. Chaque participant voit la progression des autres dans ce défi, rien d’autre.</p>
       ${list.length ? `<div class="cm-challenges">${list
+        .slice()
+        // What waits for an answer first, then what is running, then what is over (the server's order inside each).
+        .sort((a, b) => order(a) - order(b))
         .map((c) => {
           const m = METRICS[c.metric] || METRICS.effort_minutes;
           const end = new Date(c.ends_at);
           const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / DAY));
-          return `<article class="cm-challenge"><div class="asc-between"><h3>${esc(c.title)}</h3><span class="asc-chip">${c.status === "ended" ? "Terminé" : `${daysLeft} j`}</span></div>
+          return `<article class="cm-challenge" data-status="${c.status === "ended" ? "ended" : c.my_status === "invited" ? "invited" : "active"}"><div class="asc-between"><h3>${esc(c.title)}</h3><span class="asc-chip">${c.status === "ended" ? "Terminé" : c.my_status === "invited" ? "Invitation" : `${daysLeft} j`}</span></div>
             <p class="asc-small asc-muted">${esc(m.label)}${c.sport ? ` · ${esc(SP().label(c.sport))}` : ""} · objectif ${esc(m.fmt(c.target))}</p>
             <ul class="cm-board">${(c.members || [])
               .slice()
@@ -396,25 +540,25 @@
             <p class="asc-small asc-faint">Effort plafonné à 90 min par jour ; séances ajoutées après le départ du défi. Aucune mise, aucune récompense en crédits.</p>
           </article>`;
         })
-        .join("")}</div>` : `<p class="asc-small asc-muted">${friends.length ? "Un défi, c’est une période et une mesure commune. Pas de mise : juste la motivation d’avancer ensemble." : "Ajoute un ami pour lancer votre premier défi."}</p>`}
-      ${friends.length ? "" : '<a class="asc-btn asc-btn-secondary asc-btn-sm" href="#amis">Ajouter un ami</a>'}
+        .join("")}</div>` : `<div class="sig-empty">${icon("target")}<h3>Pas encore de défi</h3><p>${friends.length ? "Propose une semaine d’effort à un ami, ou crée un lien que n’importe qui peut rejoindre. Pas de mise : juste l’envie d’avancer ensemble." : "Un défi se lance avec un ami, ou avec un lien que n’importe qui peut rejoindre."}</p>
+        <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button>${friends.length ? "" : '<a class="asc-btn asc-btn-ghost asc-btn-sm" href="#amis">Ajouter un ami</a>'}</div></div>`}
     </section>`;
   }
 
   function guildHtml() {
     const week = data?.guild;
     if (week && !guild)
-      return `<section class="asc-section cm-section" id="guilde" tabindex="-1" aria-labelledby="cm-guild-title"><div class="asc-section-head"><h2 id="cm-guild-title">Guilde</h2></div><p class="asc-small asc-muted">Ta guilde ne s’affiche pas pour le moment. Réessaie dans un instant.</p><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-retry>Réessayer</button></section>`;
+      return `<section class="cm-section cm-scene-plain" id="guilde" tabindex="-1" aria-labelledby="cm-guild-title"><div class="cm-scene-head"><h2 id="cm-guild-title">Guilde</h2></div><div class="sig-empty">${icon("shield")}<h3>Ta guilde ne s’affiche pas pour le moment</h3><p>Le reste de la Communauté est à jour. Réessaie dans un instant.</p><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-retry>Réessayer</button></div></section>`;
     if (!week)
-      return `<section class="asc-section cm-section" id="guilde" tabindex="-1" aria-labelledby="cm-guild-title"><div class="asc-section-head"><h2 id="cm-guild-title">Guilde</h2></div>
-        <p class="cm-section-intro">Une équipe qui tient une semaine d’effort ensemble : un objectif commun, la part de chacun et une discussion.</p>
+      return `<section class="cm-section cm-scene-plain" id="guilde" tabindex="-1" aria-labelledby="cm-guild-title"><div class="cm-scene-head"><h2 id="cm-guild-title">Guilde</h2></div>
+        <div class="sig-empty">${icon("shield")}<h3>Une équipe pour tenir la semaine ensemble</h3><p>Un objectif commun, la part de chacun et une discussion. Les membres d’une guilde voient ton pseudo, tes minutes d’effort de la semaine et tes messages.</p>
         <div class="cm-guild-forms"><form class="cm-add" data-create-guild><label class="sr-only" for="cm-guild-name">Nom de la guilde</label><input id="cm-guild-name" class="asc-input" name="name" maxlength="28" placeholder="Nom de la guilde" required><button type="submit" class="asc-btn asc-btn-secondary">Fonder</button></form>
-        <form class="cm-add" data-join-guild><label class="sr-only" for="cm-guild-code">Code de guilde</label><input id="cm-guild-code" class="asc-input" name="code" maxlength="16" placeholder="Code de guilde" autocapitalize="characters" required><button type="submit" class="asc-btn asc-btn-secondary">Rejoindre</button></form></div></section>`;
+        <form class="cm-add" data-join-guild><label class="sr-only" for="cm-guild-code">Code de guilde</label><input id="cm-guild-code" class="asc-input" name="code" maxlength="16" placeholder="Code de guilde" autocapitalize="characters" required><button type="submit" class="asc-btn asc-btn-secondary">Rejoindre</button></form></div></div></section>`;
     const pct = Math.min(100, Math.round((week.minutes / Math.max(1, week.target)) * 100));
     const owner = guild.owner_id === window.state?.user?.id;
     const msgs = (guild.messages || []).slice(-30);
-    return `<section class="asc-section cm-section" id="guilde" tabindex="-1" aria-labelledby="cm-guild-title"><p class="asc-eyebrow">Guilde</p><div class="asc-section-head"><h2 id="cm-guild-title">${esc(guild.name)}</h2><span class="asc-small asc-muted">Code ${esc(guild.code || "")}</span></div>
-      <p class="cm-section-intro">L’effort de l’équipe cette semaine, puis votre discussion.</p>
+    return `<section class="cm-section cm-scene-plain" id="guilde" tabindex="-1" aria-labelledby="cm-guild-title"><p class="asc-eyebrow">Guilde</p><div class="cm-scene-head"><h2 id="cm-guild-title">${esc(guild.name)}</h2><span class="asc-small asc-muted">Code ${esc(guild.code || "")}</span></div>
+      <p class="cm-section-intro">L’effort de l’équipe cette semaine, puis votre discussion. Chaque membre voit le pseudo et les minutes des autres.</p>
       <div class="cm-guild"><div class="asc-between"><span>Semaine d’effort</span><strong class="asc-num">${F().number(week.minutes)} / ${F().number(week.target)} min</strong></div>
         <span class="asc-ascent"><span style="--p:${pct}%"></span></span>
         <ul class="cm-board">${(week.members || []).map((m) => `<li><span>${esc(m.name)}${m.role === "owner" ? ' <small class="asc-faint">fondateur</small>' : ""}</span><span class="asc-ascent thin"><span style="--p:${Math.min(100, Math.round((m.minutes / Math.max(1, week.target)) * 100))}%"></span></span><strong class="asc-num">${F().number(m.minutes)} min</strong></li>`).join("")}</ul>
@@ -426,44 +570,86 @@
     </section>`;
   }
 
+  /* The circle, on the coral field: the friends who agreed, each a face and a first name, then the way to invite. A face opens
+     what one can do with that friend. Only what the server returned; without friends the line of the page stays. The height of
+     the strip is reserved by the sheet from the first paint. */
+  const CIRCLE_DEFAULT = "Des amis par consentement : chacun choisit ce qu’il partage.";
+  function paintCircle() {
+    const el = document.getElementById("cm-circle");
+    if (!el) return;
+    const ready = status === "ready" && !!data;
+    const list = ready ? data.friends || [] : [];
+    const today = new Date(); const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const active = list.filter((f) => f.last_active === key).length;
+    const sig = ready ? `${list.map((f) => `${f.id}:${f.avatar}:${f.name}:${f.last_active === key}`).join("|")}#` : "";
+    if ((el.dataset.count || "") === sig) return;
+    if (!ready) { delete el.dataset.count; el.innerHTML = `<p class="cm-circle-line">${CIRCLE_DEFAULT}</p>`; return; }
+    el.dataset.count = sig;
+    const first = (name) => String(name || "").trim().split(/\s+/)[0] || "Ami";
+    el.innerHTML = `<p class="cm-circle-line">${list.length ? `<strong>${list.length} ami${list.length > 1 ? "s" : ""}</strong>${active ? ` · ${active} actif${active > 1 ? "s" : ""} aujourd’hui` : ""}` : CIRCLE_DEFAULT}</p>
+      <ul class="cm-rope" aria-label="Ton cercle">${list.map((f) => `<li><button type="button" class="cm-face" data-face="${esc(f.id)}" aria-label="${esc(f.name)}${f.last_active === key ? ", actif aujourd’hui" : ""} : ce que vous pouvez faire ensemble"><span class="cm-face-img"><img src="/assets/renaissance/${esc(f.avatar || "scout")}-s.webp" alt="" width="52" height="52" decoding="async">${f.last_active === key ? '<span class="cm-face-on" aria-hidden="true"></span>' : ""}</span><span class="cm-face-name">${esc(first(f.name))}</span></button></li>`).join("")}
+        <li><a class="cm-face cm-face-add" href="#inviter"><span class="cm-face-img">${icon("userPlus")}</span><span class="cm-face-name">Inviter</span></a></li></ul>`;
+  }
+
+  /* Blocks drawn by their own modules (since the last visit, the Cordée, the optional panels) keep their node: it waits in
+     #cm-park while this page is redrawn, then takes the place this drawing gives it, or follows the message when there is none. */
+  const MOUNTS = ["retour", "cordee", "communaute-extras"];
+  function paint(html, show) {
+    const park = document.getElementById("cm-park");
+    if (park) MOUNTS.forEach((id) => { const el = document.getElementById(id); if (el && root.contains(el)) park.append(el); });
+    root.innerHTML = html;
+    navHtml = duoHtml = null;
+    return () => {
+      if (!park || !show) return;
+      MOUNTS.forEach((id) => {
+        const el = document.getElementById(id), slot = root.querySelector(`[data-cm-mount="${id}"]`);
+        if (!el) return;
+        if (slot) slot.replaceWith(el); else root.append(el);
+      });
+    };
+  }
+
   function render() {
     if (!root) return;
+    paintCircle();
     root.setAttribute("aria-busy", String(status === "loading"));
+    root.dataset.state = status;
     if (status === "transition") {
-      root.innerHTML = '<p class="asc-empty" role="status">La session a changé. La communauté revient après la synchronisation du compte.</p>';
+      paint('<p class="asc-empty" role="status">La session a changé. La communauté revient après la synchronisation du compte.</p>', false);
       return;
     }
     if (status === "loading") {
-      root.innerHTML = `<div class="asc-skeleton" style="height:240px;border-radius:26px"></div><div class="asc-skeleton" style="height:120px;margin-top:24px"></div>`;
+      paint(`<div class="asc-skeleton" style="height:420px;border-radius:12px"></div><div class="asc-skeleton" style="height:240px;margin-top:24px;border-radius:12px"></div>`, false);
       return;
     }
     if (status === "guest") {
-      root.innerHTML = `<section class="asc-hero cm-guest"><p class="asc-eyebrow cy">Communauté</p><h2 class="cm-exp-title">Avancer avec les autres, sans bruit.</h2>
-        <p class="asc-lead">Retrouve tes amis, partage tes progrès et participe aux expéditions.</p>
+      paint(`<section class="cm-guest sig-plate is-relief"><p class="asc-eyebrow">Communauté</p><h2 class="cm-exp-title">Avancer avec les autres, sans bruit.</h2>
+        <p class="cm-scene-story">Des amis qui ont accepté, des défis sans mise, une cordée où chaque sport compte pareil. Rien n’est public par défaut.</p>
         ${INVITE.invitation ? `<p class="asc-note">${icon("userPlus")}<span>On t’a envoyé une invitation personnelle sur TITAN. Crée ton compte ou connecte-toi : tu verras qui t’invite, puis tu choisiras d’accepter.</span></p>`
           : INVITE.ami || INVITE.guilde ? `<p class="asc-note">${icon("userPlus")}<span>On t’a invité ${INVITE.guilde ? "dans une guilde" : "à devenir ami"} sur TITAN. Crée ton compte ou connecte-toi : le code ${esc(INVITE.ami || INVITE.guilde)} sera prêt.</span></p>` : ""}
         <div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/login?mode=signup${inviteNext() ? `&${inviteNext()}` : ""}">Créer un compte</a><a class="asc-btn asc-btn-ghost" href="/login${inviteNext() ? `?${inviteNext()}` : ""}">Se connecter</a></div>
         <p class="asc-small asc-muted">En mode découverte, rien ne quitte ton appareil.</p>
-        <ul class="cm-preview">${SECTIONS.map(s => `<li>${icon(s.icon)}<div><strong>${s.title}</strong><p>${s.description}</p></div></li>`).join("")}</ul></section>`;
+        <ul class="cm-preview">${SECTIONS.map(s => `<li>${icon(s.icon)}<div><strong>${s.title}</strong><p>${s.description}</p></div></li>`).join("")}</ul></section>`, false);
       return;
     }
     if (status === "offline" || status === "error") {
-      root.innerHTML = `<div class="asc-empty"><h2>${status === "offline" ? "Hors ligne" : pending ? "Communauté bientôt disponible" : "Communauté indisponible"}</h2><p>${esc(status === "offline" ? "Tes séances continuent d’être enregistrées sur cet appareil. La communauté revient avec le réseau." : errorText)}</p>${status === "error" && pending ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>`}</div>`;
+      const mount = paint(`<div class="sig-empty cm-down">${icon(status === "offline" ? "offline" : "alert")}<h2>${status === "offline" ? "Hors ligne" : pending ? "Communauté bientôt disponible" : "Communauté indisponible"}</h2><p>${esc(status === "offline" ? "Tes séances continuent d’être enregistrées sur cet appareil. La communauté revient avec le réseau." : errorText)}</p>${status === "error" && pending ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-retry>${icon("restore")} Réessayer</button>`}</div>`, true);
       if (status === "error") {
         const actions = document.createElement('div'); actions.className = 'asc-row-flex';
         const help = document.createElement('a'); help.className = 'asc-btn asc-btn-ghost'; help.href = '/service#help-communaute'; help.textContent = 'Assistance'; actions.append(help);
         if (!pending && current(sessionContext) && document.body.dataset.supportEnabled === 'true') {
           const report = document.createElement('button'); report.type = 'button'; report.className = 'asc-btn asc-btn-secondary'; report.dataset.supportReport = ''; report.textContent = 'Envoyer un rapport'; actions.append(report);
         }
-        root.querySelector('.asc-empty').append(actions);
+        root.querySelector('.cm-down').append(actions);
       }
+      mount();
       root.setAttribute("aria-busy", "false");
       return;
     }
-    root.innerHTML = `${sectionLinksHtml()}
-      <div class="cm-layout"><div class="cm-stream"><p class="cm-column-label">Le fil</p>${expeditionHtml()}${momentsHtml()}</div>
-      <div class="cm-circle"><p class="cm-column-label">Ton cercle</p>${friendsHtml()}</div></div>
-      <p class="cm-column-label cm-team-label">Avancer en équipe</p><div class="cm-teams">${challengesHtml()}${guildHtml()}</div>`;
+    const mount = paint(`<div class="cm-col cm-col-main">${doorHtml()}${liveHtml()}<div data-cm-mount="retour"></div>${momentsHtml()}</div>
+      <div class="cm-col cm-col-side">${friendsHtml()}<div data-cm-mount="communaute-extras"></div></div>`, true);
+    mount();
+    paintLive();
     root.setAttribute("aria-busy", "false");
     if (sending()) {
       const form = mutation.formAttribute && root.querySelector(`[${mutation.formAttribute}]`);
@@ -475,6 +661,7 @@
     if (chat) chat.scrollTop = chat.scrollHeight;
     if (!inviteApplied && (INVITE.ami || INVITE.guilde)) {
       inviteApplied = true;
+      if (INVITE.guilde && !INVITE.ami) { chosen = "guilde"; paintLive(); }
       const field = INVITE.ami ? root.querySelector("#cm-code") : root.querySelector("#cm-guild-code");
       if (field) {
         field.value = INVITE.ami || INVITE.guilde;
@@ -490,20 +677,22 @@
     if (initialSection) {
       initialSection = false;
       const id = location.hash.slice(1);
-      const target = SECTIONS.some(s => s.id === id) && document.getElementById(id);
       const job = viewContext;
-      if (target) requestAnimationFrame(() => {
-        if (!current(job) || !target.isConnected || location.hash !== "#" + id) return;
-        target.scrollIntoView({ block: "start", behavior: "instant" });
-        target.focus({ preventScroll: true });
-      });
+      if (ANCHORS.includes(id)) {
+        // The scene is chosen at once (no flash of another one); the scroll waits for the layout.
+        if (LIVE.some((l) => l.id === id)) { if (liveState()[id]) { chosen = id; paintLive(); } else wanted = id; }
+        requestAnimationFrame(() => {
+          if (!current(job) || location.hash !== "#" + id) return;
+          if (openAnchor(id)) wanted = null;
+        });
+      }
     }
   }
 
   /* ---------- Actions ---------- */
-  async function act(fn, ok, form) {
+  async function act(fn, ok, form, origin) {
     const job = viewContext;
-    const task = beginMutation(job, form);
+    const task = beginMutation(job, form, origin);
     if (!task) return;
     try {
       await fn(job);
@@ -519,6 +708,31 @@
     }
   }
 
+  /* A confirmation that can be taken back, only where the server has the reverse call. The button is added to the toast the
+     shell returns; pressing it runs the reverse call once, then the page is read again. */
+  function undoable({ title, message, label, undo, done }, job) {
+    const el = window.titanShell.toast({ type: "ok", title, message, timeout: 9000 });
+    if (!el) return;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "asc-btn asc-btn-secondary asc-btn-sm cm-undo";
+    b.textContent = label;
+    b.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (!current(job) || sending()) return;
+      b.disabled = true;
+      try {
+        await undo(job);
+        el.remove();
+        if (current(job)) { window.titanShell.toast({ type: "ok", title: done }); await load(); }
+      } catch (err) {
+        b.disabled = false;
+        if (current(job)) window.titanShell.toast({ type: "warn", title: "Pas possible", message: human(err) });
+      }
+    });
+    el.append(b);
+  }
+
   function friendMenu(id) {
     const job = viewContext;
     if (!current(job) || sending()) return;
@@ -530,14 +744,16 @@
     body.innerHTML = `<button type="button" class="asc-row" data-m="challenge">${icon("target")}<span class="asc-row-main"><span class="asc-row-title">Lancer un défi</span></span></button>
       <button type="button" class="asc-row" data-m="remove">${icon("minus")}<span class="asc-row-main"><span class="asc-row-title">Retirer de mes amis</span><span class="asc-row-sub">Sans prévenir ; vous pourrez redevenir amis par lien ou par code.</span></span></button>
       <button type="button" class="asc-row pf-danger" data-m="block">${icon("lock")}<span class="asc-row-main"><span class="asc-row-title">Bloquer</span><span class="asc-row-sub">Plus aucune demande ni Moment entre vous.</span></span></button>`;
-    const d = window.titanShell.sheet({ title: f.name, eyebrow: "Ami", body });
+    const d = window.titanShell.sheet({ title: f.name, eyebrow: [f.level ? `Niveau ${f.level}` : "", f.last_active ? `actif ${F().relativeDay(f.last_active + "T12:00:00")}` : ""].filter(Boolean).join(" · ") || "Ami", body });
     body.addEventListener("click", (e) => {
       const b = e.target.closest("[data-m]");
       if (!b || !d.open || !current(job) || sending()) return;
       d.close();
       if (b.dataset.m === "challenge") return newChallenge([id], job, friends);
       if (b.dataset.m === "remove") return confirm({ title: `Retirer ${f.name} ?`, confirmLabel: "Retirer", action: job => rpc("titan_social_remove", { p_user: id }, job).catch(failed) }, job);
-      if (b.dataset.m === "block") return confirm({ title: `Bloquer ${f.name} ?`, message: "Vous ne vous verrez plus dans TITAN : plus de demande, de lien, de Moment ni de défi entre vous. Débloquer reste possible depuis « Comptes bloqués ».", confirmLabel: "Bloquer", danger: true, action: job => rpc("titan_block_user", { p_blocked_id: id, p_reason: "blocked_from_community" }, job).catch(failed) }, job);
+      if (b.dataset.m === "block") return confirm({ title: `Bloquer ${f.name} ?`, message: "Vous ne vous verrez plus dans TITAN : plus de demande, de lien, de Moment ni de défi entre vous. Débloquer reste possible depuis « Comptes bloqués ».", confirmLabel: "Bloquer", danger: true, action: job => rpc("titan_block_user", { p_blocked_id: id, p_reason: "blocked_from_community" }, job).then(() => {
+        if (current(job)) undoable({ title: `${f.name} est bloqué`, message: "L’amitié est terminée ; débloquer ne la rétablit pas.", label: "Débloquer", done: "Compte débloqué", undo: job => rpc("titan_unblock_user", { p_blocked_id: id }, job) }, job);
+      }).catch(failed) }, job);
     });
   }
 
@@ -610,6 +826,18 @@
   }
 
   function onClick(e) {
+    if (foreign(e.target)) return;
+    const tab = e.target.closest("a[data-live]");
+    if (tab && status === "ready") {
+      // Another scene: it opens in place, the address remembers it, the focus goes to it. No jump, no history entry.
+      e.preventDefault();
+      chosen = tab.dataset.live;
+      try { history.replaceState(history.state, "", "#" + chosen); } catch { /* the scene still opens */ }
+      paintLive();
+      const target = document.getElementById(chosen);
+      if (target && !target.closest("[hidden]")) { if (!target.hasAttribute("tabindex")) target.tabIndex = -1; target.focus({ preventScroll: true }); }
+      return;
+    }
     const b = e.target.closest("button");
     if (!b) return;
     if (b.hasAttribute("data-retry")) return load();
@@ -620,20 +848,21 @@
     const job = viewContext;
     if (!current(job)) return clear("transition");
     if (sending()) return;
-    if (b.dataset.joinExpedition) return act(job => rpc("titan_expedition_join", { p_id: b.dataset.joinExpedition }, job), { title: "Expédition rejointe", message: "Chaque séance compte désormais." });
-    if (b.dataset.accept) return act(job => rpc("titan_social_respond", { p_user: b.dataset.accept, p_accept: true }, job), { title: "Nouvel ami" });
-    if (b.dataset.decline) return act(job => rpc("titan_social_respond", { p_user: b.dataset.decline, p_accept: false }, job));
-    if (b.dataset.cancelRequest) return act(job => rpc("titan_social_remove", { p_user: b.dataset.cancelRequest }, job), { title: "Demande annulée" });
+    if (b.dataset.joinExpedition) return act(job => rpc("titan_expedition_join", { p_id: b.dataset.joinExpedition }, job), { title: "Expédition rejointe", message: "Chaque séance compte désormais." }, null, b);
+    if (b.dataset.accept) return act(job => rpc("titan_social_respond", { p_user: b.dataset.accept, p_accept: true }, job), { title: "Nouvel ami", message: "Vous voyez maintenant ce que chacun partage." }, null, b);
+    if (b.dataset.decline) return act(job => rpc("titan_social_respond", { p_user: b.dataset.decline, p_accept: false }, job), { title: "Demande refusée" }, null, b);
+    if (b.dataset.cancelRequest) return act(job => rpc("titan_social_remove", { p_user: b.dataset.cancelRequest }, job), { title: "Demande annulée" }, null, b);
     if (b.hasAttribute("data-accept-invitation")) return act(job => rpc("titan_friend_link_accept_v1", { p_token: INVITE.invitation }, job).then((r) => {
       invitation = { done: true };
       if (current(job)) window.titanShell.toast({ type: "ok", title: `Toi et ${r?.name || "ton ami"} êtes amis`, message: "Vous voyez maintenant ce que chacun partage." });
-    }).catch((e) => { invitation = { valid: false }; throw e; }));
+    }).catch((e) => { invitation = { valid: false }; throw e; }), null, null, b);
     if (b.hasAttribute("data-ignore-invitation")) { invitation = { done: true }; return render(); }
-    if (b.hasAttribute("data-friend-link")) return act(job => createFriendLink(job));
+    if (b.hasAttribute("data-friend-link")) return act(job => createFriendLink(job), null, null, b);
     if (b.hasAttribute("data-blocks")) return openBlocks(job);
     if (b.dataset.cheer) {
-      const task = beginMutation(job);
+      const task = beginMutation(job, null, b);
       if (!task) return;
+      task.progress.forEach(node => node.remove()); // the heart itself answers: no line of text for one tap
       return rpc("titan_moment_cheer", { p_id: b.dataset.cheer }, job)
         .then((r) => {
           if (!current(job)) return;
@@ -655,14 +884,14 @@
     if (b.hasAttribute("data-new-challenge")) return newChallenge();
     if (b.dataset.challenge) {
       const a = b.dataset.act;
-      return act(job => rpc("titan_challenge_respond", { p_id: b.dataset.challenge, p_action: a }, job).then(() => current(job) && a === "join" && window.TitanAnalytics?.track("challenge_joined")), a === "join" ? { title: "Défi relevé" } : null);
+      return act(job => rpc("titan_challenge_respond", { p_id: b.dataset.challenge, p_action: a }, job).then(() => current(job) && a === "join" && window.TitanAnalytics?.track("challenge_joined")), a === "join" ? { title: "Défi relevé", message: "Tes séances comptent à partir de maintenant." } : a === "decline" ? { title: "Invitation déclinée" } : { title: "Défi quitté" }, null, b);
     }
     if (b.hasAttribute("data-leave-guild")) return confirm({ title: "Quitter la guilde ?", message: "Ta part de la semaine reste à toi ; elle ne compte plus pour l’équipe.", confirmLabel: "Quitter", action: job => rpc("titan_leave_guild", {}, job).catch(failed) });
   }
 
   function onSubmit(e) {
     const f = e.target;
-    if (!root.contains(f)) return;
+    if (!root.contains(f) || foreign(f)) return;
     e.preventDefault();
     if (!current(viewContext)) return clear("transition");
     if (sending()) return;
@@ -691,6 +920,12 @@
       SP()?.ensure?.();
       root.addEventListener("click", onClick);
       root.addEventListener("submit", onSubmit);
+      document.getElementById("cm-circle")?.addEventListener("click", (e) => {
+        const face = e.target.closest("[data-face]");
+        if (face && status === "ready") friendMenu(face.dataset.face);
+      });
+      window.addEventListener("hashchange", () => { const id = location.hash.slice(1); if (ANCHORS.includes(id) && !openAnchor(id)) wanted = LIVE.some((l) => l.id === id) ? id : null; });
+      ["titan:buddy-updated", "titan:cordee-updated"].forEach(name => window.addEventListener(name, () => { if (status === "ready") paintLive(); }));
       window.addEventListener("online", load);
       window.addEventListener("offline", () => clear("offline"));
       window.addEventListener("titan:account-changing", () => clear("transition"));

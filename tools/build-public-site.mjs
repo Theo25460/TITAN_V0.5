@@ -28,24 +28,33 @@ const PLUS = [
   "Accès temporaire à Aegis, Givre, Aurores et Obsidienne, aussi gagnables gratuitement avec les crédits d’activité",
   "Aucune publicité dans l’application Android",
 ];
+/* The pieces of the offer, written once: the landing and /titan-plus lay the same sentences out differently. */
+const availNow = `<article class="pub-card" data-availability="now"><h3>Pour commencer maintenant</h3><p>Essaie sans compte : ton journal multisport et tes premiers repères restent sur cet appareil. Crée ensuite un compte gratuitement pour retrouver tes séances ailleurs. Le journal et ses exports ne demandent pas TITAN+.</p></article>`;
+const availPlanned = `<article class="pub-card" data-availability="planned"><h3>Les abonnements</h3><p>TITAN+ et les offres Coach s’achètent uniquement dans l’application Android, avec Google Play : le site ne vend rien et n’affiche aucune publicité. Tant que l’achat n’y est pas ouvert, ils restent signalés « bientôt disponible » et aucun paiement n’est possible. Tout ce qui figure dans « Classique » est disponible maintenant.</p></article>`;
+const planCoach = `<article class="pub-card" data-plan="coach"><p class="pub-eyebrow">Coach</p><h3>Accompagne 5 sportifs.</h3><p class="pub-price">Tarif affiché par Google Play</p><ul><li>${icon("check")}<span>Toi + 5 sportifs avec TITAN+ inclus tant qu’ils sont rattachés à toi</span></li><li>${icon("check")}<span>Toute la suite Coach : sportifs suivis, calendrier, séances proposées, messages, check-ins, bilans</span></li><li>${icon("check")}<span>TITAN+ pour toi</span></li></ul></article>`;
+const planUltra = `<article class="pub-card" data-plan="coach"><p class="pub-eyebrow">Coach Ultra</p><h3>Accompagne 15 sportifs.</h3><p class="pub-price">Tarif affiché par Google Play</p><ul><li>${icon("check")}<span>Toi + 15 sportifs avec TITAN+ inclus tant qu’ils sont rattachés à toi</span></li><li>${icon("check")}<span>Exactement la même suite que Coach : tu paies la capacité, pas des fonctions</span></li><li>${icon("check")}<span>TITAN+ pour toi</span></li></ul></article>`;
+const seatRule = "Une place TITAN+ est active seulement tant que le sportif accepte le suivi et que l’offre du coach est active ; ensuite le sportif retrouve ses droits personnels, sans rien perdre de son historique. Avec Coach ou Coach Ultra, le nombre de sportifs suivis est celui de l’offre (5 ou 15) ; TITAN+ seul permet d’en suivre 20, sans TITAN+ pour eux. Un coach ne voit aucune donnée privée sans le consentement du sportif, pour chaque donnée partagée. Le tarif applicable à ton compte est affiché par Google Play avant tout achat.";
+const planFree = `<article class="pub-card"><p class="pub-eyebrow">Classique</p><h3>Tout ce qui fait progresser.</h3><p class="pub-price">0 € <small>sans limite de durée</small></p><ul>${FREE.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><a class="asc-btn asc-btn-secondary" href="/onboarding">Commencer gratuitement</a></article>`;
+const planPlus = `<article class="pub-card is-plus"><p class="pub-eyebrow" style="color:var(--am)">TITAN+</p><h3>Du recul sur ta pratique.</h3><p class="pub-price">Tarif affiché par Google Play</p><ul>${PLUS.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><p class="pub-fine">L’abonnement se souscrit uniquement dans l’application Android, avec Google Play, qui affiche le prix avant tout achat. Tant que l’achat n’y est pas ouvert, aucun paiement n’est possible.</p></article>`;
+const neverChanges = "Pas d’XP en plus, pas de crédits en plus, pas de plafond relevé, pas d’avance sur les gardiens, les classements ou les expéditions. On ne vend pas de progression.";
 const offersHtml = `<div class="pub-grid cols-2" style="margin-bottom:16px">
-  <article class="pub-card" data-availability="now"><h3>Pour commencer maintenant</h3><p>Essaie sans compte : ton journal multisport et tes premiers repères restent sur cet appareil. Crée ensuite un compte gratuitement pour retrouver tes séances ailleurs. Le journal et ses exports ne demandent pas TITAN+.</p></article>
-  <article class="pub-card" data-availability="planned"><h3>Les abonnements</h3><p>TITAN+ et les offres Coach s’achètent uniquement dans l’application Android, avec Google Play : le site ne vend rien et n’affiche aucune publicité. Tant que l’achat n’y est pas ouvert, ils restent signalés « bientôt disponible » et aucun paiement n’est possible. Tout ce qui figure dans « Classique » est disponible maintenant.</p></article>
+  ${availNow}
+  ${availPlanned}
 </div><div class="pub-grid cols-2" style="margin-bottom:16px">
-  <article class="pub-card" data-plan="coach"><p class="pub-eyebrow">Coach</p><h3>Accompagne 5 sportifs.</h3><p class="pub-price">Tarif affiché par Google Play</p><ul><li>${icon("check")}<span>Toi + 5 sportifs avec TITAN+ inclus tant qu’ils sont rattachés à toi</span></li><li>${icon("check")}<span>Toute la suite Coach : sportifs suivis, calendrier, séances proposées, messages, check-ins, bilans</span></li><li>${icon("check")}<span>TITAN+ pour toi</span></li></ul></article>
-  <article class="pub-card" data-plan="coach"><p class="pub-eyebrow">Coach Ultra</p><h3>Accompagne 15 sportifs.</h3><p class="pub-price">Tarif affiché par Google Play</p><ul><li>${icon("check")}<span>Toi + 15 sportifs avec TITAN+ inclus tant qu’ils sont rattachés à toi</span></li><li>${icon("check")}<span>Exactement la même suite que Coach : tu paies la capacité, pas des fonctions</span></li><li>${icon("check")}<span>TITAN+ pour toi</span></li></ul></article>
-</div><p class="pub-fine" style="margin-bottom:16px">Une place TITAN+ est active seulement tant que le sportif accepte le suivi et que l’offre du coach est active ; ensuite le sportif retrouve ses droits personnels, sans rien perdre de son historique. Avec Coach ou Coach Ultra, le nombre de sportifs suivis est celui de l’offre (5 ou 15) ; TITAN+ seul permet d’en suivre 20, sans TITAN+ pour eux. Un coach ne voit aucune donnée privée sans le consentement du sportif, pour chaque donnée partagée. Le tarif applicable à ton compte est affiché par Google Play avant tout achat.</p><div class="pub-grid cols-2">
-  <article class="pub-card"><p class="pub-eyebrow">Classique</p><h3>Tout ce qui fait progresser.</h3><p class="pub-price">0 € <small>sans limite de durée</small></p><ul>${FREE.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><a class="asc-btn asc-btn-secondary" href="/onboarding">Commencer gratuitement</a></article>
-  <article class="pub-card is-plus"><p class="pub-eyebrow" style="color:var(--am)">TITAN+</p><h3>Du recul sur ta pratique.</h3><p class="pub-price">Tarif affiché par Google Play</p><ul>${PLUS.map((t) => `<li>${icon("check")}<span>${t}</span></li>`).join("")}</ul><p class="pub-fine">L’abonnement se souscrit uniquement dans l’application Android, avec Google Play, qui affiche le prix avant tout achat. Tant que l’achat n’y est pas ouvert, aucun paiement n’est possible.</p></article>
+  ${planCoach}
+  ${planUltra}
+</div><p class="pub-fine" style="margin-bottom:16px">${seatRule}</p><div class="pub-grid cols-2">
+  ${planFree}
+  ${planPlus}
 </div>
-<div class="pub-card" style="margin-top:12px"><p class="pub-eyebrow">Ce que TITAN+ ne change jamais</p><p>Pas d’XP en plus, pas de crédits en plus, pas de plafond relevé, pas d’avance sur les gardiens, les classements ou les expéditions. On ne vend pas de progression.</p></div>`;
+<div class="pub-card" style="margin-top:12px"><p class="pub-eyebrow">Ce que TITAN+ ne change jamais</p><p>${neverChanges}</p></div>`;
 
 /* =====================================================================
    Landing
    ===================================================================== */
 const heroMock = `<div class="pub-mock" aria-label="Exemple d’écran TITAN avec des données fictives">
   <span class="pub-mock-tag">Exemple · données fictives</span>
-  <div class="pub-mock-card"><div class="pub-mock-id"><img src="/assets/renaissance/navigator-s.webp" alt="" width="104" height="104"><div><strong>Gardien · niveau 11</strong><small>Prochain rang : Champion au niveau 15</small></div></div><div class="pub-bar"><span style="--p:62%"></span></div><div class="pub-row"><span>Niveau 11</span><strong>${Math.round(E.levelRequirement(11) * 0.62).toLocaleString("fr-FR")} / ${E.levelRequirement(11).toLocaleString("fr-FR")} XP</strong></div></div>
+  <div class="pub-mock-card"><div class="pub-mock-id"><img src="/assets/renaissance/navigator-s.webp" alt="" width="104" height="104"><div><strong>Gardien · niveau 11</strong><small>Prochain rang : Champion au niveau 15</small></div><img class="pub-mock-crest" src="/assets/ranks/gardien-256.webp" alt="" width="64" height="64" decoding="async"></div><div class="pub-bar"><span style="--p:62%"></span></div><div class="pub-row"><span>Niveau 11</span><strong>${Math.round(E.levelRequirement(11) * 0.62).toLocaleString("fr-FR")} / ${E.levelRequirement(11).toLocaleString("fr-FR")} XP</strong></div></div>
   <div class="pub-mock-card"><div class="pub-row"><span>Cette semaine</span><strong>3 jours sur 4 visés</strong></div><div class="pub-days"><span class="on">L</span><span>M</span><span class="on">M</span><span>J</span><span class="on">V</span><span>S</span><span>D</span></div></div>
   <div class="pub-mock-card pub-mock-record"><p class="pub-eyebrow">${icon("star")} Record · course à pied</p><strong class="big">10 km · 47:12</strong><div class="pub-row"><span>Avant : 49:03</span><span>Séance source du 3 oct.</span></div></div>
   <div class="pub-mock-card"><div class="pub-row"><span>Course à pied · maîtrise</span><strong>Expérience · 6/10</strong></div><div class="pub-bar"><span style="--p:58%"></span></div></div>
@@ -302,27 +311,42 @@ writeFileSync(
     description: "Journal et progression gratuits. TITAN+, bientôt disponible, ajoutera comparaisons, bilans mensuels et annuels, routines et capacité coach, sans avantage d’XP.",
     image: "aurora",
     schema: [tarifsFaq.schema, { "@type": "Product", name: "TITAN+", description: "Abonnement optionnel : comparaisons de périodes, bilans avec CSV agrégé, routines, capacité coach et cosmétiques, sans avantage de progression.", brand: { "@type": "Brand", name: "TITAN" }, offers: { "@type": "Offer", availability: "https://schema.org/ComingSoon", url: `${SITE}/titan-plus` } }],
-    body: `<header class="pub-page-head"><div class="pub-wrap"><p class="pub-eyebrow">TITAN+</p><h1>TITAN+ — Bientôt disponible.<br>Le cœur de TITAN est gratuit.</h1><p class="pub-lead">TITAN+ et les offres Coach s’achètent uniquement dans l’application Android, avec Google Play, qui affiche le prix et les conditions avant toute validation ; le site ne vend rien. Tant que l’achat n’y est pas ouvert, aucun paiement n’est possible. Journal, statistiques, progression, aventures, Atelier et Communauté restent gratuits, sans publicité sur le site. Voici ce que TITAN+ et Coach ajoutent.</p><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a></div></header>
-      <section class="pub-section"><div class="pub-wrap"><h2 class="sr-only">Les deux formules</h2>${offersHtml}</div></section>
+    styles: ["/css/one-profil-atelier.css?v=1"],
+    body: `<header class="pub-page-head tp-head"><div class="pub-wrap"><p class="pub-eyebrow">TITAN+</p><h1>TITAN+ — Bientôt disponible.<br>Le cœur de TITAN est gratuit.</h1><p class="pub-lead">TITAN+ et les offres Coach s’achètent uniquement dans l’application Android, avec Google Play, qui affiche le prix et les conditions avant toute validation ; le site ne vend rien. Tant que l’achat n’y est pas ouvert, aucun paiement n’est possible. Journal, statistiques, progression, aventures, Atelier et Communauté restent gratuits, sans publicité sur le site. Voici ce que TITAN+ et Coach ajoutent.</p><div class="tp-head-actions"><a class="asc-btn asc-btn-secondary" href="#concret">Voir les bénéfices concrets ${icon("arrow")}</a><a class="asc-btn asc-btn-ghost" href="#comparer">Comparer ligne par ligne</a></div></div></header>
+      <section class="pub-section tp-offers"><div class="pub-wrap">
+        <div class="pub-head"><p class="pub-eyebrow">Pour toi</p><h2>Classique ou TITAN+.</h2><p class="pub-lead">Le même journal, la même progression, les mêmes règles. TITAN+ ajoute du recul et de la place.</p></div>
+        <div class="tp-plans">${planFree}${planPlus}</div>
+        <aside class="tp-never" aria-label="Ce que TITAN+ ne change jamais">${icon("shield")}<div><p class="pub-eyebrow">Ce que TITAN+ ne change jamais</p><p>${neverChanges}</p></div></aside>
+        <div class="pub-head tp-sub"><p class="pub-eyebrow">Pour accompagner</p><h2>Coach ou Coach Ultra.</h2><p class="pub-lead">La même suite d’outils : seule la capacité change.</p></div>
+        <div class="tp-plans is-coach">${planCoach}${planUltra}</div>
+        <p class="pub-fine tp-seat">${seatRule}</p>
+        <div class="pub-head tp-sub"><p class="pub-eyebrow">Où en est-on</p><h2>Ce qui est ouvert, ce qui ne l’est pas encore.</h2></div>
+        <div class="tp-avail">${availNow}${availPlanned}</div>
+      </div></section>
       ${concreteBenefits}
-      <section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Comparer</p><h2>Ligne par ligne.</h2></div><div class="pub-table" tabindex="0" role="region" aria-label="Tableau"><table><thead><tr><th>Fonction</th><th>Classique</th><th>TITAN+</th></tr></thead><tbody>${[
-        ["Journal, 260 sports, export CSV et JSON", "Inclus", "Inclus"],
-        ["Records, objectifs, récap hebdomadaire", "Inclus", "Inclus"],
-        ["Analyses de base, tendances et historique", "Inclus", "Inclus"],
-        ["Comparaisons de 4, 12 ou 26 semaines complètes, avec filtre sport", "—", "Inclus"],
-        ["Bilan simple du mois et de l’année, avec image à partager", "Inclus", "Inclus"],
-        ["Bilans mensuels et annuels détaillés (tous les sports, calendrier) et CSV agrégé", "—", "Inclus"],
-        ["Vues d’analyse sauvegardées et privées", "Conservation et suppression à expiration", "10"],
-        ["Rang, maîtrise, cadence, collection", "Inclus", "Inclus"],
-        ["Campagnes d’aventure", "4 mondes · 36 chapitres", "4 mondes · 36 chapitres"],
-        ["Communauté, défis, expéditions, guilde", "Inclus", "Inclus"],
-        ["Atelier (tous les styles gagnables gratuitement)", "Inclus", "Inclus + accès temporaire à 4 pièces"],
-        ["Routines nommées", "5", "20"],
-        ["Sportifs suivis dans l’espace coach", "3", "20"],
-        ["Profil public et images à partager", "Inclus", "Inclus"],
-        ["XP, crédits, plafonds", "Identiques", "Identiques"],
-        ["Publicité", "Aucune sur le site ; Google AdMob dans l’application Android", "Aucune"],
-      ].map(([a, b, c]) => `<tr><td>${a}</td><td>${b}</td><td>${c}</td></tr>`).join("")}</tbody></table></div></div></section>
+      <section class="pub-section" id="comparer"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">Comparer</p><h2>Ligne par ligne.</h2><p class="pub-lead">D’abord ce qu’un abonnement ajoute, ensuite tout ce qui reste identique.</p></div><div class="pub-table tp-compare" tabindex="0" role="region" aria-label="Tableau"><table role="table"><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col">Fonction</th><th role="columnheader" scope="col">Classique</th><th role="columnheader" scope="col">TITAN+</th><th role="columnheader" scope="col">Coach · Coach Ultra</th></tr></thead>${[
+        ["Ce qu’un abonnement ajoute", "is-added", [
+          ["Comparaisons de 4, 12 ou 26 semaines complètes, avec filtre sport", "—", "Inclus", "Inclus"],
+          ["Bilans mensuels et annuels détaillés (tous les sports, calendrier) et CSV agrégé", "—", "Inclus", "Inclus"],
+          ["Vues d’analyse sauvegardées et privées", "Conservation et suppression à expiration", "10", "10"],
+          ["Routines nommées", "5", "20", "20"],
+          ["Sportifs suivis dans l’espace coach", "3", "20", "5 avec Coach, 15 avec Coach Ultra"],
+          ["TITAN+ pour les sportifs suivis", "Non", "Non", "Inclus tant qu’ils sont rattachés"],
+          ["Atelier (tous les styles gagnables gratuitement)", "Inclus", "Inclus + accès temporaire à 4 pièces", "Inclus + accès temporaire à 4 pièces"],
+          ["Publicité", "Aucune sur le site ; Google AdMob dans l’application Android", "Aucune", "Aucune"],
+        ]],
+        ["Ce qui reste identique, avec ou sans abonnement", "is-same", [
+          ["Journal, 260 sports, export CSV et JSON", "Inclus", "Inclus", "Inclus"],
+          ["Records, objectifs, récap hebdomadaire", "Inclus", "Inclus", "Inclus"],
+          ["Analyses de base, tendances et historique", "Inclus", "Inclus", "Inclus"],
+          ["Bilan simple du mois et de l’année, avec image à partager", "Inclus", "Inclus", "Inclus"],
+          ["Rang, maîtrise, cadence, collection", "Inclus", "Inclus", "Inclus"],
+          ["Campagnes d’aventure", "4 mondes · 36 chapitres", "4 mondes · 36 chapitres", "4 mondes · 36 chapitres"],
+          ["Communauté, défis, expéditions, guilde", "Inclus", "Inclus", "Inclus"],
+          ["Profil public et images à partager", "Inclus", "Inclus", "Inclus"],
+          ["XP, crédits, plafonds", "Identiques", "Identiques", "Identiques"],
+        ]],
+      ].map(([group, tone, rows]) => `<tbody role="rowgroup" class="${tone}"><tr role="row" class="tp-group"><th role="columnheader" scope="colgroup" colspan="4">${group}</th></tr>${rows.map(([a, b, c, d]) => `<tr role="row"${b === c && c === d ? ' class="tp-all"' : ""}><th role="rowheader" scope="row">${a}</th><td role="cell" data-label="Classique">${b}</td><td role="cell" data-label="TITAN+">${c}</td><td role="cell" data-label="Coach">${d}</td></tr>`).join("")}</tbody>`).join("")}</table></div></div></section>
       ${tarifsFaq.html}${finalCta("aurora")}`,
   }),
 );

@@ -21,19 +21,10 @@
     }
   };
 
-  const TERRITORIES = [
-    { id: "qg", label: "QG", href: "/aujourdhui", icon: "home" },
-    { id: "progres", label: "Progrès", href: "/stats", icon: "chart" },
-    { id: "seance", label: "Séance", href: "/training", icon: "plus", record: true },
-    { id: "aventure", label: "Aventure", href: "/adventure", icon: "compass" },
-    { id: "profil", label: "Profil", href: "/profile", icon: "user" },
-  ];
-  const SECONDARY = [
-    { id: "communaute", label: "Communauté", href: "/social", icon: "group" },
-    { id: "coaching", label: "Coaching", href: "/coaching", icon: "shield" },
-    { id: "atelier", label: "Atelier", href: "/boutique", icon: "sparkle" },
-    { id: "aide", label: "Assistance", href: "/service", icon: "help" },
-  ];
+  /* The navigation model and its markup live in shell-nav.js, which draws them on the first frame of the page. */
+  const NAV = window.titanShellNav;
+  const TERRITORIES = NAV.TERRITORIES;
+  const SECONDARY = NAV.SECONDARY;
   /* Pages of a territory; a page opts in with <nav class="asc-subnav" data-subnav></nav>. */
   const SUBNAV = {
     progres: [
@@ -48,7 +39,7 @@
       { label: "Prévoir", href: "/prevoir" },
     ],
   };
-  const AVATARS = ["scout", "ranger", "keeper", "artisan", "navigator", "sentinel"];
+  const AVATARS = NAV.AVATARS;
 
   let syncState = { state: navigator.onLine ? "local" : "offline", label: "" };
   let explicitSync = null;
@@ -80,6 +71,7 @@
       level: Number(s?.level ?? u.level ?? 1) || 1,
       avatar: AVATARS.includes(s?.avatar) ? s.avatar : "scout",
       frame: guest ? null : look().frame,
+      rank: window.TitanEffort?.rank?.(Number(s?.level ?? u.level ?? 1) || 1)?.id || "eclaireur",
     };
   }
 
@@ -104,10 +96,6 @@
     return out;
   }
 
-  function avatarImg(u) {
-    return `<span class="asc-avatar"${u.frame ? ` data-frame="${u.frame}"` : ""}><img src="/assets/renaissance/${u.avatar}-s.webp" alt="" width="64" height="64" loading="lazy" decoding="async"></span>`;
-  }
-
   function computeSync() {
     if (!navigator.onLine) return { state: "offline", label: "Hors ligne — tes séances restent sur cet appareil" };
     const pending = window.TitanQueue?.list?.().length || 0;
@@ -115,11 +103,6 @@
     if (pending) return { state: "pending", label: `${pending} séance${pending > 1 ? "s" : ""} en attente de synchronisation` };
     if (user().guest) return { state: "local", label: "Découverte : données sur cet appareil" };
     return { state: "cloud", label: "Synchronisé" };
-  }
-
-  function navLink(t, cls) {
-    const current = territory() === t.id ? ' aria-current="page"' : "";
-    return `<a class="${cls}${t.record && cls === "asc-rail-link" ? " asc-rail-record" : ""}" href="${t.href}"${current}>${icon(t.icon)}<span>${t.record && cls === "asc-rail-link" ? "Nouvelle séance" : t.label}</span></a>`;
   }
 
   // Restore only the exact navigation destination whose node this render replaces.
@@ -137,12 +120,7 @@
     };
   }
 
-  // A refresh whose markup is identical touches nothing: no node is replaced, nothing repaints, no focus or hover is lost (EQ-006).
-  function put(el, html) {
-    if (el.__shellHtml === html) return;
-    el.__shellHtml = html;
-    el.innerHTML = html;
-  }
+  const put = NAV.put;
 
   function render() {
     const root = document.body;
@@ -161,55 +139,15 @@
     const restoreFocus = retainNavigationFocus();
     const u = user();
     syncState = computeSync();
-    const title = document.body.dataset.title || document.title.split("—")[0].trim();
-
-    let rail = document.querySelector(".asc-rail");
-    if (!rail) {
-      rail = document.createElement("nav");
-      rail.className = "asc-rail";
-      rail.setAttribute("aria-label", "Navigation principale");
-      root.prepend(rail);
+    NAV.mount(u, syncState);
+    // The account the next page will draw before its scripts are read. A profile still loading keeps what the device remembers.
+    if (window.state?.user?.id) NAV.remember(u);
+    // Drawn before the content on the first frame, the tab bar goes back to the end of the page, where a keyboard meets it last.
+    const tabs = document.querySelector(".asc-tabbar");
+    if (tabs && document.readyState !== "loading" && !tabs.dataset.placed) {
+      tabs.dataset.placed = "1";
+      if (tabs.nextElementSibling) root.append(tabs);
     }
-    put(rail, `
-      <a class="asc-brand" href="/aujourdhui" aria-label="TITAN, QG">${window.titanMark ? window.titanMark() : ""}TITAN</a>
-      <div class="asc-rail-nav">
-        ${TERRITORIES.filter((t) => !t.record).slice(0, 2).map((t) => navLink(t, "asc-rail-link")).join("")}
-        ${navLink(TERRITORIES.find((t) => t.record), "asc-rail-link")}
-        ${TERRITORIES.filter((t) => !t.record).slice(2).map((t) => navLink(t, "asc-rail-link")).join("")}
-      </div>
-      <div class="asc-rail-sub">${SECONDARY.map((t) => navLink(t, "asc-rail-link")).join("")}</div>
-      <a class="asc-rail-foot" href="/profile">${avatarImg(u)}<span><strong>${esc(u.name)}</strong><small><span class="asc-sync" data-state="${syncState.state}" title="${esc(syncState.label)}"></span>${u.guest ? "Sur cet appareil" : `Niveau ${u.level}`}</small></span></a>`);
-
-    let top = document.querySelector(".asc-topbar");
-    if (!top) {
-      top = document.createElement("header");
-      top.className = "asc-topbar";
-      root.prepend(top);
-    }
-    const isHome = territory() === "qg";
-    put(top, `
-      ${isHome ? `<a class="asc-brand" href="/aujourdhui" aria-label="TITAN">${window.titanMark ? window.titanMark() : ""}TITAN</a><span class="asc-topbar-title"></span>` : `<span class="asc-topbar-title">${esc(title)}</span>`}
-      ${isHome ? '<span style="flex:1"></span>' : ""}
-      <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon asc-more" data-shell-more aria-label="Plus : Communauté, Coaching, Atelier, Assistance"${SECONDARY.some((t) => t.id === territory()) ? ' aria-current="page"' : ""}>${icon("menu")}</button>
-      <a class="asc-me" href="/profile" aria-label="Profil : ${esc(u.name)}${u.guest ? "" : `, niveau ${u.level}`}. ${esc(syncState.label)}">
-        <span class="asc-sync" data-state="${syncState.state}"></span>
-        <span class="asc-me-level">${u.guest ? "Découverte" : `NIV ${u.level}`}</span>
-        ${avatarImg(u)}
-      </a>`);
-
-    let tabs = document.querySelector(".asc-tabbar");
-    if (!tabs) {
-      tabs = document.createElement("nav");
-      tabs.className = "asc-tabbar";
-      tabs.setAttribute("aria-label", "Navigation principale");
-      root.append(tabs);
-    }
-    put(tabs, TERRITORIES.map((t) => {
-      const current = territory() === t.id ? ' aria-current="page"' : "";
-      if (t.record)
-        return `<a class="asc-tab asc-tab-record" href="${t.href}"${current} aria-label="Enregistrer une séance"><span class="asc-tab-plus">${icon("plus")}</span><span>${t.label}</span></a>`;
-      return `<a class="asc-tab" href="${t.href}"${current}>${icon(t.icon)}<span>${t.label}</span></a>`;
-    }).join(""));
 
     const sub = document.querySelector("[data-subnav]");
     const pages = SUBNAV[territory()];
