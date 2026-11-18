@@ -26,7 +26,8 @@ const PLUS = [
   "20 routines nommées au lieu de 5",
   "Jusqu’à 20 sportifs dans l’espace coach",
   "Accès temporaire à Aegis, Givre, Aurores et Obsidienne, aussi gagnables gratuitement avec les crédits d’activité",
-  "Aucune publicité dans l’application Android",
+  // The Android app shows no ad today (the shipped build has ads off): this is a promise for the day a free build with ads exists, not a current perk.
+  "Jamais de publicité, même si une version gratuite de l’application Android avec publicités voit le jour",
 ];
 /* The pieces of the offer, written once: the landing and /titan-plus lay the same sentences out differently. */
 const availNow = `<article class="pub-card" data-availability="now"><h3>Pour commencer maintenant</h3><p>Essaie sans compte : ton journal multisport et tes premiers repères restent sur cet appareil. Crée ensuite un compte gratuitement pour retrouver tes séances ailleurs. Le journal et ses exports ne demandent pas TITAN+.</p></article>`;
@@ -285,13 +286,13 @@ guide({
 
 /* ---------- Tarifs ---------- */
 const tarifsFaq = faq([
-  ["Que se passe-t-il à la fin de TITAN+ ?", "Ton journal, tes analyses de base, ta progression, tes insignes et tes crédits restent. L’accès aux comparaisons de périodes, aux bilans détaillés et à leur CSV agrégé prend fin. Les pièces acquises avec tes crédits restent à toi ; seul l’accès temporaire aux pièces non acquises prend fin, et la capacité coach revient à 3 : les suivis au-delà sont mis en pause, sans rien supprimer, jusqu’à ce qu’une place se libère. Dans l’application Android, les publicités de l’offre gratuite reviennent."],
+  ["Que se passe-t-il à la fin de TITAN+ ?", "Ton journal, tes analyses de base, ta progression, tes insignes et tes crédits restent. L’accès aux comparaisons de périodes, aux bilans détaillés et à leur CSV agrégé prend fin. Les pièces acquises avec tes crédits restent à toi ; seul l’accès temporaire aux pièces non acquises prend fin, et la capacité coach revient à 3 : les suivis au-delà sont mis en pause, sans rien supprimer, jusqu’à ce qu’une place se libère. L’application Android n’affiche aujourd’hui aucune publicité ; si une version gratuite avec publicités est publiée, elles s’afficheront alors aussi pour toi."],
   ["TITAN+ ajoute-t-il des analyses sportives ?", "Oui : les comparaisons de 4, 12 ou 26 semaines complètes avec la période précédente, tous sports ou un sport, ajoutent une lecture de ta pratique. Séances, jours actifs et minutes sont calculés depuis ton historique synchronisé. Le récap, les records et les tendances de base restent gratuits."],
   ["Que contiennent les bilans TITAN+ ?", "Un bilan mensuel ou annuel réunit tes séances, tes jours actifs, tes minutes, leur répartition par sport et leur calendrier, avec un CSV agrégé. La période courante est provisoire, arrêtée à l’instant du calcul ; la précédente est complète. Les durées estimées sont signalées. Le journal et ses exports CSV et JSON restent gratuits, comme le bilan simple du mois et de l’année dans Progrès. Chaque téléchargement recalcule les données avec ton accès actuel."],
   ["Que sont les vues sauvegardées TITAN+ ?", "Retrouve 10 vues privées de comparaison ou de bilan par compte : seuls le nom et les paramètres sont sauvegardés, puis les données sont recalculées à l’ouverture avec ton accès actuel. À expiration, les vues sont conservées et peuvent être supprimées ; TITAN+ permet de les ouvrir et de les modifier. Tes favoris, ton historique et tes exports de base restent gratuits."],
   ["Les routines au-delà de 5 sont-elles supprimées ?", "Non. Elles restent utilisables. Au-delà de cinq, la création d’une nouvelle routine demande TITAN+ ; tu peux toujours remplacer une routine existante."],
   ["Comment résilier ?", "L’abonnement se souscrit et se résilie dans Google Play, depuis l’application Android ; l’accès reste actif jusqu’à la fin de la période payée. Supprimer ton compte TITAN ne résilie pas l’abonnement. Tant que l’achat n’est pas ouvert dans l’application, TITAN+ n’est pas encore en vente et il n’y a rien à résilier."],
-  ["Y a-t-il de la publicité ?", "Le site et l’application Web n’affichent aucune publicité. L’application Android gratuite affiche des publicités Google AdMob, jamais avant le formulaire de consentement de Google et jamais pendant une séance. TITAN+, Coach et Coach Ultra n’en affichent aucune."],
+  ["Y a-t-il de la publicité ?", "Non. Le site et l’application Web n’affichent aucune publicité, et l’application Android n’en affiche aujourd’hui aucune. Si une version gratuite avec publicités Google AdMob est publiée, elles n’apparaîtront qu’après le formulaire de consentement de Google, jamais pendant une séance, et jamais avec TITAN+, Coach ou Coach Ultra."],
 ]);
 // Capacity diagrams describe existing limits, not a fictional application screen.
 const capacityMeter = (free, label) => `<div class="pub-benefit-meter" role="img" aria-label="${free} ${label} en Classique, 20 avec TITAN+">${Array.from({ length: 20 }, (_, i) => `<span${i < free ? ' class="is-free"' : ""}></span>`).join("")}</div>`;
@@ -336,7 +337,7 @@ writeFileSync(
           ["Sportifs suivis dans l’espace coach", "3", "20", "5 avec Coach, 15 avec Coach Ultra"],
           ["TITAN+ pour les sportifs suivis", "Non", "Non", "Inclus tant qu’ils sont rattachés"],
           ["Atelier (tous les styles gagnables gratuitement)", "Inclus", "Inclus + accès temporaire à 4 pièces", "Inclus + accès temporaire à 4 pièces"],
-          ["Publicité", "Aucune sur le site ; Google AdMob dans l’application Android", "Aucune", "Aucune"],
+          ["Publicité", "Aucune aujourd’hui ; Google AdMob seulement si une version gratuite de l’application Android avec publicités voit le jour", "Jamais", "Jamais"],
         ]],
         ["Ce qui reste identique, avec ou sans abonnement", "is-same", [
           ["Journal, 260 sports, export CSV et JSON", "Inclus", "Inclus", "Inclus"],

@@ -104,18 +104,63 @@ for (const entry of readdirSync(root)) {
 // ?v= keys were not always changed with the file (nine deployments of the Programme redesign kept the same two stylesheet keys, so a
 // returning visitor saw the new pages with the old styles). Every first-party script AND stylesheet a page loads therefore carries a digest
 // of its own bytes: a changed file is a new address, an unchanged one stays cached, whatever ?v= says.
+// Code and stylesheets also request first-party files by themselves (a script added at runtime, a worker, its importScripts, a CSS @import):
+// those addresses are stamped the same way, inside dist/js and dist/css. A file's references are stamped BEFORE its own digest is taken, and
+// a file is never written after that, so every rev= names the final bytes of its file, the stamped references included.
 const assetDigests = new Map();
-function versionScriptUrl(url) {
-  const path = url.split('?')[0];
+const stampedAssets = new Set();
+const runtimeReferences = new Map();
+// In scripts: a quoted first-party address ('/js/<file>.js' outside vendor/, '/css/<file>.css'). In stylesheets: the target of an @import.
+const RUNTIME_ASSET = /(['"])(\.?\/(?:js\/(?!vendor\/)[^'"#]+\.js|css\/[^'"#]+\.css)(?:\?[^'"#]*)?)\1/g;
+const CSS_IMPORT = /(@import\s+(?:url\(\s*)?)(['"]?)([^'"()#?\s]+\.css)(\?[^'"()#\s]*)?\2/g;
+const OWN_SCRIPT = /^\/js\/(?!vendor\/)[^?#]+\.js$/;
+const OWN_SHEET = /^\/css\/[^?#]+\.css$/;
+const ASSET_ORIGIN = 'https://dist.invalid';
+const assetPath = (url) => `/${url.split('?')[0].replace(/^\.?\//, '')}`;
+function stampReferences(path, chain) {
+  if (stampedAssets.has(path)) return;
+  if (chain.includes(path)) throw new Error(`Assets that reference each other cannot be addressed by a digest: ${[...chain, path].join(' -> ')}`);
+  const file = assertInsideRoot(join(dist, path));
+  if (!existsSync(file)) throw new Error(`Referenced asset missing from dist: ${path}${chain.length ? ` (from ${chain.at(-1)})` : ''}`);
+  const next = [...chain, path];
+  const references = [];
+  // `url` as written in the file, `target` the file it designates; the reference is recorded as an absolute address (for the precache).
+  const stamp = (url, target) => {
+    const versioned = versionScriptUrl(url, next, target);
+    references.push(`${target}${versioned.slice(url.split('?')[0].length)}`);
+    return versioned;
+  };
+  if (OWN_SCRIPT.test(path) || OWN_SHEET.test(path)) {
+    const source = readFileSync(file, 'utf8');
+    const text = OWN_SCRIPT.test(path)
+      ? source.replace(RUNTIME_ASSET, (_, quote, url) => `${quote}${stamp(url, assetPath(url))}${quote}`)
+      : source.replace(CSS_IMPORT, (match, prefix, quote, href, query = '') => {
+        const target = new URL(href, `${ASSET_ORIGIN}${path}`);
+        if (target.origin !== ASSET_ORIGIN || !OWN_SHEET.test(target.pathname)) return match;
+        return `${prefix}${quote}${stamp(`${href}${query}`, target.pathname)}${quote}`;
+      });
+    if (text !== source) writeFileSync(file, text);
+  }
+  runtimeReferences.set(path, references);
+  stampedAssets.add(path);
+}
+function versionScriptUrl(url, chain = [], path = assetPath(url)) {
   if (!assetDigests.has(path)) {
-    const source = assertInsideRoot(join(dist, path));
-    assetDigests.set(path, createHash('sha256').update(readFileSync(source)).digest('hex').slice(0, 12));
+    stampReferences(path, chain);
+    assetDigests.set(path, createHash('sha256').update(readFileSync(assertInsideRoot(join(dist, path)))).digest('hex').slice(0, 12));
   }
   return `${url}${url.includes('?') ? '&' : '?'}rev=${assetDigests.get(path)}`;
 }
 const versionScripts = (html) => html
   .replace(/(<script\b[^>]*\ssrc=")(\.?\/js\/(?!vendor\/)[^"#]+)"/g, (_, prefix, url) => `${prefix}${versionScriptUrl(url)}"`)
   .replace(/(<link\b[^>]*\shref=")(\.?\/css\/[^"#]+\.css(?:\?[^"#]*)?)"/g, (_, prefix, url) => `${prefix}${versionScriptUrl(url)}"`);
+// Every first-party script and stylesheet, whether a page names it or not (a file loaded only by code is stamped here too).
+const listFiles = (dir) => (existsSync(dir) ? readdirSync(dir, { recursive: true, withFileTypes: true }) : [])
+  .filter((entry) => entry.isFile()).map((entry) => join(entry.parentPath ?? entry.path, entry.name));
+for (const file of [...listFiles(join(dist, 'js')), ...listFiles(join(dist, 'css'))].sort()) {
+  const path = `/${file.slice(dist.length + 1).split('\\').join('/')}`;
+  if (OWN_SCRIPT.test(path) || OWN_SHEET.test(path)) versionScriptUrl(path);
+}
 
 for (const entry of readdirSync(root)) {
   if (!entry.endsWith('.html') || excludedHtml.has(basename(entry))) continue;
@@ -132,14 +177,15 @@ for (const entry of readdirSync(root)) {
 // Public help and its assets are available offline even before the first help visit.
 const APP_PAGES = ['aujourdhui', 'training', 'journal', 'stats', 'records', 'carriere', 'objectifs', 'prevoir', 'adventure', 'profile', 'social', 'coaching', 'boutique', 'onboarding', 'login', 'service'];
 const precache = new Set(['/', '/network-error.html', '/manifest.json', '/favicon.ico', '/image/logo-192.png', '/css/fonts/archivo-latin-variable.woff2', '/js/vendor/qrcode-generator-1.4.4.js']);
-const gpxWorkerUrl = '/js/core/gpx-worker.js';
-const gpxWorkerPath = join(dist, gpxWorkerUrl);
-precache.add(gpxWorkerUrl);
-writeFileSync(gpxWorkerPath, readFileSync(gpxWorkerPath, 'utf8').replace(/importScripts\((['"])(\/js\/[^'"#]+)\1\)/g, (_, quote, url) => {
-  const versioned = versionScriptUrl(url);
-  precache.add(versioned);
-  return `importScripts(${quote}${versioned}${quote})`;
-}));
+// The GPX worker is started by code (js/app/seance.js), so no page names it. It is precached under the stamped address that code now
+// requests, together with what it loads itself (its importScripts, stamped above), so a GPX import also works offline.
+const withReferences = (url, into = new Set()) => {
+  if (into.has(url)) return into;
+  into.add(url);
+  for (const reference of runtimeReferences.get(assetPath(url)) || []) withReferences(reference, into);
+  return into;
+};
+for (const url of withReferences(versionScriptUrl('/js/core/gpx-worker.js'))) precache.add(url);
 for (const page of APP_PAGES) {
   precache.add(`/${page}`);
   const html = readFileSync(join(dist, `${page}.html`), 'utf8');

@@ -188,6 +188,7 @@ test("advertising: the texts describe what the Android ad code and the website r
   const mobileSources = (dir) => readdirSync(join(root, dir), { recursive: true }).filter((f) => /\.tsx$/.test(f)).map((f) => [f, read(`${dir}/${f}`)]);
   const hosts = mobileSources("mobile/src/screens").filter(([, text]) => /<AdBanner placement="/.test(text)).map(([f, text]) => `${f.split("/").at(-1)}:${text.match(/<AdBanner placement="([a-z]+)"/)[1]}`).sort();
   assert.deepEqual(hosts, ["HomeScreen.tsx:hq", "JournalScreen.tsx:journal", "ProgressScreen.tsx:stats"], "a banner moved or was added: the terms (article 3) must say so");
+  // The terms describe the placements and rules of a free build with ads as a condition (see the next test: the release shipped has none).
   const terms = page("legal_cgu.html");
   assert.ok(terms.includes("une bannière sur le QG, le Journal et Progrès, et parfois un écran après l’enregistrement d’une séance"));
   // Never during a session, never for a premium right (own TITAN+, coach plan or a seat received from a coach).
@@ -195,17 +196,19 @@ test("advertising: the texts describe what the Android ad code and the website r
   assert.match(policy, /if \(c\.premium\) return no\("premium"\);/);
   assert.match(policy, /if \(c\.sessionActive\) return no\("session-active"\);/);
   assert.match(policy, /if \(!c\.consent\) return no\("no-consent"\);/);
-  assert.ok(terms.includes("jamais avant le formulaire de consentement de Google et jamais pendant une séance ; elle n’en affiche aucune avec TITAN+, y compris une place reçue d’un coach, ni avec les offres Coach"));
+  assert.ok(terms.includes("elles n’apparaîtront qu’après le formulaire de consentement de Google"));
+  assert.ok(terms.includes("jamais pendant une séance, et jamais avec TITAN+, y compris une place reçue d’un coach, ni avec une offre Coach"));
   for (const plan of ANDROID_PLANS) assert.ok(plan.perks.includes("Aucune publicité"), `${plan.name}: the paid offer says it has no ads`);
 
-  // The website loads no advertising script, and no page may promise an ad-free TITAN without saying « site »: the free Android application shows ads.
+  // The website loads no advertising script, and no page may promise an ad-free TITAN without saying « site »: a free Android build with ads
+  // can ship one day (the code is ready, behind the build option), and « sans publicité » for the whole product would then be false.
   for (const file of readdirSync(root).filter((f) => f.endsWith(".html"))) {
     assert.doesNotMatch(read(file), /<script[^>]+(?:googlesyndication|doubleclick|adservice|googletagservices|imasdk)/i, `${file} loads an advertising script`);
   }
   const wholeProduct = /Gratuit, sans publicité|TITAN est gratuit et sans publicité|sans aucune publicité/;
   for (const [name, text] of Object.entries(PAGES)) assert.doesNotMatch(text, wholeProduct, `${name}: « sans publicité » is true of the website only`);
   for (const file of readdirSync(join(root, "js/app")).filter((f) => f.endsWith(".js"))) assert.doesNotMatch(read(`js/app/${file}`), wholeProduct, `js/app/${file}: « sans publicité » is true of the website only`);
-  assert.ok(page("index.html").includes("Site sans publicité") && page("titan-plus.html").includes("Google AdMob dans l’application Android"));
+  assert.ok(page("index.html").includes("Site sans publicité") && page("titan-plus.html").includes("Google AdMob seulement si une version gratuite de l’application Android avec publicités voit le jour"));
 
   // Android: a sentence that promises or announces ads is always chosen by the build (a build without ads never sells « no ads », AUD-03).
   const adClaim = /sans publicité|aucune publicité|retire (?:aussi )?les publicités|des publicités|n’en affichent aucune/i;
@@ -214,6 +217,25 @@ test("advertising: the texts describe what the Android ad code and the website r
   for (const [file, text] of claiming) assert.match(text, /\bADS_BUILD\b/, `${file}: a sentence about ads is shown whatever the build`);
   assert.match(tour, /adsBuild \? "TITAN\+ retire les publicités et ajoute des analyses\." : "TITAN\+ ajoute des analyses\."/);
   assert.match(billing, /visiblePerks = \(perks: readonly string\[\], adsBuild: boolean\) => perks\.filter\(\(p\) => adsBuild \|\| !mentionsAds\(p\)\)/);
+});
+
+test("advertising: the Android release being shipped shows no ad, and no public text says that it does", () => {
+  // The Play Console guide names the build options of the release being shipped (§ 4 bis). With ads=off, ADS_BUILD is false: no ad is ever
+  // requested, and the app's own Legal and Privacy screens say « sans publicité ». The public terms, policy and offers may then describe
+  // AdMob only as what a future free build with ads would do; a TITAN+ « no ads » perk is a promise for that day, not a current benefit.
+  const releaseRow = read("mobile/docs/PUBLIER_PLAY_CONSOLE.md").split("\n").find((line) => /\(\*\*release [\d.]+\*\*\)/.test(line));
+  assert.ok(releaseRow, "the Play Console guide no longer names the build options of the release being shipped");
+  assert.equal(releaseRow.match(/`ads=([a-z]+)`/)?.[1], "off", "the release shipped now shows ads: state them as a present fact in CGU § 3, the privacy policy and the offers, then update this test");
+  assert.match(read("mobile/src/ads/adIds.ts"), /export const ADS_BUILD = process\.env\.EXPO_PUBLIC_TITAN_ADS === "1";/, "ads=off really means no ad build");
+  assert.match(read("mobile/src/screens/settings/LegalScreen.tsx"), /: "TITAN est gratuit et sans publicité\./, "the ads-off app says it has no ads");
+
+  const terms = page("legal_cgu.html");
+  assert.ok(terms.includes("L’application Android n’affiche aujourd’hui aucune publicité. Si une version gratuite avec publicités Google AdMob est publiée"), "CGU § 3 says the Android app shows no ad today, and AdMob only conditionally");
+  assert.ok(page("legal_privacy.html").includes("l’application Android n’affiche aujourd’hui aucune publicité"), "the privacy policy says so in its summary");
+  assert.ok(page("legal_privacy.html").includes("Publicité (application Android, seulement si une version gratuite avec publicités est publiée)"), "the AdMob processing stays described, as a condition");
+  // A sentence stating that the Android application shows ads now, or that TITAN+ removes them now, is refused on every generated page.
+  const presentAds = /(?:application Android|version gratuite)[^.;]{0,40}\baffich(?:e|ent) (?:des|quelques) publicités|Dans l’application Android gratuite,|retire (?:aussi )?(?:la|les) publicités? de l’application|Aucune publicité dans l’application Android|publicités de l’offre gratuite reviennent|Google AdMob dans l’application Android|Google AdMob \(application Android gratuite\)/i;
+  for (const [name, text] of Object.entries(PAGES)) assert.doesNotMatch(text, presentAds, `${name} says the Android application shows ads today`);
 });
 
 test("TITAN LIVE is off by default and never presented as available to everyone", () => {

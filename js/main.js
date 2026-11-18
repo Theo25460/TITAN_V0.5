@@ -2,9 +2,8 @@
    TITAN OS - MAIN CONTROLLER (GAME ENGINE)
    ========================================= */
 
-// 1. CACHE BUSTER STABLE
-// Evite de recharger le CSS a chaque navigation, ce qui provoquait des flashes visuels.
-const TITAN_ASSET_VERSION = window.TITAN_ASSET_VERSION || '78';
+// 1. CACHE: tools/build-public.mjs addresses every first-party script and stylesheet by a digest of its bytes (rev=). No page loads
+// css/style.css any more, and rewriting a stylesheet address here (the former ?v=78 buster) would drop that digest.
 const TITAN_PENDING_TRAINING_KEY = 'titan_pending_training_logs_v1';
 const TITAN_TRAINING_SYNC_DIAG_KEY = 'titan_training_sync_diag_v1';
 const TITAN_PROGRESS_SNAPSHOT_KEY = 'titan_progression_snapshot_v1';
@@ -377,15 +376,6 @@ function titanBuildPostSessionSummary(log, rewardResult, analysis = {}, titanRes
         summary: log.details?.summary || titanResult.summary || ''
     };
 }
-document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-    const href = link.getAttribute('href') || '';
-    if (!href.includes('/css/style.css') && !href.includes('./css/style.css')) return;
-    const cleanHref = href.split('?')[0];
-    if (!href.includes(`v=${TITAN_ASSET_VERSION}`)) {
-        link.setAttribute('href', `${cleanHref}?v=${TITAN_ASSET_VERSION}`);
-    }
-});
-
 // 2. INITIALISATION DU SYSTÈME
 document.addEventListener('DOMContentLoaded', () => {
     // A. Initialisation UI de base

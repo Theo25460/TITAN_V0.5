@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 
 const ROOT = new URL("..", import.meta.url).pathname;
@@ -26,6 +26,58 @@ test("every first-party stylesheet and script of every built page is addressed b
     }
   }
   assert.ok(checked > 400, `only ${checked} references were checked`);
+});
+
+// Code and stylesheets request first-party files too, and those requests hit the same seven-day cache: a script added at runtime
+// (assistance.js loads config.js, moment.js the live scene, play-store.js its sheet), a worker (seance.js starts the GPX worker, which
+// importScripts the parser) and a CSS @import (design-system.css imports fonts.css). Before the build stamped them, each kept a stale copy
+// for a week after a deployment, the incident class this file exists for.
+const distFiles = (dir, ext) => readdirSync(ROOT + "dist/" + dir, { recursive: true }).map(String).filter(f => f.endsWith(ext)).map(f => `${dir}/${f.split("\\").join("/")}`);
+const RUNTIME_LITERAL = /(['"])(\.?\/(?:js\/(?!vendor\/)[^'"#]+\.js|css\/[^'"#]+\.css)(?:\?[^'"#]*)?)\1/g;
+const revOf = url => new URLSearchParams(url.split("?")[1] || "").get("rev");
+
+test("every first-party address written in a built script or stylesheet carries the digest of the file it names (vendor excluded)", () => {
+  const found = [];
+  for (const file of distFiles("js", ".js").filter(f => !f.startsWith("js/vendor/"))) {
+    const text = readFileSync(ROOT + "dist/" + file, "utf8");
+    for (const [, , url] of text.matchAll(RUNTIME_LITERAL)) {
+      const path = url.split("?")[0];
+      assert.equal(revOf(url), digest(path), `${file}: ${url} must carry rev=<digest of ${path}>`);
+      found.push(`${file} -> ${path}`);
+    }
+    // The build stamps plain string literals only: an address assembled in a template literal would silently keep the stale cache.
+    assert.doesNotMatch(text, /`\.?\/(?:js\/(?!vendor\/)|css\/)/, `${file}: write a first-party script or stylesheet address as a plain string so the build can stamp it`);
+  }
+  for (const file of distFiles("css", ".css")) {
+    const text = readFileSync(ROOT + "dist/" + file, "utf8");
+    for (const [, , href] of text.matchAll(/@import\s+(?:url\(\s*)?(['"]?)([^'"()\s]+)\1/g)) {
+      const target = new URL(href, `https://titan.invalid/${file}`);
+      if (target.origin !== "https://titan.invalid") continue;
+      assert.equal(revOf(href), digest(target.pathname), `${file}: @import ${href} must carry rev=<digest of ${target.pathname}>`);
+      found.push(`${file} -> ${target.pathname}`);
+    }
+  }
+  for (const expected of ["js/app/seance.js -> /js/core/gpx-worker.js", "js/core/gpx-worker.js -> /js/core/gpx.js", "js/app/moment.js -> /js/core/live-scene.js", "js/app/assistance.js -> /js/config.js", "js/play-store.js -> /css/play-store.css", "css/design-system.css -> /css/fonts.css"]) {
+    assert.ok(found.includes(expected), `${expected} is no longer found: the scan lost a reference the code still makes`);
+  }
+  // Vendor files are versioned by their file name and left as written.
+  assert.match(readFileSync(ROOT + "dist/js/app/assistance.js", "utf8"), /script\('\/js\/vendor\/supabase-2\.111\.0\.js'\)/);
+});
+
+test("the offline shell holds the stamped addresses the code requests, and every entry resolves to a built file with its current digest", () => {
+  const sw = readFileSync(ROOT + "dist/sw.js", "utf8");
+  const precache = JSON.parse(sw.match(/const ASSETS_TO_CACHE = (\[[\s\S]*?\]);/)[1]);
+  const worker = readFileSync(ROOT + "dist/js/app/seance.js", "utf8").match(/new Worker\("([^"]+)"\)/)[1];
+  assert.ok(revOf(worker), "seance.js starts the worker by its stamped address");
+  assert.ok(precache.includes(worker), "the worker is precached under the address seance.js requests");
+  const parser = readFileSync(ROOT + "dist/js/core/gpx-worker.js", "utf8").match(/importScripts\('([^']+)'\)/)[1];
+  assert.ok(precache.includes(parser), "what the worker imports is precached under the address it requests");
+  for (const url of precache) {
+    const path = url.split("?")[0];
+    const file = path === "/" ? "index.html" : path.includes(".") ? path.slice(1) : `${path.slice(1)}.html`;
+    assert.ok(existsSync(ROOT + "dist/" + file), `precache entry ${url} resolves to dist/${file}`);
+    if (revOf(url)) assert.equal(revOf(url), digest(path), `precache entry ${url} names the current bytes of ${path}`);
+  }
 });
 
 test("the cache policy that makes the digest necessary is the one this test assumes", () => {
