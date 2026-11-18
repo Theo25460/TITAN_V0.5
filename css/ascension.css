@@ -1682,17 +1682,17 @@ html[data-motion="reduced"] *::after {
 /* Folding sections carry one mark everywhere: a chevron at the end of the line that turns when the section opens, instead of the
    browser's triangle at its start. Components that draw their own mark (the QG « why », the optional measures of a session,
    the public menu, coaching rows, the groups of the profile) are left alone; the rule has no specificity, so any component can still restyle its summary. */
-:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary {
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group, .pub-faq details, .pub-faq)) > summary {
   display: flex;
   align-items: center;
   gap: var(--s3);
   list-style: none;
   cursor: pointer;
 }
-:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary::-webkit-details-marker {
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group, .pub-faq details, .pub-faq)) > summary::-webkit-details-marker {
   display: none;
 }
-:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group)) > summary::after {
+:where(.asc) details:where(:not(.qg-why, .seance-more, .pub-menu, .co-session, .co-invites, .ob-sources, .pf-passport-group, .pub-faq details, .pub-faq)) > summary::after {
   content: "";
   flex: none;
   width: 9px;

@@ -820,7 +820,8 @@
   text-wrap: balance;
   text-shadow: 0 2px 14px var(--bg);
 }
-.live-stage-copy p:not(.asc-eyebrow) { margin: var(--s1) 0 0; color: var(--tx-2); max-width: 44ch; }
+/* The summit flag of the scene stands at the top right: on a phone the subtitle stops short of it (production check, 18 Nov 2026). */
+.live-stage-copy p:not(.asc-eyebrow) { margin: var(--s1) 0 0; color: var(--tx-2); max-width: min(44ch, calc(100% - 48px)); }
 .live-signature {
   margin: calc(-1 * var(--s3)) 0 0;
   color: var(--tx-2);
