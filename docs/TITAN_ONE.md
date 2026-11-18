@@ -21,6 +21,12 @@ d'entrée ; le détail historique reste dans `docs/v131/`. Consolidation GitHub 
 > routines côté serveur, succès et récompenses retenues réservés aux séances confirmées ; cause des prix 5,99/23,99/47,99 € (TVA ajoutée
 > par la Play Console). État, preuves, protocole de recette : [`MONETISATION.md`](MONETISATION.md). Paquet v18 préparé, non appliqué.
 
+> **22 novembre 2026 — Refonte UX/UI Web « Signature »** (PR #156, base #154, reprend #150) : navigation présente dès la première
+> image et transitions de page, quatre idées de signature (la coupe, le relief, l'objet, le passage : `DESIGN.md` § 11), six lots
+> (QG et entrée, Séances et progression, Aventure et TITAN LIVE, Communauté, Profil et Atelier 2.0, pages publiques), fusion des deux
+> bibliothèques d'illustrations (`design/titan-visual-library/global-v2/registry/fusion-20261117.json`). Captures avant/après :
+> `docs/design/captures/signature/`. Aucune règle serveur, aucun paiement, aucune migration touchés ; rien de publié.
+
 ## 0. Finition du 17 novembre 2026 — état réel (remplace les statuts de la section suivante quand ils diffèrent)
 
 Pourquoi la preview paraissait cassée alors que tout était vert, et ce qui a été corrigé (détail et garde-fous : `DESIGN.md` § 10) :

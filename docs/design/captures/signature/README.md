@@ -16,4 +16,13 @@ aucun téléphone. « Avant » = tête de `feat/titan-monetisation-excellence` (
 | `avant-apres--accueil-1440.jpg` | Page d'accueil | 1440 px | première visite |
 | `avant-apres--navigation-progres-390.jpg` | Progrès (en-tête, barre d'onglets) | 390 px | compte connecté |
 
-Les autres lots déposent leurs paires dans leur propre dossier, avec leur liste.
+## Les autres lots
+
+Chaque dossier a sa propre liste (`README.md`) :
+
+| Dossier | Lot | Écrans |
+|---|---|---|
+| `seance-progres/` | 2 — Séances et progression | choix du sport, Journal, Records, Carrière, Objectifs et Prévoir |
+| `aventure-live/` | 3 — RPG, TITAN LIVE, Aventure | Aventure (téléphone et ordinateur), intentions, séance en direct, récit de fin, montée de niveau |
+| `communaute/` | 4 — Communauté | Communauté, La Grande Cordée, lien de cordée vu par un invité, Coaching |
+| `profil-atelier/` | 5 — Profil, Atelier 2.0, abonnements | Atelier (réserve, essayage, confirmation), Profil, TITAN+ |

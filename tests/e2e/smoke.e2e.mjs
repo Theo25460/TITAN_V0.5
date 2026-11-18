@@ -6385,7 +6385,10 @@ test("installed PWA: navigation and cosmetic resources bypass the previous cache
   }, staleScripts);
   await page.goto(BASE + "/records", { waitUntil: "load" });
   await page.waitForSelector(".sn-selects");
-  assert.equal(await page.locator(".sn-selects").evaluate(el => getComputedStyle(el).display), "grid");
+  // The stale sheet in the cache holds one rule. The page must be drawn with the deployed one: the filters of Records are laid out
+  // by a rule (a grid in ascension-app.css, folded into the filter line by the Records sheet on a phone), never left as plain blocks.
+  assert.ok(await page.evaluate(() => [...document.styleSheets].find(sheet => /\/css\/ascension-app\.css/.test(sheet.href || "")).cssRules.length > 50), "the deployed stylesheet replaced the cached one");
+  assert.match(await page.locator(".sn-selects").evaluate(el => getComputedStyle(el).display), /^(grid|contents)$/);
   assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("sport_navigation_searched")), true);
   assert.equal(await page.evaluate(() => window.TitanAnalytics.EVENTS.has("sport_navigation_filtered")), true);
   assert.equal(await page.evaluate(() => Boolean(window.titanPreviousResource?.state)), false, "first navigation loads the new appearance resolver");

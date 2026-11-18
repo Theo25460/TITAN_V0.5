@@ -258,6 +258,10 @@ What changes in the rules above:
   80 ms after the first frame and blink at every navigation. The sub-navigation of Progrès and Séance is written in the page.
   The rank worn in the navigation is the approved sculpted crest, when the rank has one.
 
+The sheets of the spaces, each linked after `signature.css` on its own pages only: `one-entree.css` (QG, onboarding, sign-in),
+`one-seance-progres.css` (Séance, Prévoir, Journal, Progrès, Records, Carrière, Objectifs), `one-aventure-live.css` (Aventure,
+TITAN LIVE), `one-communaute.css` (Communauté, défi, coaching, athlete page), `one-profil-atelier.css` (Atelier, Profil, TITAN+).
+
 Illustrations (see `design/titan-visual-library/global-v2/registry/fusion-20261117.json` for each decision): the four approved
 crests are untouched; three true-alpha objects from the owner's Drive are in use (`assets/objects/`: the chest is the reserve
 of credits in the Atelier, the relic belongs to Records, the seal to the exploration notebook); the Champion, Titan and
