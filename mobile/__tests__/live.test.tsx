@@ -108,3 +108,21 @@ test("a running live session survives a restart of the app", async () => {
   fireEvent.press(screen.getByText("J’étais à l’arrêt"));
   await waitFor(() => expect(screen.queryByText("Séance retrouvée")).toBeNull());
 });
+
+test("an interrupted draft write leaves the finished journal available for retry", async () => {
+  let live = LiveEngine.create({ sportId: "yoga", seed: "retry", owner: "owner-a" });
+  live = LiveEngine.step(live, { type: "start" }, Date.now() - 600000).state;
+  live = LiveEngine.step(live, { type: "end" }, Date.now()).state;
+  const key = "titan.live.v1:owner-a";
+  mockStore.set(key, { state: live, savedAt: Date.now() });
+  mockDraft.mockRejectedValueOnce(new Error("storage unavailable"));
+  show("yoga");
+  const keep = await screen.findByTestId("live-keep");
+  await act(async () => { fireEvent.press(keep); });
+  expect(await screen.findByText("Enregistrement interrompu")).toBeTruthy();
+  expect(nav.replace).not.toHaveBeenCalled();
+  expect(mockStore.has(key)).toBe(true);
+  await act(async () => { fireEvent.press(screen.getByTestId("live-keep")); });
+  expect(nav.replace).toHaveBeenCalledWith("SessionForm", { sport: "yoga" });
+  expect(mockStore.has(key)).toBe(false);
+});

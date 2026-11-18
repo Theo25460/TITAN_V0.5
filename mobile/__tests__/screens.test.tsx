@@ -158,6 +158,8 @@ describe("with account data", () => {
   });
   test("QG montre les 8 dernières semaines et la séance à refaire (AUD-24)", () => {
     show(<S.Home />);
+    expect(screen.queryByTestId("qg-cadence")).toBeNull();
+    fireEvent.press(screen.getByTestId("qg-details"));
     expect(screen.getByTestId("qg-cadence")).toBeTruthy();
     expect(screen.getByText("Mes 8 dernières semaines")).toBeTruthy();
     expect(screen.getByTestId("repeat-last")).toBeTruthy();
@@ -199,11 +201,22 @@ describe("with account data", () => {
     fireEvent.press(screen.getByText("Maîtrise"));
     expect(screen.getByText("Maîtrise par discipline")).toBeTruthy();
   });
+  test("le bilan ouvre le journal limité aux séances de sa semaine", () => {
+    show(<S.Progress />);
+    fireEvent.press(screen.getAllByText("Voir les séances de la semaine")[0]);
+    const weekStart = new Date(2026, 9, 26).getTime();
+    expect(mockNav.navigate).toHaveBeenLastCalledWith("Journal", { weekStart });
+    show(<S.Journal {...props({ weekStart })} />);
+    expect(screen.getAllByText(/Course à pied/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Natation/)).toBeNull();
+    expect(screen.getByText(/2 séances ·/)).toBeTruthy();
+    expect(screen.getByText("Voir tout le journal")).toBeTruthy();
+  });
   test("Journal, Records, Objectifs, Semaine type", () => {
     show(<S.Journal {...props()} />);
     expect(screen.getAllByText(/Course à pied/).length).toBeGreaterThan(0);
     fireEvent.press(screen.getByText(/Archives/));
-    expect(screen.getByText(/Marche/)).toBeTruthy();
+    expect(screen.getAllByText(/Marche/).length).toBeGreaterThan(0);
     show(<S.Records />);
     expect(screen.getByText("Plus longue distance")).toBeTruthy();
     expect(screen.getByText("6B+")).toBeTruthy();

@@ -34,4 +34,12 @@ echo "Account B: $b_logs sessions"
 [[ "$reward" == "1" ]] || fail "adventure chapter 1 not validated server-side"
 [[ "$offline" == "1" ]] || fail "offline session not synchronised exactly once"
 [[ "$b_logs" == "0" ]] || fail "account B has sessions it never recorded"
+requests=$(q "select count(*) from public.friendships where user_id_1='$B' and user_id_2='$A' and status='pending'")
+[[ "$requests" == "1" ]] || fail "expected one pending request from B to A after A opted into discoverability, got $requests"
+echo "Friend request from B to A pending, consent required before friendship."
+if [[ "${E2E_LIVE_FOR_A:?}" == "t" ]]; then
+  live=$(q "select count(*) from training_logs where user_id='$A' and sport='padel' and jsonb_typeof(details->'live')='object'")
+  [[ "$live" == "1" ]] || fail "expected one confirmed LIVE padel session, got $live"
+fi
+psql "$E2E_DB_URL" -v ON_ERROR_STOP=1 -q -X -f "$(dirname "$0")/atelier-replica.sql"
 echo "Server-side checks passed"

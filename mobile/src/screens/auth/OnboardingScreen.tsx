@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
-import { useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { BackHandler, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -36,6 +36,16 @@ export function OnboardingScreen() {
   const saving = useRef<"record" | "home" | null>(null);
   const firstSport = picked.find((id) => Sports.conf(id));
   const firstLabel = firstSport ? Sports.label(firstSport) : null;
+
+  useEffect(() => {
+    const back = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (saving.current) return true;
+      if (step === 0) return false;
+      setStep(step === 2 ? previewBack : 0);
+      return true;
+    });
+    return () => back.remove();
+  }, [step, previewBack]);
 
   const toggle = (id: string) => {
     setLimitHit(false);

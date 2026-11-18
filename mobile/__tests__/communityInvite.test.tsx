@@ -64,6 +64,7 @@ test("codes and links: only well-formed codes are accepted and every message car
 
 test("a findable profile shares its code with a link at once", async () => {
   show();
+  fireEvent.press(await screen.findByTestId("community-invite", undefined, slow));
   fireEvent.press(await screen.findByTestId("share-friend-code", undefined, slow));
   await waitFor(() => expect(share).toHaveBeenCalledWith({ message: friendInviteMessage("TN-ABCD") }), slow);
   expect(mockSave).not.toHaveBeenCalled();
@@ -72,6 +73,7 @@ test("a findable profile shares its code with a link at once", async () => {
 test("an unfindable profile is offered the switch first; cancelling sends nothing, accepting saves then shares", async () => {
   mockSocial.mockReturnValue({ ...social, me: { ...social.me, findable: false } });
   show();
+  fireEvent.press(await screen.findByTestId("community-invite", undefined, slow));
   fireEvent.press(await screen.findByTestId("share-friend-code", undefined, slow));
   expect(await screen.findByText("Rendre ton profil trouvable ?", undefined, slow)).toBeTruthy();
   fireEvent.press(screen.getByText("Annuler"));
@@ -125,4 +127,33 @@ test("a challenge without any friend selected becomes an open challenge shared b
 test("the guild panel tells the chronicle: weeks held together and the best streak (AUD-44)", async () => {
   show({ guilde: "G-K7P2Q" });
   expect(await screen.findByText("5 semaines réussies ensemble · meilleure série : 3", undefined, slow)).toBeTruthy();
+});
+
+test("le coaching charge le compte à l’ouverture et filtre les liens étrangers", async () => {
+  mockRpc.mockImplementation((name: string) => ({
+    setHeader: () => Promise.resolve({ data: name === "titan_coach_portal" ? { owner: "owner-a", links: [
+      { id: "own", athlete_id: "owner-a", coach_id: "coach", coach_name: "Lina", sport: "running", paused: true },
+      { id: "other", athlete_id: "other", coach_id: "coach", coach_name: "Ne pas afficher" },
+    ] } : null, error: null }),
+  }));
+  show();
+  expect(mockRpc).not.toHaveBeenCalledWith("titan_coach_portal", expect.anything());
+  fireEvent.press(await screen.findByText("Mes suivis de coaching", undefined, slow));
+  expect(await screen.findByText("Lina", undefined, slow)).toBeTruthy();
+  expect(screen.queryByText("Ne pas afficher")).toBeNull();
+  expect(screen.getByText(/Suivi en pause/)).toBeTruthy();
+});
+
+test("un défi refusé reste ouvert avec le nom saisi pour corriger ou réessayer", async () => {
+  mockRpc.mockImplementation((name: string) => ({
+    setHeader: () => Promise.resolve({ data: null, error: name === "titan_challenge_open_create_v1" ? { message: "refus" } : null }),
+  }));
+  show();
+  fireEvent.press(await screen.findByText("Défis", undefined, slow));
+  fireEvent.press(await screen.findByTestId("new-challenge", undefined, slow));
+  fireEvent.changeText(screen.getByPlaceholderText("Une semaine qui bouge"), "Notre défi");
+  fireEvent.press(screen.getByTestId("challenge-submit"));
+  await screen.findByText("Action impossible", undefined, slow);
+  expect(screen.getByDisplayValue("Notre défi")).toBeTruthy();
+  expect(share).not.toHaveBeenCalled();
 });

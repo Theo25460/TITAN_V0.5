@@ -145,7 +145,7 @@ function Scene({ index, onTarget, beats, onBeat }: { index: number; onTarget: ()
           <T variant="h1">Le premier feu</T>
         </View>
         <View style={styles.pad}>
-          <LiveTrail lit={beats} planned={6} echo={null} beatOne="balise" beatMany="balises" label="L’Expédition" seed="running" family="endurance" elan={{ value: 20 + beats * 10, max: 90 }} />
+          <LiveTrail lit={beats} planned={6} echo={null} beatOne="balise" beatMany="balises" label="L’Expédition" seed="running" family="endurance" elanValue={20 + beats * 10} elanMax={90} />
           <Target label={STOPS[2]!.target} color={colors.mousse} onPress={beats >= 6 ? onTarget : onBeat} testID="tour-target">
             <View style={[styles.fakeButton, { backgroundColor: colors.bg3 }]}>
               <Icon name="plus" size={20} color={colors.mousse} />
