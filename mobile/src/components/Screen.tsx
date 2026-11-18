@@ -28,15 +28,16 @@ export const Screen = forwardRef<ScrollView, Props>(function Screen({ children, 
   const insets = useSafeAreaInsets();
   // With the keyboard open the footer joins the layout instead of floating over it: it never hides the field being typed in.
   const [typing, setTyping] = useState(false);
+  const hasFooter = Boolean(footer);
   useEffect(() => {
-    if (!footer) return;
+    if (!hasFooter) return;
     const show = Keyboard.addListener("keyboardDidShow", () => setTyping(true));
     const hide = Keyboard.addListener("keyboardDidHide", () => setTyping(false));
     return () => {
       show.remove();
       hide.remove();
     };
-  }, [footer]);
+  }, [hasFooter]);
   // Landscape, split window, small fold: under this height a fixed footer would leave the form a sliver, so it scrolls with the content.
   const { height } = useWindowDimensions();
   const short = height < SHORT_WINDOW;
