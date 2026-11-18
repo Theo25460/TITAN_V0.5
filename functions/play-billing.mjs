@@ -15,12 +15,6 @@ export const READINESS_PROBE_TOKEN = 'titan-checkout-readiness-probe-0000';
 const ACCESS_STATES = new Set(['SUBSCRIPTION_STATE_ACTIVE', 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD']);
 
 const env = name => String(globalThis.Netlify?.env?.get(name) || '');
-export function allowsPlayTestPurchases(databaseUrl) {
-    const isolatedUrl = env('PLAY_TEST_SUPABASE_URL').trim().replace(/\/+$/, '');
-    return env('PLAY_ALLOW_TEST_PURCHASES') === 'true' && databaseUrl === isolatedUrl
-        && new URL(databaseUrl).hostname !== 'oubmftfufwwzwpgvrcag.supabase.co';
-}
-
 export function playEntitlementPayload(subscription) {
     return {
         p_is_active: subscription.active,
@@ -73,11 +67,10 @@ export async function googleAccessToken(serviceAccount, now = Date.now()) {
 }
 
 // Decide from Google's answer alone. Anything unknown fails closed (no access).
-export function interpretSubscription(resource, { allowedProducts, allowTestPurchases = false, now = Date.now() }) {
+export function interpretSubscription(resource, { allowedProducts, now = Date.now() }) {
     const line = Array.isArray(resource?.lineItems) ? resource.lineItems[0] : null;
     if (!line || typeof line.productId !== 'string') return { error: 'SUBSCRIPTION_INVALID' };
     if (!allowedProducts.includes(line.productId)) return { error: 'PRODUCT_NOT_ALLOWED' };
-    if (resource.testPurchase && !allowTestPurchases) return { error: 'TEST_PURCHASE_REFUSED' };
     const expiry = typeof line.expiryTime === 'string' ? Date.parse(line.expiryTime) : NaN;
     const endsAt = Number.isFinite(expiry) ? new Date(expiry).toISOString() : null;
     const state = String(resource.subscriptionState || '');
@@ -195,7 +188,7 @@ export default async function handler(request) {
         const lookup = await network(`${PUBLISHER}/${encodeURIComponent(packageName)}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`, { method: 'GET', headers: googleHeaders });
         if (lookup.status === 404 || lookup.status === 410 || lookup.status === 400) return reply(422, { error: 'purchase_not_found' });
         if (!lookup.ok) return unavailable(stage, { status: lookup.status });
-        const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: allowsPlayTestPurchases(url) });
+        const subscription = interpretSubscription(lookup.data, { allowedProducts });
         if (subscription.error) return reply(422, { error: subscription.error.toLowerCase() });
         if (subscription.productId !== productId) return reply(422, { error: 'purchase_product_mismatch' });
         if (subscription.linkedPurchaseToken === purchaseToken) return reply(422, { error: 'subscription_invalid' });
