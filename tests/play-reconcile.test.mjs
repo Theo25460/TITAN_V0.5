@@ -20,6 +20,7 @@ const answers = {
     'tok-gone-0123456789abcd': { status: 410, data: {} },
     'tok-down-0123456789abcd': { status: 503, data: {} },
     'tok-other-0123456789abc': { status: 200, data: sub('SUBSCRIPTION_STATE_ACTIVE', future(), 'unlisted_product') },
+    'tok-licence-0123456789a': { status: 200, data: { ...sub('SUBSCRIPTION_STATE_ACTIVE', future()), testPurchase: {} } },
     'tok-pending-0123456789a': { status: 200, data: { ...sub('SUBSCRIPTION_STATE_ACTIVE', future()), acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING', externalAccountIdentifiers: { obfuscatedExternalAccountId: '00000000-0000-4000-8000-0000000000a6' } } },
 };
 async function run(callback, { env = {}, rows = due, inbox = [], owner = null } = {}) {
@@ -111,4 +112,17 @@ test('notifications kept in the inbox while billing was off are processed once i
     }, { rows: [], inbox: [...inbox] });
     // Billing still off: the inbox is not touched at all.
     await run(async calls => { await handler(new Request('https://x.test')); assert.deepEqual(calls, []); }, { env: { PLAY_BILLING_ENABLED: '' }, inbox: [...inbox] });
+});
+
+// PR #154 (a7e5375): a license-test subscription on production is re-read from Google like any other and keeps its test provenance.
+test('the hourly sweep keeps a verified license-test subscription active and marked as a test', async () => {
+    const rows = [{ user_id: '00000000-0000-4000-8000-0000000000a7', external_id: 'tok-licence-0123456789a' }];
+    await run(async calls => {
+        const body = await (await handler(new Request('https://x.test'))).json();
+        assert.equal(body.updated, 1);
+        assert.ok(calls.some(c => c.path.endsWith('/tok-licence-0123456789a')), 'Google was read');
+        const [b] = applied(calls);
+        assert.equal(b.p_is_active, true);
+        assert.equal(b.p_is_test, true);
+    }, { rows, env: { SUPABASE_URL: 'https://oubmftfufwwzwpgvrcag.supabase.co' } });
 });

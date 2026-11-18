@@ -249,8 +249,8 @@ test('a cancelled subscription keeps access until its paid period ends, and grac
         assert.equal(interpretSubscription(subscription({ subscriptionState: 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD' }, { expiryTime }), options).active, false);
     }
     assert.deepEqual(interpretSubscription({}, options), { error: 'SUBSCRIPTION_INVALID' });
-    assert.deepEqual(interpretSubscription(subscription({ testPurchase: {} }), options), { error: 'TEST_PURCHASE_REFUSED' });
-    assert.equal(interpretSubscription(subscription({ testPurchase: {} }), { ...options, allowTestPurchases: true }).active, true);
+    assert.equal(interpretSubscription(subscription({ testPurchase: {} }), options).active, true);
+    assert.equal(interpretSubscription(subscription({ testPurchase: {} }), options).accessKind, 'test');
 });
 
 test('a token already used by another account, an unknown token and a Google outage are all handled', async () => {
@@ -375,10 +375,6 @@ test('a failed acknowledgement is reported to the app, access stays recorded', a
 test('purchase provenance comes from Google and does not assert a commercial amount was received', async () => {
     const google = { status: 200, data: subscription({ testPurchase: {} }) };
     await run(async calls => {
-        assert.equal((await handler(request())).status, 422);
-        assert.equal(rpcs(calls).length, 0);
-    }, { google });
-    await run(async calls => {
         const response = await handler(request());
         assert.equal(response.status, 200);
         const body = await response.json();
@@ -386,12 +382,14 @@ test('purchase provenance comes from Google and does not assert a commercial amo
         assert.equal(body.active, true);
         assert.equal('paid' in body, false);
         assert.equal(rpcs(calls)[0].body.p_is_test, true);
-    }, { env: { PLAY_ALLOW_TEST_PURCHASES: 'true', PLAY_TEST_SUPABASE_URL: ENV.SUPABASE_URL }, google });
+    }, { google });
     const production = 'https://oubmftfufwwzwpgvrcag.supabase.co';
     await run(async calls => {
-        assert.equal((await handler(request())).status, 422);
-        assert.equal(rpcs(calls).length, 0);
-    }, { env: { PLAY_ALLOW_TEST_PURCHASES: 'true', PLAY_TEST_SUPABASE_URL: production, SUPABASE_URL: production }, google });
+        const response = await handler(request());
+        assert.equal(response.status, 200);
+        assert.equal((await response.json()).access_kind, 'test');
+        assert.equal(rpcs(calls)[0].body.p_is_test, true);
+    }, { env: { SUPABASE_URL: production }, google });
     await run(async calls => {
         const body = await (await handler(request())).json();
         assert.equal(body.access_kind, 'verified_purchase');

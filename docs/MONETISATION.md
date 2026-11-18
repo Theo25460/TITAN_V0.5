@@ -107,20 +107,22 @@ expéditions / objectif de club (aucun crédit ni XP), aucune RPC économique su
 
 ## 7. Protocole de recette réelle (achat de licence)
 
-Le service public **refuse volontairement** un achat de test (`TEST_PURCHASE_REFUSED`), et le flux de publication Android refuse tout
-bundle qui pointe ailleurs que vers la production. Deux voies, au choix du propriétaire :
+**Mise à jour (18 novembre 2026) : achats tests Google Play autorisés sur la même production.** Le refus `TEST_PURCHASE_REFUSED`
+a été supprimé du chemin de vérification, des notifications et du rapprochement. La provenance `provider_is_test` reste
+enregistrée et les achats fictifs ne sont jamais présentés comme un paiement commercial. Toutes les transactions, de test ou réelles,
+restent soumises à la vérification du jeton par l'API Google, au rattachement du compte TITAN, au statut/à la date d'expiration,
+à l'unicité du jeton et à l'acquittement. Aucun banc Supabase séparé ni paiement réel n'est requis pour la recette de licence.
 
-- **Voie A — banc isolé, compte testeur de licence (aucun argent).** Projet Supabase distinct (jamais `oubmftfufwwzwpgvrcag`), migrations
-  jusqu'à v18 ; déploiement Netlify de cette branche avec les variables du § 6, plus `PLAY_ALLOW_TEST_PURCHASES=true` et
-  `PLAY_TEST_SUPABASE_URL` = l'URL du banc. Build **local** signé avec la clé d'envoi, avec `EXPO_PUBLIC_TITAN_BILLING=1`,
-  `EXPO_PUBLIC_TITAN_E2E_SUPABASE_URL`, `EXPO_PUBLIC_TITAN_E2E_SUPABASE_ANON_KEY` et `EXPO_PUBLIC_TITAN_E2E_BILLING_URL` (URL HTTPS du
-  déploiement de banc), envoyé sur une piste de test **fermée** (même `applicationId`, Play n'accepte la facturation que pour une app
-  installée depuis Play) ; compte testeur de licence France.
-- **Voie B — production, vrai paiement remboursé.** Après application de v15 → v18 et pose des variables Netlify : flux « Android natif »
-  (`workflow_dispatch` sur la branche fusionnée, `signing=upload`, `billing=true`, `ads=off`, `partial_release=true`), AAB sur la piste de
-  test interne, compte Google **non testeur** du propriétaire, puis remboursement avec révocation depuis la Play Console.
+1. Fusionner et déployer le code corrigé ; appliquer les migrations v15 → v18 et vérifier Netlify / Play Console (§ 6).
+2. Ajouter le compte Google du propriétaire comme **testeur de licence** dans Play Console, et le faire participer à une piste de test
+   Play (interne, fermée ou ouverte). Publier l'AAB signé avec le flux Android natif (`billing=true`) et installer depuis Google Play.
+3. Sur ce compte testeur, choisir **Test card, always approves** dans la feuille de paiement Google : aucun débit réel.
+   L'achat fictif doit activer TITAN+/Coach/Coach Ultra sur son compte TITAN, puis être retiré à son expiration/révocation.
+   Les utilisateurs non enregistrés comme testeurs de licence restent facturés réellement s'ils achètent.
+4. Contrôler le résultat avec les vérifications ci-dessous. Ne pas confondre test automatisé simulé et achat de licence constaté
+   sur appareil réel : ce dernier reste à effectuer par le propriétaire.
 
-Puis, dans les deux cas :
+Contrôles à effectuer :
 
 3. `GET /functions/play-billing?product_id=titan01` (puis 02, 03) authentifié : `204`.
 4. Pour chaque cas, noter heure, prix affiché par Google, résultat dans TITAN et ligne `private.titan_entitlements` :

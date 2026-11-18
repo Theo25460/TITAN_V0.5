@@ -10,7 +10,7 @@
 // Authentication, strongest first: a Pub/Sub OIDC token signed by Google for PLAY_RTDN_AUDIENCE and PLAY_RTDN_SERVICE_ACCOUNT; or the secret in
 // the push URL (PLAY_RTDN_TOKEN). When neither is configured the notification is kept as unauthenticated (bounded) and never processed inline.
 import crypto from 'node:crypto';
-import { acknowledgePlaySubscription, allowsPlayTestPurchases, googleAccessToken, interpretSubscription, network, PLAY_ACCOUNT_ID, playEntitlementPayload } from './play-billing.mjs';
+import { acknowledgePlaySubscription, googleAccessToken, interpretSubscription, network, PLAY_ACCOUNT_ID, playEntitlementPayload } from './play-billing.mjs';
 import { verifyPubSubJwt } from './play-auth.mjs';
 import { readBoundedBytes } from './request-body.mjs';
 
@@ -49,7 +49,7 @@ export function playNotificationConfig() {
 // Processes one kept notification. Returns { outcome, final }: final = false means a transient failure worth retrying later.
 // `googleHeaders` is a lazy getter so a batch shares one access token.
 export async function processPlayNotification(item, config, googleHeaders) {
-    const { rpc, packageName, allowedProducts, url } = config;
+    const { rpc, packageName, allowedProducts } = config;
     const { purchaseToken, kind, notificationType } = item;
     const eventName = kind === 'voided' ? 'rtdn:voided' : `rtdn:${notificationType ?? 'unknown'}`;
     const owner = await rpc('titan_entitlement_owner_v1', { p_source: 'google_play', p_external_id: purchaseToken });
@@ -75,7 +75,7 @@ export async function processPlayNotification(item, config, googleHeaders) {
         return gone.ok ? { outcome: 'gone', final: true } : { outcome: 'database-unavailable', final: false };
     }
     if (!lookup.ok) return { outcome: `google-${lookup.status}`, final: false };
-    const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: allowsPlayTestPurchases(url) });
+    const subscription = interpretSubscription(lookup.data, { allowedProducts });
     if (subscription.error || subscription.linkedPurchaseToken === purchaseToken) return { outcome: 'not-applicable', final: true };
     const userId = firstPurchase ? subscription.boundAccount : owner.data;
     // A first purchase whose account Google does not name is granted when the player's app sends it (play-billing) or on restore.

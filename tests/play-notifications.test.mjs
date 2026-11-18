@@ -227,3 +227,22 @@ test('function deployed before the inbox migration: a configured setup still pro
     await run(async calls => { assert.equal((await handler(push(event(2)))).status, 503); assert.equal(applied(calls).length, 0); }, { kept: 'missing', env: { PLAY_BILLING_ENABLED: '' } });
     await run(async () => assert.equal((await handler(push(event(2)))).status, 503), { kept: 'missing', google: { status: 500, data: {} } });
 });
+
+// PR #154 (a7e5375): Google Play license-test subscriptions are accepted on production, always after Google's own answer.
+test('a license-test purchase notified by Google is granted after the Google read and recorded as a test, never as a payment', async () => {
+    const data = { ...subscription(), testPurchase: {}, acknowledgementState: 'ACKNOWLEDGEMENT_STATE_PENDING', externalAccountIdentifiers: { obfuscatedExternalAccountId: USER } };
+    await run(async calls => {
+        assert.equal((await handler(push(event(4)))).status, 200);
+        assert.ok(calls.some(c => c.path.includes('/purchases/subscriptionsv2/tokens/')), 'Google is asked before anything is granted');
+        const [recorded] = applied(calls);
+        assert.equal(recorded?.body.p_user_id, USER);
+        assert.equal(recorded.body.p_is_active, true);
+        assert.equal(recorded.body.p_is_test, true, 'the provenance stays "test"');
+        assert.ok(calls.some(c => c.path.endsWith(':acknowledge')));
+    }, { owner: null, google: { status: 200, data } });
+    // Google says the test subscription ended: access is withdrawn like any other.
+    await run(async calls => {
+        assert.equal((await handler(push(event(13)))).status, 200);
+        assert.equal(applied(calls)[0].body.p_is_active, false);
+    }, { google: { status: 200, data: { ...subscription('SUBSCRIPTION_STATE_EXPIRED', new Date(Date.now() - 1000).toISOString()), testPurchase: {} } } });
+});

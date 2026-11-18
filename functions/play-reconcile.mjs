@@ -3,7 +3,7 @@
 // Second job (incident of 18 November 2026): processes the real-time notifications kept in the private inbox while billing was off or while a
 // try failed (titan_play_notifications_due_v1 schedules each retry with a bounded back-off). A new token is only granted to the account Google binds.
 // Disabled unless PLAY_BILLING_ENABLED=true. Never trusts anything but Google's answer.
-import { acknowledgePlaySubscription, allowsPlayTestPurchases, googleAccessToken, interpretSubscription, network, playEntitlementPayload } from './play-billing.mjs';
+import { acknowledgePlaySubscription, googleAccessToken, interpretSubscription, network, playEntitlementPayload } from './play-billing.mjs';
 import { lazyGoogleHeaders, playNotificationConfig, processPlayNotification } from './play-notifications.mjs';
 
 const PUBLISHER = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications';
@@ -70,7 +70,7 @@ export default async function handler(_request, { budgetMs = 20_000, now = () =>
                 if (lookup.status === 404 || lookup.status === 410) {
                     payload = { p_is_active: false, p_status: 'gone', p_is_test: null, p_ends_at: eventAt };
                 } else if (lookup.ok) {
-                    subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: allowsPlayTestPurchases(url) });
+                    subscription = interpretSubscription(lookup.data, { allowedProducts });
                     const invalid = subscription.error || subscription.linkedPurchaseToken === row.external_id
                         || (subscription.boundAccount && subscription.boundAccount !== row.user_id);
                     payload = invalid

@@ -29,7 +29,9 @@ Les abonnements sont créés (18 ans et plus). Les tags ne sont pas des identifi
    - `PLAY_PRODUCT_IDS` = `titan01,titan02,titan03` (remplacer `titan01` par l'identifiant réel de TITAN+) ; **cette variable n'a pas pu être posée par l'assistant (API Netlify refusée en écriture)**
    - `PLAY_PACKAGE_NAME` = `fr.titanapp.app` (facultatif, valeur par défaut)
    - `PLAY_BILLING_ENABLED` = `false` pour l'instant (`true` seulement pendant l'essai testeur puis à l'ouverture)
-   - `PLAY_ALLOW_TEST_PURCHASES` = `true` **pendant l'essai seulement**, puis supprimer
+   - ~~`PLAY_ALLOW_TEST_PURCHASES`~~ : **n'existe plus** (PR #154, 18 novembre 2026). Un achat de testeur de licence est accepté sur la
+     production, toujours après la lecture du jeton auprès de Google, et enregistré comme test (`provider_is_test`), jamais comme un paiement.
+     Seuls les comptes déclarés testeurs de licence dans la Play Console obtiennent un achat fictif ; les autres sont facturés réellement.
    - `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_PUBLISHABLE_KEY` : déjà utilisées par les autres fonctions.
 
 ## D. Notifications en temps réel (Pub/Sub)
