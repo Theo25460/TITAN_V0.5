@@ -129,12 +129,19 @@
     const s = status(g);
     const m = METRICS[g.metric];
     const pct = Math.round(s.ratio * 100);
+    const live = !s.complete && !s.ended && !s.upcoming;
+    const pace = Math.round(s.elapsed * 100);
+    // Where it stands, in a word and a shape (never by colour alone); the sentence under the bar keeps what remains to do.
+    const tag = s.state === "done" ? ["is-worn", "Atteint", "check"] : s.state === "ahead" ? ["is-owned", "En avance", "up"] : s.state === "on" ? ["is-owned", "Dans le rythme", "check"] : s.state === "upcoming" ? ["is-locked", "À venir", ""] : s.state === "ended" ? ["", "Période terminée", ""] : ["", "En cours", ""];
+    const nextStep = s.line.replace(/^(En avance|Dans le rythme)\. /, "");
     return `<article class="ob-card" data-state="${s.state}">
       <div class="asc-between"><span class="asc-chip">${esc(g.sport ? SP().label(g.sport) : "Tous les sports")}</span><span class="asc-small asc-muted">${g.archived_at ? "Archivé" : s.ended || s.complete ? `du ${esc(new Date(g.start_date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" }))} au ${esc(new Date(g.end_date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" }))}` : `jusqu’au ${esc(new Date(g.end_date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}`}</span></div>
       <h3 tabindex="-1">${esc(g.title)}</h3>
-      <p class="ob-value"><strong class="asc-num">${esc(m.fmt(s.value))}</strong><span class="asc-muted"> / ${esc(m.fmt(s.target))}${g.metric === "sessions" || g.metric === "days" ? " " + esc(m.unit(s.target)) : ""}</span></p>
+      <div class="ob-figure"><p class="ob-value"><strong class="asc-num">${esc(m.fmt(s.value))}</strong><span class="asc-muted"> / ${esc(m.fmt(s.target))}${g.metric === "sessions" || g.metric === "days" ? " " + esc(m.unit(s.target)) : ""}</span></p>
+        <span class="sig-state ${tag[0]} ob-state">${tag[2] ? icon(tag[2]) : ""}${tag[1]}</span></div>
       <div class="ob-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="${esc(g.title)} : ${pct} %"><span style="--p:${pct}%"></span>${!s.complete && !s.ended && !s.upcoming ? `<i style="--p:${Math.round(s.elapsed * 100)}%" title="Où en serait un rythme régulier aujourd’hui"></i>` : ""}</div>
-      <p class="ob-line">${s.state === "done" ? icon("check") : ""}${esc(s.line)}</p>
+      <p class="ob-scale" aria-hidden="true"><span><strong class="asc-num">${pct} %</strong> fait</span>${live ? `<span>repère d’un rythme régulier : ${pace} %</span>` : ""}</p>
+      <p class="ob-line">${s.state === "done" ? icon("check") : ""}${esc(nextStep)}</p>
       <details class="ob-sources"><summary>${s.contributors.length} séance${s.contributors.length > 1 ? "s" : ""} prise${s.contributors.length > 1 ? "s" : ""} en compte</summary>${s.contributors.length ? `<div class="asc-list">${s.contributors
         .slice()
         .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -171,7 +178,8 @@
   }
 
   function templatesHtml() {
-    return `<section class="asc-section ob-templates"><div class="asc-section-head"><h2>Pour commencer</h2><span class="asc-small asc-muted">À ajuster avant de valider</span></div>
+    return `<section class="asc-section ob-templates"><div class="sig-empty ob-none">${icon("flag")}<h2>Aucun objectif en cours</h2><p>Un objectif te situe sur une période : où tu en es, ce qu’il reste, à quel rythme. Il ne donne pas d’XP et ne retire rien s’il n’est pas atteint.</p></div>
+      <div class="asc-section-head"><h2>Pour commencer</h2><span class="asc-small asc-muted">À ajuster avant de valider</span></div>
       <div class="ob-grid">${TEMPLATES.map((t, i) => `<button type="button" class="ob-template" data-template="${i}"><strong>${esc(t.title)}</strong><span class="asc-small asc-muted">${esc(t.text)}</span><span class="asc-chip">${esc(METRICS[t.metric].label)} · ${t.days} jours</span></button>`).join("")}</div></section>`;
   }
 

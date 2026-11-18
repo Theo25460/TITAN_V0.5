@@ -53,10 +53,10 @@
   function dayCard(d) {
     const fam = d.sport ? SP().familyOf(d.sport) : null;
     const doneLabel = d.done.length ? d.done.map((l) => SP().label(l.sport)).join(", ") : "";
-    const status =
-      d.state === "done" ? `${icon("check")} ${esc(doneLabel)}` : d.state === "other" ? `${icon("check")} ${esc(doneLabel)} à la place` : d.state === "missed" ? "Non réalisée" : d.state === "rest" ? "Repos" : d.isToday ? (d.sport ? "Aujourd’hui" : "Libre") : d.sport ? "À venir" : "Libre";
-    return `<button type="button" class="pv-day" data-day="${d.key}" data-state="${d.state}"${fam ? ` data-family="${esc(fam)}"` : ""} aria-label="${esc(`${NAMES[d.index]} : ${d.sport ? SP().label(d.sport) : "rien de prévu"}. ${status.replace(/<[^>]+>/g, "")}`)}">
-      <span class="pv-day-head"><strong>${NAMES[d.index].slice(0, 3)}</strong><span class="asc-num">${d.date.getDate()}</span></span>
+    const words = d.state === "done" ? doneLabel : d.state === "other" ? `${doneLabel} à la place` : d.state === "missed" ? "Non réalisée" : d.state === "rest" ? "Repos" : d.isToday ? (d.sport ? "Aujourd’hui" : "Libre") : d.sport ? "À venir" : "Libre";
+    const status = `${d.done.length ? icon("check") : ""}<span>${esc(words)}</span>`;
+    return `<button type="button" class="pv-day" data-day="${d.key}" data-state="${d.state}"${fam ? ` data-family="${esc(fam)}"` : ""} aria-label="${esc(`${NAMES[d.index]} : ${d.sport ? SP().label(d.sport) : "rien de prévu"}. ${words}`)}"${d.isToday ? ' data-today="true"' : ""}>
+      <span class="pv-day-head"><strong><span>${NAMES[d.index].slice(0, 1)}</span><span>${NAMES[d.index].slice(1, 3)}</span></strong><span class="asc-num">${d.date.getDate()}</span></span>
       <span class="pv-day-plan">${d.sport ? `${icon(SP().iconOf(d.sport))}<span>${esc(SP().label(d.sport))}${d.minutes ? `<small>${esc(F().duration(d.minutes))}</small>` : ""}</span>` : '<span class="asc-faint">—</span>'}</span>
       <span class="pv-day-status">${status}</span>
     </button>`;
@@ -74,12 +74,9 @@
     const today = week.find((d) => d.isToday);
     const doneDays = week.filter((d) => d.done.length).length;
     root.innerHTML = `
-      <section class="asc-section" aria-labelledby="pv-cadence-title"><div class="asc-section-head"><h2 id="pv-cadence-title">${paused ? "Cadence en pause" : "Ma cadence"}</h2>
-        <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-cadence-pause>${paused ? "Reprendre la cadence" : "Mettre la cadence en pause"}</button></div>
-        <p class="asc-small asc-muted">La pause met de côté ton repère de jours actifs pour cette semaine. Ton journal et tes acquis restent accessibles.</p>
-      </section>
-      ${today?.sport && !today.done.length ? `<section class="asc-hero pv-today"><p class="asc-eyebrow cy">Prévu aujourd’hui</p><h2 class="pv-today-title">${esc(SP().label(today.sport))}</h2><p class="asc-lead">${today.minutes ? `${esc(F().duration(today.minutes))}` : "Durée libre"}${today.note ? ` · ${esc(today.note)}` : ""}</p><div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/training?sport=${encodeURIComponent(today.sport)}">${icon("plus")} Enregistrer cette séance</a></div></section>` : ""}
+      ${today?.sport && !today.done.length ? `<section class="asc-slab pv-today"><p class="asc-eyebrow">Prévu aujourd’hui</p><h2 class="pv-today-title">${esc(SP().label(today.sport))}</h2><p class="asc-lead">${today.minutes ? `${esc(F().duration(today.minutes))}` : "Durée libre"}${today.note ? ` · ${esc(today.note)}` : ""}</p><div class="asc-row-flex"><a class="asc-btn asc-btn-primary" href="/training?sport=${encodeURIComponent(today.sport)}">${icon("plus")} Enregistrer cette séance</a></div></section>` : ""}
       <section class="asc-section"><div class="asc-section-head"><h2>Cette semaine</h2><span class="asc-small asc-muted">${doneDays} jour${doneDays > 1 ? "s" : ""} actif${doneDays > 1 ? "s" : ""} · ${planned} prévu${planned > 1 ? "s" : ""}</span></div>
+        ${planned ? "" : `<div class="sig-empty pv-none">${icon("calendar")}<h3>Aucune séance prévue</h3><p>Place une séance type sur un jour : le QG te la rappellera ce jour-là. Rien n’est obligatoire, et un jour sauté ne coûte rien.</p><button type="button" class="asc-btn asc-btn-primary" data-day="${today?.key || week[0].key}" data-plan-first>${icon("plus")} Prévoir ${today ? "aujourd’hui" : "un jour"}</button></div>`}
         <div class="pv-week">${week.map(dayCard).join("")}</div>
         ${!paused && planned && planned < target ? `<p class="asc-note">${icon("info")}<span>Ta cadence vise ${target} jours actifs par semaine et ta semaine type en prévoit ${planned}. Les jours libres comptent aussi dès que tu bouges.</span></p>` : ""}
       </section>
@@ -90,6 +87,10 @@
           )
           .join("")}</div>
         <p class="asc-small asc-faint pv-foot">Un repère, pas une obligation : une séance différente de celle prévue compte tout autant. Rien n’est perdu si un jour saute.</p>
+      </section>
+      <section class="asc-section" aria-labelledby="pv-cadence-title"><div class="asc-section-head"><h2 id="pv-cadence-title">${paused ? "Cadence en pause" : "Ma cadence"}</h2>
+        <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-cadence-pause>${paused ? "Reprendre la cadence" : "Mettre la cadence en pause"}</button></div>
+        <p class="asc-small asc-muted">La pause met de côté ton repère de jours actifs pour cette semaine. Ton journal et tes acquis restent accessibles.</p>
       </section>`;
     root.setAttribute("aria-busy", "false");
     if (current(ctx)) restoreDay(focusedDay);
