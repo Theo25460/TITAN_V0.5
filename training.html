@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/css/ascension.css?v=300.12" />
     <link rel="stylesheet" href="/css/ascension-app.css?v=302.1" />
     <link rel="stylesheet" href="/css/signature.css?v=1" />
+    <link rel="stylesheet" href="/css/one-seance-progres.css?v=1" />
     <script src="/js/passage.js?v=1"></script>
   </head>
   <body class="asc" data-territory="seance" data-title="Séance">
@@ -23,8 +24,8 @@
     <script src="/js/app/shell-nav.js?v=1"></script>
     <main class="asc-main seance-main" id="contenu">
       <div id="seance" aria-busy="false">
-        <div class="asc-skeleton" style="height: 56px; border-radius: 16px"></div>
-        <div class="asc-skeleton" style="height: 220px; margin-top: 24px"></div>
+        <header class="asc-page-head seance-field"><div><h1>Qu’as-tu fait&#8239;?</h1><div class="seance-skel-key" aria-hidden="true"></div></div><div class="seance-skel-search" aria-hidden="true"></div></header>
+        <div class="seance-skel-tiles" aria-hidden="true"><i class="asc-skeleton"></i><i class="asc-skeleton"></i><i class="asc-skeleton"></i><i class="asc-skeleton"></i></div>
       </div>
     </main>
     <script src="/js/vendor/supabase-2.111.0.js"></script>

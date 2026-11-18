@@ -218,7 +218,15 @@
       "ratio": 1,
       "source": "existing repository asset",
       "visualOwner": "not established",
-      "usage": [],
+      "usage": [
+        {
+          "source": "js/app/records.js",
+          "lines": [
+            87
+          ],
+          "evidence": "literal"
+        }
+      ],
       "platform": "web",
       "distribution": "web-public-build-candidate",
       "expectedDeliveredBytes": 26090,
@@ -234,11 +242,13 @@
       },
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
-        "sourceEvidence": []
+        "sourceEvidence": [
+          "js/app/records.js"
+        ]
       },
       "rpgUsage": false,
-      "decision": "fix",
-      "reason": "no literal usage found, verify dynamic consumers before archiving",
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
       "technicalValidation": "dimensions-read",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -255,7 +265,15 @@
       "ratio": 1,
       "source": "existing repository asset",
       "visualOwner": "not established",
-      "usage": [],
+      "usage": [
+        {
+          "source": "js/app/records.js",
+          "lines": [
+            87
+          ],
+          "evidence": "literal"
+        }
+      ],
       "platform": "web",
       "distribution": "web-public-build-candidate",
       "expectedDeliveredBytes": 74324,
@@ -271,11 +289,13 @@
       },
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
-        "sourceEvidence": []
+        "sourceEvidence": [
+          "js/app/records.js"
+        ]
       },
       "rpgUsage": false,
-      "decision": "fix",
-      "reason": "no literal usage found, verify dynamic consumers before archiving",
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
       "technicalValidation": "dimensions-read",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -13085,8 +13105,8 @@
       ],
       "source": "js/app/records.js",
       "description": "Statistics and record source",
-      "bytes": 14092,
-      "version": "sha256:76b37bb2624cc95b27fe0fe2145c3758675e99522e4d883fc8ae7265c40b2405",
+      "bytes": 18367,
+      "version": "sha256:b6a09631c23e3e9266f873d9e0a62f96bbe68bbeae7edbfdd3314af0a53d7386",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
