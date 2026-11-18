@@ -61,11 +61,11 @@
     return `<section class="pf-hero asc-on-field" aria-label="Mon identité">
       <div class="pf-id"><span class="pf-avatar"${u.frame ? ` data-frame="${esc(u.frame)}"` : ""}><img src="/assets/renaissance/${esc(u.avatar || "scout")}-s.webp" alt="" width="128" height="128"></span>
         <div class="pf-id-main"><h2 class="pf-name">${esc(guest() ? "Mode découverte" : window.state?.user?.name || "Athlète")}</h2><p class="pf-rank"><span class="pf-level-n">Niveau <strong class="asc-num">${pr.level}</strong></span> · ${esc(pr.rank.name)}</p>${wornName() ? `<p class="pf-title" data-pf-title>${icon("star")} ${esc(wornName())}</p>` : ""}${pioneer?.cohort ? `<p class="pf-title" data-pf-pioneer>${icon("flag")} Pionnier · ${esc(pioneer.cohort)}</p>` : ""}<p class="asc-small pf-since">${guest() ? "Tes séances restent sur cet appareil" : `Membre depuis ${esc(new Date(window.state?.user?.created_at || P().dna(logs()).first || Date.now()).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}`}</p></div>
-        ${window.TitanCrest ? `<span class="pf-crest">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(pr.level), 118)}</span>` : ""}</div>
+        ${window.TitanCrest ? `<span class="pf-crest sig-object">${window.TitanCrest.svg(window.TitanCrest.rankIdOf(pr.level), 118)}</span>` : ""}</div>
       <div class="pf-level"><div class="pf-level-main">
         ${pr.guest || pr.confirmed ? `<span class="asc-ascent" role="progressbar" aria-label="Progression vers le niveau suivant" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="--p:${pct}%"></span></span>` : ""}
         <div class="asc-between"><p class="asc-small">${pr.guest || pr.confirmed ? `Vers le niveau ${pr.level + 1} · ` : "Progression en attente de synchronisation · "}${next ? `Prochain rang : ${esc(next.name)} au niveau ${next.level}` : "Rang le plus haut atteint"}${pr.estimated ? " · estimation du mode découverte" : ""}</p>${pr.guest || pr.confirmed ? `<span class="asc-small asc-num pf-xp">${F().number(pr.xp)} / ${F().number(pr.next)} XP</span>` : ""}</div></div></div>
-      <a class="asc-btn asc-btn-secondary" data-profile-personalize href="#personnage">${icon("settings")} Personnaliser</a>
+      <nav class="pf-ways" aria-label="Mon passeport, mon style, ma carte"><a class="asc-btn asc-btn-secondary" data-profile-personalize href="#personnage">${icon("settings")} Personnaliser</a>${guest() ? "" : `<a class="asc-btn asc-btn-secondary" data-profile-atelier href="/boutique">${icon("sparkle")} Atelier</a><a class="asc-btn asc-btn-secondary" data-profile-card href="#public">${icon("share")} Carte publique</a>`}</nav>
     </section>`;
   }
 
@@ -492,9 +492,10 @@
       </div></section>`;
   }
 
+  const GROUP_ICONS = { identity: "user", sport: "run", account: "link", preferences: "settings" };
   function profileGroup(id, title, subtitle, body, opened) {
     return `<details class="pf-passport-group" data-profile-group="${id}"${opened.has(id) ? " open" : ""}>
-      <summary><span><strong>${title}</strong><small>${subtitle}</small></span>${icon("chevron")}</summary>
+      <summary><i class="pf-group-icon" aria-hidden="true">${icon(GROUP_ICONS[id] || "dot")}</i><span><strong>${title}</strong><small>${subtitle}</small></span>${icon("chevron")}</summary>
       <div class="pf-group-body">${body}</div></details>`;
   }
 
@@ -709,8 +710,14 @@
       <div class="asc-list pf-data">
         <button type="button" class="asc-row" id="pf-export-json" data-export-json${exportTask ? " disabled" : ""}><span class="asc-row-icon">${icon("download")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter toutes mes données</span><span class="asc-row-sub">Fichier JSON : profil, séances, objectifs${guest() ? " (données de cet appareil)" : ""}</span></span></button>
         <button type="button" class="asc-row" data-export-csv><span class="asc-row-icon">${icon("journal")}</span><span class="asc-row-main"><span class="asc-row-title">Exporter mon journal</span><span class="asc-row-sub">Tableur CSV, lisible partout</span></span></button>
-        ${guest() ? "" : `<button type="button" class="asc-row pf-danger" data-delete><span class="asc-row-icon">${icon("trash")}</span><span class="asc-row-main"><span class="asc-row-title">Supprimer mon compte</span><span class="asc-row-sub">Définitif : séances, objectifs, progression</span></span></button>`}
       </div>${exportTask ? `<p class="asc-small asc-muted" role="status" data-export-progress>Préparation de l’export…</p>` : ""}</section>`;
+  }
+
+  /* The one irreversible action of the page stands alone at the end of its group, away from the exports a thumb reaches for. */
+  function dangerHtml() {
+    return guest() ? "" : `<section class="asc-section pf-danger-zone" aria-labelledby="pf-danger-title"><div class="asc-section-head"><h2 id="pf-danger-title">Quitter TITAN</h2></div>
+      <div class="asc-list"><button type="button" class="asc-row pf-danger" data-delete><span class="asc-row-icon">${icon("trash")}</span><span class="asc-row-main"><span class="asc-row-title">Supprimer mon compte</span><span class="asc-row-sub">Définitif : séances, objectifs, progression</span></span></button></div>
+      <p class="asc-small asc-faint">Une confirmation écrite est demandée avant toute suppression. Exporte d’abord tes données si tu veux les garder.</p></section>`;
   }
 
   function preferencesHtml() {
@@ -761,7 +768,7 @@
       <div class="pf-groups">
       ${profileGroup("identity", "Mon identité", "Personnage, titres, collection et jalons", `${identityHtml()}${avatarHtml()}<div data-profile-career></div>${collectionHtml()}${publicHtml()}`, opened)}
       ${profileGroup("sport", "Mon sport", "Favoris, objectifs et historique", `<nav class="pf-sport-links" aria-label="Mon sport"><a class="asc-btn asc-btn-secondary" href="/objectifs">Mes objectifs</a><a class="asc-btn asc-btn-secondary" href="/journal">Mon historique</a></nav>${cadenceHtml()}${masteryHtml()}${dnaHtml()}`, opened)}
-      ${profileGroup("account", "Connexions &amp; compte", "Sources, confidentialité et abonnement", `<section class="asc-section" id="sources"><div class="asc-section-head"><h2>Sources et capteurs</h2></div><p class="asc-small asc-muted">Tes autorisations et sources disponibles apparaissent ici. Les capteurs du téléphone se règlent dans l’application Android.</p></section>${accountHtml()}${settingsHtml()}`, opened)}
+      ${profileGroup("account", "Connexions &amp; compte", "Sources, confidentialité et abonnement", `<section class="asc-section" id="sources"><div class="asc-section-head"><h2>Sources et capteurs</h2></div><p class="asc-small asc-muted">Tes autorisations et sources disponibles apparaissent ici. Les capteurs du téléphone se règlent dans l’application Android.</p></section>${accountHtml()}${settingsHtml()}${dangerHtml()}`, opened)}
       ${profileGroup("preferences", "Aide &amp; préférences", "Rappels, affichage et assistance", preferencesHtml(), opened)}
       </div>
       ${guest() ? "" : `<button type="button" class="asc-btn asc-btn-ghost pf-signout" data-signout>${icon("logout")} Se déconnecter</button>`}</div>`; });

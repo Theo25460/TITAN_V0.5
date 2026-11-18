@@ -714,3 +714,103 @@
 @media (min-width: 1500px) {
   .at-shelf .at-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* =====================================================================
+   Profil — the passport and its groups.
+   ===================================================================== */
+/* The rank crest stands on the chalk with its own shadow. */
+#profil .pf-crest.sig-object {
+  --obj: 76px;
+  display: inline-grid;
+  aspect-ratio: auto;
+}
+#profil .pf-crest.sig-object::after { bottom: -6%; background: radial-gradient(closest-side, rgba(14, 18, 22, 0.42), transparent); }
+#profil .pf-crest.sig-object .crest { filter: drop-shadow(0 6px 8px rgba(14, 18, 22, 0.32)); }
+
+/* Three ways out of the passport: what I am (the identity group), what I wear (the Atelier), what I show (the public card). */
+#profil .pf-ways {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  min-width: 0;
+}
+#profil .pf-ways .asc-btn {
+  justify-self: auto;
+  min-height: 44px;
+  max-width: 100%;
+  padding: var(--s2) var(--s4);
+  white-space: normal;
+  text-align: left;
+  line-height: 1.2;
+}
+#profil .pf-ways .asc-btn .t-icon { flex: none; }
+
+/* A group is recognised by its mark before it is read. */
+#profil .pf-passport-group > summary { gap: var(--s3); }
+#profil .pf-group-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r2) var(--r2) 0 var(--r2);
+  background: var(--bg-2);
+  color: var(--tx);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+#profil .pf-passport-group[open] > summary .pf-group-icon {
+  background: var(--space);
+  color: var(--space-ink);
+}
+#profil .pf-passport-group[open] > summary { border-bottom: 1px solid var(--line-2); }
+
+/* « Animations réduites » is a switch: its state is drawn, not only announced. */
+#profil [data-motion-toggle] {
+  position: relative;
+  padding-right: 62px;
+}
+#profil [data-motion-toggle]::before,
+#profil [data-motion-toggle]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  border-radius: 999px;
+  transition: transform var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+#profil [data-motion-toggle]::before {
+  right: 0;
+  width: 46px;
+  height: 28px;
+  margin-top: -14px;
+  background: var(--bg-4);
+}
+#profil [data-motion-toggle]::after {
+  right: 21px;
+  width: 22px;
+  height: 22px;
+  margin-top: -11px;
+  background: var(--tx-2);
+}
+#profil [data-motion-toggle][aria-pressed="true"]::before { background: var(--space); }
+#profil [data-motion-toggle][aria-pressed="true"]::after {
+  transform: translateX(18px);
+  background: var(--space-ink);
+}
+
+/* The irreversible action, alone under its own rule. */
+#profil .pf-group-body .pf-danger-zone { margin-top: var(--s8); }
+#profil .pf-danger-zone .asc-section-head {
+  border-image: none;
+  border-top-color: var(--err);
+}
+#profil .pf-danger-zone .asc-list { margin-top: calc(-1 * var(--s3)); }
+#profil .pf-danger-zone p { margin: var(--s3) 0 0; }
+
+@media (min-width: 1100px) {
+  #profil .pf-crest.sig-object { --obj: 116px; }
+}
+@media (max-width: 360px) {
+  #profil .pf-crest.sig-object { --obj: 52px; }
+  #profil .pf-group-icon { width: 40px; height: 40px; }
+}
