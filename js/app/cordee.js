@@ -27,6 +27,9 @@
   let missing = false;
   let busy = false;
   let notice = "";
+  let asked = false; // the server was asked at least once for this account
+  /* Each route crosses one world of the Adventure: its painting is the view from the route. */
+  const VIEW = { aube: "valley", marees: "archipelago", forge: "forge", aurores: "aurora" };
 
   const context = () => ({ owner: window.state?.user?.id || null, client: window.titanClient || null, epoch: window.titanAccountTransition?.epoch });
   const same = (a, b) => a && b && a.owner === b.owner && a.client === b.client && a.epoch === b.epoch && !window.titanAccountTransition?.active;
@@ -40,7 +43,8 @@
   const date = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }); };
   const daysLeft = (iso) => Math.max(0, Math.ceil((new Date(iso) - Date.now()) / 86400000));
 
-  function reset() { data = null; flight = null; missing = false; busy = false; notice = ""; }
+  function reset() { data = null; flight = null; missing = false; busy = false; notice = ""; asked = false; }
+  const changed = () => window.dispatchEvent(new CustomEvent("titan:cordee-updated"));
   function sync() { const next = context(); if (!same(scope, next)) { scope = next; reset(); } }
 
   async function rpc(ask, name, args = {}) {
@@ -57,6 +61,7 @@
     if (!root || !on() || missing || !navigator.onLine) return render();
     if (flight) return flight;
     const ask = context();
+    asked = true;
     flight = (async () => {
       try {
         const answer = await rpc(ask, "titan_cordees_v1");
@@ -91,28 +96,37 @@
     }
   }
 
-  /* ---------- one cordée ---------- */
+  /* ---------- one cordée ----------
+     The route is an ascent: the start at the bottom, four camps, the summit at the top, and the rope filled up to where the
+     party stands. Then the roped party itself: everyone's part against the same share. Only what titan_cordees_v1 settled. */
   function campsHtml(c, words) {
     const route = words.route;
-    return `<ol class="cm-cordee-camps" aria-label="Camps de la route">${route.camps.map(([name], i) => {
+    const fill = Math.max(0, Math.min(1, Number(c.percent) / 100 || 0));
+    return `<ol class="cm-cordee-camps" aria-label="Camps de la route" style="--pn:${fill.toFixed(3)}"><li class="cm-cordee-start" aria-hidden="true"><span class="cm-cordee-camp-dot"></span><span class="cm-cordee-camp-text"><small>Départ</small></span></li>${route.camps.map(([name], i) => {
       const reached = i < Number(c.camps);
-      return `<li data-reached="${reached}"><span class="cm-cordee-camp-dot" aria-hidden="true">${reached ? icon("check") : i + 1}</span><span>${esc(name)}${reached ? "" : ` <small class="asc-faint">${(i + 1) * 25} %</small>`}</span></li>`;
+      const next = i === Number(c.camps);
+      return `<li data-reached="${reached}"${next ? ' data-next="true"' : ""}${i === 3 ? ' data-summit="true"' : ""}><span class="cm-cordee-camp-dot" aria-hidden="true">${reached ? icon("check") : i === 3 ? icon("flag") : i + 1}</span><span class="cm-cordee-camp-text"><strong>${esc(name)}</strong><small>${reached ? "Atteint" : `${i === 3 ? "Sommet" : "Camp"} à ${(i + 1) * 25} %`}</small></span></li>`;
     }).join("")}</ol>`;
   }
 
   function membersHtml(c) {
     const F = C().FAMILIES;
     // A member the player may not see is only « Membre de la cordée »: the server sends nothing personal, so no bar either.
-    return `<ul class="cm-board cm-cordee-members">${(c.members || []).map((m) => `<li><span>${esc(m.me ? "Toi" : m.name)}${m.status === "invited" ? ' <small class="asc-faint">invité</small>' : ""}${(m.families || []).length ? ` <small class="asc-faint">${esc(m.families.map((f) => F[f]?.label || f).join(", "))}</small>` : ""}</span>
+    return `<ul class="cm-board cm-cordee-members">${(c.members || []).map((m) => `<li${m.me ? ' data-me="true"' : ""}${m.strand ? ' data-strand="true"' : ""}><span>${esc(m.me ? "Toi" : m.name)}${m.status === "invited" ? ' <small class="asc-faint">invité</small>' : ""}${(m.families || []).length ? ` <small class="asc-faint">${esc(m.families.map((f) => F[f]?.label || f).join(", "))}</small>` : ""}</span>
       ${m.status === "joined" && m.pitches != null ? `<span class="asc-ascent thin" aria-hidden="true"><span style="--p:${Math.min(100, Math.round((Number(m.pitches) / Math.max(1, Number(c.share))) * 100))}%"></span></span><strong class="asc-num">${n(m.pitches)}${m.strand ? ` ${icon("check")}` : ""}</strong>` : "<span></span><span></span>"}</li>`).join("")}</ul>`;
   }
 
   function cordeeHtml(c) {
     const words = C().explain(c);
     const lock = busy ? "disabled" : "";
-    const status = c.status === "summited" ? "Sommet atteint" : c.status === "ended" ? "Terminée" : `${daysLeft(c.endsAt)} j`;
+    const invited = c.myStatus === "invited" && c.status === "active";
+    const left = daysLeft(c.endsAt);
+    const state = c.status === "summited" ? `<span class="sig-state is-rare">${icon("flag")} Sommet atteint</span>` : c.status === "ended" ? `<span class="sig-state is-locked">Terminée</span>`
+      : invited ? `<span class="sig-state is-worn">Invitation</span>` : `<span class="sig-state">${left} j</span>`;
+    const view = VIEW[words.route.id] || "valley";
+    const party = (c.members || []).length;
     let actions = "";
-    if (c.myStatus === "invited" && c.status === "active") {
+    if (invited) {
       actions = `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-cordee-join="${esc(c.id)}" ${lock}>S’encorder</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cordee-decline="${esc(c.id)}" ${lock}>Décliner</button></div>`;
     } else if (c.status === "summited" && c.earned) {
       actions = `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-cordee-wear="${esc(c.route)}" ${lock}>${icon("medal")} Porter « ${esc(words.title)} »</button>
@@ -120,18 +134,30 @@
     } else if (c.status === "active" && c.myStatus === "joined") {
       actions = `<div class="asc-actions">${c.mine ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-cordee-link="${esc(c.id)}" ${lock}>${icon("link")} Inviter par lien</button>` : ""}<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cordee-leave="${esc(c.id)}" ${lock}>Quitter la cordée</button></div>`;
     }
-    return `<article class="asc-panel cm-cordee-card" data-cordee="${esc(c.id)}" data-status="${esc(c.status)}">
-      <div class="asc-between"><h3>${esc(words.route.name)}</h3><span class="asc-chip">${esc(status)}</span></div>
-      <p class="asc-small asc-muted">${esc(words.route.intro)}</p>
-      <p data-cordee-goal><strong>${esc(words.goal)}</strong></p>
-      <div class="cm-exp-bar"><div class="asc-between"><span>La cordée</span><strong class="asc-num">${n(c.total)} / ${n(c.target)}</strong></div>
-        <span class="asc-ascent" role="progressbar" aria-label="Progression de la cordée" aria-valuemin="0" aria-valuemax="${Number(c.target)}" aria-valuenow="${Math.min(Number(c.target), Number(c.total))}"><span style="--p:${Number(c.percent)}%"></span></span></div>
-      ${campsHtml(c, words)}
-      <p class="asc-small" data-cordee-mine>${esc(words.mine)}</p>
-      <p class="asc-small asc-muted" data-cordee-group>${esc(words.group)} ${esc(words.variety)}</p>
-      <p class="asc-small ${words.summited ? "cy" : "asc-muted"}" data-cordee-unlocked>${esc(words.unlocked)}</p>
-      ${words.summited ? `<p class="asc-small">${esc(words.route.camps[3][1])}</p>` : words.next ? `<p class="asc-small asc-faint">Prochain camp : ${esc(words.next.name)} à ${n(words.next.at)} longueurs.</p>` : ""}
-      ${membersHtml(c)}
+    const story = words.summited ? words.route.camps[3][1] : Number(c.camps) > 0 ? words.route.camps[Number(c.camps) - 1][1] : "";
+    return `<article class="sig-plate cm-cordee-card" data-cordee="${esc(c.id)}" data-status="${esc(c.status)}" data-route="${esc(words.route.id)}">
+      <div class="cm-cordee-view"><img src="/assets/renaissance/${view}-small.webp" srcset="/assets/renaissance/${view}-xs.webp 480w, /assets/renaissance/${view}-small.webp 800w" sizes="(min-width: 1100px) 620px, 100vw" alt="" width="800" height="450" loading="lazy" decoding="async"></div>
+      <div class="cm-cordee-top"><div class="asc-between"><p class="asc-eyebrow">Route de ${esc(words.route.world)}</p>${state}</div>
+        <h3>${esc(words.route.name)}</h3>
+        <p class="cm-cordee-intro">${esc(words.route.intro)}</p></div>
+      <div class="cm-cordee-body">
+        <div class="cm-cordee-ascent">
+          <div class="cm-exp-bar"><div class="asc-between"><span>La cordée</span><strong class="asc-num cm-cordee-figure">${n(c.total)} / ${n(c.target)}</strong></div>
+            <span class="asc-ascent" role="progressbar" aria-label="Progression de la cordée" aria-valuemin="0" aria-valuemax="${Number(c.target)}" aria-valuenow="${Math.min(Number(c.target), Number(c.total))}"><span style="--p:${Number(c.percent)}%"></span></span></div>
+          <p data-cordee-goal><strong>${esc(words.goal)}</strong></p>
+          ${campsHtml(c, words)}
+          <p class="asc-small ${words.summited ? "cm-cordee-summit" : "asc-muted"}" data-cordee-unlocked>${esc(words.unlocked)}</p>
+          ${story ? `<p class="cm-cordee-story">${esc(story)}</p>` : ""}
+          ${!words.summited && words.next ? `<p class="asc-small asc-faint">Prochain camp : ${esc(words.next.name)} à ${n(words.next.at)} longueurs.</p>` : ""}
+        </div>
+        <div class="cm-cordee-party">
+          <h4>${party > 1 ? `Encordés à ${party}` : "Ta cordée"}</h4>
+          <p class="asc-small cm-cordee-mine" data-cordee-mine>${esc(words.mine)}</p>
+          ${membersHtml(c)}
+          <p class="asc-small asc-muted" data-cordee-group>${esc(words.group)} ${esc(words.variety)}</p>
+          ${party > 1 ? `<p class="asc-small cm-cordee-together">${icon("link")}<span>Personne n’atteint le sommet seul : la part de chacun compte jusqu’à ${n(c.cap)} longueurs, et il faut celles d’au moins deux membres.</span></p>` : ""}
+        </div>
+      </div>
       ${actions}
     </article>`;
   }
@@ -139,15 +165,20 @@
   function render() {
     if (!root) return;
     sync();
-    if (!on() || missing || (!data && !notice)) { root.innerHTML = ""; root.hidden = true; return; }
+    if (!on() || missing || (!data && !notice)) { root.innerHTML = ""; root.hidden = true; root.removeAttribute("aria-busy"); changed(); return; }
     root.hidden = false;
+    root.setAttribute("aria-busy", String(busy));
     const list = data?.cordees || [];
     const lock = busy ? "disabled" : "";
-    root.innerHTML = `<div class="asc-section-head"><h2 id="cordee-title">La Grande Cordée</h2><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-cordee-new ${lock}>${icon("plus")} Former une cordée</button></div>
-      <p class="cm-section-intro">Une expédition à plusieurs, chacun avec son sport. Un jour avec 12 minutes d’effort confirmé apporte une longueur, 35 minutes deux : la régularité compte plus que le volume, et chaque famille de sport ouvre des longueurs en plus.</p>
-      ${notice ? `<p class="asc-small" role="status" data-cordee-notice>${esc(notice)}</p>` : ""}
-      ${list.length ? `<div class="asc-stack">${list.map(cordeeHtml).join("")}</div>` : `<p class="asc-small asc-muted" data-cordee-empty>Pas encore de cordée. Forme-en une avec tes amis — coureurs, grimpeurs, nageurs ou yogis : tout le monde compte pareil. Seul·e aussi, ça marche.</p>`}
-      <p class="asc-small asc-faint">Seules les séances confirmées par TITAN comptent. Au sommet : un titre de route, jamais d’XP ni de crédit. Rien ne se perd si tu te reposes.</p>`;
+    root.innerHTML = `<div class="cm-scene-head"><h2 id="cordee-title">La Grande Cordée</h2>${list.length ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-cordee-new ${lock}>${icon("plus")} Former une cordée</button>` : ""}</div>
+      <p class="cm-section-intro">Une expédition à plusieurs, chacun avec son sport. La régularité compte plus que le volume, et personne n’atteint le sommet seul.</p>
+      ${notice ? `<p class="asc-note cm-cordee-notice" role="status" data-cordee-notice>${icon("alert")}<span>${esc(notice)}</span></p>` : ""}
+      ${list.length ? `<div class="asc-stack cm-cordee-list">${list.map(cordeeHtml).join("")}</div>` : data ? `<div class="sig-empty" data-cordee-empty>${icon("route")}<h3>Pas encore de cordée</h3><p>Forme-en une avec tes amis — coureurs, grimpeurs, nageurs ou yogis : tout le monde compte pareil. Seul·e aussi, ça marche.</p><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-cordee-new ${lock}>${icon("plus")} Former une cordée</button></div>` : ""}
+      <details class="cm-rules"><summary>Comment les longueurs se comptent</summary>
+        <p class="asc-small asc-muted">Un jour avec 12 minutes d’effort confirmé apporte une longueur, 35 minutes deux, jamais plus : une marche compte autant qu’une longue sortie. Chaque famille de sport au-delà de la première ouvre deux longueurs de plus.</p>
+        <p class="asc-small asc-muted">Seules les séances confirmées par TITAN comptent. Au sommet : un titre de route, jamais d’XP ni de crédit. Rien ne se perd si tu te reposes.</p>
+        <p class="asc-small asc-muted">Dans une cordée, tes amis et la personne qui t’a invité voient ton pseudo, tes longueurs et tes familles de sport ; les autres membres lisent « Membre de la cordée ».</p></details>`;
+    changed();
   }
 
   /* ---------- forming a cordée ---------- */
@@ -249,6 +280,10 @@
   document.addEventListener("click", onClick);
   window.addEventListener("titan:account-changing", () => { scope = null; reset(); render(); });
   ["titan:account-changed", "titan:flags-updated", "titan:history-updated", "online"].forEach((ev) => window.addEventListener(ev, () => { sync(); refresh(); }));
-  window.TitanCordeeView = { refresh };
+  /* For the page that hosts the Cordée: whether it is open for this account and what the server last answered (never a copy to edit),
+     and a promise that settles once the first answer is in. */
+  const state = () => { sync(); return { on: on() && !missing && !!root && (!!data || !!notice), cordees: data?.cordees || [] }; };
+  const ready = () => { if (!root) root = document.getElementById("cordee"); sync(); return flight || (!root || asked || !on() || missing || !navigator.onLine ? Promise.resolve() : refresh()); };
+  window.TitanCordeeView = { refresh, state, ready };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0)); else setTimeout(start, 0);
 })();

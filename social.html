@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/css/ascension-app.css?v=302.1" />
     <link rel="stylesheet" href="/css/signature.css?v=1" />
     <link rel="stylesheet" href="/css/communaute.css?v=302.0" />
+    <link rel="stylesheet" href="/css/one-communaute.css?v=1" />
     <link rel="stylesheet" href="/css/assistance.css?v=302.0" />
   </head>
   <body class="asc" data-territory="communaute" data-title="Communauté" data-support-enabled="false">
@@ -23,23 +24,27 @@
     <script src="/js/app/crest.js?v=301.31.1"></script>
     <script src="/js/app/shell-nav.js?v=1"></script>
     <main class="asc-main wk-main" id="contenu">
-      <header class="asc-page-head cm-head"><div><h1>Avancer ensemble</h1><p class="cm-circle" id="cm-circle">Des amis par consentement : chacun choisit ce qu’il partage.</p></div></header>
-      <section id="retour" class="asc-section cm-retour-section" aria-labelledby="retour-title" hidden></section>
+      <header class="asc-page-head cm-head"><div><h1>Avancer ensemble</h1><div class="cm-circle" id="cm-circle"><p class="cm-circle-line">Des amis par consentement : chacun choisit ce qu’il partage.</p></div></div></header>
       <div id="communaute" aria-busy="true">
-        <div class="asc-skeleton" style="height: 56px; border-radius: 16px"></div>
-        <div class="asc-skeleton" style="height: 320px; margin-top: 24px"></div>
+        <div class="asc-skeleton" style="height: 420px; border-radius: 12px"></div>
+        <div class="asc-skeleton" style="height: 240px; margin-top: 24px; border-radius: 12px"></div>
       </div>
-      <section id="cordee" class="asc-section cm-cordee" aria-labelledby="cordee-title" tabindex="-1" hidden></section>
-      <section id="communaute-extras" class="asc-section cm-more" aria-labelledby="cm-more-title" hidden>
-        <div class="asc-section-head"><h2 id="cm-more-title">Plus loin</h2><span class="asc-small asc-faint">Facultatif</span></div>
-        <div class="asc-fold-list">
-          <details class="asc-fold" data-extra="consultations" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Votes et idées</span><span class="asc-row-sub">Les décisions de l’équipe, la feuille de route</span></span></summary><div class="asc-fold-body"><div id="consultations" hidden></div></div></details>
-          <details class="asc-fold" data-extra="duels" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Défis par lien</span><span class="asc-row-sub">Inviter quelqu’un qui n’est pas encore ton ami</span></span></summary><div class="asc-fold-body"><div id="duels" hidden></div></div></details>
-          <details class="asc-fold" data-extra="clubs" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Clubs</span><span class="asc-row-sub">Un espace privé pour ton club ou ton groupe</span></span></summary><div class="asc-fold-body"><div id="clubs" hidden></div></div></details>
-          <details class="asc-fold" data-extra="factions" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Factions</span><span class="asc-row-sub">Trois camps pour porter une identité commune</span></span></summary><div class="asc-fold-body"><div id="factions" hidden></div></div></details>
-          <details class="asc-fold" data-extra="pantheon" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Panthéon</span><span class="asc-row-sub">Des distinctions datées, jamais un classement</span></span></summary><div class="asc-fold-body"><div id="pantheon" hidden></div></div></details>
-        </div>
-      </section>
+      <!-- Three blocks drawn by their own modules. They wait here, out of sight, until the Communauté has its answer and gives each
+           its place in the page (js/app/communaute.js, mount()); if the Communauté cannot be read, they are shown under its message. -->
+      <div id="cm-park" hidden>
+        <section id="retour" class="asc-section cm-retour-section" aria-labelledby="retour-title" hidden></section>
+        <section id="cordee" class="cm-cordee" aria-labelledby="cordee-title" tabindex="-1" hidden></section>
+        <section id="communaute-extras" class="asc-section cm-more" aria-labelledby="cm-more-title" hidden>
+          <div class="asc-section-head"><h2 id="cm-more-title">Plus loin</h2><span class="asc-small asc-faint">Facultatif</span></div>
+          <div class="asc-fold-list">
+            <details class="asc-fold" data-extra="consultations" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Votes et idées</span><span class="asc-row-sub">Les décisions de l’équipe, la feuille de route</span></span></summary><div class="asc-fold-body"><div id="consultations" hidden></div></div></details>
+            <details class="asc-fold" data-extra="duels" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Défis par lien</span><span class="asc-row-sub">Inviter quelqu’un qui n’est pas encore ton ami</span></span></summary><div class="asc-fold-body"><div id="duels" hidden></div></div></details>
+            <details class="asc-fold" data-extra="clubs" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Clubs</span><span class="asc-row-sub">Un espace privé pour ton club ou ton groupe</span></span></summary><div class="asc-fold-body"><div id="clubs" hidden></div></div></details>
+            <details class="asc-fold" data-extra="factions" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Factions</span><span class="asc-row-sub">Trois camps pour porter une identité commune</span></span></summary><div class="asc-fold-body"><div id="factions" hidden></div></div></details>
+            <details class="asc-fold" data-extra="pantheon" hidden><summary><span class="asc-row-main"><span class="asc-row-title">Panthéon</span><span class="asc-row-sub">Des distinctions datées, jamais un classement</span></span></summary><div class="asc-fold-body"><div id="pantheon" hidden></div></div></details>
+          </div>
+        </section>
+      </div>
     </main>
     <script src="/js/vendor/supabase-2.111.0.js"></script>
     <script src="/js/config.js?v=300.0-v12"></script>
@@ -64,9 +69,9 @@
     <script src="/js/core/support-diagnostics.js?v=300.0"></script>
     <script src="/js/app/assistance.js?v=300.2"></script>
     <script src="/js/app/support-report.js?v=300.0"></script>
-    <script src="/js/app/communaute.js?v=300.8"></script>
+    <script src="/js/app/communaute.js?v=301.0"></script>
     <script src="/js/core/cordee.js?v=1"></script>
-    <script src="/js/app/cordee.js?v=1"></script>
+    <script src="/js/app/cordee.js?v=2"></script>
     <script src="/js/core/social-digest.js?v=1"></script>
     <script src="/js/app/retour.js?v=1"></script>
     <script src="/js/app/consultations.js?v=300.2"></script>
@@ -75,6 +80,7 @@
     <script src="/js/app/clubs.js?v=300.1"></script>
     <script src="/js/app/factions.js?v=300.0"></script>
     <script src="/js/app/pantheon.js?v=300.0"></script>
+    <script src="/js/app/binome.js?v=300.2"></script>
     <script src="/js/app/communaute-extras.js?v=302.0"></script>
     <script src="/js/pwa.js?v=300.1" defer></script>
   </body>

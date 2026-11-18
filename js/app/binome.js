@@ -18,6 +18,7 @@
   let busy = false;
   let notice = "";
   let dialog = null;
+  let asked = false; // the server was asked at least once for this account
 
   const context = () => ({ owner: window.state?.user?.id || null, client: window.titanClient || null, epoch: window.titanAccountTransition?.epoch });
   const same = (a, b) => a && b && a.owner === b.owner && a.client === b.client && a.epoch === b.epoch && !window.titanAccountTransition?.active;
@@ -29,7 +30,7 @@
     return code ? MESSAGES[code] : "Le serveur ne répond pas pour l’instant. Réessaie dans un moment.";
   };
 
-  function reset() { data = null; flight = null; available = false; missing = false; busy = false; notice = ""; if (dialog?.open) dialog.close(); }
+  function reset() { data = null; flight = null; available = false; missing = false; busy = false; notice = ""; asked = false; if (dialog?.open) dialog.close(); }
   function sync() {
     const next = context();
     if (!same(scope, next)) { scope = next; reset(); }
@@ -49,6 +50,7 @@
     if (!on() || missing || !navigator.onLine) return data;
     if (flight) return flight.promise;
     const ask = context();
+    asked = true;
     const job = {};
     flight = job;
     const current = () => flight === job && same(ask, context()) && on() && navigator.onLine;
@@ -191,7 +193,14 @@
     if (data.status === "pending") return data.role === "invitee" ? `${name} te propose une expédition` : `Invitation envoyée à ${name}`;
     return "Une expédition de 14 jours avec un ami";
   }
-  window.TitanBuddy = { html, brief, refresh };
+  /* For a page that gives the Duo a tab (Communauté): the server's state in a few fields, null while the Duo has nothing to show. */
+  function state() {
+    sync();
+    if (!on() || missing || !data) return null;
+    return { status: data.status, role: data.role || null, together: Number(data.together) || 0, target: Number(data.target) || 0, last: !!data.last };
+  }
+  const ready = () => { sync(); if (flight) return flight.promise; if (asked || data || missing || !on() || !navigator.onLine) return Promise.resolve(data); return refresh(); };
+  window.TitanBuddy = { html, brief, refresh, state, ready };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(() => refresh(), 0));
   else setTimeout(() => refresh(), 0);
 })();
