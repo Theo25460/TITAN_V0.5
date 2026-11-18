@@ -1,5 +1,6 @@
 -- Monetisation, lot D (20261121130000): no cosmetic credit from a session the server did not confirm (achievements), and the hourly hold
--- release never pays a session that was archived, excluded or rejected while held. Full rollback.
+-- release never pays a session that was archived, excluded or rejected while held, and sessions under review never fill its batch of
+-- 500 ahead of a clean hold. Full rollback.
 begin;
 create function public.zz_ec_claim(p_user uuid, p_id text) returns text language plpgsql as $$
 declare r record;
@@ -71,5 +72,26 @@ begin
   assert (select status from private.titan_reward_holds where log_id = ok) = 'released', 'a clean session is paid';
   assert (select status from private.titan_reward_holds where log_id = held) = 'released', 'the first held session, clean, is paid too';
   assert (select credits from public.profiles where id = u) = credits_before + 10, 'credits of the two clean holds only';
+
+  -- 500 holds under review, all due before a clean one: they are not candidates, so the clean hold is released in the same run.
+  set local session_replication_role = replica;
+  with logs as (
+    insert into public.training_logs (user_id, sport, category, val, unit, xp, date, details, client_event_id, status)
+    select u, 'running', 'cardio', 1, 'km', 50, now() - interval '2 hours', '{"serverReward": true}', gen_random_uuid(),
+           case when g % 2 = 0 then 'pending_review' else 'flagged' end
+      from generate_series(1, 500) g returning id)
+  insert into private.titan_reward_holds (log_id, user_id, xp, credits, release_at)
+  select id, u, 50, 5, now() - interval '2 days' from logs;
+  insert into public.training_logs (user_id, sport, category, val, unit, xp, date, details, client_event_id)
+  values (u, 'running', 'cardio', 1, 'km', 50, now() - interval '1 hour', '{"serverReward": true}', gen_random_uuid()) returning id into ok;
+  set local session_replication_role = origin;
+  insert into private.titan_reward_holds (log_id, user_id, xp, credits, release_at) values (ok, u, 50, 5, now() - interval '1 minute');
+  assert (select count(*) from private.titan_reward_holds h join public.training_logs l on l.id = h.log_id
+           where h.user_id = u and h.status = 'held' and h.release_at < (select release_at from private.titan_reward_holds where log_id = ok)) >= 500,
+    'fixture: at least 500 held holds due before the clean one';
+  perform private.titan_release_due_reward_holds();
+  assert (select status from private.titan_reward_holds where log_id = ok) = 'released', 'the clean hold behind 500 under review is paid';
+  assert (select count(*) from private.titan_reward_holds h join public.training_logs l on l.id = h.log_id
+           where h.user_id = u and h.status = 'held' and l.status in ('flagged', 'pending_review')) = 501, 'every hold under review still waits';
 end $$;
 rollback;

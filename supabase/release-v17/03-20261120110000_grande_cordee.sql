@@ -25,21 +25,27 @@ end $titan_guard$;
 --   * Four camps at 25, 50, 75 and 100 %. At 100 % the cordée SUMMITS once (row lock): it ends at once, each member's result is frozen
 --     (private.titan_challenge_results) and every member who brought at least one longueur earns the route's title (cosmetic, worn through
 --     titan_set_displayed_title, key 'cordee:<route>'). No XP, credit, essence, éclat or anything bought; the RPG balance is untouched.
---   * Only CONFIRMED sessions count (private.titan_confirmed_sessions, the rule of lot B), recorded after the cordée started.
+--   * Only CONFIRMED sessions count (private.titan_confirmed_sessions, the rule of lot B), recorded after the cordée started. The fair
+--     ranking among friends (private.titan_fair_score) reads the same confirmed sessions from now on.
 --   * Nobody summits alone while friends are on the way: an invitation not yet answered counts in the target, at least two members must
 --     have brought a longueur as soon as the cordée has two people (joined or invited), and no cordée summits in its first 48 hours (the
---     time to answer or join by link). A cordée formed with nobody invited, or whose invitees declined, is a solo climb.
+--     time to answer or join by link). A cordée formed with nobody invited, or whose invitees declined, is a solo climb. After those 48
+--     hours an unanswered invitation no longer counts (target and « needs » from joined members only): a silent invitee never makes the
+--     summit impossible, and can still join while the cordée runs.
 --   * Members the viewer may not see (not friends, not link partners, blocked) appear as « Membre de la cordée » with nothing personal.
 --   * The generic titan_challenge_result_v1 settles a cordée with the cordée rule instead of freezing it as an individual challenge.
---   * Earned route titles live in private.titan_cordee_titles: they survive the erasure of the cordée's creator.
+--   * Earned route titles live in private.titan_cordee_titles: they survive the erasure of the cordée's creator, and the account export
+--     lists them (private.titan_social_export_v1, cumulative: « cordeeTitles »).
 --   * Limits: 3 cordées created a day, 3 running cordées per creator, 7 invited friends, 10 members (the link limit of challenges).
 --   * Creating a cordée opens with the server flag screens.cordee (absent = closed), checked here.
 -- Additive. The caller owns the transaction: never BEGIN/COMMIT here.
 -- Rollback: drop functions public.titan_cordee_create_v1(text,text,integer,uuid[]), public.titan_cordees_v1(), private.titan_cordee_settle(uuid),
 -- private.titan_cordee_state(uuid,uuid), private.titan_cordee_member(uuid,uuid), private.titan_cordee_share(text,integer),
--- private.titan_confirmed_sessions(uuid,timestamptz,timestamptz,timestamptz), table private.titan_cordee_titles; re-apply titan_challenge_result_v1 from
+-- private.titan_confirmed_sessions(uuid,timestamptz,timestamptz,timestamptz), table private.titan_cordee_titles; re-apply private.titan_social_export_v1
+-- from 20261120090000 (before dropping the table) and titan_challenge_result_v1 from
 -- 20261120100000, private.titan_effort_days and titan_challenge_progress from
--- 20261120100000, titan_social_overview from 20261120090000, the title functions from 20261021010000 and titan_challenge_link_preview_v1 from
+-- 20261120100000, private.titan_fair_score from 20261029150000, titan_social_overview from 20261120090000, the title functions from
+-- 20261021010000 and titan_challenge_link_preview_v1 from
 -- 20261029160000; delete from public.titan_challenges where kind = 'cordee'; drop the columns kind, route, pace, summited_at and restore the metric check.
 
 -- ---------------------------------------------------------------------------------------------
@@ -80,6 +86,35 @@ as $$
   group by s.day;
 $$;
 revoke all on function private.titan_effort_days(uuid, timestamptz, timestamptz, timestamptz, numeric) from public, anon, authenticated;
+
+-- The fair ranking among friends (20261029150000) read the journal itself and still counted a held session or one the server never
+-- stamped. Its per-day minutes now come from the same confirmed sessions (same 28 Paris days, same 90-minute day cap, same optional
+-- sport); the formula, the signature and the output are unchanged.
+create or replace function private.titan_fair_score(p_user uuid, p_sport text default null)
+returns table (score integer, active_days integer, recent_minutes integer, previous_minutes integer, progress_pct integer)
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $function$
+  with per_day as (
+    select s.day, least(90, sum(s.effort_minutes)) as minutes
+      from private.titan_confirmed_sessions(p_user, (((now() at time zone 'Europe/Paris')::date - 27)::timestamp at time zone 'Europe/Paris'),
+             'infinity'::timestamptz, '-infinity'::timestamptz) s
+     where (p_sport is null or s.sport = p_sport)
+     group by 1
+  ), agg as (
+    select count(*) filter (where minutes > 0)::integer as days,
+           coalesce(sum(minutes) filter (where day > (now() at time zone 'Europe/Paris')::date - 14), 0) as recent,
+           coalesce(sum(minutes) filter (where day <= (now() at time zone 'Europe/Paris')::date - 14), 0) as previous
+      from per_day
+  )
+  select round(100 * (0.6 * least(1, a.days / 12.0) + 0.4 * greatest(0, least(1, (a.recent - a.previous) / greatest(a.previous, 60)))))::integer,
+         a.days, round(a.recent)::integer, round(a.previous)::integer,
+         round(100 * greatest(0, least(1, (a.recent - a.previous) / greatest(a.previous, 60))))::integer
+    from agg a where a.days > 0;
+$function$;
+revoke all on function private.titan_fair_score(uuid, text) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------------------------------
 -- 2. The cordée as a mode of the friends' challenge.
@@ -158,9 +193,11 @@ begin
   v_share := greatest(1, round(v_c.target))::integer;
   v_cap := ceil(v_share * 1.5)::integer;
   select count(*)::integer into v_joined from public.titan_challenge_members where challenge_id = p_challenge and status = 'joined';
-  -- An invited friend who has not answered yet already counts in the target: nobody summits alone while friends are on the way
-  -- (declining lowers it at once). A cordée formed alone, with no invitation, stays a solo climb.
-  select count(*)::integer into v_pending from public.titan_challenge_members where challenge_id = p_challenge and status = 'invited';
+  -- An invited friend who has not answered yet already counts in the target during the first 48 hours (the time to answer, in which no
+  -- cordée summits): nobody summits alone while friends are on the way (declining lowers it at once). After that only joined members
+  -- count, so a silent invitation never blocks the summit. A cordée formed alone, with no invitation, stays a solo climb.
+  select count(*)::integer into v_pending from public.titan_challenge_members where challenge_id = p_challenge and status = 'invited'
+     and now() < v_c.starts_at + interval '48 hours';
   v_target := v_share * greatest(1, v_joined + v_pending);
   for r in select mm.user_id, mm.status, p.username from public.titan_challenge_members mm left join public.profiles p on p.id = mm.user_id
             where mm.challenge_id = p_challenge and mm.status in ('joined', 'invited') order by mm.status, mm.joined_at nulls last, mm.user_id loop
@@ -194,7 +231,7 @@ begin
     'summitedAt', v_c.summited_at, 'mine', v_c.creator_id = p_viewer, 'myStatus', v_my_status,
     'share', v_share, 'cap', v_cap, 'target', v_target, 'longueurs', v_sum, 'variety', v_bonus, 'total', least(v_total, v_target),
     'pending', v_pending, 'contributors', v_contributors,
-    -- With friends in it (joined or still invited), at least two members must have brought a longueur.
+    -- With friends in it (joined, or invited in the first 48 hours), at least two members must have brought a longueur.
     'needs', least(2, v_joined + v_pending),
     'percent', least(100, floor(100.0 * v_total / greatest(1, v_target)))::integer,
     'camps', least(4, floor(4.0 * v_total / greatest(1, v_target)))::integer,
@@ -216,6 +253,22 @@ create table if not exists private.titan_cordee_titles (
 create index if not exists titan_cordee_titles_challenge_idx on private.titan_cordee_titles (challenge_id);
 alter table private.titan_cordee_titles enable row level security;
 revoke all on private.titan_cordee_titles from public, anon, authenticated;
+
+-- The account export (helper of 20261120090000, cumulative): the links one created, and now the route titles one earned.
+create or replace function private.titan_social_export_v1(p_uid uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'friendInvites', coalesce((select jsonb_agg(jsonb_build_object('created_at', i.created_at, 'expires_at', i.expires_at, 'revoked_at', i.revoked_at,
+                       'used_at', i.used_at) order by i.created_at) from private.titan_friend_invites i where i.created_by = p_uid), '[]'::jsonb),
+    'cordeeTitles', coalesce((select jsonb_agg(jsonb_build_object('route', t.route, 'challenge_id', t.challenge_id, 'earned_at', t.earned_at)
+                       order by t.earned_at, t.route) from private.titan_cordee_titles t where t.user_id = p_uid), '[]'::jsonb));
+$$;
+revoke all on function private.titan_social_export_v1(uuid) from public, anon, authenticated;
 
 -- Summit or end, once: the challenge row is locked, the summit is written once, the results are frozen once.
 create or replace function private.titan_cordee_settle(p_challenge uuid)

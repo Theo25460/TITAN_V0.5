@@ -13,6 +13,15 @@ n'est supprimée, aucune XP ni aucun crédit n'est accordé, aucune signature ex
 | `03` Grande Cordée | Expédition coopérative entre amis de sports différents (mode des défis entre amis) : longueurs par jour, part plafonnée, variété des familles, quatre camps, sommet unique, titre de route ; réglage serveur `screens.cordee` | Seulement quand `screens.cordee` est ouvert (fermé par défaut) |
 | `04` retour | « Depuis ta dernière visite » : lecture seule (Moments partagés par des amis, encouragements, demandes, amis actifs s'ils l'autorisent, cordées, Duo, défis terminés, souvenirs, une allure de cordée adaptée) ; réglage client `screens.digest` | Seulement quand `screens.digest` est ouvert |
 
+Corrections d'audit (18 novembre 2026, avant toute application) :
+
+- `01` : les compteurs des neuf limites sociales que le limiteur écrit lui-même sont gardés 30 jours (règle `social_action_limits` du job quotidien de rétention, `docs/DATA_RETENTION.md`) ; le changement de contrainte du journal attend son verrou 5 s au plus.
+- `02` : l'objectif de club ne donne le total de minutes et le nombre d'actifs qu'à partir de 3 membres (seuil des trophées de saison) ; en dessous, l'objectif seul (totaux `null`, affichés « le total s'affiche à partir de 3 membres » sur le Web et Android).
+- `03` : une invitation sans réponse ne compte dans l'objectif et dans les « deux contributeurs » que pendant les 48 premières heures ; ensuite seuls les membres encordés comptent, un invité silencieux ne rend plus le sommet impossible.
+- `03` : l'export du compte liste les titres de route gagnés (`cordeeTitles`, en plus de `friendInvites`).
+- `02` : toute séance non historique passe l'analyse de risque à l'enregistrement, même au-delà du plafond d'XP du jour ou de la semaine ; une séance invraisemblable sans XP est retenue (montants nuls) et ne compte dans aucun objectif collectif avant sa libération (`titan_submit_training_session`, corps de `20261020000000`, une condition changée).
+- `03` : le classement équitable entre amis (`private.titan_fair_score`) lit les mêmes séances confirmées que tous les comptes collectifs (ni retenue, ni annulée, ni jamais tamponnée par le serveur).
+
 ## Procédure
 
 1. `00-check-before.sql` : deux lignes `ok = true` (état de fin du paquet v16).

@@ -8,7 +8,9 @@
 -- 2. The hourly hold release credited a held reward without looking at archiving or status: a player could archive a held session (it then
 --    leaves the risk review) and be credited 24 hours later. It also read the session without a lock, so an exclusion committing at the same
 --    time could lose the race. The job now locks and re-reads the session (same order as the exclusion: session, then hold), cancels the
---    hold of an excluded, rejected or archived session, and leaves a session under review held.
+--    hold of an excluded, rejected or archived session, and leaves a session under review held. A session under review (flagged or
+--    pending_review) is not even a candidate of the batch of 500: held ones at the head of the queue could otherwise fill every batch and
+--    delay every clean hold behind them. The locked re-read keeps its own check for a review that starts while the job runs.
 -- Same functions as 20260911000358 and 20261020000000 otherwise. Additive. The caller owns the transaction: never BEGIN/COMMIT here.
 -- Rollback: re-apply public.titan_claim_achievement of 20260911000358 and private.titan_release_due_reward_holds of 20261020000000;
 -- drop function private.titan_achievement_sessions(uuid).
@@ -108,6 +110,8 @@ begin
       join public.profiles p on p.id = h.user_id
      where h.status = 'held' and h.release_at <= now()
        and not coalesce(p.is_suspended, false) and coalesce(p.status, 'active') not in ('suspended', 'banned')
+       -- Under review: the hold waits and does not take a place in the batch (the locked re-read below checks again).
+       and coalesce(l.status, 'valid') not in ('flagged', 'pending_review')
      order by h.release_at
      limit 500
   loop

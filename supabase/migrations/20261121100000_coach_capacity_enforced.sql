@@ -7,10 +7,14 @@
 -- active; any other unrevoked link is PAUSED. Nothing is deleted or revoked: the athlete's consent, history, messages and proposals stay,
 -- either side may still change the scope or end the link, and a paused link resumes by itself as soon as a place is free again (offer
 -- renewed or upgraded, another link ended). Both sides of a paused link see "paused" in the snapshot; its messages and check-ins wait.
+-- The athlete of a paused link keeps the thread that is already there: they still read the coach's messages, mark them read and report
+-- one (private.titan_coach_link_read_role); nothing new is sent by either side. The coach's unread count leaves out paused links, which the
+-- coach cannot open, so no badge stays lit.
 -- No account in production has a coach link today (read-only check of 21 November 2026): nobody loses anything on application.
 -- Additive. The caller owns the transaction: never BEGIN/COMMIT here.
--- Rollback: re-apply private.titan_coach_link_role of 20261102100000 and private.titan_coach_portal of 20261102090000;
--- drop function private.titan_coach_link_active(uuid).
+-- Rollback: re-apply private.titan_coach_link_role, titan_coach_messages_v1, titan_coach_messages_read_v1, titan_coach_unread_v1 and
+-- titan_coach_message_report_v1 of 20261102100000 and private.titan_coach_portal of 20261102090000;
+-- drop functions private.titan_coach_link_active(uuid) and private.titan_coach_link_read_role(uuid, uuid).
 
 create or replace function private.titan_coach_link_active(p_link uuid)
 returns boolean
@@ -28,7 +32,8 @@ as $function$
 $function$;
 revoke all on function private.titan_coach_link_active(uuid) from public, anon, authenticated;
 
--- The coach tools (messages, check-ins, reports) all ask this helper: a paused link has no usable role on either side.
+-- The coach tools (sending a message, check-ins) ask this helper: a paused link has no usable role on either side for them. Reading the
+-- thread asks private.titan_coach_link_read_role below.
 create or replace function private.titan_coach_link_role(p_link uuid, p_uid uuid)
 returns text
 language sql
@@ -42,6 +47,96 @@ as $function$
      and private.titan_coach_link_active(l.id);
 $function$;
 revoke all on function private.titan_coach_link_role(uuid, uuid) from public, anon, authenticated;
+
+-- Reading the thread of a link: the coach only while the link is active; the athlete of an unrevoked link, paused or not (their consent and
+-- their messages stay theirs, and a message they received must stay reportable). Sending and check-ins keep titan_coach_link_role.
+create or replace function private.titan_coach_link_read_role(p_link uuid, p_uid uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select case when l.coach_id = p_uid and private.titan_coach_link_active(l.id) then 'coach' when l.athlete_id = p_uid then 'athlete' else null end
+    from public.coach_links l where l.id = p_link and l.revoked_at is null
+     and exists (select 1 from public.profiles p where p.id = p_uid and p.is_suspended is not true);
+$function$;
+revoke all on function private.titan_coach_link_read_role(uuid, uuid) from public, anon, authenticated;
+
+-- ---- the message reads of 20261102100000, with the read role above instead of titan_coach_link_role (bodies otherwise unchanged).
+create or replace function public.titan_coach_messages_v1(p_link uuid, p_before timestamptz default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare v_uid uuid := auth.uid();
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if private.titan_coach_link_read_role(p_link, v_uid) is null then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  return jsonb_build_object('link', p_link, 'rows', coalesce((
+    select jsonb_agg(jsonb_build_object('id', m.id, 'body', m.body, 'at', m.created_at, 'mine', m.sender_id = v_uid, 'read', m.read_at is not null) order by m.created_at)
+      from (select * from private.titan_coach_messages where link_id = p_link and (p_before is null or created_at < p_before) order by created_at desc limit 50) m), '[]'::jsonb),
+    'more', exists (select 1 from private.titan_coach_messages where link_id = p_link and created_at < coalesce((select min(x.created_at) from (select created_at from private.titan_coach_messages
+              where link_id = p_link and (p_before is null or created_at < p_before) order by created_at desc limit 50) x), 'infinity'::timestamptz)));
+end;
+$function$;
+
+create or replace function public.titan_coach_messages_read_v1(p_link uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare v_uid uuid := auth.uid(); v_n integer;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if private.titan_coach_link_read_role(p_link, v_uid) is null then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  update private.titan_coach_messages set read_at = now() where link_id = p_link and sender_id <> v_uid and read_at is null;
+  get diagnostics v_n = row_count;
+  return v_n;
+end;
+$function$;
+
+-- Unread messages per link: the athlete's on every unrevoked link (they can open a paused one), the coach's on active links only.
+create or replace function public.titan_coach_unread_v1()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare v_uid uuid := auth.uid();
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  return coalesce((select jsonb_object_agg(x.link_id, x.n) from (
+    select m.link_id, count(*)::integer as n from private.titan_coach_messages m join public.coach_links l on l.id = m.link_id and l.revoked_at is null
+     where (l.athlete_id = v_uid or (l.coach_id = v_uid and private.titan_coach_link_active(l.id))) and m.sender_id <> v_uid and m.read_at is null group by m.link_id) x), '{}'::jsonb);
+end;
+$function$;
+
+create or replace function public.titan_coach_message_report_v1(p_message uuid, p_reason text)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare v_uid uuid := auth.uid(); v_link uuid;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if p_reason is null or p_reason not in ('spam', 'harassment', 'inappropriate', 'other') then raise exception 'BAD_REASON' using errcode = '22023'; end if;
+  select link_id into v_link from private.titan_coach_messages where id = p_message and sender_id <> v_uid;
+  if v_link is null or private.titan_coach_link_read_role(v_link, v_uid) is null then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  perform private.titan_rate_limit(v_uid, 'coach_report', 20);
+  insert into private.titan_coach_message_reports (message_id, reporter_id, reason) values (p_message, v_uid, p_reason) on conflict do nothing;
+  return true;
+end;
+$function$;
+revoke all on function public.titan_coach_messages_v1(uuid, timestamptz), public.titan_coach_messages_read_v1(uuid), public.titan_coach_unread_v1(),
+  public.titan_coach_message_report_v1(uuid, text) from public, anon;
+grant execute on function public.titan_coach_messages_v1(uuid, timestamptz), public.titan_coach_messages_read_v1(uuid), public.titan_coach_unread_v1(),
+  public.titan_coach_message_report_v1(uuid, text) to authenticated;
 
 -- ---- the coach portal of 20261102090000, with three changes only: "paused" in the snapshot, and the paused check on the actions that use a link.
 create or replace function private.titan_coach_portal(p_action text,p_data jsonb default '{}'::jsonb)

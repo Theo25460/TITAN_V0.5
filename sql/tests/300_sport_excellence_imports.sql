@@ -3,6 +3,8 @@
 -- 2. Two different efforts at the same time in different families stay two (no false merge).
 -- 3. A watch swim is stored in metres, like a typed swim.
 -- 4. The Strava history import ('archive') can be archived in one step, owner only.
+-- 5. Archiving a large imported history (150 sessions, above the edit budget of 120 an hour) is one server statement: it succeeds and
+--    spends nothing of the player's edit budget; the exemption does not outlive the call.
 begin;
 do $$
 declare a uuid := gen_random_uuid(); b uuid := gen_random_uuid();
@@ -83,4 +85,42 @@ begin
   assert (select count(*) from public.training_logs where user_id=a and archived_at is null and sport='treadmill') = 1, 'recent sessions untouched';
 end $$;
 reset role;
+
+-- 5. A third account imports 150 history sessions (three calls of 50), then archives them at once.
+do $$
+declare c uuid := gen_random_uuid();
+begin
+  perform set_config('request.jwt.claims','{}',true);
+  insert into auth.users(id,raw_user_meta_data) values (c,'{}');
+  update public.profiles set created_at = now() - interval '400 days' where id = c;
+  perform set_config('titan.se_c',c::text,true);
+end $$;
+set local role authenticated;
+do $$
+declare c uuid := current_setting('titan.se_c')::uuid; r jsonb; items jsonb; k int; n int; ok boolean := false;
+begin
+  perform set_config('request.jwt.claims',json_build_object('sub',c,'role','authenticated')::text,true);
+  for k in 0..2 loop
+    select jsonb_agg(jsonb_build_object('id','strava-big-'||(k*50+i),'sport','running','startedAt',(now() - make_interval(days => 31 + k*50 + i))::text,
+             'minutes',40,'km',8)) into items from generate_series(1,50) i;
+    r := public.titan_import_history_v1(items);
+    assert (r->>'imported')::int = 50, 'history batch '||k||': '||r::text;
+  end loop;
+  assert (select count(*) from public.training_logs where user_id=c and archived_at is null) = 150, 'fixture: 150 imported sessions';
+  n := public.titan_archive_imported_v1('archive');
+  assert n = 150, 'the whole history leaves the journal in one call, above the edit budget, found '||n;
+  assert (select count(*) from public.training_logs where user_id=c and archived_at is null) = 0, 'nothing of the history left';
+  assert coalesce(current_setting('titan.bulk_archive', true), '') = '', 'the exemption is restored at once';
+  -- The call keeps its own limit (10 an hour): nothing left to archive, but each call is counted.
+  for k in 2..10 loop perform public.titan_archive_imported_v1('archive'); end loop;
+  begin perform public.titan_archive_imported_v1('archive'); exception when others then ok := sqlerrm = 'RATE_LIMITED'; end;
+  assert ok, 'eleventh archive call within the hour is refused';
+end $$;
+reset role;
+do $$
+declare c uuid := current_setting('titan.se_c')::uuid;
+begin
+  assert not exists (select 1 from private.titan_training_rate_state where user_id=c and action='update' and cardinality(times) > 0),
+    'the bulk archive spent nothing of the edit budget';
+end $$;
 rollback;

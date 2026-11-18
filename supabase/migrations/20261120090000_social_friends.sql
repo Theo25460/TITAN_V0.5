@@ -7,7 +7,9 @@
 --      A block in either direction, a suspended account, an own link, a spent, revoked or expired link all answer the same « invalid ».
 --   2. Six social limits were dead: titan_social_rate_limit counts rows of titan_social_action_log, but buddy_invite, buddy_nudge,
 --      challenge_link, challenge_link_accept, intent_set and intent_cheer never wrote one (the check constraint did not even allow them),
---      so « 10 invitations a day » and the others never applied. The limiter now records these actions itself once they pass.
+--      so « 10 invitations a day » and the others never applied. The limiter now records these actions itself once they pass. Their rows
+--      (whose longest window is one day) are kept 30 days, inside the 90 days of the whole journal: a retention rule read by the daily
+--      job private.titan_purge_expired_data_v1 (20261020030000), published in docs/DATA_RETENTION.md.
 --   3. A friend request never expired. Pending requests now last 30 days: an expired request is no longer listed nor accepted, and asking
 --      again replaces it (the usual 25 requests a day still apply).
 --   4. A player could block but never see whom they blocked, nor unblock without writing to support: titan_blocks_v1 lists one's own blocks
@@ -17,18 +19,35 @@
 -- Nothing here grants XP, credits or anything bought. Additive: signatures, return shapes and grants of existing functions are kept.
 -- The caller owns the transaction: never BEGIN/COMMIT here.
 -- Rollback: drop the five titan_friend_link_* functions, public.titan_blocks_v1(), private.titan_social_export_v1(uuid), private.titan_flag_on(text) and table
--- private.titan_friend_invites; re-apply titan_social_rate_limit from the baseline, titan_guard_friendship_insert from 20261005200000,
+-- private.titan_friend_invites; delete from private.titan_retention_rules where id = 'social_action_limits'; re-apply titan_social_rate_limit
+-- from the baseline, titan_guard_friendship_insert from 20261005200000,
 -- titan_guard_friendship_delete, titan_social_request and titan_social_overview from 20261114160000, titan_social_respond from 20261005200000,
 -- and export_own_data from 20261117170000.
 
 -- ---------------------------------------------------------------------------------------------
 -- 1. Social limits that count what they limit.
 -- ---------------------------------------------------------------------------------------------
-alter table public.titan_social_action_log drop constraint if exists titan_social_action_log_action_check;
-alter table public.titan_social_action_log add constraint titan_social_action_log_action_check
-  check (action = any (array['friend_add', 'friend_remove', 'block_user', 'unblock_user', 'moment_share', 'moment_cheer', 'challenge_create',
-    'buddy_invite', 'buddy_nudge', 'challenge_link', 'challenge_link_accept', 'intent_set', 'intent_cheer',
-    'friend_link', 'friend_link_accept', 'cordee_create']));
+-- The check swap waits 5 seconds at most for its lock (the setting is restored for the rest of the caller's transaction).
+do $$
+declare previous_lock_timeout text := current_setting('lock_timeout');
+begin
+  perform set_config('lock_timeout', '5s', true);
+  alter table public.titan_social_action_log drop constraint if exists titan_social_action_log_action_check;
+  alter table public.titan_social_action_log add constraint titan_social_action_log_action_check
+    check (action = any (array['friend_add', 'friend_remove', 'block_user', 'unblock_user', 'moment_share', 'moment_cheer', 'challenge_create',
+      'buddy_invite', 'buddy_nudge', 'challenge_link', 'challenge_link_accept', 'intent_set', 'intent_cheer',
+      'friend_link', 'friend_link_accept', 'cordee_create']));
+  perform set_config('lock_timeout', previous_lock_timeout, true);
+end $$;
+
+-- The nine actions the limiter records itself are kept 30 days (header, point 2); the daily retention job applies the rule.
+insert into private.titan_retention_rules (id, relation, time_column, keep, extra_where, purpose) values
+  ('social_action_limits', 'public.titan_social_action_log', 'created_at', interval '30 days',
+   'action in (''buddy_invite'', ''buddy_nudge'', ''challenge_link'', ''challenge_link_accept'', ''intent_set'', ''intent_cheer'', ''friend_link'', ''friend_link_accept'', ''cordee_create'')',
+   'compteurs des limites sociales (invitations, liens, intentions, cordées)')
+on conflict (id) do update
+  set relation = excluded.relation, time_column = excluded.time_column, keep = excluded.keep,
+      extra_where = excluded.extra_where, purpose = excluded.purpose;
 
 create or replace function public.titan_social_rate_limit(p_actor_id uuid, p_action text, p_window interval, p_limit integer)
 returns void

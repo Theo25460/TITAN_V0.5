@@ -71,11 +71,20 @@ function ClubWeek({ owner, club }: { owner: string; club: string }) {
   const w = q.data;
   if (!w) return null;
   const goal = w.goal ?? 0;
+  // Below 3 members the server keeps the totals to itself (null): the goal only, no figure and no bar.
+  if (w.minutes == null || w.active == null) {
+    return (
+      <View style={{ gap: 4 }} testID={`club-week-${club}`}>
+        <T variant="small">Cette semaine ensemble : {goal ? `objectif ${goal} min d’effort · ` : ""}le total s’affiche à partir de 3 membres</T>
+      </View>
+    );
+  }
+  const minutes = w.minutes, active = w.active;
   return (
     <View style={{ gap: 4 }} testID={`club-week-${club}`}>
-      <T variant="small">Cette semaine ensemble : {w.minutes} min d’effort{goal ? ` / ${goal}` : ""} · {w.active} membre{w.active > 1 ? "s" : ""} actif{w.active > 1 ? "s" : ""} sur {w.members}</T>
-      {goal ? <ProgressBar value={Math.min(1, w.minutes / goal)} accessibilityLabel="Objectif commun du club" /> : null}
-      {goal && w.minutes >= goal ? <T variant="small" tone="ok">Objectif de la semaine atteint ensemble.</T> : null}
+      <T variant="small">Cette semaine ensemble : {minutes} min d’effort{goal ? ` / ${goal}` : ""} · {active} membre{active > 1 ? "s" : ""} actif{active > 1 ? "s" : ""} sur {w.members}</T>
+      {goal ? <ProgressBar value={Math.min(1, minutes / goal)} accessibilityLabel="Objectif commun du club" /> : null}
+      {goal && minutes >= goal ? <T variant="small" tone="ok">Objectif de la semaine atteint ensemble.</T> : null}
       <T variant="caption" tone="faint">Seul le total est visible : personne ne voit la part d’un autre membre.</T>
     </View>
   );

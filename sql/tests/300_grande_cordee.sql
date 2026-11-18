@@ -4,6 +4,8 @@
 -- held sessions ignored, the beginner's last session is the one that brings the summit, the summit happens once and freezes the results,
 -- the route title goes to those who brought a longueur, names follow the challenge rule, the friends' challenge list stays individual,
 -- invalid routes and the running-cordée limit are refused, a block removes the blocked member from the blocker's cordée; no XP, no credit.
+-- An unanswered invitation counts during the first 48 hours only: a silent invitee never makes the summit impossible. The earned route
+-- titles are in the account export (cordeeTitles).
 begin;
 do $$
 declare k text; v uuid;
@@ -186,6 +188,9 @@ begin
   assert (select xp from public.profiles where id = a) is not distinct from xp0 and (select credits from public.profiles where id = a) is not distinct from cr0, 'no XP, no credit';
   perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   assert (public.titan_cordees_v1()->'cordees'->0->>'earned')::boolean, 'the beginner earns the title too';
+  r := public.export_own_data();
+  assert jsonb_array_length(r->'cordeeTitles') = 1 and r->'cordeeTitles'->0->>'route' = 'aube' and r->'cordeeTitles'->0->>'challenge_id' = id1::text
+     and r ? 'friendInvites', 'the export lists the earned route title, cumulatively: ' || coalesce(r->'cordeeTitles', 'null'::jsonb)::text;
   perform set_config('request.jwt.claims', json_build_object('sub', d, 'role', 'authenticated')::text, true);
   begin perform public.titan_set_displayed_title('cordee:aube'); exception when others then ok := sqlerrm = 'NOT_EARNED'; end;
   assert ok, 'the stranger who left with no longueur earns nothing';
@@ -249,9 +254,10 @@ begin
   assert private.titan_title_earned(b, 'cordee:aube'), 'b keeps the title earned with the erased creator';
 end $$;
 
--- A cordée formed with friends invited cannot summit alone, even with a strong first day.
+-- A cordée formed with friends invited cannot summit alone in its first 48 hours, even with a strong first day; after them, a friend
+-- who never answers no longer counts and the cordée can summit.
 do $$
-declare c uuid := current_setting('titan.co_c')::uuid; e uuid := current_setting('titan.co_e')::uuid; id3 uuid;
+declare c uuid := current_setting('titan.co_c')::uuid; e uuid := current_setting('titan.co_e')::uuid; id3 uuid; id4 uuid; r jsonb;
 begin
   update private.titan_feature_flags set enabled = true where key = 'screens.cordee';
   perform set_config('request.jwt.claims', json_build_object('sub', e, 'role', 'authenticated')::text, true);
@@ -260,19 +266,32 @@ begin
   perform public.titan_social_respond(e, true);
   perform set_config('request.jwt.claims', json_build_object('sub', e, 'role', 'authenticated')::text, true);
   id3 := (public.titan_cordee_create_v1('aube', 'douce', 7, array[c])->>'id')::uuid;
+  id4 := (public.titan_cordee_create_v1('forge', 'douce', 7, array[c])->>'id')::uuid;
   perform set_config('request.jwt.claims', '{}', true);
-  update public.titan_challenges set starts_at = now() - interval '3 days' where id = id3;
+  -- id3 started 30 hours ago (inside the 48 hours), id4 three days ago (after them); c answers neither.
+  update public.titan_challenges set starts_at = now() - interval '30 hours' where id = id3;
+  update public.titan_challenges set starts_at = now() - interval '3 days' where id = id4;
   set local session_replication_role = replica;
   insert into public.training_logs(user_id, sport, val, unit, xp, date, details, created_at) values
-    (e, 'running', 10, 'km', 10, now() - interval '2 days', '{"serverReward":true,"effort":{"effort_minutes":60}}', now() - interval '2 days'),
-    (e, 'yoga', 1, 'session', 10, now() - interval '1 day', '{"serverReward":true,"effort":{"effort_minutes":40}}', now() - interval '1 day');
+    (e, 'running', 10, 'km', 10, now() - interval '28 hours', '{"serverReward":true,"effort":{"effort_minutes":60}}', now() - interval '28 hours'),
+    (e, 'yoga', 1, 'session', 10, now() - interval '2 hours', '{"serverReward":true,"effort":{"effort_minutes":40}}', now() - interval '2 hours');
   set local session_replication_role = origin;
   perform set_config('request.jwt.claims', json_build_object('sub', e, 'role', 'authenticated')::text, true);
-  -- e alone: 4 longueurs + 2 of variety = 6 = target 3 × 2 (c has not answered), but only one member brought longueurs: no summit.
-  assert (select x->>'status' from jsonb_array_elements(public.titan_cordees_v1()->'cordees') x where x->>'id' = id3::text) = 'active',
-    'no summit while the invited friend has not answered';
+  r := public.titan_cordees_v1();
+  -- Inside the 48 hours: e alone reaches 6 = target 3 × 2 (c has not answered and counts), but one contributor is not two: no summit.
+  assert (select x->>'status' from jsonb_array_elements(r->'cordees') x where x->>'id' = id3::text) = 'active'
+     and (select (x->>'target')::int from jsonb_array_elements(r->'cordees') x where x->>'id' = id3::text) = 6
+     and (select (x->>'needs')::int from jsonb_array_elements(r->'cordees') x where x->>'id' = id3::text) = 2,
+    'no summit while the invited friend may still answer: ' || r::text;
+  -- After the 48 hours: the silent invitation no longer counts (target 3, needs 1), the same sessions bring the summit.
+  assert (select x->>'status' from jsonb_array_elements(r->'cordees') x where x->>'id' = id4::text) = 'summited'
+     and (select (x->>'target')::int from jsonb_array_elements(r->'cordees') x where x->>'id' = id4::text) = 3
+     and (select (x->>'pending')::int from jsonb_array_elements(r->'cordees') x where x->>'id' = id4::text) = 0,
+    'a silent invitee no longer blocks the summit after 48 hours: ' || r::text;
+  assert private.titan_title_earned(e, 'cordee:forge'), 'e earns the route title';
   perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
   perform public.titan_challenge_respond(id3, 'join');
   assert (select x->>'myStatus' from jsonb_array_elements(public.titan_cordees_v1()->'cordees') x where x->>'id' = id3::text) = 'joined', 'c could still join';
+  assert not private.titan_title_earned(c, 'cordee:forge'), 'the silent invitee earns nothing';
 end $$;
 rollback;

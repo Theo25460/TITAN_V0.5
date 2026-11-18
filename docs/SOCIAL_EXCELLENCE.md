@@ -43,12 +43,14 @@ des fonctions serveur a trouvé :
 
 - **Séances confirmées seulement** : `private.titan_confirmed_sessions` (règle des quêtes périodiques : statut `valid`, non suspecte, non
   archivée, non historique, `serverReward = true`, aucune récompense retenue ou annulée). Une séance retenue compte dès sa libération.
+  Toute séance non historique est analysée à l'enregistrement, même au-delà du plafond d'XP : une séance invraisemblable sans XP est
+  retenue elle aussi (montants nuls). Le classement équitable entre amis lit les mêmes séances confirmées.
 - **Résultat d'un défi** : nommé seulement à soi, à ses amis et au partenaire d'un lien partagé, comme le tableau en cours.
 - **TITAN Duo** : un binôme qui atteint ses 14 jours est **figé une fois** (jours actifs de chacun, atteint ou non) ; le résultat reste
   14 jours (« Objectif atteint avec Léa · 13 / 12 », « Repartir avec Léa ») ; un ancien partenaire qui n'est plus ami n'est plus nommé ;
   un arrêt anticipé ne fige rien. Toujours sans devoir pratiquer le même sport (jours actifs, tous sports).
 - **Club** : un administrateur fixe un objectif hebdomadaire en minutes d'effort ; chaque membre lit le total et le nombre de membres
-  actifs, jamais un nom ni une part.
+  actifs, jamais un nom ni une part ; à partir de 3 membres seulement (seuil des trophées de saison), sinon l'objectif seul.
 
 ## C. La Grande Cordée — `20261120110000_grande_cordee.sql`, `js/core/cordee.js`
 
@@ -89,7 +91,7 @@ n'apparaît quand rien ne s'est passé ; aucun jour manqué, aucune série, aucu
 
 | Constat | Correction |
 |---|---|
-| Une cordée pouvait atteindre le sommet avec son seul créateur (part × 1) puis se fermer avant que les invités répondent | Un invité qui n'a pas répondu compte dans l'objectif ; dès deux personnes, deux membres doivent avoir apporté une longueur ; aucun sommet dans les 48 premières heures |
+| Une cordée pouvait atteindre le sommet avec son seul créateur (part × 1) puis se fermer avant que les invités répondent | Un invité qui n'a pas répondu compte dans l'objectif pendant les 48 premières heures (ensuite seuls les membres encordés comptent : un invité silencieux ne bloque jamais le sommet) ; dès deux personnes, deux membres doivent avoir apporté une longueur ; aucun sommet dans les 48 premières heures |
 | `titan_challenge_result_v1` pouvait figer une cordée comme un défi individuel avant son sommet (titres perdus, Panthéon faussé) | Une cordée y est réglée par sa propre règle ; résultats d'un inconnu sans progression |
 | La variété comptait des familles de séances symboliques (1 min) | Une famille compte seulement pour une séance avec effort, un jour qui a apporté au moins une longueur |
 | Un membre sans nom exposait sa progression et ses familles de sport | Un membre que l'on ne peut pas voir n'est que « Membre de la cordée » ; seuls les totaux de la cordée restent |

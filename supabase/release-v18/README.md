@@ -13,6 +13,11 @@ aucun lien coach n'est révoqué, aucune XP ni aucun crédit n'est accordé, auc
 | `03` routines | Le serveur refuse d'agrandir la bibliothèque de routines au-delà de 5 (20 avec TITAN+) ; une bibliothèque plus grande laissée par un TITAN+ terminé est conservée | Non, sauf pour un client qui contournait la limite du site |
 | `04` économie | Les succès ne comptent plus que les séances confirmées (ni historiques, ni retenues, ni exclues) ; la libération horaire des récompenses retenues ne paie plus une séance archivée, exclue ou rejetée, et attend une séance en cours de revue | Seulement pour un compte qui exploitait ces chemins |
 
+Corrections d'audit (18 novembre 2026, avant toute application) :
+
+- `02` : sur un lien en pause, l'athlète lit toujours le fil déjà là, le marque lu et peut signaler un message (`private.titan_coach_link_read_role`) ; personne n'envoie rien de nouveau ; le compteur de non-lus du coach ignore les liens en pause qu'il ne peut pas ouvrir (plus de pastille bloquée).
+- `04` : une séance en cours de revue (`flagged`, `pending_review`) n'occupe plus de place dans le lot de 500 retenues libérées chaque heure ; la relecture verrouillée dans la boucle est conservée.
+
 ## Procédure
 
 1. `00-check-before.sql` : deux lignes `ok = true` (état de fin du paquet v17).

@@ -371,7 +371,8 @@ export type Club = { id: string; name: string; description: string | null; role:
 export const fetchClubs = (owner: string) => ownerRpc<Club[] | null>(owner, "titan_club_my_v1", {});
 export const clubJoin = (owner: string, code: string) => ownerRpc<string>(owner, "titan_club_join_v1", { p_code: code, p_club: null });
 /** Social lot B: the common goal of the week, read by every member as a total (never a name). */
-export type ClubWeek = { club: string; weekStart: string; goal: number | null; minutes: number; members: number; active: number; canSet: boolean };
+/** minutes and active are null below 3 members: the server never gives a total that would be another member's week. */
+export type ClubWeek = { club: string; weekStart: string; goal: number | null; minutes: number | null; members: number; active: number | null; canSet: boolean };
 export const fetchClubWeek = (owner: string, club: string) => ownerRpc<ClubWeek>(owner, "titan_club_week_v1", { p_club: club });
 
 /* ---------- Life chapters (AUD-48) ---------- */
