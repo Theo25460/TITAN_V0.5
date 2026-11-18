@@ -93,6 +93,7 @@
     CONSENT_REQUIRED: "Le partage demande ton accord explicite.",
     COACH_CONFLICT: "Une modification plus récente existe. Actualise avant de recommencer.",
     SHARING_UNAVAILABLE: "Ce partage a été révoqué ou n’est plus accessible.",
+    COACH_CAPACITY_PAUSED: "Ce suivi est en pause : l’offre du coach n’a plus de place pour lui. Rien n’est supprimé ; il reprend dès qu’une place se libère ou que l’offre revient.",
     INVALID_PERIOD: "Vérifie la période et les dates de partage.",
     INVALID_SESSION: "Choisis une séance personnelle du même sport, dans la période autorisée et non archivée.",
     SESSION_ALREADY_LINKED: "Cette séance est déjà reliée à une proposition.",
@@ -364,7 +365,7 @@
   function rosterResultsHtml() {
     const list = workspace()?.roster({links:snapshot?.links||[], owner:owner(), query:rosterQuery, sport:rosterSport}) || [];
     return `<p class="asc-small asc-muted" role="status">${list.length} suivi(s) affiché(s). Le filtre porte sur le sport autorisé, pas sur les séances pratiquées.</p>
-      ${list.length ? `<div class="co-roster-grid">${list.map(l=>`<button type="button" class="co-person" data-link="${esc(l.id)}" aria-pressed="${l.id===selected}"><span><strong>${esc(l.athlete_name||"Compte TITAN")}</strong><small>${l.sport ? esc(SP().label(l.sport)) : "Tous les sports partagés"} · depuis le ${esc(date(l.since_date))}</small></span></button>`).join("")}</div>` : `<p class="asc-small">Aucun suivi ne correspond à ces filtres.</p>`}`;
+      ${list.length ? `<div class="co-roster-grid">${list.map(l=>`<button type="button" class="co-person" data-link="${esc(l.id)}" aria-pressed="${l.id===selected}"><span><strong>${esc(l.athlete_name||"Compte TITAN")}</strong><small>${l.sport ? esc(SP().label(l.sport)) : "Tous les sports partagés"} · depuis le ${esc(date(l.since_date))}${l.paused ? " · en pause" : ""}</small></span></button>`).join("")}</div>` : `<p class="asc-small">Aucun suivi ne correspond à ces filtres.</p>`}`;
   }
   function rosterHtml() {
     if (!coachView() || !feature("screens.coachworkspace")) return "";
@@ -569,7 +570,7 @@
       ${list.length ? `<div class="co-layout${list.length === 1 || mode === "coach" && feature("screens.coachworkspace") ? " is-single" : ""}">
         ${list.length === 1 ? "" : `<nav class="co-people" data-co-legacy-nav aria-label="Suivis"${mode === "coach" && feature("screens.coachworkspace")?" hidden":""}>`}${list.length === 1 ? "" : list.map((x) => `<button type="button" class="co-person" data-link="${esc(x.id)}" aria-pressed="${x.id === selected}">${icon(mode === "coach" ? "user" : "group")}<span><strong>${esc((mode === "coach" ? x.athlete_name : x.coach_name) || "Compte TITAN")}</strong><small>Depuis le ${esc(date(x.accepted_at))}</small></span></button>`).join("") + "</nav>"}
         ${l ? `<div class="co-detail">
-          <section class="co-card"><div class="asc-between"><h3 class="asc-h3">${esc((mode === "coach" ? l.athlete_name : l.coach_name) || "Mon suivi")}</h3><span class="asc-chip">Partage actif</span></div>
+          <section class="co-card"><div class="asc-between"><h3 class="asc-h3">${esc((mode === "coach" ? l.athlete_name : l.coach_name) || "Mon suivi")}</h3><span class="asc-chip">${l.paused ? "En pause" : "Partage actif"}</span></div>${l.paused ? `<p class="asc-small">${esc(MESSAGES.COACH_CAPACITY_PAUSED)}</p>` : ""}
             <p class="asc-small asc-muted">${list.length === 1 ? `Suivi depuis le ${esc(date(l.accepted_at))} · ` : ""}Partage depuis le ${esc(date(l.since_date))} · ${l.sport ? esc(SP().label(l.sport)) : "Tous les sports"} · ${l.share_details ? "détails techniques inclus" : "mesures essentielles"} · ${l.share_notes ? "notes incluses" : "notes privées"}</p>
             <div class="asc-row-flex">${mode === "athlete" ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-scope>${icon("settings")} Modifier mon partage</button>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-propose>${icon("plus")} Proposer une séance</button>`}<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-revoke>Arrêter le partage</button></div></section>
           <div data-co-calendar-slot>${calendarHtml()}</div>

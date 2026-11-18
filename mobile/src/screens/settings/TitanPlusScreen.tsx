@@ -7,7 +7,7 @@ import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
 import { T } from "../../components/Text";
-import { fetchProfile } from "../../data/api";
+import { fetchMyPlan, fetchProfile } from "../../data/api";
 import { useOwner } from "../../data/auth";
 import { keys, useProfile } from "../../data/hooks";
 import { BILLING_BUILD, BillingError, buy, FREE_PLAN, mentionsAds, visiblePerks, loadCurrentPlayProduct, loadOffers, manageInPlay, messageFor, PLANS, restore, type Offer } from "../../lib/playBilling";
@@ -24,6 +24,10 @@ export function TitanPlusScreen() {
   const [currentPlayProduct, setCurrentPlayProduct] = useState<string | null>();
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  /** Where the server says the TITAN+ flag comes from. Without a source of the account's own (only a seat included by a coach, or an
+      ended subscription whose summary was not refreshed yet) the player may buy an offer of their own. */
+  const [plan, setPlan] = useState<{ own: boolean; viaCoach: boolean } | null>(null);
+  const seatOnly = plan?.own === false && plan.viaCoach;
   const alive = useRef(true);
   const actionRunning = useRef(false);
   useEffect(() => {
@@ -45,6 +49,15 @@ export function TitanPlusScreen() {
       if (alive.current) setCurrentPlayProduct(undefined);
     }
   }, [owner]);
+
+  useEffect(() => {
+    if (!profile?.is_elite) { setPlan(null); return; }
+    let current = true;
+    fetchMyPlan(owner)
+      .then((p) => current && alive.current && setPlan({ own: p.own, viaCoach: p.viaCoach }))
+      .catch(() => current && alive.current && setPlan(null));
+    return () => { current = false; };
+  }, [owner, profile?.is_elite]);
 
   useEffect(() => {
     if (!BILLING_BUILD) return;
@@ -76,7 +89,10 @@ export function TitanPlusScreen() {
       if (currentPlayProduct === null) {
         if (!(await accessToken())) throw new BillingError("AUTH");
         const fresh = await fetchProfile(owner);
-        if (fresh?.is_elite !== false || fresh.is_suspended) {
+        // A personal source of TITAN+ (a subscription TITAN knows, an offered access) means there is nothing new to buy here; a seat
+        // included by a coach does not: it ends with the coach's plan, so the athlete may take an offer of their own.
+        const freeOrSeat = fresh && !fresh.is_suspended && (fresh.is_elite === false || (fresh.is_elite === true && !(await fetchMyPlan(owner)).own));
+        if (!freeOrSeat) {
           refresh();
           throw new BillingError("PLAN_UNCERTAIN");
         }
@@ -86,12 +102,12 @@ export function TitanPlusScreen() {
       if (r.kind === "active" && r.verdict.active) {
         setNote(r.verdict.access_kind === "test"
           ? "Accès de test actif. Cet achat de test ne prouve aucun paiement commercial."
-          : r.verdict.acknowledged ? "Ton accès TITAN+ est actif. Un achat vérifié peut comporter un essai gratuit. Consulte ton reçu Google Play." : "Accès actif. Google Play attend encore une confirmation. Ouvre « Restaurer mes achats » dans un instant.");
+          : r.verdict.acknowledged ? `Ton offre ${o.name} est active. Un achat vérifié peut comporter un essai gratuit. Consulte ton reçu Google Play.` : `Ton offre ${o.name} est active. Google Play attend encore une confirmation, TITAN la lui renvoie automatiquement.`);
         refresh();
       } else if (r.kind === "active") {
         setNote("Aucun accès actif n’a été confirmé. Consulte tes abonnements Google Play ou utilise « Restaurer mes achats ».");
         refresh();
-      } else if (r.kind === "pending") setNote("Paiement en attente chez Google Play. Une fois confirmé, utilise « Restaurer mes achats ».");
+      } else if (r.kind === "pending") setNote("Paiement en attente chez Google Play : aucun accès n’est ouvert tant qu’il n’est pas confirmé. Dès sa confirmation, TITAN l’active à ta prochaine ouverture de l’application ; « Restaurer mes achats » le fait tout de suite.");
       else if (r.kind === "error") {
         setNote(messageFor(r.error));
         // The server may have granted access although its answer was lost or late: read the profile and Play again instead of trusting the error.
@@ -119,7 +135,7 @@ export function TitanPlusScreen() {
 
   const live = BILLING_BUILD && offers !== null && offers.length > 0;
   const offerOf = (id: string) => offers?.find((o) => o.id === id);
-  const canSubscribe = profile?.is_elite === false && !profile.is_suspended && currentPlayProduct === null;
+  const canSubscribe = !!profile && !profile.is_suspended && currentPlayProduct === null && (profile.is_elite === false || plan?.own === false);
   const canChange = !!profile && !profile.is_suspended && typeof currentPlayProduct === "string";
   const manage = () => manageInPlay(currentPlayProduct ?? undefined).catch(() => setNote("Ouvre Google Play > Paiements et abonnements."));
   return (
@@ -143,8 +159,10 @@ export function TitanPlusScreen() {
       <T variant="caption" tone="faint">Les comparaisons et les bilans se consultent sur titan-app.fr, avec le même compte. Le journal, les analyses de base, la progression, les quatre campagnes, la Communauté et l’Atelier sont gratuits, sans limite de durée.</T>
       {profile?.is_elite ? (
         <Card tone="accent">
-          <T variant="bodyStrong">Ton compte bénéficie déjà d’un accès TITAN+.</T>
-          <T variant="small" tone="muted">Un accès offert, de test ou inclus par un coach ne prouve pas un abonnement payé. Pour un achat existant, consulte le prestataire indiqué sur ton reçu.</T>
+          <T variant="bodyStrong">{seatOnly ? "Ton TITAN+ est inclus par ton coach." : "Ton compte bénéficie déjà d’un accès TITAN+."}</T>
+          <T variant="small" tone="muted">{seatOnly
+            ? "Il dure tant que tu es rattaché à ton coach et que son offre est active. Tu peux aussi prendre ta propre offre ci-dessous."
+            : "Un accès offert, de test ou inclus par un coach ne prouve pas un abonnement payé. Pour un achat existant, consulte le prestataire indiqué sur ton reçu."}</T>
           {BILLING_BUILD ? <Button small kind="secondary" label="Ouvrir mes abonnements Google Play" disabled={!!busy} onPress={manage} /> : null}
         </Card>
       ) : null}

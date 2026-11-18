@@ -146,7 +146,6 @@ test.each([
   [[{ ...oldCoachUltra, purchaseState: "pending" }], "titan03"],
   [[{ ...oldCoachUltra, pendingPurchaseUpdateAndroid: { products: ["titan02"] } }], "titan03"],
   [[{ ...oldCoachUltra, isSuspendedAndroid: true }], "titan03"],
-  [[{ ...oldCoachUltra, obfuscatedAccountIdAndroid: "owner-2" }], "titan03"],
   [[oldCoachUltra, { ...oldCoachUltra, productId: "titan01" }], "titan03"],
 ])("an uncertain Play inventory never opens a fresh or replacement checkout: %j", async (purchases, currentProductId) => {
   const s = fakeStore();
@@ -154,6 +153,17 @@ test.each([
   const verify = jest.fn(async () => active);
   const result = await buy((await loadOffers(s.lib))[1], "owner-1", token, { store: s.lib, verify, check: ready, currentProductId });
   expect(result).toMatchObject({ kind: "error", error: { code: "PLAN_UNCERTAIN" } });
+  expect(verify).not.toHaveBeenCalled();
+  expect(s.requests).toHaveLength(0);
+});
+
+test.each([null, "titan03"])("a Play subscription paid for ANOTHER TITAN account is named as such and never replaced (current %s)", async (currentProductId) => {
+  const s = fakeStore();
+  s.setAvailable([{ ...oldCoachUltra, obfuscatedAccountIdAndroid: "owner-2" }]);
+  const verify = jest.fn(async () => active);
+  const result = await buy((await loadOffers(s.lib))[1], "owner-1", token, { store: s.lib, verify, check: ready, currentProductId });
+  expect(result).toMatchObject({ kind: "error", error: { code: "OTHER_ACCOUNT" } });
+  expect(messageFor((result as { error: unknown }).error)).toMatch(/autre compte TITAN/);
   expect(verify).not.toHaveBeenCalled();
   expect(s.requests).toHaveLength(0);
 });

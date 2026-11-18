@@ -435,3 +435,12 @@ export const routeForEvent = (owner: string, eventId: string) => ownerRpc<RouteM
 export const routesList = (owner: string) => ownerRpc<RouteMeta[]>(owner, "titan_routes_v1", { p_limit: 100 });
 export const routeGet = (owner: string, id: string) => ownerRpc<RouteFull>(owner, "titan_route_get_v1", { p_id: id });
 export const routeDelete = (owner: string, id: string) => ownerRpc<boolean>(owner, "titan_route_delete_v1", { p_id: id });
+
+/** Where the account's TITAN+ comes from, as the server sees it: its own source (a store subscription, an offered access) or only a seat
+    included by a coach. A seat must never stop the athlete from buying their own offer (Coach included): it ends with the coach's plan. */
+export type MyPlan = { titanPlus: boolean; own: boolean; viaCoach: boolean };
+export async function fetchMyPlan(owner: string): Promise<MyPlan> {
+  const data = await ownerRpc<Partial<MyPlan> | null>(owner, "titan_my_plan_v1", {});
+  if (!data || typeof data.own !== "boolean" || typeof data.viaCoach !== "boolean") throw new Error("PLAN_UNREADABLE");
+  return { titanPlus: data.titanPlus === true, own: data.own, viaCoach: data.viaCoach };
+}

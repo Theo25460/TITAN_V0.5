@@ -102,7 +102,7 @@ test("coached-athlete capacities: SQL, Android offers, public pages, legal terms
   }
   assert.ok(page("titan-plus.html").includes(`Sportifs suivis dans l’espace coach ${free} ${plus}`), "comparison table");
   assert.ok(page("titan-plus.html").includes(`${free} → ${plus} sportifs suivis`), "capacity card");
-  assert.ok(page("titan-plus.html").includes(`la capacité coach revient à ${free} pour les nouveaux suivis`), "end of TITAN+");
+  assert.ok(page("titan-plus.html").includes(`la capacité coach revient à ${free} : les suivis au-delà sont mis en pause`), "end of TITAN+");
   assert.ok(page("fonctionnalites.html").includes("le suivi de trois sportifs"), "features FAQ");
 
   // The coach guide: its table and its search description.
@@ -111,7 +111,9 @@ test("coached-athlete capacities: SQL, Android offers, public pages, legal terms
     assert.ok(guide.includes(row), `coach guide table: ${row}`);
   }
   assert.ok(readFileSync(join(output, "pour-les-coachs.html"), "utf8").includes(`${free} sportifs sans abonnement, ${plus} avec TITAN+, ${coach} ou ${ultra} avec une offre Coach.`), "coach guide description");
-  assert.ok(guide.includes(`Un coach passé de TITAN+ à Coach suit au plus ${coach} sportifs`));
+  // 20261121100000: the places apply to every coach action; links beyond them are paused, never revoked (sql/tests/300_monetisation_coach_capacity.sql).
+  assert.ok(guide.includes("au-delà (passage de Coach Ultra à Coach, fin de l’offre), les suivis les plus récents sont mis en pause. Rien n’est supprimé ni révoqué"), "coach guide: the pause rule");
+  assert.ok(readFileSync(join(root, "supabase/migrations/20261121100000_coach_capacity_enforced.sql"), "utf8").includes("'COACH_CAPACITY_PAUSED'"), "the rule the guide states is the server's");
 
   // Terms and partnerships.
   const terms = page("legal_cgu.html");

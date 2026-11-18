@@ -13,6 +13,8 @@ begin
   perform set_config('titan.cs_c',c::text,true); perform set_config('titan.cs_c2',c2::text,true); perform set_config('titan.cs_adm',adm::text,true);
   perform set_config('titan.cs_u',array_to_string(u,','),true);
   assert not has_table_privilege('authenticated','private.titan_plan_products','select'), 'no API grant on the mapping';
+  -- 20261121090000 seeds the three products of the specification; this test starts from an empty mapping with its own product ids.
+  delete from private.titan_plan_products;
 end $$;
 
 -- Helpers (test only, removed by the rollback): a coach invites, an athlete accepts, a side revokes, and the bearer of a claim.

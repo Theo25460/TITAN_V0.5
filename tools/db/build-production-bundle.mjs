@@ -70,6 +70,18 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v16 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // Monetisation (21 November 2026): access summary refreshed without events, pending/held purchases re-read, product mapping seeded,
+  // coach places enforced on every coach action (links beyond them paused), routine library cap, no achievement credits from unconfirmed
+  // sessions, hold release that never pays an archived or excluded session. NOT applied: additive, rehearsed on a replica
+  // (tools/db/test-migrations.sh, sql/tests/300_monetisation_*.sql). None of its functions is touched by v15 to v17: the chain order is kept
+  // only so that each bundle's fingerprint check stays exact.
+  v18: {
+    out: "supabase/release-v18", after: "20261120120000", until: "20261121130000",
+    before: { private: [116, "365bcfe300a2", "10fb8e93b6cc"], public: [320, "28448708715e", "6a3a797bdb5d"] },
+    expected: { private: [119, "43c6cececcca", "6266862d9620"], public: [321, "32c8b51edcd3", "3992427182c7"] },
+    beforeNote: "This is the state production reaches at the end of the v17 bundle.",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

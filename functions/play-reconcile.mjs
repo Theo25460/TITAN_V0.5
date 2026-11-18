@@ -1,7 +1,7 @@
 // Hourly safety net for Google Play subscriptions: a lost real-time notification must not leave an ended subscription
 // with Premium access. Re-reads, from Google, the few subscriptions the database names as due and records the answer.
 // Disabled unless PLAY_BILLING_ENABLED=true. Never trusts anything but Google's answer; never grants access to a new token.
-import { acknowledgePlaySubscription, allowsPlayTestPurchases, googleAccessToken, interpretSubscription, network, playEntitlementPayload } from './play-billing.mjs';
+import { acknowledgePlaySubscription, googleAccessToken, interpretSubscription, network, playEntitlementPayload } from './play-billing.mjs';
 
 const PUBLISHER = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications';
 const env = name => String(globalThis.Netlify?.env?.get(name) || '');
@@ -44,7 +44,7 @@ export default async function handler(_request, { budgetMs = 20_000, now = () =>
                 if (lookup.status === 404 || lookup.status === 410) {
                     payload = { p_is_active: false, p_status: 'gone', p_is_test: null, p_ends_at: eventAt };
                 } else if (lookup.ok) {
-                    subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: allowsPlayTestPurchases(url) });
+                    subscription = interpretSubscription(lookup.data, { allowedProducts });
                     const invalid = subscription.error || subscription.linkedPurchaseToken === row.external_id
                         || (subscription.boundAccount && subscription.boundAccount !== row.user_id);
                     payload = invalid

@@ -4,7 +4,7 @@
 // Disabled unless PLAY_BILLING_ENABLED=true. Authentication, strongest first: a Pub/Sub OIDC token signed
 // by Google for PLAY_RTDN_AUDIENCE and PLAY_RTDN_SERVICE_ACCOUNT; or the secret in the push URL (PLAY_RTDN_TOKEN).
 import crypto from 'node:crypto';
-import { acknowledgePlaySubscription, allowsPlayTestPurchases, googleAccessToken, interpretSubscription, network, PLAY_ACCOUNT_ID, playEntitlementPayload } from './play-billing.mjs';
+import { acknowledgePlaySubscription, googleAccessToken, interpretSubscription, network, PLAY_ACCOUNT_ID, playEntitlementPayload } from './play-billing.mjs';
 import { verifyPubSubJwt } from './play-auth.mjs';
 import { readBoundedBytes } from './request-body.mjs';
 
@@ -64,7 +64,10 @@ export default async function handler(request) {
         if (!owner.ok) return reply(503);
         const firstPurchase = owner.data === null;
         if (!firstPurchase && (typeof owner.data !== 'string' || !PLAY_ACCOUNT_ID.test(owner.data))) return reply(503);
-        if (firstPurchase && notification.subscriptionNotification?.notificationType !== 4) return reply(200);
+        // A token we have never recorded is only worth a Google read when the event means "this subscription is paid now": the purchase
+        // itself (4), and also a renewal (2), a recovery (1) or a restart (7), so that a purchase whose first notification was lost (Pub/Sub
+        // gave up during an outage) is not forgotten until the player reopens the app. Google's answer and its bound account still decide.
+        if (firstPurchase && ![1, 2, 4, 7].includes(Number(notification.subscriptionNotification?.notificationType))) return reply(200);
 
         const accessToken = await googleAccessToken(account);
         const googleHeaders = { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' };
@@ -81,7 +84,7 @@ export default async function handler(request) {
             return gone.ok ? reply(200) : reply(503);
         }
         if (!lookup.ok) return reply(503);
-        const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: allowsPlayTestPurchases(url) });
+        const subscription = interpretSubscription(lookup.data, { allowedProducts });
         if (subscription.error || subscription.linkedPurchaseToken === purchaseToken) return reply(200);
         const userId = firstPurchase ? subscription.boundAccount : owner.data;
         if (typeof userId !== 'string' || !PLAY_ACCOUNT_ID.test(userId)) return reply(200);

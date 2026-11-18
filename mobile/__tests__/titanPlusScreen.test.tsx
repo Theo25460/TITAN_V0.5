@@ -7,7 +7,9 @@ const mockFetchProfile = jest.fn(async () => mockProfile.data ?? null);
 let mockSessionOwner = "owner-a";
 jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a" }));
 jest.mock("../src/data/hooks", () => ({ keys: { profile: (o: string) => ["profile", o] }, useProfile: () => mockProfile }));
-jest.mock("../src/data/api", () => ({ fetchProfile: () => mockFetchProfile() }));
+const mockPlan = { own: true, viaCoach: false };
+const mockFetchMyPlan = jest.fn(async () => ({ titanPlus: true, ...mockPlan }));
+jest.mock("../src/data/api", () => ({ fetchProfile: () => mockFetchProfile(), fetchMyPlan: () => mockFetchMyPlan() }));
 jest.mock("../src/lib/supabase", () => ({ supabase: { auth: { getSession: async () => ({ data: { session: { access_token: "t", user: { id: mockSessionOwner } } } }) } } }));
 jest.mock("@tanstack/react-query", () => ({ ...jest.requireActual("@tanstack/react-query"), useQueryClient: () => ({ invalidateQueries: jest.fn() }) }));
 
@@ -32,7 +34,7 @@ const fake = (products: { id: string; price: string }[], overrides = {}) =>
     deepLinkToSubscriptions: async () => undefined,
     ...overrides,
   });
-beforeEach(() => { mockProfile.data = { is_elite: false }; mockSessionOwner = "owner-a"; mockFetchProfile.mockClear(); });
+beforeEach(() => { mockProfile.data = { is_elite: false }; mockSessionOwner = "owner-a"; mockFetchProfile.mockClear(); Object.assign(mockPlan, { own: true, viaCoach: false }); });
 afterAll(() => billing._setIapForTests(null));
 
 test("four cards; each price is exactly what Google Play returned; a missing product says so; no price is invented", async () => {
@@ -69,6 +71,43 @@ test("an account that already has access sees no buy button, only a way to manag
   await screen.findByText("4,99 € / mois");
   expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();
   expect(screen.getByText("Ouvrir mes abonnements Google Play")).toBeTruthy();
+});
+
+test("an athlete whose TITAN+ is only a coach seat can still buy an offer of their own, Coach included", async () => {
+  mockProfile.data = { is_elite: true };
+  Object.assign(mockPlan, { own: false, viaCoach: true });
+  const requestPurchase = jest.fn().mockRejectedValue({ code: "user-cancelled" });
+  fake([{ id: "titan01", price: "Plus offer" }, { id: "titan02", price: "Coach offer" }], { requestPurchase });
+  mockFetchProfile.mockResolvedValueOnce({ is_elite: true });
+  const fetcher = jest.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(null, { status: 204 }));
+  try {
+    show();
+    expect(await screen.findByText("Ton TITAN+ est inclus par ton coach.")).toBeTruthy();
+    const coach = await screen.findByTestId("subscribe-coach");
+    expect(screen.getByTestId("subscribe-titan_plus")).toBeTruthy();
+    await act(async () => { fireEvent.press(coach); });
+    expect(requestPurchase).toHaveBeenCalledTimes(1);
+  } finally { fetcher.mockRestore(); }
+});
+
+test("an ended subscription whose summary is still marked TITAN+ does not block a new subscription", async () => {
+  mockProfile.data = { is_elite: true };
+  Object.assign(mockPlan, { own: false, viaCoach: false });
+  fake([{ id: "titan01", price: "Plus offer" }]);
+  show();
+  expect(await screen.findByTestId("subscribe-titan_plus")).toBeTruthy();
+  expect(screen.queryByText("Ton TITAN+ est inclus par ton coach.")).toBeNull();
+});
+
+test("an access of the account's own (offered or paid outside Play) still offers nothing to buy twice", async () => {
+  mockProfile.data = { is_elite: true };
+  fake([{ id: "titan01", price: "Plus offer" }, { id: "titan02", price: "Coach offer" }]);
+  show();
+  await screen.findByText("Plus offer");
+  await act(async () => {});
+  expect(screen.queryByTestId("subscribe-titan_plus")).toBeNull();
+  expect(screen.queryByTestId("subscribe-coach")).toBeNull();
+  expect(screen.getByText("Ton compte bénéficie déjà d’un accès TITAN+.")).toBeTruthy();
 });
 
 test("a loading profile never exposes a new subscription action", async () => {

@@ -15,6 +15,11 @@ d'entrée ; le détail historique reste dans `docs/v131/`. Consolidation GitHub 
 > limites anti-spam qui s'appliquent enfin, **séances confirmées seulement** dans tous les comptes collectifs, résultat du TITAN Duo,
 > objectif de club, **La Grande Cordée** (coopération multisport réglée par le serveur), « Depuis ta dernière visite ». État, preuves,
 > limites et relais : [`SOCIAL_EXCELLENCE.md`](SOCIAL_EXCELLENCE.md). Paquet v17 préparé, non appliqué ; trois drapeaux fermés.
+>
+> **21 novembre 2026 — Monétisation fiable** : chaîne d'achat Google Play (notification perdue, sportif avec place coach, autre compte),
+> fin d'accès sans événement, achats en attente relus, places coach appliquées à toute la suite (liens au-delà en pause), plafond des
+> routines côté serveur, succès et récompenses retenues réservés aux séances confirmées ; cause des prix 5,99/23,99/47,99 € (TVA ajoutée
+> par la Play Console). État, preuves, protocole de recette : [`MONETISATION.md`](MONETISATION.md). Paquet v18 préparé, non appliqué.
 
 ## 0. Finition du 17 novembre 2026 — état réel (remplace les statuts de la section suivante quand ils diffèrent)
 
