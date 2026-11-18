@@ -5,7 +5,7 @@ import vm from "node:vm";
 const sandbox = { window: {}, globalThis: {} };
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
-for (const file of ["js/app/icons.js", "js/renaissance-catalog.js", "js/core/effort.js"]) vm.runInContext(readFileSync(file, "utf8"), sandbox);
+for (const file of ["js/app/icons.js", "js/app/sport-icons.js", "js/renaissance-catalog.js", "js/core/effort.js"]) vm.runInContext(readFileSync(file, "utf8"), sandbox);
 const W = sandbox.window;
 export const icon = (n) => W.titanIcon(n);
 const mark = () => W.titanMark("pub-mark");

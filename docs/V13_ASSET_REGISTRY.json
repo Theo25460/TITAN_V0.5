@@ -496,7 +496,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            32
+            33
           ],
           "evidence": "literal"
         }
@@ -610,7 +610,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            33
+            34
           ],
           "evidence": "literal"
         }
@@ -731,7 +731,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            35
+            36
           ],
           "evidence": "literal"
         }
@@ -846,7 +846,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            34
+            35
           ],
           "evidence": "literal"
         }
@@ -3355,7 +3355,7 @@
         {
           "source": "aujourdhui.html",
           "lines": [
-            27
+            28
           ],
           "evidence": "literal"
         },
@@ -3455,7 +3455,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            29
+            30
           ],
           "evidence": "literal"
         },
@@ -3673,7 +3673,7 @@
         {
           "source": "aujourdhui.html",
           "lines": [
-            27
+            28
           ],
           "evidence": "literal"
         },
@@ -3717,7 +3717,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            29
+            30
           ],
           "evidence": "literal"
         }
@@ -11210,7 +11210,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            32
+            33
           ],
           "evidence": "literal"
         }
@@ -11312,7 +11312,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            33
+            34
           ],
           "evidence": "literal"
         }
@@ -11421,7 +11421,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            35
+            36
           ],
           "evidence": "literal"
         }
@@ -11524,7 +11524,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            34
+            35
           ],
           "evidence": "literal"
         }
@@ -12325,7 +12325,7 @@
         {
           "source": "aujourdhui.html",
           "lines": [
-            27
+            28
           ],
           "evidence": "literal"
         },
@@ -12395,7 +12395,7 @@
         {
           "source": "onboarding.html",
           "lines": [
-            29
+            30
           ],
           "evidence": "literal"
         },
@@ -12786,8 +12786,8 @@
       ],
       "source": "js/app/icons.js",
       "description": "Shared vector icon catalogue",
-      "bytes": 9592,
-      "version": "sha256:182431654a300b5fdc6a32ed76ce73cc04810109b9b22f73b597b429e263de41",
+      "bytes": 9837,
+      "version": "sha256:3c75dfa1a59699b0cd80c28643ec65f829c2e6008f0f3352e62f9fed9c6a9d9a",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12816,8 +12816,8 @@
       ],
       "source": "mobile/src/core/icons.generated.ts",
       "description": "Native vector icon catalogue",
-      "bytes": 8535,
-      "version": "sha256:9511b17ed11e21ac68e9ade27b6e32569097ed0b011ef80430e73148de82e24d",
+      "bytes": 97198,
+      "version": "sha256:21162436c0f9f93c41c40f42628efa285b476937540ac2e703ebf21c272c2c11",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12833,8 +12833,8 @@
       ],
       "source": "js/core/sports.js",
       "description": "Sport icon and family mapping",
-      "bytes": 10599,
-      "version": "sha256:c1b92d5f1e270917425ba13a79d1a460b958ced5547e1e014c05169bffb4f37f",
+      "bytes": 14103,
+      "version": "sha256:80e3b094d370cc7b9a5b8309e44943030c2203ed91f4b616f5ee3d453bd37d1b",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -13105,8 +13105,8 @@
       ],
       "source": "js/app/records.js",
       "description": "Statistics and record source",
-      "bytes": 18367,
-      "version": "sha256:b6a09631c23e3e9266f873d9e0a62f96bbe68bbeae7edbfdd3314af0a53d7386",
+      "bytes": 18361,
+      "version": "sha256:d37f7a7d4d6654e0b2808081fdb94bdc2a43ca0deeab8623413f67aa8504ed8f",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -13339,6 +13339,46 @@
       "strokeWidth": 1.65,
       "source": "js/app/icons.js",
       "sha256": "512bee92a08fd4e344846b00fd0eaf3899f49f03ed8d61c997f819b68d171eff",
+      "capture": null
+    },
+    {
+      "name": "family-endurance",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "39259971102ae0aedff008abbc9a6e4e0241be1d6a740400f289f6a7bec68191",
+      "capture": null
+    },
+    {
+      "name": "family-force",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a59a05cd50937bfc550e6ed1018edc348351d057e33bc1819955fe364b5005f0",
+      "capture": null
+    },
+    {
+      "name": "family-jeu",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "44328fb9f57968154a5d6d11ff16099ec84b5c079c6f3d97fda8cdb10fa6340b",
+      "capture": null
+    },
+    {
+      "name": "family-mobilite",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "bc0b95264b99e489e4723813b613efc0711be62a8c2f41161a8baf473a36166f",
+      "capture": null
+    },
+    {
+      "name": "family-technique",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "03453989eb741248acf727a6979af6437c1dfdfcc4f7c3edeb5c3ffa1f099616",
       "capture": null
     },
     {
@@ -13662,6 +13702,2062 @@
       "capture": null
     },
     {
+      "name": "sport-abs-session",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "9be8742c3e29d4fbeba9886a3317255240badcbe186a83bae98ed848c715f8e2",
+      "capture": null
+    },
+    {
+      "name": "sport-acrobatic-gymnastics",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "50b7e1299c07e1c29e392f700eca15b91f185205e5683c6952cc4965a802a508",
+      "capture": null
+    },
+    {
+      "name": "sport-adventure-racing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "aa02b248540ea284d94645a547994ac1255263cd2f50d9b232315a73f4bf9d99",
+      "capture": null
+    },
+    {
+      "name": "sport-aerobic-gymnastics",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "28dd1d400abff16afa06d50b1831e7f5da8373e2914713e51d98096d8431efc7",
+      "capture": null
+    },
+    {
+      "name": "sport-aikido",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "df8d387214c73743561c0166fb19aac058936257ab3a1a23e3a5f9e075caa01a",
+      "capture": null
+    },
+    {
+      "name": "sport-alpine-skiing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6c5dfb7074896dab117a7f93fe9776fc553dfcc24443adf60df5055a3c15c35a",
+      "capture": null
+    },
+    {
+      "name": "sport-alpinism",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a23d28d2bc2f8fbac344df5a78a8ff2b2aaee7213a7c69b8f4b6f3629244cde0",
+      "capture": null
+    },
+    {
+      "name": "sport-american-football",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "8b2984956e7122b0bbaac8f25203d8d251eded19b7e832e6285541ab0243b5dc",
+      "capture": null
+    },
+    {
+      "name": "sport-aquagym",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ed5eb9b9715c196ed3f9d454079d38026f6a0637802dd1e9f34c5de7d8b7d4fc",
+      "capture": null
+    },
+    {
+      "name": "sport-aquathlon",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "70e8c0b852988eac88cbfa1afbc0912facfe2bf3e518980b6c34d5ae0fa53345",
+      "capture": null
+    },
+    {
+      "name": "sport-archery",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a736f0a56890629d73ab2caa565fbda4a4de4ce22f39e63320e722d9040302a3",
+      "capture": null
+    },
+    {
+      "name": "sport-arm-wrestling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "05021e582bfc3eefb4948fc2c0de8567bd4af9de72e8e558479ae41056e08842",
+      "capture": null
+    },
+    {
+      "name": "sport-arnis-eskrima",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "4369b54ee8def03f7b25afb1c048dd66482b2ddf3af88f3c9249b829adf220da",
+      "capture": null
+    },
+    {
+      "name": "sport-artistic-cycling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "cd8e19238d5dc8eb11e31434bf60e7bd9d96fe3369995eab493472d98e970366",
+      "capture": null
+    },
+    {
+      "name": "sport-artistic-gymnastics",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "cca6be310c817c6784fc746f510b46f8b1f4604d139181d6b8ff54941e6181bd",
+      "capture": null
+    },
+    {
+      "name": "sport-artistic-swimming",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "69af560c86ce8785a9a5a2cfe18ccb76e403c996ff0c79fec187af7ae9a25d8e",
+      "capture": null
+    },
+    {
+      "name": "sport-athletics",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "efcf9293a0cbfd012802f598af50521486b9a89599542a248dcbaffbd43a8a4d",
+      "capture": null
+    },
+    {
+      "name": "sport-australian-rules-football",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "432b36cafc9cfdbdfee8a858f7745a0d83e56b235c21a053e08fa7be2df352aa",
+      "capture": null
+    },
+    {
+      "name": "sport-badminton",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "391db17cb1b240af46eb8245608466e3b97cfe3d7a40539487f05fe1a1134718",
+      "capture": null
+    },
+    {
+      "name": "sport-ballet",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ec525b992f649afc45c2e34779c086ea565807eaea3ebaecfa8a228a40f49097",
+      "capture": null
+    },
+    {
+      "name": "sport-bandy",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "50357426b93f9d2380e537f36a4a6664de75a99f1a5c320f0d098736d45c22d0",
+      "capture": null
+    },
+    {
+      "name": "sport-baseball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "71f2723c5d5f72f616c8ae06f8e5a6684e874b9b631e2843f00c85902708cfeb",
+      "capture": null
+    },
+    {
+      "name": "sport-basketball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "df30363168881c3220a6dd5f92b226017bf52b4d18e5f20f6f41298e3172c246",
+      "capture": null
+    },
+    {
+      "name": "sport-basketball-3x3",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "5675a314bb352d3ca5c813cdc189a5f5b05c24a6f4b3cf06bf7928179b470935",
+      "capture": null
+    },
+    {
+      "name": "sport-beach-handball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "99650da9c226c2df5a0ddaea5376199b94f54272e22d3e4616aba5bb6325d56a",
+      "capture": null
+    },
+    {
+      "name": "sport-beach-soccer",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6bb4d99f5bf6e65c5ed17de3bf31a8800d13df22511a49a762e7aa1175a7245c",
+      "capture": null
+    },
+    {
+      "name": "sport-beach-tennis",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "2125cf9b7e4d9ee763d030988bd19f62c6ea39edc71be6200c5e29ccb36f51c9",
+      "capture": null
+    },
+    {
+      "name": "sport-beach-volleyball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ead0dd4318ce2ea4781f69c628e3c54d067b396c8c42888470f340bacd3ff645",
+      "capture": null
+    },
+    {
+      "name": "sport-biathlon",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "1520864e02b13f2433f48f48e0b1865ec76e29606144db5d29e60f13f0e88332",
+      "capture": null
+    },
+    {
+      "name": "sport-billiards-pool",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "50159140a12fb3d318e32294821c296a2f13d437dc20f2a1a12ee917de385221",
+      "capture": null
+    },
+    {
+      "name": "sport-bjj",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "7b00915438ee203228490afb5413c54516671d613c0d6daa73be046137bd4e9e",
+      "capture": null
+    },
+    {
+      "name": "sport-blind-football",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "439b3f2b57f4783b27edeb679380a9042d34e28ae430a6bc5f07f770357d0f7d",
+      "capture": null
+    },
+    {
+      "name": "sport-bmx",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "1b6fc0014b626b3fa28ba43f71d31c531d2b63e3662abc503f841c14ace727e7",
+      "capture": null
+    },
+    {
+      "name": "sport-bmx-freestyle",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "7e2fe45694b7324d9b753c49d7733d24729e26153d619b563537f9091710b7a4",
+      "capture": null
+    },
+    {
+      "name": "sport-bmx-racing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "dee4f1af502a5fd2dcf975c85c25764156a6d4290e2c9969b1dafb175756407f",
+      "capture": null
+    },
+    {
+      "name": "sport-bobsleigh",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "69641707d572099eac52198e8481b2b3c58a40a9f599533e86dd0f6edd1b972f",
+      "capture": null
+    },
+    {
+      "name": "sport-bocce",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "54ca2f6911e1e6fe7d33fcc8bcac7e30d7d41afa2fba77074f325b7d72d84187",
+      "capture": null
+    },
+    {
+      "name": "sport-boccia",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "413d954e4068f129eb7176e33ba4506e9eb3bea851c4f52f0143be64d1e69399",
+      "capture": null
+    },
+    {
+      "name": "sport-bodyboarding",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "5c081093af9524bf9b507fe4c82c2a25450471be62ab317a3d3217952ba90f00",
+      "capture": null
+    },
+    {
+      "name": "sport-bodyweight",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "534a879fc87f91a323495f74aaf3bcbfdfb484abba2a8e62be5e10e66d5e65b6",
+      "capture": null
+    },
+    {
+      "name": "sport-bouldering",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "7e2913a1e41bba4e4f4e86df48f9451c537515854c4cf20b1db993a20b5e76c2",
+      "capture": null
+    },
+    {
+      "name": "sport-bowling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "0005f1c2d847e27312170ef41b52986f11bd11d3fdcd30cc50a484e16b3aa479",
+      "capture": null
+    },
+    {
+      "name": "sport-boxing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a8f673f7e2c565745d315ab2d6bac2ee0aba2ea9905111fd74eb1191e37fd7ee",
+      "capture": null
+    },
+    {
+      "name": "sport-breakdance",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "391754b783d1cbfb57d16a71813c63999d0151811d9fb5bb981e7d49abcfe009",
+      "capture": null
+    },
+    {
+      "name": "sport-canoe-polo",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "88094bf4f67dfd4b6724e31aad18de2ad93eb0f583848b99a96120dd4ac8b82a",
+      "capture": null
+    },
+    {
+      "name": "sport-canoe-slalom",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d652a8075d5180fcb8c7126d44442558d482d0ddf54889814036f636cbd9f8fa",
+      "capture": null
+    },
+    {
+      "name": "sport-canoe-sprint",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "03037cdee04229aabddf84f3236789c162961e4607373522a41b57a9a5497415",
+      "capture": null
+    },
+    {
+      "name": "sport-canyoning",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "f9246a5dbc2214fa20972b75f3f11f4351357074ea05c7bb7eb1eac8873c32b1",
+      "capture": null
+    },
+    {
+      "name": "sport-capoeira",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "72b5e2b65ad0f88d1d2ddcf97c1df824c3d5b97ac15313d9ec6101ffc3cd4a41",
+      "capture": null
+    },
+    {
+      "name": "sport-cheerleading",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a2e4ad4b81f442970f045ccf6dddf6719439f8bd37d881084dc04fb58dc6e2e2",
+      "capture": null
+    },
+    {
+      "name": "sport-circus",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "5b8a9913a3d3050cef53756f4f2e9d13f53b37ce58a12cfc8f541c64a25f32b0",
+      "capture": null
+    },
+    {
+      "name": "sport-climbing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "f7e56fd6904549f2af418289bdfeac6fb65ddc9d5119b951896e08519464ce4b",
+      "capture": null
+    },
+    {
+      "name": "sport-climbing-route",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d167d5bc059c2741fc51e1632bb688396f1c6c0bd0bf24d1d37a10244e0dea3a",
+      "capture": null
+    },
+    {
+      "name": "sport-coastal-rowing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d8d3c1da5466260508fbccbb038b52e0d1e30b630206f4ac51a40c038182ad1a",
+      "capture": null
+    },
+    {
+      "name": "sport-cricket",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "35f07ff448c495f1d04d9bcaa70387877ae4f3719d8e03af8d36ebf0e3bd99d0",
+      "capture": null
+    },
+    {
+      "name": "sport-croquet",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "07f2b86ad8e4e984a406fa2998128d6397a95e93cb0bdad92dbf49bfc1d9ec27",
+      "capture": null
+    },
+    {
+      "name": "sport-cross-country-skiing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6fab640982b90fadfad6b1d38324ee4ceb20f6e2090f0e1515545641b6e57923",
+      "capture": null
+    },
+    {
+      "name": "sport-crossfit",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a134837d93c29b7310fee10df8e9d44d7cb39f65120014deaf590071d23ef6b9",
+      "capture": null
+    },
+    {
+      "name": "sport-curling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "953b80e9c3ac6b9e0c6e7d1e0f64deacefae90b0c60e2e75efb2f8f3d39ec0cc",
+      "capture": null
+    },
+    {
+      "name": "sport-cycle-ball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "4c7d67214b3dc8c97e09093936d2e80593200acd031ecd6876b071b1cfdce407",
+      "capture": null
+    },
+    {
+      "name": "sport-cycle-polo",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ba3d4476396fc536162ebb934cc624aa2826329a36386a17a9be809ec6f6955f",
+      "capture": null
+    },
+    {
+      "name": "sport-cycling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "57a5b9ed88705fe3326b172fa24a687e6eb255f4c6db97edec878092d93a5171",
+      "capture": null
+    },
+    {
+      "name": "sport-cycling-indoor",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "aef40db70c923ddf061535f5d68161deb0dcdd3aae165783b98a0f86cf3b39ca",
+      "capture": null
+    },
+    {
+      "name": "sport-cycling-road",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "17999eef75a924a2ad8cf96d52cfe2681758f3d06dad1531a55a626b276e479e",
+      "capture": null
+    },
+    {
+      "name": "sport-cycling-track",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d324bfc42cea43f8be35b51b07da8d3d4e2db65f1d6e697ca385d9b50d5ccc5b",
+      "capture": null
+    },
+    {
+      "name": "sport-cyclocross",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "8b491297b8fa7732e199cba126ff98edcf536505fb90d4553af066fb2ecff28a",
+      "capture": null
+    },
+    {
+      "name": "sport-dance",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a134c63d6d116ee5b1199d7bb9d40f1fc9b5f1f13314d8d52d908f5fccc70ae4",
+      "capture": null
+    },
+    {
+      "name": "sport-darts",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "cd729bc31e8f1cf354e67fede2c95b37b2900b04977e6c43dba2db0845ec38cc",
+      "capture": null
+    },
+    {
+      "name": "sport-dips",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "e01d2548ee9fe8cfccea85c0ba274fee0a340113014e77149a5467bdcb0ba712",
+      "capture": null
+    },
+    {
+      "name": "sport-disc-golf",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c9c72db8b6222b29c262ed0a3a491fc71cbed5732d68a463eb756b9220e37d4b",
+      "capture": null
+    },
+    {
+      "name": "sport-diving",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ac6fa842df1a8a8dbb709afde4aa8bebfdddf0b6fd73301b1c2d568ba01d2ae5",
+      "capture": null
+    },
+    {
+      "name": "sport-dodgeball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "126c50c86d2a0bc45052a52b2542f3e7af51777cf1751bbffca2816090855392",
+      "capture": null
+    },
+    {
+      "name": "sport-dragon-boat",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "55aaeb4c1b6207d82d158927c9cf9fa1655b7839f0675673d30710a69d5ecb1f",
+      "capture": null
+    },
+    {
+      "name": "sport-dressage",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "4e16b91a9816cf3e387b586a114fcb20bd7887bd623c577175f14cdde7f581b2",
+      "capture": null
+    },
+    {
+      "name": "sport-duathlon",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d10ea24e76dd3dd4a82817fcd516f4c016385e4fcf2aca9c7225a2ddf436a30c",
+      "capture": null
+    },
+    {
+      "name": "sport-elliptical",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c2d2c44ea4fc7189ee642b08c4432ed2fb84915a762f0c5da7bb078ec529c65f",
+      "capture": null
+    },
+    {
+      "name": "sport-equestrian",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "5353f212f44cc9e39c0bd44224328b0065805cd5c941ca9209f3cebab22559c7",
+      "capture": null
+    },
+    {
+      "name": "sport-eventing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "13efc1bef36ca00bf47f25d3a36cf874355b27990cf0cd686fa4039dc7205918",
+      "capture": null
+    },
+    {
+      "name": "sport-farmers-walk",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "3c35912ea2c0d5c1b7603a036dd81342bf8947d1750dc8bbe900019c8ed1c155",
+      "capture": null
+    },
+    {
+      "name": "sport-fell-running",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c3df996fc03202ec4214b0840135d0226a289960c32269b14c6699847921a829",
+      "capture": null
+    },
+    {
+      "name": "sport-fencing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "7490eaf0860be6108613380d12d744fbfc6b7fcf4b76ff6ba59b364e5406ced6",
+      "capture": null
+    },
+    {
+      "name": "sport-field-hockey",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "398925c16a8ac491dd72dd749cb39f8af1b8dce7a9b4f7392f9d91d6aa35497a",
+      "capture": null
+    },
+    {
+      "name": "sport-figure-skating",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "446999a21a6032a8881d45866ac652ad484576e0dfe2162cc6fb29536a022a46",
+      "capture": null
+    },
+    {
+      "name": "sport-finswimming",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "096be7ab7aa14d6fc6968d0e6439991c63be014f872dc2a60dcad56266b5b780",
+      "capture": null
+    },
+    {
+      "name": "sport-fitness-class",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ec3b3b180d2882c68f41350f68782c608b00805805afca02ea70f445b8a40073",
+      "capture": null
+    },
+    {
+      "name": "sport-flag-football",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "9e80827c84ad2c949be19cb0df6f90d5308a191b04e22dcd4c3c541c1659dda1",
+      "capture": null
+    },
+    {
+      "name": "sport-floorball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "70d7893bced9302b279201078d35d53d84a79a63798810620b14e6029cf3699b",
+      "capture": null
+    },
+    {
+      "name": "sport-football",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "2cea6fab4e5903960eb3f029746c291a6697bfa7c48bb6dda4a1cd0aa57b7d18",
+      "capture": null
+    },
+    {
+      "name": "sport-freediving",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a90f072559535a4fc8ec8d213528190e121dbfa176d3277c85c9fad442eee58a",
+      "capture": null
+    },
+    {
+      "name": "sport-freestyle-skiing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "0c2423948897a1e4f7870717b14e915453066273b6832d93210402683aec6d08",
+      "capture": null
+    },
+    {
+      "name": "sport-futnet",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d777138a1f76a1b1fc69323fd830a4f7fc489876d88ecf0cb9e8d66255fe9c84",
+      "capture": null
+    },
+    {
+      "name": "sport-futsal",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "5065dbb187e835f30a4111a2e72fa58362e1692f66f92c123239a8fe84524712",
+      "capture": null
+    },
+    {
+      "name": "sport-gaelic-football",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "cdaeaa160e137ac2bf4e0ae77f611840c556af32aa071040f4b8856bf082d3f3",
+      "capture": null
+    },
+    {
+      "name": "sport-goalball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c5e12a19d1402c78442e1188590b21d53fb333af7c6f60788c47ee34bd6ca005",
+      "capture": null
+    },
+    {
+      "name": "sport-golf",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "480bf6354adfc9189a30188191926d5dfc778495583c9fc1fe4454ab69ad36d3",
+      "capture": null
+    },
+    {
+      "name": "sport-grappling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c1c400ccbeadb93bd545f078b796b27270ba3443085048c40378b0340ab35e92",
+      "capture": null
+    },
+    {
+      "name": "sport-gravel",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "5b736b6a2722383c2e7ab25550ad9e318e91c468d3c48a5e0bedb40b5b4c7498",
+      "capture": null
+    },
+    {
+      "name": "sport-grip-sport",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "0e9441daf129891813a17bebf260f1eb19246b01773fecb9d4022b16f550e33b",
+      "capture": null
+    },
+    {
+      "name": "sport-gymnastics",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "87d1ed4e9e5153b2c10cbda48fc7ba9bf9574416fc8550bafd1edc4d64a46d5c",
+      "capture": null
+    },
+    {
+      "name": "sport-handball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "05b4363467e9e9742bf7a6717f2232b2d347c7c1dfa9a4d11970527e24205044",
+      "capture": null
+    },
+    {
+      "name": "sport-handbike",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d536480e310f75a97577629268c7e410f6faf9685deb8b786fcec0cac297c19b",
+      "capture": null
+    },
+    {
+      "name": "sport-hapkido",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "2c9a970f8f7dce2d143252c9f836a15d709fe520ab74841d917f99a2e713acc3",
+      "capture": null
+    },
+    {
+      "name": "sport-highland-games",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "86f889658059f4aae4bc911ade8770edddffc919bb443a261ec66aab62e205d1",
+      "capture": null
+    },
+    {
+      "name": "sport-hiit",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "b8d1e1700ebad5cd64eaa8abc2e3718d2b2f5399fceb3d23cb4b59404dadaa17",
+      "capture": null
+    },
+    {
+      "name": "sport-hiking",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "526db2f3f8d225f6acd60cb2720cfda402dc7ad862584863ee22da5e1bcd95ca",
+      "capture": null
+    },
+    {
+      "name": "sport-hiphop",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c3b697361c4780ab25a239392bd6fb5868adce1109cb280afe7c791686c5d434",
+      "capture": null
+    },
+    {
+      "name": "sport-horse-racing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "75fd7b6a7e2b900e2e07e1ff6fb13ff49be7a5444fb2e0767b8a7100c1e48d7f",
+      "capture": null
+    },
+    {
+      "name": "sport-hurdles",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "e058b8da564de6803326a63f6b14929ca5e7e6f20f191fa2b191a4273a723132",
+      "capture": null
+    },
+    {
+      "name": "sport-hurling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "96edcc2080486a76d341476f59df3b5603aac794c6ebd0e7cc6f5ece4ad00f01",
+      "capture": null
+    },
+    {
+      "name": "sport-hyrox",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "4f806e12e369afcc7dd8cccf8dfbfd241a474cbf4df615283524610ad84ee0ae",
+      "capture": null
+    },
+    {
+      "name": "sport-ice-climbing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "7c3b64a07060f8ccba7e552856c4cc4e6c9a0a8181803947abe49fe7422f3b23",
+      "capture": null
+    },
+    {
+      "name": "sport-ice-hockey",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "7e2172658c3fc925c7d2403748f8cc562d6725ebf5bc3342391b38391a44d61e",
+      "capture": null
+    },
+    {
+      "name": "sport-ice-skating",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "50c11c1bedf425892f57815bc5c6df145f877559af5cb5d9fbd0715f6eb571da",
+      "capture": null
+    },
+    {
+      "name": "sport-inline-hockey",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "7789ffda4d2401288584de3d55889bce8d35826a1544dbe05595fb3f58e92b6c",
+      "capture": null
+    },
+    {
+      "name": "sport-inline-speed-skating",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "bda79619af1c9772202a881d48091414268f09d9b17c36c2a865f40c8b734289",
+      "capture": null
+    },
+    {
+      "name": "sport-judo",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "0ca750408ac72b13384ffc39205355b156932e27ffe4072776ca44b32f767605",
+      "capture": null
+    },
+    {
+      "name": "sport-kabaddi",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ba2b63eb589232a64900dd1447a432ba5f2c59e07e6e3c3c9b6a3856e7afd97e",
+      "capture": null
+    },
+    {
+      "name": "sport-karate",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c7ed9ef2753e6844a49857a23864f82f25c3e4af9fbeeba8c744d1f91be9157b",
+      "capture": null
+    },
+    {
+      "name": "sport-karting",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "f2b5567a14213fa5604d751aa23d2e0f32e7936bbcb0a626a93b06926ce90c51",
+      "capture": null
+    },
+    {
+      "name": "sport-kayak",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "26bd495aefde68b7ecd69de111a7fe5a36b659527141ba51d143a95b7ad4d6f5",
+      "capture": null
+    },
+    {
+      "name": "sport-kendo",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "4375d2fe973d6e73c2b8f195be4deb1f5ae0c42c82cfe70ca028bc23639bbb4a",
+      "capture": null
+    },
+    {
+      "name": "sport-kettlebell",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "36ed732f994188615ae29bca26f18fcd2b59d67485bebed1a6da2cfc67810a90",
+      "capture": null
+    },
+    {
+      "name": "sport-kho-kho",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "55bfce8f37cdac3df3580c738aee25c43369c81e6f079f62590459b08d41a6c2",
+      "capture": null
+    },
+    {
+      "name": "sport-kickboxing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "8c0eadd431340df64da999b887bba5ea8e3db3ae79be603781b4e70a0a97cb41",
+      "capture": null
+    },
+    {
+      "name": "sport-kitesurf",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "9594e81f2c66ab1d38f75ddd1b645360d84ad10489753df3d6745dcb36d24251",
+      "capture": null
+    },
+    {
+      "name": "sport-korfball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "1e5bb6b570355aa2a1529ce9cb8f688e5536102d02dbbadde7a5c4c75c569810",
+      "capture": null
+    },
+    {
+      "name": "sport-krav-maga",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "9815dc3868a70e9ae7a05062a9cd4db1a519005f3c1b1211f5de78904e128433",
+      "capture": null
+    },
+    {
+      "name": "sport-kung-fu",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "f2dac64c9e5d66a649886d21c3ea9d3f6a5502283e94252b2023e9edc14331eb",
+      "capture": null
+    },
+    {
+      "name": "sport-lacrosse",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "2bee9bef99d46c198b372676aa4a5939c3dc47cb42865b6cb6d3ee91a92bdb99",
+      "capture": null
+    },
+    {
+      "name": "sport-lifesaving-sport",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "67f07b440e2df7e47041bae87c2f1d15e63978fb1e0314987adeccd7ec979896",
+      "capture": null
+    },
+    {
+      "name": "sport-luge",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "cac5f0cfc75dae8a7f6164435afd97e70a5f58633a4e50018f1bc30114ed49b4",
+      "capture": null
+    },
+    {
+      "name": "sport-mma",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c72420ff23dab318ea0e2c399c2fee2c3ec0e925e6505c2d2eefc911b9cb1806",
+      "capture": null
+    },
+    {
+      "name": "sport-modern-pentathlon",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a0981fc9641e6186d48c6dae7ed7c30b408284c40baa94dbac50e9789473518f",
+      "capture": null
+    },
+    {
+      "name": "sport-motocross",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a56eb20b786960086e1f068301836fa09569c6cc6acef6897fb74025bd7502fb",
+      "capture": null
+    },
+    {
+      "name": "sport-mountain-bike",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6f6c5fce54a81e49448a4e498e0fd8ee479302cfa5bf08c2ffe08c4614bdf64c",
+      "capture": null
+    },
+    {
+      "name": "sport-muscu-builder",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a6530a32f44fb8c66146be4834987a13cff4638242d5d90cc95cba2efe778db8",
+      "capture": null
+    },
+    {
+      "name": "sport-muscu-gym",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6b770789162c25a94625f6636a4ab877eeda96f96cd03575692559c91f540112",
+      "capture": null
+    },
+    {
+      "name": "sport-muscu-home",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "b070f5268e5a13891114da907970151973c7b63b8e6ea6a8d8c964e8a85ba818",
+      "capture": null
+    },
+    {
+      "name": "sport-netball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "8142f723455a215067ab3b8bc314f3730f056d66d52144c4d4bd98f685b936eb",
+      "capture": null
+    },
+    {
+      "name": "sport-nordic-combined",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "299eef3c658449d29d4437e39bfe95deef721232479b626ebd1e281db7bc4b83",
+      "capture": null
+    },
+    {
+      "name": "sport-nordic-walk",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a940d401e7d5578fed55682eed703f1c1734ce338cce5b2d07f8d7a0e94f43d0",
+      "capture": null
+    },
+    {
+      "name": "sport-obstacle-course",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "405bfdcbfee074e3c3519c0f0a69738b0d2107271adb3459bd82d918da524ca5",
+      "capture": null
+    },
+    {
+      "name": "sport-open-water-swimming",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "7c120c0b414edce12dfd62ecac606bf1558e0b13127b30fa3375bd16970dd71c",
+      "capture": null
+    },
+    {
+      "name": "sport-orienteering",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "1c01200f72617d4d008ebdb2b4b01d761e674f1e03c5618b4a0d3ab8585b0fe3",
+      "capture": null
+    },
+    {
+      "name": "sport-outrigger-canoe",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "f09e5a700eaa45ebf8586255cc325ffe174a7b2771e3a9bc7aceff56126e7e04",
+      "capture": null
+    },
+    {
+      "name": "sport-paddle",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "f1c2f8dd7580e8de4d5dc892438f8e27ed497b4ae9c2aae528e683d0e4876c1d",
+      "capture": null
+    },
+    {
+      "name": "sport-padel",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "80f8920477b048e6a8864198c0a3059012455f5dea50c09d997905a218457513",
+      "capture": null
+    },
+    {
+      "name": "sport-para-athletics",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6026f4a03d0219583379b561b0c90d0ff62e7207995b310afa62710f68ca5a80",
+      "capture": null
+    },
+    {
+      "name": "sport-para-cycling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "1c81ccf8ce991e6953be70a4647ced442a50896ef4cf78a7b6ac1bbae6458b37",
+      "capture": null
+    },
+    {
+      "name": "sport-para-powerlifting",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "544409ed34af2a08acb1f41457bcaba7e9092a3bc9c90305796b4515f4927416",
+      "capture": null
+    },
+    {
+      "name": "sport-para-swimming",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "779b7afed0c9f650bfc148402e5e2920012e482e8977d161f63af12be42d2598",
+      "capture": null
+    },
+    {
+      "name": "sport-paragliding",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "2309e3df0eaaaf318b877a3e6bb1d5d2ec97a8746e85231ab7a76318220e621b",
+      "capture": null
+    },
+    {
+      "name": "sport-parkour",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "b72f126ddbb99c39d32e3429dfe046068962563e60c18b7ec68e96f424d72f6b",
+      "capture": null
+    },
+    {
+      "name": "sport-petanque",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "b111496d8ce2b995ffa29fe9aba799fb9d76225c693612d6f877ee2c607e095b",
+      "capture": null
+    },
+    {
+      "name": "sport-pickleball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "fe1a35f62839c51c8ef4343012a587a88716ab7a3c260a21c598328f36c6beec",
+      "capture": null
+    },
+    {
+      "name": "sport-pilates",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ddcee2c2a4b43e706776259d99b70a65333bf48e54dca448a02f9f7b7c4a8d72",
+      "capture": null
+    },
+    {
+      "name": "sport-plank",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "171a3475eee2c518598ffcaa0172e518810cc7273db11202d55573a68f85e8cc",
+      "capture": null
+    },
+    {
+      "name": "sport-platform-tennis",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d599d7abe9223c30499d0c157b1c58c0fb51d6d895edca4f05b22b0ed23f2b12",
+      "capture": null
+    },
+    {
+      "name": "sport-pole-dance",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "24d4a49263e7471c46becdeda5ef82de9caec2b9d912a22b32d499f0ec8d7eec",
+      "capture": null
+    },
+    {
+      "name": "sport-polo",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "72cd1ea21ffc2d43580b7b521f13f0dd02ac2ec7a40041ff48093f995ef1f13b",
+      "capture": null
+    },
+    {
+      "name": "sport-pompes",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6022bfd68990ad8626749c6ed9da1a0c03731ffcfd98689944056ff0bfee01df",
+      "capture": null
+    },
+    {
+      "name": "sport-powerlifting",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "847817ecf48808a2ffc56faca179816216b5d737278562f4b4c2a60a6b1699a6",
+      "capture": null
+    },
+    {
+      "name": "sport-qigong",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ca1ab35e3c648b62db75526c46edd58c0308ab8dd4ba2227b251654017efafe9",
+      "capture": null
+    },
+    {
+      "name": "sport-race-walking",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a2a2fcd2ea870b66749236ec77b4ea6047eedf6b77f1b33d291ed4674efeee3c",
+      "capture": null
+    },
+    {
+      "name": "sport-racketlon",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "74ead7b321d9cafe9776649b87809c029b07995430350ec76bf61ac5a175a428",
+      "capture": null
+    },
+    {
+      "name": "sport-racquetball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "aa8d7ec4468b3d85fb7e340a4f2f684dabce19d9414dfb77b0d57af235628e25",
+      "capture": null
+    },
+    {
+      "name": "sport-rafting",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c327505b5970af005c192ac561ae0e2fddff4de4bc53068e421b7092c3c97205",
+      "capture": null
+    },
+    {
+      "name": "sport-real-tennis",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a8c021cbe7f3f2a24fbd8d890112f99aed9f793891a3fb117eb425cfaa8acb75",
+      "capture": null
+    },
+    {
+      "name": "sport-rhythmic-gymnastics",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "79d7dfb634da125c82e151e6e8595fd6a6c3bbe470381b74a98d86a394850f7f",
+      "capture": null
+    },
+    {
+      "name": "sport-ringette",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "04ce8cad7b728218aad00be1a912c7ca3ab9f2fcb286a9e4dffa0aceb0f2a353",
+      "capture": null
+    },
+    {
+      "name": "sport-rogaining",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "85ade5536456f005742580dfe10a069def7ca621fb028c85c8797c4990578527",
+      "capture": null
+    },
+    {
+      "name": "sport-roller",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "168f42050d7e1aefeb003adb1c07a7d208646f47fccb7a9979bb3b87093bfbba",
+      "capture": null
+    },
+    {
+      "name": "sport-roller-derby",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6992a1ee0a8be20ed224b3869dce16fc806f2e6e7ecc895e32f66db79749624d",
+      "capture": null
+    },
+    {
+      "name": "sport-roller-ski",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ec8c7b2e9aebdfa080109e8042b8ab18e7fc9fcace1ab2529ce0c455fb79eec6",
+      "capture": null
+    },
+    {
+      "name": "sport-rope-jump",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "02d38439ab5193b0730684119e6750354187feb65685473e3873890c44ab34d7",
+      "capture": null
+    },
+    {
+      "name": "sport-rowing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "0095684c4c80b0d50417cd3b982e66b08c503c9949c22560009682916ac77d88",
+      "capture": null
+    },
+    {
+      "name": "sport-rowing-machine",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "1e83942a255b5d6056cc1d97fa24e7b7b00b8eca8ebd16e1ea0696bdf67f1851",
+      "capture": null
+    },
+    {
+      "name": "sport-rucking",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "018abffec301ec938ced6aa34978108a03749395134c0772fa5869204052c5f6",
+      "capture": null
+    },
+    {
+      "name": "sport-rugby",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d5c320690d837839f5323ddf713d0c64800ca25ee76bf087a9d275c56de2aa22",
+      "capture": null
+    },
+    {
+      "name": "sport-rugby-sevens",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6894bdd66f27f4eaa6528d3946f9ed7596f78b5cf4de01c9796722f440815ffa",
+      "capture": null
+    },
+    {
+      "name": "sport-running",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a728eff5302f9fca4b923e2c90da97270c5469a2269b6508bf0fc0e169bfc0c4",
+      "capture": null
+    },
+    {
+      "name": "sport-sailing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ece062ef6b44e506c1fbf22c8c8810ee352321240a3fe902a5ab7001c8ba68fa",
+      "capture": null
+    },
+    {
+      "name": "sport-salsa",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c43c8b5ab0fe737dd14cb27d957c147b8898d61af3157729ff95b031ae00ba4f",
+      "capture": null
+    },
+    {
+      "name": "sport-sambo",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "515433ec0e3aacdc3f5d70d1a7ee033595b23c4dda5fe9a543ddda1a75025653",
+      "capture": null
+    },
+    {
+      "name": "sport-sandbag",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ba07e53db493e682658115deab44912931e4f3af3c3f5e2a546424db9a915f85",
+      "capture": null
+    },
+    {
+      "name": "sport-savate",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "799fd8c410419d75c004a39b9a1df79397678b5e13a8f9dbfc11d2be7d04d930",
+      "capture": null
+    },
+    {
+      "name": "sport-sepak-takraw",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "3dbc899ac44d2241240c6d4fa9d60ea171d6fc6b1e36d0457701ef6f27890916",
+      "capture": null
+    },
+    {
+      "name": "sport-shooting",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ff1fb7adec0214bfb63f89bb946760f4ec54ccc3c9c5b27b06a8ca4cf62f191d",
+      "capture": null
+    },
+    {
+      "name": "sport-short-track-speed-skating",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "df778a05b8ca1c07ede204ad0fe41dbdb0cde456730d9a04a097c8bff3f0aa1c",
+      "capture": null
+    },
+    {
+      "name": "sport-show-jumping",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6016a334f369d393186298d9633b90fe497eb27c08b80d716123801f8ee156e5",
+      "capture": null
+    },
+    {
+      "name": "sport-sitting-volleyball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "313ac4c5df4cec12c14ba8e2351db7256f4eb81b4d22c7aec824c0465cf6ccf4",
+      "capture": null
+    },
+    {
+      "name": "sport-skateboarding",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "1e89002e34241b1f8efde14643044d484bcd0f96abb4c6f01d91810f9b24131f",
+      "capture": null
+    },
+    {
+      "name": "sport-skeleton",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "48839ba4593949ae5d0988f06fe63ba5ca0d0f150146a38b4e88626a0a6191f1",
+      "capture": null
+    },
+    {
+      "name": "sport-ski-jumping",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "8321852dc0929e093e585a02506f65fce5bfb780f8876c14b61feb0867ea5cac",
+      "capture": null
+    },
+    {
+      "name": "sport-ski-mountaineering",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "51bb213a5b93e8270f2d47e9cb3ce59fa0f5489dab719bc76e4c9b8bece7c0a1",
+      "capture": null
+    },
+    {
+      "name": "sport-ski-orienteering",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "67b53c3ae9b313a87d5cf2d50ba37e4f925c71b3084667b23f6ac7a594a7c3ed",
+      "capture": null
+    },
+    {
+      "name": "sport-ski-touring",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "10d9863ba789343a6e9cccc86d51e8a8602ac0df9aa4e0a5e8a1a78e10c261dc",
+      "capture": null
+    },
+    {
+      "name": "sport-skimboarding",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d4a5b8cb7d2cb50bfe412e5bbfeb6b88934aab43a4d94c957e46f9ba3495fdd6",
+      "capture": null
+    },
+    {
+      "name": "sport-skydiving",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "f9079f5371aa53b647b26af7f42d60b64667771b48a4fff9e20d66d490e3e02f",
+      "capture": null
+    },
+    {
+      "name": "sport-snooker",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d56244f834aedcc82358cbbf95adfeee23188b3ba83403a78424476b7c63ea2e",
+      "capture": null
+    },
+    {
+      "name": "sport-snorkeling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "489f573ce94f09c7c153aadf19c1cd034fb7558bbdf971df17af16792f9ff258",
+      "capture": null
+    },
+    {
+      "name": "sport-snowboard",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ef6db76bbc7cc039db0d190249cb22fed218771d5274e2069221ed9b08418fca",
+      "capture": null
+    },
+    {
+      "name": "sport-snowshoeing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "76da834aa20099b0d14299ff148c11f18e467b04fa80b70eaa521e042850834a",
+      "capture": null
+    },
+    {
+      "name": "sport-softball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "3d7ff70afc9b347a0e3458969b11e67c5ce0f54174ab34f66d9fc9f0368de184",
+      "capture": null
+    },
+    {
+      "name": "sport-speed-skating",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "1b9f7b8c32c49f1832ea2c6b44a633c57538d78ad2d3a22c875a7cbb8b4ad90b",
+      "capture": null
+    },
+    {
+      "name": "sport-speed-skiing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6ede5ee00a67c70ce1cde2faecb8d87e8b0c7ae9d4ea45dfd42b9a2d609c10ac",
+      "capture": null
+    },
+    {
+      "name": "sport-spinning",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c5bf2d91bef1cce8d394e890688039f17bc000f50e01ff104f6a62cb0b20f2af",
+      "capture": null
+    },
+    {
+      "name": "sport-sport-climbing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "31e64583c8897b6866709eab0ae072729a04d3645b006d2dbd224306fcb81019",
+      "capture": null
+    },
+    {
+      "name": "sport-springboard-diving",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "8b727ae00dafdb1217273a953e4fd05c40175752e376c5dcb12d9e2982c19c35",
+      "capture": null
+    },
+    {
+      "name": "sport-sprint",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "4a164f3997a445f4b5f302b0e593612c260efd0333c229be6d5ebbef2381e0ae",
+      "capture": null
+    },
+    {
+      "name": "sport-squash",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "35476e7af6072333df280f8551f8e3fbc91e899abd4ab96efa83c720223725b1",
+      "capture": null
+    },
+    {
+      "name": "sport-squat",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "b691012c8d174f233e9560bd1e3a00d30d9120082cae9ea09c8a7d7a591cae9b",
+      "capture": null
+    },
+    {
+      "name": "sport-stair-climbing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "877b96a32c51f7f3886e1127a4e2c4ef4de4a012e5417234107bb00536334220",
+      "capture": null
+    },
+    {
+      "name": "sport-street-workout",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "6d97c8174361b00dd6254e442844d555270b6305cf6a84bc395c1049b3812005",
+      "capture": null
+    },
+    {
+      "name": "sport-stretching",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "81eb2fbecde3e8bb09ea0fcc46887668d8ba6b003fdf69c961497dd96eebd1be",
+      "capture": null
+    },
+    {
+      "name": "sport-strongman",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "62b6f277188186df33f0123edb24323d040291f3b8282df9d3ce9c91774da4a3",
+      "capture": null
+    },
+    {
+      "name": "sport-sumo",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "4e66f8a1d2b6738bb312d0453bdd42f4392dfe1aa30eb18aa5601ee0f84c8619",
+      "capture": null
+    },
+    {
+      "name": "sport-surfing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ee804e8ae9dac502f487b7174ce16404f3af08efa25ef0df084d9b13fe6d7703",
+      "capture": null
+    },
+    {
+      "name": "sport-surfski",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "8ff777c15e92332dd7d02a0ffa9f248c65ff7d0e33d26bc0aa46533624081279",
+      "capture": null
+    },
+    {
+      "name": "sport-swimming",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d3f6fa56850badf29abc364ba6ad56254c156809197ae38d21ab156a40d2b8bd",
+      "capture": null
+    },
+    {
+      "name": "sport-swimrun",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d8cc5b789a3d72ee55b05772096c499ab3208c3a9cca9b782f3c99c65fa391cd",
+      "capture": null
+    },
+    {
+      "name": "sport-table-tennis",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d07afa1114db7ebe31047b14f2f30230cffcc8db6f77ed37ffd8f8180d4a2580",
+      "capture": null
+    },
+    {
+      "name": "sport-taekwondo",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "2cf4d8fc2f9b3e7c9baa73d400842faedbdf90239ca78a7c2938dc30b01fc315",
+      "capture": null
+    },
+    {
+      "name": "sport-taichi",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ae3198f4291943d981cd3d5c52b491c9ffaa2d1629a10b925a4c8b9408fcd5cb",
+      "capture": null
+    },
+    {
+      "name": "sport-tchoukball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "19564c4cc2c2c75a67914a948ad5a719fc6697de80434e4c121658d59b5c8312",
+      "capture": null
+    },
+    {
+      "name": "sport-telemark-skiing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "165e34f7b5668eb85cc1574013e8d284b0ef4b08bb2f4132c888d4221c07aac4",
+      "capture": null
+    },
+    {
+      "name": "sport-tennis",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d47dceeea94fdd87fc6396f83b4094f444be1cab0cb4b065fc603d83e2cdae4f",
+      "capture": null
+    },
+    {
+      "name": "sport-thaiboxing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "cd2d0a081372e4ef6ad190980367f8b66428e39f1d5bc1f68af2f5bc7af08e43",
+      "capture": null
+    },
+    {
+      "name": "sport-tractions",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "4984fd9456ea47019fa9d72cd25f8f23036590f62ba6d825babc5b31107032b5",
+      "capture": null
+    },
+    {
+      "name": "sport-trail",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "5e50fd4e3edf09fd9495383725ecc8ed4df6aa5a03c64ddf583eb3f3e770dd8d",
+      "capture": null
+    },
+    {
+      "name": "sport-trampoline-gymnastics",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ad79a13bee5924115079e7b959350495ae826bd9f72f61183291de617bb1447d",
+      "capture": null
+    },
+    {
+      "name": "sport-treadmill",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "21b8234fd97f2e70d6c5b25ab7f0964ab4beb2e236621d1026e92a5802662e77",
+      "capture": null
+    },
+    {
+      "name": "sport-trekking",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "a738be86a1bd28d9e11d4bc76512b6d2fd4fe84ff144d4ff2640a452d9cd7d86",
+      "capture": null
+    },
+    {
+      "name": "sport-triathlon",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "7056ab7f2929a8219c77bc1ccd7ca8816cb6593c307cb3698e99c6a5bb85013a",
+      "capture": null
+    },
+    {
+      "name": "sport-trx",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "94b387ab0840aa40366d0034da9cceeb52c3760978ac7587e8562ca4a278904c",
+      "capture": null
+    },
+    {
+      "name": "sport-tug-of-war",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "3edd29cf0544b919ca4ad14823c1e9696f9b68295defd9158dc1384b3110cea4",
+      "capture": null
+    },
+    {
+      "name": "sport-ultimate",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "4d40fd4ab661591ea5bcb2b8768dac8e3edca8145e0714075834400e7f3e3d42",
+      "capture": null
+    },
+    {
+      "name": "sport-underwater-hockey",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "12a0a0ee5bbd6cc5d3a774a6e09dfa3c6172fd7f37091a03a9efc50934d25eb0",
+      "capture": null
+    },
+    {
+      "name": "sport-underwater-rugby",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "9784ecf229e18170cd6caa36e4655fb4e392d2d0991213dd123bbc7fde15d589",
+      "capture": null
+    },
+    {
+      "name": "sport-velotaf",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "59d879e3bcce5f3ef16e09e2d0e8ffa5c827712911e1f163c277c96570bfedff",
+      "capture": null
+    },
+    {
+      "name": "sport-via-ferrata",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "f798a89f4bcc50c7d05db08b04ac3bbae037b86e79a2a331b706c5138612920d",
+      "capture": null
+    },
+    {
+      "name": "sport-volleyball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "9b77424c4e5b056b4ce6b85138f5126d512cd0904e0882eb5b2565cf04e88d01",
+      "capture": null
+    },
+    {
+      "name": "sport-wakeboard",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "202dd296561bd0e650b5aa4fff89b6e0b3b5d3172d5d209e691f95f2effff623",
+      "capture": null
+    },
+    {
+      "name": "sport-walking",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "458a337907216dacf9651bd22ecedb907df4cb1894057892cc44eaa672188ebc",
+      "capture": null
+    },
+    {
+      "name": "sport-water-polo",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "70ec8933b91400e219537359b7c2731eb535a259981496488116beef4703df8c",
+      "capture": null
+    },
+    {
+      "name": "sport-water-skiing",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "3494d35b940276bdb9d053309445bf45e00e0042775954aa08d588d2c203a342",
+      "capture": null
+    },
+    {
+      "name": "sport-weightlifting",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "17f7e4908e40d7c6afb15378be7f51b6eead8844a759cc74f700e3fbbd8e4f55",
+      "capture": null
+    },
+    {
+      "name": "sport-wheelchair-basketball",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "c32c2cae5833ba8ebed8bf43eb77355bf66fdb207cc05139d8846cfdb7061b3e",
+      "capture": null
+    },
+    {
+      "name": "sport-wheelchair-rugby",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "bd57c7031e2a2548cd620355fe2846d5d169ec0b7a4cbbee17cc5ccaf03320aa",
+      "capture": null
+    },
+    {
+      "name": "sport-wheelchair-tennis",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "3b7f657a6974cc93d9150a56f971c8eedb245c835d453161a132b900dd5e5855",
+      "capture": null
+    },
+    {
+      "name": "sport-windsurf",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "85b5939d4a25211cae7296c97cba6ececf341a88ea971796cf085124b8453d3e",
+      "capture": null
+    },
+    {
+      "name": "sport-wrestling",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "b552ef797751952e9a541e6d004b7919882c6895f9d27384fede0a5687b4b70a",
+      "capture": null
+    },
+    {
+      "name": "sport-wrestling-singlet",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d2980b399f7a3e33dd926fe4f891b93c16c31f121e7f6b5e6ed0685b6b8f938c",
+      "capture": null
+    },
+    {
+      "name": "sport-wushu",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "dd7e4cd31eff7aa44a9c4851c587f40be4412ba260d847137694b9998e19ece8",
+      "capture": null
+    },
+    {
+      "name": "sport-yoga",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d4a960ab644c7968885576253f66b9f9944066dae8b335e195af92b7e0863452",
+      "capture": null
+    },
+    {
+      "name": "sport-yoga-mobility",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "d77c15c9792c9999a84a5619fcaa2b9d717a46332e0dae332df3ff7b019546cb",
+      "capture": null
+    },
+    {
+      "name": "sport-zumba",
+      "viewBox": "0 0 24 24",
+      "strokeWidth": 1.65,
+      "source": "js/app/sport-icons.js",
+      "sha256": "ed909965ba88ce1072e00b488c5ae57ef588f4455a3b0160759e5cf3e03c22d6",
+      "capture": null
+    },
+    {
       "name": "star",
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.65,
@@ -13771,1561 +15867,1561 @@
       "id": "abs_session",
       "label": "Abdos",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-abs-session"
     },
     {
       "id": "acrobatic_gymnastics",
       "label": "Gym acrobatique",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-acrobatic-gymnastics"
     },
     {
       "id": "adventure_racing",
       "label": "Raid aventure",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-adventure-racing"
     },
     {
       "id": "aerobic_gymnastics",
       "label": "Gym aérobic",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-aerobic-gymnastics"
     },
     {
       "id": "aikido",
       "label": "Aïkido",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-aikido"
     },
     {
       "id": "alpine_skiing",
       "label": "Ski alpin",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-alpine-skiing"
     },
     {
       "id": "alpinism",
       "label": "Alpinisme",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-alpinism"
     },
     {
       "id": "american_football",
       "label": "Football américain",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-american-football"
     },
     {
       "id": "aquagym",
       "label": "Aquagym",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-aquagym"
     },
     {
       "id": "aquathlon",
       "label": "Aquathlon",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-aquathlon"
     },
     {
       "id": "archery",
       "label": "Tir à l’arc",
       "family": "technique",
-      "icon": "target"
+      "icon": "sport-archery"
     },
     {
       "id": "arm_wrestling",
       "label": "Bras de fer sportif",
       "family": "force",
-      "icon": "glove"
+      "icon": "sport-arm-wrestling"
     },
     {
       "id": "arnis_eskrima",
       "label": "Arnis / Eskrima",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-arnis-eskrima"
     },
     {
       "id": "artistic_cycling",
       "label": "Cyclisme artistique",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-artistic-cycling"
     },
     {
       "id": "artistic_gymnastics",
       "label": "Gym artistique",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-artistic-gymnastics"
     },
     {
       "id": "artistic_swimming",
       "label": "Natation artistique",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-artistic-swimming"
     },
     {
       "id": "athletics",
       "label": "Athlétisme",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-athletics"
     },
     {
       "id": "australian_rules_football",
       "label": "Football australien",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-australian-rules-football"
     },
     {
       "id": "badminton",
       "label": "Badminton",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-badminton"
     },
     {
       "id": "ballet",
       "label": "Danse classique",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-ballet"
     },
     {
       "id": "bandy",
       "label": "Bandy",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-bandy"
     },
     {
       "id": "baseball",
       "label": "Baseball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-baseball"
     },
     {
       "id": "basketball",
       "label": "Basketball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-basketball"
     },
     {
       "id": "basketball_3x3",
       "label": "Basketball 3x3",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-basketball-3x3"
     },
     {
       "id": "beach_handball",
       "label": "Beach handball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-beach-handball"
     },
     {
       "id": "beach_soccer",
       "label": "Beach soccer",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-beach-soccer"
     },
     {
       "id": "beach_tennis",
       "label": "Beach tennis",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-beach-tennis"
     },
     {
       "id": "beach_volleyball",
       "label": "Beach volley",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-beach-volleyball"
     },
     {
       "id": "biathlon",
       "label": "Biathlon",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-biathlon"
     },
     {
       "id": "billiards_pool",
       "label": "Billard pool",
       "family": "technique",
-      "icon": "ball"
+      "icon": "sport-billiards-pool"
     },
     {
       "id": "bjj",
       "label": "Jiu-jitsu brésilien",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-bjj"
     },
     {
       "id": "blind_football",
       "label": "Cécifoot",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-blind-football"
     },
     {
       "id": "bmx",
       "label": "BMX dirt",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-bmx"
     },
     {
       "id": "bmx_freestyle",
       "label": "BMX freestyle",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-bmx-freestyle"
     },
     {
       "id": "bmx_racing",
       "label": "BMX racing",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-bmx-racing"
     },
     {
       "id": "bobsleigh",
       "label": "Bobsleigh",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-bobsleigh"
     },
     {
       "id": "bocce",
       "label": "Bocce",
       "family": "technique",
-      "icon": "ball"
+      "icon": "sport-bocce"
     },
     {
       "id": "boccia",
       "label": "Boccia",
       "family": "technique",
-      "icon": "target"
+      "icon": "sport-boccia"
     },
     {
       "id": "bodyboarding",
       "label": "Bodyboard",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-bodyboarding"
     },
     {
       "id": "bodyweight",
       "label": "Poids du corps",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-bodyweight"
     },
     {
       "id": "bouldering",
       "label": "Escalade bloc",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-bouldering"
     },
     {
       "id": "bowling",
       "label": "Bowling",
       "family": "technique",
-      "icon": "ball"
+      "icon": "sport-bowling"
     },
     {
       "id": "boxing",
       "label": "Boxe anglaise",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-boxing"
     },
     {
       "id": "breakdance",
       "label": "Breaking",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-breakdance"
     },
     {
       "id": "camogie",
       "label": "Camogie",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-hurling"
     },
     {
       "id": "canoe_polo",
       "label": "Canoë-polo",
       "family": "endurance",
-      "icon": "ball"
+      "icon": "sport-canoe-polo"
     },
     {
       "id": "canoe_slalom",
       "label": "Canoë slalom",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-canoe-slalom"
     },
     {
       "id": "canoe_sprint",
       "label": "Canoë sprint",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-canoe-sprint"
     },
     {
       "id": "canyoning",
       "label": "Canyoning",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-canyoning"
     },
     {
       "id": "capoeira",
       "label": "Capoeira",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-capoeira"
     },
     {
       "id": "cheerleading",
       "label": "Cheerleading",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-cheerleading"
     },
     {
       "id": "circus",
       "label": "Arts du cirque",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-circus"
     },
     {
       "id": "climbing",
       "label": "Escalade (mètres grimpés)",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-climbing"
     },
     {
       "id": "climbing_route",
       "label": "Escalade voie",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-climbing-route"
     },
     {
       "id": "coastal_rowing",
       "label": "Aviron de mer",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-coastal-rowing"
     },
     {
       "id": "cricket",
       "label": "Cricket",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-cricket"
     },
     {
       "id": "croquet",
       "label": "Croquet",
       "family": "technique",
-      "icon": "ball"
+      "icon": "sport-croquet"
     },
     {
       "id": "cross_country_skiing",
       "label": "Ski de fond",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-cross-country-skiing"
     },
     {
       "id": "crossfit",
       "label": "CrossFit",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-crossfit"
     },
     {
       "id": "curling",
       "label": "Curling",
       "family": "technique",
-      "icon": "target"
+      "icon": "sport-curling"
     },
     {
       "id": "cycle_ball",
       "label": "Cycle-ball",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-cycle-ball"
     },
     {
       "id": "cycle_polo",
       "label": "Cycle polo",
       "family": "endurance",
-      "icon": "ball"
+      "icon": "sport-cycle-polo"
     },
     {
       "id": "cycling",
       "label": "Vélo",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-cycling"
     },
     {
       "id": "cycling_indoor",
       "label": "Vélo d’intérieur",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-cycling-indoor"
     },
     {
       "id": "cycling_road",
       "label": "Cyclisme sur route",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-cycling-road"
     },
     {
       "id": "cycling_track",
       "label": "Cyclisme sur piste",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-cycling-track"
     },
     {
       "id": "cyclocross",
       "label": "Cyclo-cross",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-cyclocross"
     },
     {
       "id": "dance",
       "label": "Danse",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-dance"
     },
     {
       "id": "darts",
       "label": "Fléchettes",
       "family": "technique",
-      "icon": "target"
+      "icon": "sport-darts"
     },
     {
       "id": "dips",
       "label": "Dips",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-dips"
     },
     {
       "id": "disc_golf",
       "label": "Disc golf",
       "family": "technique",
-      "icon": "ball"
+      "icon": "sport-disc-golf"
     },
     {
       "id": "diving",
       "label": "Plongée",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-diving"
     },
     {
       "id": "dodgeball",
       "label": "Dodgeball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-dodgeball"
     },
     {
       "id": "dragon_boat",
       "label": "Bateau-dragon",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-dragon-boat"
     },
     {
       "id": "dressage",
       "label": "Dressage",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-dressage"
     },
     {
       "id": "duathlon",
       "label": "Duathlon",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-duathlon"
     },
     {
       "id": "elliptical",
       "label": "Vélo elliptique",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-elliptical"
     },
     {
       "id": "equestrian",
       "label": "Équitation",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-equestrian"
     },
     {
       "id": "eventing",
       "label": "Concours complet",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-eventing"
     },
     {
       "id": "farmers_walk",
       "label": "Marche du fermier",
       "family": "force",
-      "icon": "run"
+      "icon": "sport-farmers-walk"
     },
     {
       "id": "fell_running",
       "label": "Course en montagne",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-fell-running"
     },
     {
       "id": "fencing",
       "label": "Escrime",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-fencing"
     },
     {
       "id": "field_hockey",
       "label": "Hockey sur gazon",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-field-hockey"
     },
     {
       "id": "figure_skating",
       "label": "Patinage artistique",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-figure-skating"
     },
     {
       "id": "finswimming",
       "label": "Nage avec palmes",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-finswimming"
     },
     {
       "id": "fitness_class",
       "label": "Cours collectif",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-fitness-class"
     },
     {
       "id": "flag_football",
       "label": "Flag football",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-flag-football"
     },
     {
       "id": "floorball",
       "label": "Floorball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-floorball"
     },
     {
       "id": "football",
       "label": "Football",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-football"
     },
     {
       "id": "freediving",
       "label": "Apnée",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-freediving"
     },
     {
       "id": "freestyle_skiing",
       "label": "Ski freestyle",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-freestyle-skiing"
     },
     {
       "id": "freestyle_wrestling",
       "label": "Lutte libre",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-wrestling-singlet"
     },
     {
       "id": "futnet",
       "label": "Futnet",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-futnet"
     },
     {
       "id": "futsal",
       "label": "Futsal",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-futsal"
     },
     {
       "id": "gaelic_football",
       "label": "Football gaélique",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-gaelic-football"
     },
     {
       "id": "goalball",
       "label": "Goalball",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-goalball"
     },
     {
       "id": "golf",
       "label": "Golf",
       "family": "technique",
-      "icon": "ball"
+      "icon": "sport-golf"
     },
     {
       "id": "grappling",
       "label": "Grappling",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-grappling"
     },
     {
       "id": "gravel",
       "label": "Gravel",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-gravel"
     },
     {
       "id": "greco_roman_wrestling",
       "label": "Lutte gréco-romaine",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-wrestling-singlet"
     },
     {
       "id": "grip_sport",
       "label": "Grip sport",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-grip-sport"
     },
     {
       "id": "gymnastics",
       "label": "Gymnastique",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-gymnastics"
     },
     {
       "id": "handball",
       "label": "Handball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-handball"
     },
     {
       "id": "handbike",
       "label": "Handbike",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-handbike"
     },
     {
       "id": "hapkido",
       "label": "Hapkido",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-hapkido"
     },
     {
       "id": "highland_games",
       "label": "Highland games",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-highland-games"
     },
     {
       "id": "hiit",
       "label": "HIIT",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-hiit"
     },
     {
       "id": "hiking",
       "label": "Randonnée",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-hiking"
     },
     {
       "id": "hiphop",
       "label": "Hip-hop",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-hiphop"
     },
     {
       "id": "horse_racing",
       "label": "Course hippique",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-horse-racing"
     },
     {
       "id": "hurdles",
       "label": "Course de haies",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-hurdles"
     },
     {
       "id": "hurling",
       "label": "Hurling",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-hurling"
     },
     {
       "id": "hyrox",
       "label": "Hyrox",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-hyrox"
     },
     {
       "id": "ice_climbing",
       "label": "Cascade de glace",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-ice-climbing"
     },
     {
       "id": "ice_hockey",
       "label": "Hockey sur glace",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-ice-hockey"
     },
     {
       "id": "ice_skating",
       "label": "Patinage sur glace",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-ice-skating"
     },
     {
       "id": "inline_hockey",
       "label": "Roller hockey",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-inline-hockey"
     },
     {
       "id": "inline_speed_skating",
       "label": "Roller de vitesse",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-inline-speed-skating"
     },
     {
       "id": "judo",
       "label": "Judo",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-judo"
     },
     {
       "id": "kabaddi",
       "label": "Kabaddi",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-kabaddi"
     },
     {
       "id": "karate",
       "label": "Karaté",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-karate"
     },
     {
       "id": "karting",
       "label": "Karting",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-karting"
     },
     {
       "id": "kayak",
       "label": "Kayak",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-kayak"
     },
     {
       "id": "kendo",
       "label": "Kendo",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-kendo"
     },
     {
       "id": "kettlebell",
       "label": "Kettlebell",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-kettlebell"
     },
     {
       "id": "kho_kho",
       "label": "Kho kho",
       "family": "jeu",
-      "icon": "target"
+      "icon": "sport-kho-kho"
     },
     {
       "id": "kickboxing",
       "label": "Kickboxing",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-kickboxing"
     },
     {
       "id": "kitesurf",
       "label": "Kitesurf",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-kitesurf"
     },
     {
       "id": "korfball",
       "label": "Korfball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-korfball"
     },
     {
       "id": "krav_maga",
       "label": "Krav-maga",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-krav-maga"
     },
     {
       "id": "kung_fu",
       "label": "Kung-fu",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-kung-fu"
     },
     {
       "id": "lacrosse",
       "label": "Lacrosse",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-lacrosse"
     },
     {
       "id": "lacrosse_sixes",
       "label": "Lacrosse sixes",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-lacrosse"
     },
     {
       "id": "lifesaving_sport",
       "label": "Sauvetage sportif",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-lifesaving-sport"
     },
     {
       "id": "luge",
       "label": "Luge",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-luge"
     },
     {
       "id": "mma",
       "label": "MMA",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-mma"
     },
     {
       "id": "modern_pentathlon",
       "label": "Pentathlon moderne",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-modern-pentathlon"
     },
     {
       "id": "motocross",
       "label": "Motocross",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-motocross"
     },
     {
       "id": "mountain_bike",
       "label": "VTT",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-mountain-bike"
     },
     {
       "id": "muscu_builder",
       "label": "Musculation",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-muscu-builder"
     },
     {
       "id": "muscu_gym",
       "label": "Musculation en salle",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-muscu-gym"
     },
     {
       "id": "muscu_home",
       "label": "Musculation à la maison",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-muscu-home"
     },
     {
       "id": "netball",
       "label": "Netball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-netball"
     },
     {
       "id": "nordic_combined",
       "label": "Combiné nordique",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-nordic-combined"
     },
     {
       "id": "nordic_walk",
       "label": "Marche nordique",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-nordic-walk"
     },
     {
       "id": "obstacle_course",
       "label": "Course à obstacles",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-obstacle-course"
     },
     {
       "id": "open_water_swimming",
       "label": "Nage en eau libre",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-open-water-swimming"
     },
     {
       "id": "orienteering",
       "label": "Course d’orientation",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-orienteering"
     },
     {
       "id": "outrigger_canoe",
       "label": "Pirogue va’a",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-outrigger-canoe"
     },
     {
       "id": "paddle",
       "label": "Paddle",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-paddle"
     },
     {
       "id": "padel",
       "label": "Padel",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-padel"
     },
     {
       "id": "para_athletics",
       "label": "Para-athlétisme",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-para-athletics"
     },
     {
       "id": "para_cycling",
       "label": "Para-cyclisme",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-para-cycling"
     },
     {
       "id": "para_powerlifting",
       "label": "Para powerlifting",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-para-powerlifting"
     },
     {
       "id": "para_swimming",
       "label": "Para-natation",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-para-swimming"
     },
     {
       "id": "paragliding",
       "label": "Parapente",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-paragliding"
     },
     {
       "id": "parkour",
       "label": "Parkour",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-parkour"
     },
     {
       "id": "petanque",
       "label": "Pétanque",
       "family": "technique",
-      "icon": "ball"
+      "icon": "sport-petanque"
     },
     {
       "id": "pickleball",
       "label": "Pickleball",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-pickleball"
     },
     {
       "id": "pilates",
       "label": "Pilates",
       "family": "mobilite",
-      "icon": "leaf"
+      "icon": "sport-pilates"
     },
     {
       "id": "plank",
       "label": "Gainage",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-plank"
     },
     {
       "id": "platform_tennis",
       "label": "Platform tennis",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-platform-tennis"
     },
     {
       "id": "pole_dance",
       "label": "Pole dance",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-pole-dance"
     },
     {
       "id": "polo",
       "label": "Polo",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-polo"
     },
     {
       "id": "pompes",
       "label": "Pompes",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-pompes"
     },
     {
       "id": "powerlifting",
       "label": "Force athlétique",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-powerlifting"
     },
     {
       "id": "qigong",
       "label": "Qi Gong",
       "family": "mobilite",
-      "icon": "leaf"
+      "icon": "sport-qigong"
     },
     {
       "id": "race_walking",
       "label": "Marche athlétique",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-race-walking"
     },
     {
       "id": "racketlon",
       "label": "Racketlon",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-racketlon"
     },
     {
       "id": "racquetball",
       "label": "Racquetball",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-racquetball"
     },
     {
       "id": "rafting",
       "label": "Rafting",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-rafting"
     },
     {
       "id": "real_tennis",
       "label": "Jeu de paume",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-real-tennis"
     },
     {
       "id": "rhythmic_gymnastics",
       "label": "Gym rythmique",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-rhythmic-gymnastics"
     },
     {
       "id": "ringette",
       "label": "Ringette",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-ringette"
     },
     {
       "id": "rogaining",
       "label": "Rogaining",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-rogaining"
     },
     {
       "id": "roller",
       "label": "Roller",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-roller"
     },
     {
       "id": "roller_derby",
       "label": "Roller derby",
       "family": "jeu",
-      "icon": "target"
+      "icon": "sport-roller-derby"
     },
     {
       "id": "roller_ski",
       "label": "Ski-roues",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-roller-ski"
     },
     {
       "id": "rope_jump",
       "label": "Corde à sauter",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-rope-jump"
     },
     {
       "id": "rowing",
       "label": "Aviron",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-rowing"
     },
     {
       "id": "rowing_machine",
       "label": "Rameur",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-rowing-machine"
     },
     {
       "id": "rucking",
       "label": "Rucking",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-rucking"
     },
     {
       "id": "rugby",
       "label": "Rugby",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-rugby"
     },
     {
       "id": "rugby_sevens",
       "label": "Rugby à 7",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-rugby-sevens"
     },
     {
       "id": "running",
       "label": "Course à pied",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-running"
     },
     {
       "id": "sailing",
       "label": "Voile",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-sailing"
     },
     {
       "id": "salsa",
       "label": "Danses latines",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-salsa"
     },
     {
       "id": "sambo",
       "label": "Sambo",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-sambo"
     },
     {
       "id": "sandbag",
       "label": "Sac de sable",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-sandbag"
     },
     {
       "id": "savate",
       "label": "Savate boxe française",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-savate"
     },
     {
       "id": "sepak_takraw",
       "label": "Sepak takraw",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-sepak-takraw"
     },
     {
       "id": "shooting",
       "label": "Tir sportif",
       "family": "technique",
-      "icon": "target"
+      "icon": "sport-shooting"
     },
     {
       "id": "short_track_speed_skating",
       "label": "Short track",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-short-track-speed-skating"
     },
     {
       "id": "show_jumping",
       "label": "Saut d’obstacles",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-show-jumping"
     },
     {
       "id": "sitting_volleyball",
       "label": "Volley assis",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-sitting-volleyball"
     },
     {
       "id": "skateboarding",
       "label": "Skateboard",
       "family": "endurance",
-      "icon": "sparkle"
+      "icon": "sport-skateboarding"
     },
     {
       "id": "skeleton",
       "label": "Skeleton",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-skeleton"
     },
     {
       "id": "ski_jumping",
       "label": "Saut à ski",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-ski-jumping"
     },
     {
       "id": "ski_mountaineering",
       "label": "Ski alpinisme",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-ski-mountaineering"
     },
     {
       "id": "ski_orienteering",
       "label": "Orientation à ski",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-ski-orienteering"
     },
     {
       "id": "ski_touring",
       "label": "Ski de randonnée",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-ski-touring"
     },
     {
       "id": "skimboarding",
       "label": "Skimboard",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-skimboarding"
     },
     {
       "id": "skydiving",
       "label": "Parachutisme",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-skydiving"
     },
     {
       "id": "snooker",
       "label": "Snooker",
       "family": "technique",
-      "icon": "ball"
+      "icon": "sport-snooker"
     },
     {
       "id": "snorkeling",
       "label": "Snorkeling",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-snorkeling"
     },
     {
       "id": "snowboard",
       "label": "Snowboard",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-snowboard"
     },
     {
       "id": "snowshoeing",
       "label": "Raquettes",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-snowshoeing"
     },
     {
       "id": "softball",
       "label": "Softball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-softball"
     },
     {
       "id": "speed_skating",
       "label": "Patinage de vitesse",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-speed-skating"
     },
     {
       "id": "speed_skiing",
       "label": "Kilomètre lancé",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-speed-skiing"
     },
     {
       "id": "spinning",
       "label": "Spinning",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-spinning"
     },
     {
       "id": "sport_climbing",
       "label": "Escalade sportive",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-sport-climbing"
     },
     {
       "id": "springboard_diving",
       "label": "Plongeon",
       "family": "technique",
-      "icon": "mountain"
+      "icon": "sport-springboard-diving"
     },
     {
       "id": "sprint",
       "label": "Fractionné",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-sprint"
     },
     {
       "id": "squash",
       "label": "Squash",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-squash"
     },
     {
       "id": "squat",
       "label": "Squats au poids du corps",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-squat"
     },
     {
       "id": "stair_climbing",
       "label": "Montée d’escaliers",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-stair-climbing"
     },
     {
       "id": "street_workout",
       "label": "Street workout",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-street-workout"
     },
     {
       "id": "stretching",
       "label": "Stretching",
       "family": "mobilite",
-      "icon": "leaf"
+      "icon": "sport-stretching"
     },
     {
       "id": "strongman",
       "label": "Strongman",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-strongman"
     },
     {
       "id": "sumo",
       "label": "Sumo",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-sumo"
     },
     {
       "id": "surfing",
       "label": "Surf",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-surfing"
     },
     {
       "id": "surfski",
       "label": "Surfski",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-surfski"
     },
     {
       "id": "swimming",
       "label": "Natation",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-swimming"
     },
     {
       "id": "swimrun",
       "label": "Swimrun",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-swimrun"
     },
     {
       "id": "table_tennis",
       "label": "Tennis de table",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-table-tennis"
     },
     {
       "id": "taekwondo",
       "label": "Taekwondo",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-taekwondo"
     },
     {
       "id": "taichi",
       "label": "Tai Chi",
       "family": "mobilite",
-      "icon": "leaf"
+      "icon": "sport-taichi"
     },
     {
       "id": "tchoukball",
       "label": "Tchoukball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-tchoukball"
     },
     {
       "id": "telemark_skiing",
       "label": "Ski télémark",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-telemark-skiing"
     },
     {
       "id": "tennis",
       "label": "Tennis",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-tennis"
     },
     {
       "id": "thaiboxing",
       "label": "Boxe thaï",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-thaiboxing"
     },
     {
       "id": "tractions",
       "label": "Tractions",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-tractions"
     },
     {
       "id": "trail",
       "label": "Trail",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-trail"
     },
     {
       "id": "trampoline_gymnastics",
       "label": "Trampoline",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-trampoline-gymnastics"
     },
     {
       "id": "treadmill",
       "label": "Tapis de course",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-treadmill"
     },
     {
       "id": "trekking",
       "label": "Trek",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-trekking"
     },
     {
       "id": "triathlon",
       "label": "Triathlon",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-triathlon"
     },
     {
       "id": "trx",
       "label": "TRX",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-trx"
     },
     {
       "id": "tug_of_war",
       "label": "Tir à la corde",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-tug-of-war"
     },
     {
       "id": "ultimate",
       "label": "Ultimate",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-ultimate"
     },
     {
       "id": "underwater_hockey",
       "label": "Hockey subaquatique",
       "family": "endurance",
-      "icon": "ball"
+      "icon": "sport-underwater-hockey"
     },
     {
       "id": "underwater_rugby",
       "label": "Rugby subaquatique",
       "family": "endurance",
-      "icon": "ball"
+      "icon": "sport-underwater-rugby"
     },
     {
       "id": "velotaf",
       "label": "Vélotaf",
       "family": "endurance",
-      "icon": "bike"
+      "icon": "sport-velotaf"
     },
     {
       "id": "via_ferrata",
       "label": "Via ferrata",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-via-ferrata"
     },
     {
       "id": "volleyball",
       "label": "Volleyball",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-volleyball"
     },
     {
       "id": "wakeboard",
       "label": "Wakeboard",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-wakeboard"
     },
     {
       "id": "walking",
       "label": "Marche",
       "family": "endurance",
-      "icon": "run"
+      "icon": "sport-walking"
     },
     {
       "id": "water_polo",
       "label": "Water-polo",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-water-polo"
     },
     {
       "id": "water_skiing",
       "label": "Ski nautique",
       "family": "endurance",
-      "icon": "mountain"
+      "icon": "sport-water-skiing"
     },
     {
       "id": "weightlifting",
       "label": "Haltérophilie",
       "family": "force",
-      "icon": "weight"
+      "icon": "sport-weightlifting"
     },
     {
       "id": "wheelchair_basketball",
       "label": "Basket fauteuil",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-wheelchair-basketball"
     },
     {
       "id": "wheelchair_rugby",
       "label": "Rugby fauteuil",
       "family": "jeu",
-      "icon": "ball"
+      "icon": "sport-wheelchair-rugby"
     },
     {
       "id": "wheelchair_tennis",
       "label": "Tennis fauteuil",
       "family": "jeu",
-      "icon": "racket"
+      "icon": "sport-wheelchair-tennis"
     },
     {
       "id": "windsurf",
       "label": "Planche à voile",
       "family": "endurance",
-      "icon": "wave"
+      "icon": "sport-windsurf"
     },
     {
       "id": "wrestling",
       "label": "Lutte",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-wrestling"
     },
     {
       "id": "wushu",
       "label": "Wushu",
       "family": "jeu",
-      "icon": "glove"
+      "icon": "sport-wushu"
     },
     {
       "id": "yoga",
       "label": "Yoga",
       "family": "mobilite",
-      "icon": "leaf"
+      "icon": "sport-yoga"
     },
     {
       "id": "yoga_mobility",
       "label": "Mobilité",
       "family": "mobilite",
-      "icon": "leaf"
+      "icon": "sport-yoga-mobility"
     },
     {
       "id": "zumba",
       "label": "Zumba",
       "family": "technique",
-      "icon": "sparkle"
+      "icon": "sport-zumba"
     }
   ],
   "comparisons": [
@@ -15818,6 +17914,11 @@
     },
     {
       "source": "js/app/sport-browser.js",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
+      "source": "js/app/sport-icons.js",
       "visualValidation": "pending-human-review",
       "capture": null
     },

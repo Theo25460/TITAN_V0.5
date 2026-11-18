@@ -46,7 +46,7 @@
       <p class="cm-privacy ap-shown">${icon("eye")}<span><strong>Une carte choisie.</strong> ${esc(c.name)} décide de ce qu’elle montre. Jamais de notes, de santé, de poids, de traces GPS ni de dates de séance.</span></p>
       ${sports.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Sports et maîtrise</h2></div><div class="pf-mastery">${sports
         .map(
-          (s) => `<div class="pf-mastery-row" data-family="${esc(s.family)}"><span class="jr-icon">${icon(SP().FAMILY_ICON[s.family])}</span>
+          (s) => `<div class="pf-mastery-row" data-family="${esc(s.family)}"><span class="jr-icon">${icon(SP().iconOf(s.sport))}</span>
           <span class="pf-mastery-main"><span class="asc-between"><strong>${esc(SP().label(s.sport))}</strong><span class="asc-small">${esc(s.mastery.name)} · ${s.mastery.level}/10</span></span>
           <span class="asc-ascent thin"><span style="--p:${Math.round(((s.mastery.level - 1 + s.mastery.progress) / 10) * 100)}%"></span></span>
           <span class="asc-small asc-muted">${esc(F().hours(s.minutes))} · ${F().number(s.sessions)} séance${s.sessions > 1 ? "s" : ""} · ${F().number(s.weeks)} semaine${s.weeks > 1 ? "s" : ""}</span></span></div>`,

@@ -146,7 +146,7 @@
         .slice()
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 12)
-        .map((l) => `<a class="asc-row" href="/journal?session=${encodeURIComponent(window.TitanSessions?.idOf(l) || l.id)}"><span class="asc-row-main"><span class="asc-row-title">${esc(SP().label(l.sport))}</span><span class="asc-row-sub">${esc(F().relativeDay(l.date))}</span></span>${icon("chevron")}</a>`)
+        .map((l) => `<a class="asc-row" href="/journal?session=${encodeURIComponent(window.TitanSessions?.idOf(l) || l.id)}"><span class="asc-row-icon" data-family="${esc(SP().familyOf(l.sport))}">${icon(SP().iconOf(l.sport))}</span><span class="asc-row-main"><span class="asc-row-title">${esc(SP().label(l.sport))}</span><span class="asc-row-sub">${esc(F().relativeDay(l.date))}</span></span>${icon("chevron")}</a>`)
         .join("")}</div>` : '<p class="asc-small asc-muted">Aucune séance sur la période pour le moment.</p>'}${g.metric === "minutes" && s.sources.length > s.contributors.length ? `<p class="asc-small asc-faint">${s.sources.length - s.contributors.length} séance(s) sans durée ne comptent pas.</p>` : ""}</details>
       <div class="ob-actions"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-edit="${esc(g.id)}">${icon("edit")} Ajuster</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-archive="${esc(g.id)}">${icon(g.archived_at ? "restore" : "archive")} ${g.archived_at ? "Restaurer" : "Archiver"}</button></div>
     </article>`;

@@ -133,7 +133,7 @@
       <div class="rc-sports">${result.items
         .map(
           (s) => `<section class="asc-section rc-sport" data-family="${esc(s.family)}">
-        <div class="asc-section-head"><h2><span class="rc-sport-icon">${icon(SP().FAMILY_ICON[s.family])}</span>${esc(s.label)}</h2><span class="sn-sport-actions">${s.hasData ? `<span class="asc-small asc-muted">${s.records.length} record${s.records.length > 1 ? "s" : ""}</span>` : ""}${B().favoriteButton(s.sport, s.label)}</span></div>
+        <div class="asc-section-head"><h2><span class="rc-sport-icon">${icon(SP().iconOf(s.sport))}</span>${esc(s.label)}</h2><span class="sn-sport-actions">${s.hasData ? `<span class="asc-small asc-muted">${s.records.length} record${s.records.length > 1 ? "s" : ""}</span>` : ""}${B().favoriteButton(s.sport, s.label)}</span></div>
         ${s.hasData ? `<div class="rc-grid">${s.records.map(cardHtml).join("")}</div>` : `<p class="asc-small asc-muted">Aucune donnée pour ce sport. <a href="/training?sport=${encodeURIComponent(s.sport)}">Enregistrer une séance</a></p>`}</section>`,
         )
         .join("")}</div>

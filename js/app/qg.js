@@ -219,7 +219,7 @@
   }
 
   function familyIcon(family) {
-    return { endurance: "run", force: "weight", technique: "mountain", jeu: "target", mobilite: "leaf" }[family] || "bolt";
+    return { endurance: "family-endurance", force: "family-force", technique: "family-technique", jeu: "family-jeu", mobilite: "family-mobilite" }[family] || "family-endurance";
   }
 
   function insightsHtml(items) {
