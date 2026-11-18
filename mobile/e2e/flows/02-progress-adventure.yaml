@@ -17,6 +17,19 @@ appId: fr.titanapp.app
     visible: "Cette semaine"
     timeout: 20000
 - takeScreenshot: 08-progres-semaine
+- scrollUntilVisible:
+    element:
+      id: "progress-current-journal"
+    direction: DOWN
+- tapOn:
+    id: "progress-current-journal"
+- assertVisible: "Voir tout le journal"
+- assertVisible: ".*Course à pied.*10 km.*"
+- takeScreenshot: 08b-journal-de-la-semaine
+- back
+- scrollUntilVisible:
+    element: "Tendances"
+    direction: UP
 - tapOn: "Tendances"
 - takeScreenshot: 09-progres-tendances
 - tapOn: "Maîtrise"

@@ -29,7 +29,7 @@ export type RootParams = {
   SessionResult: { eventId: string; stored?: { owner: string; payload: TrainingPayload } };
   SessionDetail: { id: string };
   SessionEdit: { id: string };
-  Journal: { sport?: string } | undefined;
+  Journal: { sport?: string; weekStart?: number } | undefined;
   Records: undefined;
   Career: undefined;
   Goals: undefined;
