@@ -5,7 +5,10 @@
 -- decision) and acknowledge it. The hourly play-reconcile job processes the kept rows once billing is enabled, with its own bounded back-off, so a
 -- legitimate purchase is not lost and Google stops re-sending. Duplicate deliveries of one Pub/Sub message are recognised by its messageId.
 -- Service role only: RLS on, no policy, no grant to anon/authenticated. Additive. The caller owns the transaction: never BEGIN/COMMIT here.
--- Rollback: drop function public.titan_finish_play_notification_v1(text, text, boolean);
+-- Also: checkout only opens on a backend that has this inbox and the V18 access sweep (titan_play_checkout_ready_v1 below), so a sale can
+-- never start while the server would lose its confirmation.
+-- Rollback: re-apply titan_play_checkout_ready_v1 of 20261110152900;
+--           drop function public.titan_finish_play_notification_v1(text, text, boolean);
 --           drop function public.titan_play_notifications_due_v1(integer);
 --           drop function public.titan_record_play_notification_v1(text, text, text, integer, boolean);
 --           drop table private.titan_play_notification_inbox;
@@ -131,3 +134,17 @@ revoke all on function public.titan_finish_play_notification_v1(text, text, bool
 grant execute on function public.titan_record_play_notification_v1(text, text, text, integer, boolean) to service_role;
 grant execute on function public.titan_play_notifications_due_v1(integer) to service_role;
 grant execute on function public.titan_finish_play_notification_v1(text, text, boolean) to service_role;
+
+-- Checkout readiness now also requires this release's backend: the inbox (V20) and the access sweep (V18).
+create or replace function public.titan_play_checkout_ready_v1(p_user_id uuid)
+returns boolean language sql stable security definer set search_path = ''
+as $function$
+  select to_regprocedure('public.titan_record_play_notification_v1(text,text,text,integer,boolean)') is not null
+     and to_regprocedure('public.titan_entitlements_expiry_sweep_v1()') is not null
+     and exists (
+       select 1 from public.profiles p join auth.users u on u.id = p.id
+       where p.id = p_user_id and u.is_anonymous is false and u.deleted_at is null
+     );
+$function$;
+revoke all on function public.titan_play_checkout_ready_v1(uuid) from public, anon, authenticated;
+grant execute on function public.titan_play_checkout_ready_v1(uuid) to service_role;

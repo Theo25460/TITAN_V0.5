@@ -10,7 +10,7 @@ l'acquitte, et `play-reconcile` la traite une fois la facturation ouverte. Un ac
 
 | Fichier | Effet | Visible pour les joueurs ? |
 |---|---|---|
-| `01` boîte de réception | Table privée `private.titan_play_notification_inbox` (RLS, aucun accès `anon`/`authenticated`), trois fonctions réservées au rôle serveur : garder une notification (`new` / `duplicate` / `done` / `full`, au plus 5 000 lignes non authentifiées en attente), réserver les lignes dues avec un délai croissant (5 min → 24 h) **avant** traitement, clore ou laisser en attente (abandon après 30 essais ; le balayage horaire des droits relit toujours chaque jeton connu) | Non. Effet indirect : un achat dont la notification arrivait pendant que la facturation était fermée sera attribué à l'ouverture |
+| `01` boîte de réception | Table privée `private.titan_play_notification_inbox` (RLS, aucun accès `anon`/`authenticated`), trois fonctions réservées au rôle serveur : garder une notification (`new` / `duplicate` / `done` / `full`, au plus 5 000 lignes non authentifiées en attente), réserver les lignes dues avec un délai croissant (5 min → 24 h) **avant** traitement, clore ou laisser en attente (abandon après 30 essais ; le balayage horaire des droits relit toujours chaque jeton connu) | Non. Effet indirect : un achat dont la notification arrivait pendant que la facturation était fermée sera attribué à l’ouverture. `titan_play_checkout_ready_v1` exige désormais la boîte (V20) et le balayage des accès (V18) : la vente ne peut pas ouvrir sur un serveur en retard |
 
 ## Procédure
 

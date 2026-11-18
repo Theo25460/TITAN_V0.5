@@ -34,7 +34,7 @@ async function run(callback, { env = {}, owner = USER, google = { status: 200, d
         if (u.host === 'www.googleapis.com' && u.pathname === '/oauth2/v3/certs') return Response.json({ keys: [{ ...pushJwk, kid: 'k1', alg: 'RS256', use: 'sig' }] });
         if (u.host === 'oauth2.googleapis.com') return Response.json({ access_token: 'google-access-token-synthetic' });
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) return Response.json(google.data, { status: google.status });
-        if (u.pathname.endsWith('/titan_record_play_notification_v1')) return dbOk ? Response.json(kept) : Response.json({}, { status: 500 });
+        if (u.pathname.endsWith('/titan_record_play_notification_v1')) return kept === 'missing' ? Response.json({ code: 'PGRST202' }, { status: 404 }) : dbOk ? Response.json(kept) : Response.json({}, { status: 500 });
         if (u.pathname.endsWith('/titan_finish_play_notification_v1')) return Response.json(true);
         if (u.pathname.endsWith('/titan_entitlement_owner_v1')) return dbOk ? Response.json(owner) : Response.json({}, { status: 500 });
         if (u.pathname.endsWith('/titan_apply_play_entitlement_v1')) return dbOk ? Response.json(true) : Response.json({}, { status: 500 });
@@ -220,4 +220,10 @@ test('events are stamped with the moment Google was read, so a late notification
         const at = Date.parse(applied(calls)[0].body.p_event_at);
         assert.ok(Math.abs(at - Date.now()) < 5000);
     });
+});
+
+test('function deployed before the inbox migration: a configured setup still processes inline; otherwise Pub/Sub retries', async () => {
+    await run(async calls => { assert.equal((await handler(push(event(2)))).status, 200); assert.equal(applied(calls).length, 1); assert.equal(finished(calls).length, 0); }, { kept: 'missing' });
+    await run(async calls => { assert.equal((await handler(push(event(2)))).status, 503); assert.equal(applied(calls).length, 0); }, { kept: 'missing', env: { PLAY_BILLING_ENABLED: '' } });
+    await run(async () => assert.equal((await handler(push(event(2)))).status, 503), { kept: 'missing', google: { status: 500, data: {} } });
 });

@@ -64,5 +64,16 @@ begin
     end loop;
   end loop;
   assert has_function_privilege('service_role', 'public.titan_record_play_notification_v1(text,text,text,integer,boolean)', 'execute'), 'the server function can keep notifications';
+  assert not has_function_privilege('authenticated', 'public.titan_play_checkout_ready_v1(uuid)', 'execute'), 'readiness stays server-only';
+end $$;
+
+-- Checkout readiness requires the inbox and the V18 sweep, plus a real non-anonymous profile.
+do $$
+declare a uuid := gen_random_uuid();
+begin
+  assert not public.titan_play_checkout_ready_v1(a), 'no profile: not ready';
+  insert into auth.users(id, raw_user_meta_data, is_anonymous) values (a, '{}', false);
+  insert into public.profiles(id, username) values (a, 'qa_inbox_ready') on conflict (id) do nothing;
+  assert public.titan_play_checkout_ready_v1(a), 'profile and up-to-date backend: ready';
 end $$;
 rollback;

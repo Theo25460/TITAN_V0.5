@@ -152,7 +152,17 @@ export default async function handler(request) {
             p_message_id: messageId, p_purchase_token: purchaseToken, p_kind: kind, p_notification_type: notificationType, p_authenticated: authenticated
         });
     } catch (_) { kept = { ok: false }; }
-    if (!kept.ok || typeof kept.data !== 'string') { trace({ outcome: 'inbox-unavailable', kind, type: notificationType }); return reply(503); }
+    // Inbox function missing (function deployed before migration 20261122090000): process inline as before the inbox existed, so a
+    // fully configured setup still confirms purchases; without billing there is nothing to do but let Pub/Sub retry.
+    const inboxMissing = !kept.ok && (kept.status === 404 || kept.data?.code === 'PGRST202');
+    if (inboxMissing && config.ready && authenticated) {
+        let inline;
+        try { inline = await processPlayNotification({ purchaseToken, kind, notificationType }, config, lazyGoogleHeaders(config.account)); }
+        catch (_) { inline = { outcome: 'exception', final: false }; }
+        trace({ outcome: inline.outcome, final: inline.final, kind, type: notificationType, inbox: 'missing' });
+        return reply(inline.final ? 200 : 503);
+    }
+    if (!kept.ok || typeof kept.data !== 'string') { trace({ outcome: inboxMissing ? 'inbox-missing' : 'inbox-unavailable', kind, type: notificationType }); return reply(503); }
     if (kept.data === 'full') { trace({ outcome: 'inbox-full', kind, type: notificationType }); return reply(503); }
     if (kept.data === 'done') return reply(200, 'duplicate');
     // Kept. Without billing ready or without authentication, the hourly job processes it later: Google can stop re-sending now.

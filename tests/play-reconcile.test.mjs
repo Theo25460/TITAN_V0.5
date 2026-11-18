@@ -31,7 +31,7 @@ async function run(callback, { env = {}, rows = due, inbox = [], owner = null } 
         calls.push({ host: u.host, path: u.pathname, body });
         if (u.host === 'oauth2.googleapis.com') return Response.json({ access_token: 'google-access-token-synthetic' });
         if (u.pathname.endsWith('/titan_play_entitlements_due_v1')) return Response.json(rows);
-        if (u.pathname.endsWith('/titan_play_notifications_due_v1')) return Response.json(inbox);
+        if (u.pathname.endsWith('/titan_play_notifications_due_v1')) return Response.json(inbox.splice(0, body?.p_limit ?? 25));
         if (u.pathname.endsWith('/titan_finish_play_notification_v1')) return Response.json(true);
         if (u.pathname.endsWith('/titan_entitlement_owner_v1')) return Response.json(owner);
         if (u.pathname.includes('/purchases/subscriptionsv2/tokens/')) { const a = answers[decodeURIComponent(u.pathname.split('/').pop())]; return Response.json(a.data, { status: a.status }); }
@@ -107,7 +107,8 @@ test('notifications kept in the inbox while billing was off are processed once i
         assert.ok(calls.some(c => c.path.endsWith(':acknowledge')), 'acknowledged after the write');
         const finished = calls.filter(c => c.path.endsWith('/titan_finish_play_notification_v1')).map(c => c.body);
         assert.deepEqual(finished.map(f => [f.p_message_id, f.p_final]), [['m-paid', true], ['m-down', false]]);
-    }, { rows: [], inbox });
+        assert.equal(calls.filter(c => c.path.endsWith('/titan_play_notifications_due_v1')).every(c => c.body.p_limit === 1), true, 'one row claimed at a time');
+    }, { rows: [], inbox: [...inbox] });
     // Billing still off: the inbox is not touched at all.
-    await run(async calls => { await handler(new Request('https://x.test')); assert.deepEqual(calls, []); }, { env: { PLAY_BILLING_ENABLED: '' }, inbox });
+    await run(async calls => { await handler(new Request('https://x.test')); assert.deepEqual(calls, []); }, { env: { PLAY_BILLING_ENABLED: '' }, inbox: [...inbox] });
 });

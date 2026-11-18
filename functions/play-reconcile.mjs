@@ -33,13 +33,14 @@ export default async function handler(_request, { budgetMs = 20_000, now = () =>
     // Kept notifications first (half the budget at most): a purchase waiting there is a player who already paid.
     async function processInbox(begin) {
         const config = playNotificationConfig();
-        const rows = await rpc('titan_play_notifications_due_v1', { p_limit: 25 });
-        // Inbox missing (migration not applied yet) or unreachable: the entitlement sweep below still runs.
-        if (!rows.ok || !Array.isArray(rows.data) || rows.data.length === 0) return {};
-        const counts = { notifications: 0, notificationsFailed: 0 };
         const headers = lazyGoogleHeaders(account);
-        for (const row of rows.data) {
-            if (now() - begin > budgetMs / 2) break; // claimed rows not reached are retried after their scheduled back-off
+        const counts = { notifications: 0, notificationsFailed: 0 };
+        // One row is claimed at a time, so a row is only charged an attempt (and pushed back) when it is really processed.
+        for (let i = 0; i < 25 && now() - begin <= budgetMs / 2; i++) {
+            const rows = await rpc('titan_play_notifications_due_v1', { p_limit: 1 });
+            // Inbox missing (migration not applied yet), unreachable or empty: the entitlement sweep below still runs.
+            if (!rows.ok || !Array.isArray(rows.data) || rows.data.length === 0) break;
+            const row = rows.data[0];
             counts.notifications++;
             let result;
             try {
@@ -49,7 +50,7 @@ export default async function handler(_request, { budgetMs = 20_000, now = () =>
             try { await rpc('titan_finish_play_notification_v1', { p_message_id: row.message_id, p_outcome: result.outcome, p_final: result.final }); }
             catch (_) { counts.notificationsFailed++; }
         }
-        return counts;
+        return counts.notifications ? counts : {};
     }
     try {
         const due = await rpc('titan_play_entitlements_due_v1', { p_limit: 50 });
