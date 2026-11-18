@@ -396,7 +396,7 @@ export const messageFor = (e: unknown): string => {
       NOT_FOUND: "Google Play ne reconnaît pas cet achat.",
       NETWORK: "Connexion indisponible. Consulte Google Play, puis utilise « Restaurer mes achats ».",
       REFUSED: "L’achat n’a pas pu être confirmé. Consulte Google Play, puis utilise « Restaurer mes achats ».",
-      TEST_PURCHASE: "Google Play signale un achat de test (compte testeur de licence). Le service public TITAN n’ouvre aucun accès pour un achat de test, et « Restaurer mes achats » ne le rattachera pas. Un achat de test n’est pas un paiement réel.",
+      TEST_PURCHASE: "Google Play signale un achat de test (compte testeur de licence) que le serveur n’a pas pu rattacher. Un achat de test vérifié par Google ouvre l’accès, enregistré comme test et sans paiement réel : réessaie « Restaurer mes achats » dans un instant.",
     } as Record<string, string>
   )[code] ?? "L’opération a échoué. Consulte tes abonnements dans Google Play, puis réessaie.";
 };

@@ -61,7 +61,15 @@ export function comebackDates(logs: TrainingLog[], now = new Date()): Date[] {
   return [5, 10].map((n) => new Date(base.getFullYear(), base.getMonth(), base.getDate() + n, 18, 0, 0)).filter((d) => d.getTime() > now.getTime());
 }
 
-/** H9: consecutive held weeks up to the last complete one (a week in pause is skipped, never a break). */
+/** H9 (reworded 18 Nov 2026, no-pressure rule): held weeks among the last `span` complete weeks. It never "breaks": a quiet week
+ *  only stops counting once it is older than the window, a declared pause is not counted against it. */
+export function heldRecent(cadence: Cadence | null | undefined, span = 8): number {
+  if (!cadence?.weeks?.length) return 0;
+  const complete = cadence.weeks.filter((w) => w.state !== "current");
+  return complete.slice(-span).filter((w) => w.state === "held").length;
+}
+
+/** Former H9: consecutive held weeks (a week in pause is skipped). Kept for tests of the cadence data; no longer shown to the player. */
 export function heldStreak(cadence: Cadence | null | undefined): number {
   if (!cadence?.weeks?.length) return 0;
   let n = 0;

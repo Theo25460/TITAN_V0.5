@@ -7,7 +7,7 @@ import { StyleSheet, View } from "react-native";
 import { Format, Sports, type Cadence } from "../core";
 import type { TrainingLog } from "../core/types";
 import { useOwner } from "../data/auth";
-import { dayKey, energyAdvice, heldStreak, yearGrid, yearProjection } from "../lib/habits";
+import { dayKey, energyAdvice, heldRecent, yearGrid, yearProjection } from "../lib/habits";
 import { readIntention, writeIntention } from "../lib/intention";
 import { ownerKey, readJSON, writeJSON } from "../lib/storage";
 import { colors, space } from "../theme/tokens";
@@ -32,7 +32,7 @@ export function HabitStrip({ logs, cadence, favorite }: { logs: TrainingLog[]; c
     });
   }, [owner]);
   const sport = favorite ?? logs.find((l) => l.sport && Sports.conf(l.sport))?.sport ?? "walking";
-  const streak = heldStreak(cadence);
+  const held = heldRecent(cadence, 8);
   return (
     <Card tone="ruled" style={{ gap: space.s2 }} testID="qg-habits">
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.s2 }}>
@@ -50,7 +50,7 @@ export function HabitStrip({ logs, cadence, favorite }: { logs: TrainingLog[]; c
         </View>
       ) : null}
       <Button kind="secondary" icon="timer" label={`Juste 10 minutes · ${Sports.label(sport)}`} onPress={() => navigation.navigate("SessionForm", { sport, quickMinutes: 10 })} testID="habit-quick" />
-      {streak >= 2 ? <T variant="small" testID="habit-streak">{streak} semaines tenues d’affilée. Une pause déclarée ne casse rien.</T> : null}
+      {held >= 2 ? <T variant="small" testID="habit-streak">{held} semaines tenues sur les 8 dernières. Une semaine calme ou une pause ne t’enlève rien.</T> : null}
     </Card>
   );
 }

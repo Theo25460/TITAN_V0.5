@@ -457,7 +457,7 @@ function GuildPanel({ overview, onAct, busy, owner, initialCode }: { overview: a
             ))}
           </View>
           <T variant="small">
-            {chronicle.data.held} semaine{chronicle.data.held > 1 ? "s" : ""} réussie{chronicle.data.held > 1 ? "s" : ""} ensemble · meilleure série : {chronicle.data.bestStreak}
+            {chronicle.data.held} semaine{chronicle.data.held > 1 ? "s" : ""} réussie{chronicle.data.held > 1 ? "s" : ""} ensemble
           </T>
         </Card>
       ) : null}

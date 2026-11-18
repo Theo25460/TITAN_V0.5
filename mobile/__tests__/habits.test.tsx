@@ -88,3 +88,14 @@ test("H4 + H5: one's own slot is saved, and « Juste 10 minutes » opens a prefi
   await waitFor(() => expect(mockStore.get("titan.intention.v1:owner-a")).toBe("Après le travail, je cours"));
   expect(await screen.findByText("Après le travail, je cours")).toBeTruthy();
 });
+
+test("the QG cadence counts held weeks in the last 8, and a quiet week never resets it to zero", () => {
+  const { heldRecent } = require("../src/lib/habits");
+  const w = (state: string) => ({ state });
+  const weeks = [w("held"), w("held"), w("held"), w("missed"), w("held"), w("pause"), w("held"), w("current")];
+  expect(heldRecent({ weeks } as unknown as Cadence, 8)).toBe(5);
+  // A quiet last week: the former streak fell to 0, the cadence still shows the 5 weeks held in the window.
+  const quiet = { weeks: [...weeks.slice(0, -1), w("missed"), w("current")] } as unknown as Cadence;
+  expect(heldStreak(quiet)).toBe(0);
+  expect(heldRecent(quiet, 8)).toBe(5);
+});

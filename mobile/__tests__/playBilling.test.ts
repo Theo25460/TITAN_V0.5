@@ -315,7 +315,8 @@ test("server provenance survives the client adapter without guessing payment fro
 test("a licence-tester purchase is named for what it is and never sends the player to a restoration that cannot work", async () => {
   const message = messageFor(new BillingError("TEST_PURCHASE"));
   expect(message).toMatch(/achat de test/i);
-  expect(message).toMatch(/ne le rattachera pas/);
+  expect(message).toMatch(/enregistré comme test/);
+  expect(message).toMatch(/sans paiement réel/);
   const s = fakeStore();
   s.setAvailable([{ productId: "titan01", purchaseToken: "t1-0123456789abcdef" }]);
   const verify = jest.fn(async () => { throw new BillingError("TEST_PURCHASE"); });

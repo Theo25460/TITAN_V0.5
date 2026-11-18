@@ -126,7 +126,7 @@ test("a challenge without any friend selected becomes an open challenge shared b
 
 test("the guild panel tells the chronicle: weeks held together and the best streak (AUD-44)", async () => {
   show({ guilde: "G-K7P2Q" });
-  expect(await screen.findByText("5 semaines réussies ensemble · meilleure série : 3", undefined, slow)).toBeTruthy();
+  expect(await screen.findByText("5 semaines réussies ensemble", undefined, slow)).toBeTruthy();
 });
 
 test("le coaching charge le compte à l’ouverture et filtre les liens étrangers", async () => {
