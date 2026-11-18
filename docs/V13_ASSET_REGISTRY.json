@@ -12816,8 +12816,8 @@
       ],
       "source": "mobile/src/core/icons.generated.ts",
       "description": "Native vector icon catalogue",
-      "bytes": 97198,
-      "version": "sha256:21162436c0f9f93c41c40f42628efa285b476937540ac2e703ebf21c272c2c11",
+      "bytes": 97305,
+      "version": "sha256:dbdf5ae14e01e736248fcedfb7afced172abe97d22cd762a9b25c7bf88a627dd",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -15122,7 +15122,7 @@
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.65,
       "source": "js/app/sport-icons.js",
-      "sha256": "018abffec301ec938ced6aa34978108a03749395134c0772fa5869204052c5f6",
+      "sha256": "f07265889f0d712f07c421709f254fe094397467dbd0458f6fd7dd60a2689f9a",
       "capture": null
     },
     {
@@ -15562,7 +15562,7 @@
       "viewBox": "0 0 24 24",
       "strokeWidth": 1.65,
       "source": "js/app/sport-icons.js",
-      "sha256": "a738be86a1bd28d9e11d4bc76512b6d2fd4fe84ff144d4ff2640a452d9cd7d86",
+      "sha256": "19dfb6e4b9ade784027a21f29494c9fd9950457d0f5ecf1017d923cbacbad8d6",
       "capture": null
     },
     {

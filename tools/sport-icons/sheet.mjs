@@ -1,7 +1,7 @@
 // Contact sheet of the TITAN sport icons: every glyph at 48, 22 and 16 px on the night ground, plus 22 px on the chalk ground.
-// Usage: node tools/sport-icons/sheet.mjs [--png out.png] [--only name,name] [--cols 10]
-// Writes docs/design/sport-icons/sheet.html; with --png, renders it with the pre-installed Chromium.
-import { mkdirSync, writeFileSync } from "node:fs";
+// Usage: node tools/sport-icons/sheet.mjs [--png out.png] [--html out.html] [--only name,name,prefix*] [--cols 10] [--scale 2]
+// With --html out.html writes the sheet as a page; with --png out.png renders it with the pre-installed Chromium.
+import { existsSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { GLYPHS } from "./glyphs.mjs";
 
@@ -21,14 +21,12 @@ figure{margin:0;background:#131920;border-radius:8px;padding:10px 6px 8px;displa
 figcaption{color:#AEB7BD;text-align:center;word-break:break-all}
 h1{font-size:15px;margin:0 0 12px}
 </style><h1>TITAN · icônes de sport · ${names.length} glyphes</h1><main>${names.map(cell).join("")}</main>`;
-mkdirSync(new URL("../../docs/design/sport-icons/", import.meta.url), { recursive: true });
-const out = new URL("../../docs/design/sport-icons/sheet.html", import.meta.url);
-if (!only) writeFileSync(out, html);
+if (opt("--html", "")) writeFileSync(opt("--html"), html);
 const png = opt("--png", "");
 if (png) {
   const require = createRequire(import.meta.url);
   const { chromium } = require("playwright");
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM || (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined) });
   const page = await browser.newPage({ viewport: { width: 32 + cols * 126, height: 400 }, deviceScaleFactor: Number(opt("--scale", 1)) });
   await page.setContent(html);
   await page.screenshot({ path: png, fullPage: true });
