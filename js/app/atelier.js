@@ -152,6 +152,9 @@
     if (target) {
       if (target.tagName !== "BUTTON") target.tabIndex = -1;
       target.focus({ preventScroll: true });
+      // The collection now sits under the reserve and the dressing: the focused result is brought on screen, clear of both bars.
+      const box = target.getBoundingClientRect();
+      if (box.top < 72 || box.bottom > window.innerHeight - 96) target.scrollIntoView({ block: "center" });
     }
     return target;
   }
@@ -283,7 +286,7 @@
     if (item.slot === "map") return `<span class="at-map" data-ambiance="${esc(item.cosmetic)}"><img src="/assets/renaissance/${esc(world)}-small.webp" alt="" width="160" height="100" loading="lazy"><i></i><i></i><i></i></span>`;
     // A picture of the card style with example figures: hidden from assistive technology, which would read them as the user's data
     // (the control around it already names the piece).
-    return `<span class="at-card" data-card="${esc(item.cosmetic)}" aria-hidden="true"><small>Course à pied · record</small><strong>10 km · 47:12</strong><em>TITAN</em></span>`;
+    return `<span class="at-card" data-card="${esc(item.cosmetic)}" aria-hidden="true"><small>Course à pied · record</small><b>10 km · 47:12</b><em>TITAN</em></span>`;
   }
 
   /* The state, in words and in shape (never by colour alone). */
@@ -322,8 +325,8 @@
     const canRemove = worn && item.unlock !== "default" && (data.items || []).some((i) => i.slot === item.slot && i.unlock === "default" && i.owned);
     const wear = worn ? (canRemove ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-remove="${esc(item.slot)}" aria-label="Retirer ${esc(item.name)}">Retirer</button>` : "") : item.owned ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-wear="${esc(item.id)}" aria-label="Porter ${esc(item.name)}">Porter</button>` : "";
     if (item.unlock === "credits" && !permanent(item)) {
-      const purchase = item.price - credits() > 0 ? "" : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}" aria-label="${item.owned ? "Garder la pièce" : "Débloquer"} ${esc(item.name)}">${item.owned ? "Garder la pièce" : "Débloquer"}</button>`;
-      return wear + purchase;
+      const keep = item.price > credits() ? "" : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-buy="${esc(item.id)}" aria-label="${item.owned ? "Garder la pièce" : "Débloquer"} ${esc(item.name)}">${item.owned ? "Garder la pièce" : "Débloquer"}</button>`;
+      return wear + keep;
     }
     if (wear) return wear;
     if (item.unlock === "plus" && !item.owned) return `<a class="asc-btn asc-btn-ghost asc-btn-sm" data-goto-plus href="/titan-plus">TITAN+</a>`;
@@ -336,7 +339,7 @@
     const act = action(item);
     return `<article class="at-item sig-plate" id="at-piece-${esc(item.id)}" data-piece="${esc(item.id)}" data-state="${st}" data-owned="${item.owned}" data-unlock="${esc(item.unlock)}">
       <button type="button" class="at-try" data-preview="${esc(item.id)}" aria-label="Essayer ${esc(item.name)}"><span class="at-preview">${preview(item)}</span><span class="at-try-tag" aria-hidden="true">${icon("eye")} Essayer</span></button>
-      <div class="at-body"><div class="at-head"><h4 class="at-name">${esc(item.name)}</h4>${stateChip(item)}</div>
+      <div class="at-body"><div class="at-head"><h4 class="at-name">${esc(item.name)}</h4><p class="at-status">${stateChip(item)}</p></div>
         ${pathHtml(item)}
         ${act ? `<div class="at-action">${act}</div>` : ""}</div></article>`;
   }
@@ -492,7 +495,7 @@
         <a class="asc-btn asc-btn-secondary asc-btn-sm" href="/profile#personnage">Choisir mon personnage</a></div></article>`);
     }
     if (!plates.length) return "";
-    return `<section class="asc-section at-merits" id="merite" aria-labelledby="at-merit-title"><div class="asc-section-head"><h2 id="at-merit-title">Ce qui se mérite</h2><span class="asc-small asc-muted">Aucun crédit ne les débloque</span></div>
+    return `<section class="asc-section at-merits" id="merite" aria-labelledby="at-merit-title"><div class="asc-section-head"><h2 id="at-merit-title">Ce qui se mérite</h2><span class="asc-small asc-muted">Hors crédits</span></div>
       <div class="at-merit-grid">${plates.join("")}</div></section>`;
   }
 
@@ -660,7 +663,7 @@
       eyebrow: "Essayage · rien n’est enregistré",
       body: `<div class="at-trial">${stage}
         <p class="at-trial-desc">${esc(item.description || "")}</p>
-        <div class="at-trial-state">${stateChip(item)}</div>
+        <p class="at-status">${stateChip(item)}</p>
         <p class="asc-small asc-muted">${esc(trialNote(item))}</p>
         <p class="asc-small asc-faint">Cet aperçu ne change pas ton style et ne dépense aucun crédit.</p>
         <button type="button" class="asc-btn asc-btn-secondary at-trial-back" data-trial-close>Revenir à la collection</button></div>`,
@@ -724,8 +727,11 @@
     events.forEach(event => window.addEventListener(event, closeStale));
     return confirmation.then((done) => {
       // The control that opened the confirmation is gone once the piece is acquired: the keyboard lands on the piece itself.
-      if (done && mutationCurrent(context) && (!document.activeElement || document.activeElement === document.body))
-        root.querySelector(`[data-piece="${id}"] [data-remove], [data-piece="${id}"] [data-wear], [data-piece="${id}"] [data-preview]`)?.focus({ preventScroll: true });
+      // (Once the sheet has really left the page: until then the rest of the page cannot take the focus.)
+      if (done) setTimeout(() => {
+        if (mutationCurrent(context) && !document.querySelector("dialog[open]") && (!document.activeElement || document.activeElement === document.body))
+          (root.querySelector(`[data-piece="${id}"] .at-action button`) || root.querySelector(`[data-piece="${id}"] [data-preview]`))?.focus({ preventScroll: true });
+      }, 0);
       return done;
     }).finally(() => events.forEach(event => window.removeEventListener(event, closeStale)));
   }
@@ -741,6 +747,8 @@
       <dl class="at-ledger"><div><dt>Ta réserve</dt><dd class="asc-num">${F().number(credits())}</dd></div>
         <div><dt>${esc(item.name)}</dt><dd class="asc-num">− ${F().number(item.price)}</dd></div>
         <div class="is-total"><dt>Il te restera</dt><dd class="asc-num">${F().number(left)}</dd></div></dl>`;
+    // The account says the price and what is left, line by line: the sentence that said the same is not repeated under it.
+    stack.querySelector(":scope > p:first-child")?.remove();
     stack.prepend(block);
   }
 

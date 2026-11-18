@@ -158,7 +158,7 @@
 .at-reach-prev .at-map i { display: none; }
 .at-reach-prev .at-card { width: 64px; padding: 6px; border-radius: 6px; }
 .at-reach-prev .at-card small { display: none; }
-.at-reach-prev .at-card strong { font-size: 10px; }
+.at-reach-prev .at-card b { font-size: 10px; }
 .at-reach-prev .at-card em { margin-top: 2px; font-size: 6px; }
 .at-reach-text {
   display: grid;
@@ -311,6 +311,12 @@
 }
 @media (min-width: 350px) {
   .at-shelf .at-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* The smallest phones: one piece per line, the picture beside its text. */
+@media (max-width: 349.98px) {
+  .at-item.sig-plate { flex-direction: row; align-items: stretch; }
+  .at-item .at-try { flex: none; width: 116px; min-height: 0; border-radius: var(--r3) 0 0 var(--r3); }
+  .at-item .at-body { padding: var(--s3) var(--s3) var(--s4) 0; }
 }
 
 /* A piece on its plate. */
@@ -556,7 +562,7 @@
 .at-trial-stage .at-card { width: min(250px, 100%); padding: 20px; border-radius: 14px; }
 .at-trial-stage .at-card small,
 .at-trial-stage .at-card em { font-size: 12px; }
-.at-trial-stage .at-card strong { font-size: 28px; }
+.at-trial-stage .at-card b { font-size: 28px; }
 .at-card-canvas {
   display: block;
   width: min(250px, 100%);
@@ -578,11 +584,19 @@
 .at-trial-where,
 .at-trial p { margin: 0; }
 .at-trial-desc { font-size: 16px; color: var(--tx); }
-.at-trial-state {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
+/* The state chip and, beside it, how the piece is held (« Acquis définitivement » reads as one phrase). */
+.at-status {
+  margin: 0;
+  line-height: 1.9;
+}
+.at-status .sig-state { vertical-align: middle; }
+/* The card picture: the mock's figure (a <b>, so that the piece's own name stays the only <strong> of its line). */
+.at-card b {
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.05;
 }
 .at-trial-back { margin-top: var(--s2); }
 
