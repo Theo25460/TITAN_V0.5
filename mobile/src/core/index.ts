@@ -73,6 +73,8 @@ export type MeasureIssue = { code: string; field: string; message: string };
 export const Training = g.TitanTraining as {
   BOUNDS: { maxKm: number; kmWithoutDuration: number; maxKmh: number; maxMeters: number; maxMinutes: number; maxElevation: number; maxExercises: number };
   measureIssues(m: { km?: number | null; minutes?: number | null; meters?: number | null; exercises?: unknown[] | null }): MeasureIssue[];
+  /** In the journal, not archived, not held or refused by the server's checks (status rejected / flagged / pending_review). */
+  counted(log: Partial<TrainingLog>): boolean;
   duration(log: Partial<TrainingLog>): number | null;
   load(log: Partial<TrainingLog>): number | null;
   dateKey(d: string | Date): string;

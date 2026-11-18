@@ -13,6 +13,9 @@ test("a refused session explains why in words, never with a raw code", () => {
   const e = toAppError({ code: "23514", message: "TRAINING_REJECTED" });
   expect(e.permanent).toBe(true);
   expect(e.message).toMatch(/limites/);
+  // Audit: the pending screen offers « Réessayer » (same frozen values) and « Supprimer », never an edit: no « corrige-la puis renvoie-la ».
+  expect(e.message).not.toMatch(/renvoie-la/i);
+  expect(e.message).toMatch(/Supprime-la, puis enregistre-la de nouveau avec des valeurs corrigées/);
 });
 
 test("every GPS sport is a real catalogue sport of the distance form (no family id such as « mtb »)", () => {

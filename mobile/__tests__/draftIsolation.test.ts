@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { discardDraft, draftCleanup, loadDrafts, saveDraft } from "../src/data/drafts";
-import { freshDraft } from "../src/core/session";
+import { freshDraft, removeGpxImport } from "../src/core/session";
 import { ownerKey } from "../src/lib/storage";
 jest.mock("../src/data/auth", () => ({ useAuth: () => ({ owner: "b" }) }));
 
@@ -68,8 +68,26 @@ test("Lot A: a finished GPS recording is pinned — another sport's form cannot 
   await saveDraft("a", run);
   await saveDraft("a", { ...freshDraft("muscu_gym"), note: "Une série" });
   expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "a")))!)).toMatchObject({ draft: { sport: "running", gpsRouteId: "route-1" } });
-  await saveDraft("a", { ...run, note: "Sortie du soir" });
+  await saveDraft("a", { ...run, note: "Sortie du soir" }, { editing: "route-1" });
   expect(JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "a")))!)).toMatchObject({ draft: { note: "Sortie du soir" } });
+});
+
+test("audit: a same-sport form opened to redo a session cannot replace a pinned recording; the recording's own form still edits and clears it", async () => {
+  const stored = async () => JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "f")))!);
+  await loadDrafts("f");
+  const run = { ...freshDraft("running"), distance: "10.02", durM: "52", gpsRouteId: "route-1" };
+  expect(await saveDraft("f", run, { release: true })).toBe(true);
+  // « Refaire ma dernière séance » / « Refaire cette séance »: same sport, pre-filled from an earlier session, not opened from the recording.
+  expect(await saveDraft("f", { ...freshDraft("running"), distance: "5", durM: "26" })).toBe(false);
+  expect(await saveDraft("f", { ...freshDraft("running"), distance: "5", durM: "26" }, { editing: "route-0" })).toBe(false);
+  expect(await stored()).toMatchObject({ draft: { sport: "running", gpsRouteId: "route-1", distance: "10.02", durM: "52" } });
+  // The recording's own form edits it, and « Repartir en saisie manuelle » may clear its trace.
+  expect(await saveDraft("f", { ...run, note: "Sortie du soir" }, { editing: "route-1" })).toBe(true);
+  expect(await saveDraft("f", removeGpxImport({ ...run, note: "Sortie du soir" }), { editing: "route-1" })).toBe(true);
+  expect((await stored()).draft).toMatchObject({ distance: "10.02", note: "Sortie du soir" });
+  expect((await stored()).draft.gpsRouteId).toBeUndefined();
+  // Without a trace the draft is an ordinary form again: any form of the account may replace it.
+  expect(await saveDraft("f", { ...freshDraft("running"), distance: "5" })).toBe(true);
 });
 
 test("Lot A: a pinned GPS recording survives the 48-hour form expiry and can still be given up explicitly", async () => {

@@ -38,15 +38,17 @@ export function loadDrafts(owner: string) {
 /** The draft holds a finished GPS recording (its trace already waits in the route outbox). */
 const isRecording = (stored: Stored) => Boolean(stored?.draft?.gpsRouteId);
 
-/** One draft per account. A finished GPS recording is pinned in it until it is sent or explicitly cleaned: typing in another
-    sport's form must not overwrite the only copy of a measured distance and duration (the recorder is released once the draft
-    is on disk). Edits of that same recording are saved as usual. Resolves to false when the write was held back: a caller that
-    is about to release another measure (a second GPS recording, a TITAN LIVE session) must check it and keep its own copy. */
-export function saveDraft(owner: string, draft: SessionDraft, { release = false }: { release?: boolean } = {}): Promise<boolean> {
+/** One draft per account. A finished GPS recording is pinned in it until it is sent or explicitly cleaned: typing in any other
+    form (another sport, or the same sport opened to redo an earlier session) must not overwrite the only copy of a measured
+    distance and duration (the recorder is released once the draft is on disk). Edits of that same recording are saved as usual:
+    its own form says so with `editing`, the gpsRouteId of the stored recording it was opened from. Resolves to false when the
+    write was held back: a caller that is about to release another measure (a second GPS recording, a TITAN LIVE session) must
+    check it and keep its own copy. */
+export function saveDraft(owner: string, draft: SessionDraft, { release = false, editing }: { release?: boolean; editing?: string } = {}): Promise<boolean> {
   const stored = { draft, updatedAt: Date.now(), id: randomUUID() };
-  // A form only edits: another sport's form is held back, the recording's own form may edit it, even clear its trace.
+  // A form only edits: every form but the recording's own is held back; that one may edit it, even clear its trace.
   // A caller that releases a measure (`release`: GPS or live « Garder ») never replaces a different waiting recording, same sport or not.
-  const pinned = (s: Stored) => isRecording(s) && (release ? s!.draft.gpsRouteId !== draft.gpsRouteId : s!.draft.sport !== draft.sport);
+  const pinned = (s: Stored) => isRecording(s) && (release ? s!.draft.gpsRouteId !== draft.gpsRouteId : s!.draft.gpsRouteId !== editing);
   if (current.owner === owner && pinned(current.stored)) return Promise.resolve(false);
   if (current.owner === owner) {
     current = { ...current, stored };
@@ -77,7 +79,7 @@ export function draftCleanup(owner: string, submitted: SessionDraft) {
     const key = ownerKey("draft", owner);
     const stored = await readJSONStrict<Stored>(key, null);
     if (!matches(stored)) {
-      // This form was never stored because a GPS recording of another sport is pinned: leave that draft alone, but the stopwatch
+      // This form was never stored because a GPS recording opened by another form is pinned: leave that draft alone, but the stopwatch
       // of the session just saved still starts again from zero, as it always did.
       if (!expected && timer && isRecording(stored) && current.owner === owner && current.timer === timer) {
         current = { ...current, timer: { elapsed: 0, started: null } };

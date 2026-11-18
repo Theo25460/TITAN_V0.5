@@ -327,7 +327,10 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
       if (unit === "h" && dur) data.unitOverride = "min";
     }
   }
-  data.extras = { ...(d.extras || {}), ...data.extras };
+  const extras: Record<string, unknown> = { ...(d.extras || {}), ...data.extras };
+  // Only this build says the distance is unknown: a session redone from one recorded without distance may have one now.
+  if ((data.extras as Record<string, unknown>).distance_unknown !== true) delete extras.distance_unknown;
+  data.extras = extras;
   const live = sanitizeLiveJournal(d.live);
   if (live) data.live = live;
   unit = data.unitOverride || unit;
@@ -409,6 +412,8 @@ function sanitizeExtras(extras: unknown, sport: string, plus = false): Record<st
     }
   }
   if (Sports.formOf(sport) === "swim" && ["25", "50", "open"].includes(String(raw.pool))) clean.pool = String(raw.pool);
+  // A session recorded by its duration alone says so (same as the website's sanitizer, js/titan_features.js): its distance is unknown, not 0 km.
+  if (raw.distance_unknown === true) clean.distance_unknown = true;
   return clean;
 }
 

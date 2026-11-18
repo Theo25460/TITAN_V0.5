@@ -1,14 +1,17 @@
 /* Every screen renders with realistic account data, with empty data and while loading: no crash, key content shown. */
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { Sports } from "../src/core";
 import { buildSession, freshDraft, toPayload } from "../src/core/session";
-import { draftCleanup, loadDrafts, saveDraft } from "../src/data/drafts";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { discardDraft, draftCleanup, loadDrafts, saveDraft } from "../src/data/drafts";
+import { ownerKey } from "../src/lib/storage";
 import { discard, enqueue, loadQueue } from "../src/data/queue";
 import * as network from "../src/lib/network";
 import { REFERENCE_NOW, adventure, archived, atelier, goals, logs, profile, social } from "../test-fixtures/data";
 
 jest.setTimeout(60000); // the CI runner is slow when every suite runs in parallel: a screen test took 43 s there against ~20 s locally
-const mockState = { empty: false, loading: false };
+const mockState = { empty: false, loading: false, logs: null as unknown[] | null };
 const mockNav = { navigate: jest.fn(), goBack: jest.fn(), replace: jest.fn(), reset: jest.fn(), setOptions: jest.fn(), dispatch: jest.fn() };
 const mockQ = (data: unknown) => ({ data: mockState.loading ? undefined : data, isLoading: mockState.loading, isRefetching: false, error: null, refetch: jest.fn() });
 const mockMutation = () => ({ mutate: jest.fn(), mutateAsync: jest.fn(async () => ({})), isPending: false });
@@ -31,7 +34,7 @@ jest.mock("../src/data/hooks", () => {
     useProfile: () => mockQ(profile),
     usePrefs: () => actual.prefsOf(mockState.empty ? { ...profile, game_state: {} } : profile),
     useLogs: () => {
-      const list = mockState.empty || mockState.loading ? [] : logs;
+      const list = mockState.empty || mockState.loading ? [] : mockState.logs ?? logs;
       return { ...mockQ(list), logs: list, active: Progress.activeLogs(list), archived: mockState.empty ? [] : archived, pending: [], confirmed: list };
     },
     useGoals: () => mockQ(mockState.empty ? [] : goals),
@@ -107,6 +110,7 @@ afterAll(() => { jest.useRealTimers(); });
 beforeEach(() => {
   mockState.empty = false;
   mockState.loading = false;
+  mockState.logs = null;
 });
 
 describe("with account data", () => {
@@ -453,6 +457,19 @@ describe("V1.3.1 · unités, confidentialité et coaching", () => {
     expect(screen.getAllByText("parcourus").length).toBeGreaterThan(0);
     expect(screen.queryByTestId("km-detail")).toBeNull();
   });
+  test("audit : une séance refusée, signalée ou en vérification n’entre ni dans les km par sport ni dans la grille de la semaine", () => {
+    const held = ["rejected", "flagged", "pending_review"].map((status, n) => ({ ...logs[0], id: `held-${status}`, client_event_id: `held-${status}`, sport: "cycling", val: 40 + n, status }));
+    mockState.logs = [...logs, ...held];
+    try {
+      show(<S.Progress />);
+      expect(screen.queryByTestId("km-detail")).toBeNull();
+      expect(screen.queryByText("parcourus, tous sports")).toBeNull();
+      expect(screen.queryByLabelText(new RegExp(`${Sports.label("cycling")} :`))).toBeNull();
+      expect(screen.getAllByLabelText(new RegExp(`${Sports.label("running")} : 1 séance`)).length).toBeGreaterThan(0);
+    } finally {
+      mockState.logs = null;
+    }
+  });
   test("Confidentialité : ce qu’un coach voit et où arrêter le partage", () => {
     show(<S.Privacy />);
     expect(screen.getByText("Suivi par un coach")).toBeTruthy();
@@ -517,5 +534,29 @@ describe("V1.3.1 · textes sensibles", () => {
     expect(warning.getByText("Supprimer ton compte ne résilie pas un abonnement.")).toBeTruthy();
     expect(warning.getByText(/arrête-le d’abord dans tes abonnements Google Play/)).toBeTruthy();
     expect(screen.getByText(/tes parcours GPS et tes pas/)).toBeTruthy();
+  });
+});
+
+describe("audit · séance GPS en attente", () => {
+  test("« Refaire cette séance » du même sport annonce la séance GPS en attente sans la remplacer ; son propre formulaire la reprend", async () => {
+    const stored = async () => JSON.parse((await AsyncStorage.getItem(ownerKey("draft", "owner-a")))!);
+    await loadDrafts("owner-a");
+    await saveDraft("owner-a", { ...freshDraft("running"), distance: "10.02", durM: "52", gpsRouteId: "route-1" }, { release: true });
+    try {
+      const redo = show(<S.Form {...props({ sport: "running", duplicateOf: logs[0].id })} />);
+      expect(screen.getByTestId("pinned-recording")).toBeTruthy();
+      expect(screen.getByTestId("distance").props.value).toBe("10");
+      await act(async () => { fireEvent.changeText(screen.getByTestId("distance"), "12"); });
+      expect(await stored()).toMatchObject({ draft: { gpsRouteId: "route-1", distance: "10.02" } });
+      expect(screen.getByTestId("pinned-recording")).toBeTruthy();
+      redo.unmount();
+      show(<S.Form {...props({ sport: "running" })} />);
+      expect(screen.queryByTestId("pinned-recording")).toBeNull();
+      expect(screen.getByTestId("distance").props.value).toBe("10.02");
+      await act(async () => { fireEvent.changeText(screen.getByTestId("distance"), "10.5"); });
+      expect(await stored()).toMatchObject({ draft: { gpsRouteId: "route-1", distance: "10.5" } });
+    } finally {
+      await act(async () => { await discardDraft("owner-a"); });
+    }
   });
 });

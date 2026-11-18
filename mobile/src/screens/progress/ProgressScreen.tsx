@@ -132,8 +132,9 @@ export function ProgressScreen() {
   const { active } = q;
   const now = new Date();
 
-  // Confirmed, not archived, not held for review: the same set as the recap, so the day grid and the km per sport agree with it.
-  const journal = useMemo(() => q.confirmed.filter((log) => !log.is_suspicious && !log.archived_at), [q.confirmed]);
+  // Confirmed and counted (not archived, not held, flagged or refused by the server's checks): the same set as the recap and the
+  // website, so the day grid and the km per sport agree with it.
+  const journal = useMemo(() => q.confirmed.filter((log) => Training.counted(log)), [q.confirmed]);
   const current = useMemo(() => Progress.recap(journal, { now, goals: goals.data ?? [], current: true }), [journal, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const last = useMemo(() => Progress.recap(journal, { now, goals: goals.data ?? [] }), [journal, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const series = useMemo(() => view === "trends" ? Questions.weeklySeries(active, { weeks: Number(range) }) : [], [active, range, view]);

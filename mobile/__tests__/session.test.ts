@@ -32,6 +32,13 @@ describe("session payload (same contract as js/app/seance.js + logActivity)", ()
     expect(unknown.errors).toEqual([]);
     expect(unknown.unit).toBe("min");
     expect((unknown.details.extras as Record<string, unknown>).distance_unknown).toBe(true);
+    // Audit: the sanitizer keeps it in the payload sent to the server, like the website's (js/titan_features.js).
+    const sent = toPayload(unknown, "running", ID, "UTC", false, NOW.getTime());
+    expect(sent).toMatchObject({ unit: "min", val: 40 });
+    expect(sent.details.extras).toEqual({ distance_unknown: true });
+    // A session redone from that one (« Refaire cette séance » copies its extras) with a distance this time is not marked unknown.
+    const redone = buildSession({ ...freshDraft("running", NOW), distance: "8", durM: "40", extras: { distance_unknown: true } }, NOW);
+    expect(toPayload(redone, "running", ID, "UTC", false, NOW.getTime()).details.extras).toEqual({});
     expect(buildSession({ ...freshDraft("swimming", NOW), meters: "400000", durM: "60" }, NOW).errors[0].message).toMatch(/nagée/);
   });
 
