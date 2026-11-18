@@ -1,4 +1,6 @@
-# Paquet de production v15 (généré) — NON APPLIQUÉ
+# Paquet de production v15 (généré) — APPLIQUÉ EN PRODUCTION le 18 novembre 2026
+
+> **État vérifié le 18/11/2026** : appliqué sur `oubmftfufwwzwpgvrcag` dans l'ordre v15 → v16 → v17 → v18 → v20 (un appel par fichier, aucune erreur), `00-check-before` et `99-check-after` à `ok = true`, postflights v11 (328), v13 (42) et v131 (54) tous vrais. Registre : 141 migrations, dernière `20261122090000`. Copie logique préalable de toutes les tables `public`/`private` dans le schéma non exposé `titan_backup_20261118` (157 tables). v19 (PR #155) non appliqué.
 
 Généré par `node tools/db/build-production-bundle.mjs --bundle v15` depuis `supabase/migrations/`. **Ne pas modifier à la main** :
 `tests/production-bundle.test.mjs` échoue si un fichier diffère de sa source. Décision du propriétaire requise avant application.

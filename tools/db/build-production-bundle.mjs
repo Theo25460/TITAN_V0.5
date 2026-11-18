@@ -33,7 +33,7 @@ export const BUNDLES = {
     beforeNote: "On a replica built from the repository the private bodies read 37dc682f45a7 instead (no D1).",
     afterNote: "Then run tools/db/postflight-v13.sql and tools/db/postflight-v131.sql: every row true.",
   },
-  // TITAN LIVE and the Android features of 15 and 16 November. NOT applied: additive, rehearsed on a replica.
+  // TITAN LIVE and the Android features of 15 and 16 November. Applied in production on 17 Nov 2026 (registry 130, head 20261117170000); additive, rehearsed on a replica.
   v14: {
     out: "supabase/release-v14", after: "20261116110000", until: "20261117170000",
     before: { private: [91, "bae05c10ca57", "d52d12beba17"], public: [293, "db4eeb91a3d2", "8f112d92ff21"] },
@@ -42,7 +42,7 @@ export const BUNDLES = {
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
   // Sport excellence (lot C, 18 November 2026): imports linked across neighbouring sport ids, watch swims in metres, the Strava
-  // history archivable. NOT applied: additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_sport_excellence_imports.sql).
+  // history archivable. APPLIED in production on 18 Nov 2026 (registry 141, head 20261122090000); additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_sport_excellence_imports.sql).
   v15: {
     out: "supabase/release-v15", after: "20261117170000", until: "20261118090000",
     before: { private: [103, "78dde17392e0", "4f6481c4b912"], public: [309, "5eb4c4873e06", "95c0de5e6ce0"] },
@@ -51,7 +51,7 @@ export const BUNDLES = {
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
   // TITAN LIVE seed v2 (19 November 2026): the report missions follow the sport measure contracts; eleven missions that
-  // targeted a statistic no entry form asks for any more are removed from the seeded table. NOT applied. Data only: no
+  // targeted a statistic no entry form asks for any more are removed from the seeded table. APPLIED in production on 18 Nov 2026. Data only: no
   // function is created or changed, so the fingerprint is the one the v15 bundle leaves.
   v16: {
     out: "supabase/release-v16", after: "20261118090000", until: "20261119090000",
@@ -62,7 +62,7 @@ export const BUNDLES = {
   },
   // Social excellence (« Opération Connexion », 20 November 2026): personal friend links, request expiry, blocks list, the social
   // limits that never applied, confirmed sessions only in every collective count, Duo outcome, club goal, the Grande Cordée and the
-  // « Depuis ta dernière visite » digest. NOT applied: additive, rehearsed on a replica (tools/db/test-migrations.sh).
+  // « Depuis ta dernière visite » digest. APPLIED in production on 18 Nov 2026 (registry 141, head 20261122090000); additive, rehearsed on a replica (tools/db/test-migrations.sh).
   v17: {
     out: "supabase/release-v17", after: "20261119090000", until: "20261120120000",
     before: { private: [104, "7772609c3673", "ccca14f98fa2"], public: [309, "5eb4c4873e06", "b4dbcb08ceb1"] },
@@ -72,7 +72,7 @@ export const BUNDLES = {
   },
   // Monetisation (21 November 2026): access summary refreshed without events, pending/held purchases re-read, product mapping seeded,
   // coach places enforced on every coach action (links beyond them paused), routine library cap, no achievement credits from unconfirmed
-  // sessions, hold release that never pays an archived or excluded session. NOT applied: additive, rehearsed on a replica
+  // sessions, hold release that never pays an archived or excluded session. APPLIED in production on 18 Nov 2026 (registry 141, head 20261122090000); additive, rehearsed on a replica
   // (tools/db/test-migrations.sh, sql/tests/300_monetisation_*.sql). None of its functions is touched by v15 to v17: the chain order is kept
   // only so that each bundle's fingerprint check stays exact.
   v18: {
