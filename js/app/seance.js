@@ -916,6 +916,17 @@
       if (!list.some((p) => p.eventId === eventId)) list.push({ eventId, addedAt: Date.now() });
       localStorage.setItem(key, JSON.stringify(list.slice(-30)));
     } catch { /* storage full: the session is saved, only the world reaction is skipped */ }
+    // Settle right away when possible, so the world reacts without reopening /seance-live in this browser; the queued entry stays
+    // as the retry (kept on any error, dropped only on a final answer by js/app/live.js).
+    const client = window.titanClient;
+    if (!client || !eventId || String(ownerId).startsWith("guest_")) return;
+    Promise.resolve(client.rpc("titan_live_settle_v1", { p_event: eventId })).then(({ data, error } = {}) => {
+      if (error || !data || data.status === "held") return;
+      try {
+        const key = `titan_live_settle_v1:${ownerId}`;
+        localStorage.setItem(key, JSON.stringify(JSON.parse(localStorage.getItem(key) || "[]").filter((p) => p.eventId !== eventId)));
+      } catch { /* the queued entry is settled again later, which the server answers as a replay */ }
+    }, () => { /* offline: the queued entry is retried */ });
   }
 
   function prefillFromLog(l) {

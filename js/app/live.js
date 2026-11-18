@@ -158,7 +158,9 @@
     for (const p of list.slice(0, 10)) {
       try {
         const { data, error } = await client.rpc("titan_live_settle_v1", { p_event: p.eventId });
-        if (error) { if (/LIVE_SESSION_NOT_FOUND/.test(error.message) || error.code === "P0002") keep.push(p); continue; }
+        // Any error (offline, expired session, LIVE switched off for a while…) keeps the entry: only a final server answer drops it,
+        // and the 3-day window below bounds the retries. Dropping on error lost the world reward of a session recorded offline.
+        if (error) { keep.push(p); continue; }
         if (data?.status === "held") keep.push(p);
         else if (data?.status === "settled" && !data.replay) window.showNotification?.("success", "Le monde a réagi", `+${data.essenceAmount} ${V().ESSENCES[data.essence]?.label || ""} · +${data.eclats} éclats`);
       } catch { keep.push(p); }
