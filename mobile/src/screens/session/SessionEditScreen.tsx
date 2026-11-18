@@ -8,12 +8,12 @@ import { Screen } from "../../components/Screen";
 import { EmptyState } from "../../components/States";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Format, Sports } from "../../core";
+import { Format, Sports, Training } from "../../core";
 import { exerciseDraftError, exerciseDraftPayload, exerciseDrafts, num, type ExerciseDraft } from "../../core/session";
 import { metricFields, metricPatch, metricValue, metricVisible } from "../../core/sportMetrics";
 import type { SessionPatch } from "../../data/api";
 import { useLogs, useProfile, useUpdateSession } from "../../data/hooks";
-import { errorMessage } from "../../lib/errors";
+import { toAppError } from "../../lib/errors";
 import type { RootParams } from "../../navigation/types";
 import { space } from "../../theme/tokens";
 import { ExerciseEditor } from "./ExerciseEditor";
@@ -99,6 +99,14 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
     const changedExtras = metricPatch(log.sport, d.extras || {}, extras, plus);
     if (Object.keys(changedExtras).length) patch.extras = changedExtras;
     if (!Object.keys(patch).length) return navigation.goBack();
+    // Same plausibility as creation and the website's correction (shared bounds), on the values the session would keep: a marathon
+    // corrected to 1 minute used to be sent, and became a record when the server accepted it.
+    {
+      const finalVal = patch.val !== undefined ? patch.val : Number(log.val);
+      const finalMinutes = patch.duration !== undefined ? patch.duration : unit === "min" && !hasExercises ? finalVal : Training.duration(log);
+      const issue = Training.measureIssues({ km: unit === "km" ? finalVal : null, meters: unit === "m" ? finalVal : null, minutes: finalMinutes })[0];
+      if (issue) return setError(issue.message);
+    }
     try {
       await update.mutateAsync({ log, patch });
       if (currentOwner.current !== owner) return;
@@ -106,7 +114,9 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
       navigation.goBack();
     } catch (e) {
       if (currentOwner.current !== owner) return;
-      setError(errorMessage(e));
+      const err = toAppError(e);
+      // The shared message is written for a queued session (frozen payload); here the values are still open for correction.
+      setError(err.code === "TRAINING_REJECTED" ? "Le serveur refuse ces valeurs : l’une d’elles sort des limites acceptées (distance, durée, vitesse ou date). Corrige-la, puis réessaie." : err.message);
     }
   }
 

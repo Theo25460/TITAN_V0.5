@@ -100,9 +100,14 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   }, [owner, sport]);
   const original = gpxOriginal?.owner === owner && gpxOriginal.sport === sport ? gpxOriginal : null;
 
+  // The GPS recording this form shows, when it was opened from the stored draft: only that form may edit (or clear) the recording.
+  const editing = useRef<string | undefined>(undefined);
   const [draft, setDraftState] = useState<SessionDraft>(() => {
     const stored = drafts.stored?.draft;
-    if (stored && stored.sport === sport && !duplicateOf) return stored;
+    if (stored && stored.sport === sport && !duplicateOf) {
+      editing.current = stored.gpsRouteId;
+      return stored;
+    }
     const base = freshDraft(sport);
     const source = duplicateOf ? logs.find((l) => l.id === duplicateOf || l.client_event_id === duplicateOf) : null;
     // H5: « Juste 10 minutes » opens the form with the duration already filled; the player only confirms.
@@ -116,6 +121,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   useEffect(() => {
     const stored = drafts.stored?.draft;
     if (!dirty.current && !duplicateOf && stored?.sport === sport && stored !== draftRef.current) {
+      editing.current = stored.gpsRouteId;
       draftRef.current = stored;
       setDraftState(stored);
     }
@@ -127,12 +133,15 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     const next = typeof patch === "function" ? patch(draftRef.current) : { ...draftRef.current, ...patch };
     draftRef.current = next;
     setDraftState(next);
-    void saveDraft(owner, next).catch(() => {
+    void saveDraft(owner, next, { editing: editing.current }).catch(() => {
       if (mounted.current && draftRef.current === next && !saved.current) toast({ kind: "warn", title: "Brouillon non sauvegardé sur le téléphone" });
     });
   };
 
-  const pinnedRecording = drafts.stored?.draft?.gpsRouteId && drafts.stored.draft.sport !== sport ? drafts.stored.draft : null;
+  // A finished GPS recording this form did not open (another sport, a session to redo, a form typed before it was recorded) is
+  // pinned: this form is not kept as the draft. A clean form of the same sport is not concerned: it adopts the recording above.
+  const waiting = drafts.stored?.draft;
+  const pinnedRecording = waiting?.gpsRouteId && waiting.gpsRouteId !== editing.current && (waiting.sport !== sport || !!duplicateOf || dirty.current) ? waiting : null;
   const form = Sports.formOf(sport);
   const fam = Sports.familyOf(sport);
   const timer = drafts.timer;
@@ -359,7 +368,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
         </View>
       </View>
 
-      {/* A finished GPS recording of another sport is kept on the phone until it is sent or given up: say so, never overwrite it. */}
+      {/* A finished GPS recording opened by another form is kept on the phone until it is sent or given up: say so, never overwrite it. */}
       {pinnedRecording ? (
         <Card style={{ gap: 8 }} testID="pinned-recording">
           <T variant="small">Ta séance GPS de {Sports.label(pinnedRecording.sport).toLowerCase()} attend encore d’être enregistrée sur ce téléphone. Ce formulaire-ci ne sera pas gardé en brouillon tant qu’elle attend.</T>

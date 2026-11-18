@@ -34,6 +34,31 @@ test("clearing a catalog value sends null through the correction RPC", async () 
   fireEvent.press(screen.getByText("Enregistrer la correction"));
   await waitFor(() => expect(mockSave).toHaveBeenCalledWith({ log: mockLog, patch: { extras: { cadence: null } } }));
 });
+test("audit: a correction is checked like the website's (shared bounds on the final distance and duration) before it is sent", async () => {
+  mockLog = { ...mockLog, sport: "running", val: 42.2, unit: "km", details: { duration: 180, val2: 180 } };
+  render(<SessionEditScreen {...props} />);
+  // A marathon corrected to one minute: the speed is implausible, nothing is sent.
+  fireEvent.changeText(screen.getByLabelText("Durée en minutes (facultatif)"), "1");
+  fireEvent.press(screen.getByText("Enregistrer la correction"));
+  expect(await screen.findByText(/vitesse moyenne semble irréaliste/)).toBeTruthy();
+  // The kept duration counts too: a distance corrected beyond the cap is refused with the duration untouched.
+  fireEvent.changeText(screen.getByLabelText("Durée en minutes (facultatif)"), "180");
+  fireEvent.changeText(screen.getByLabelText("Distance (km)"), "1200");
+  fireEvent.press(screen.getByText("Enregistrer la correction"));
+  expect(await screen.findByText(/limitée à 1000 km/)).toBeTruthy();
+  expect(mockSave).not.toHaveBeenCalled();
+  fireEvent.changeText(screen.getByLabelText("Distance (km)"), "42,4");
+  fireEvent.press(screen.getByText("Enregistrer la correction"));
+  await waitFor(() => expect(mockSave).toHaveBeenCalledWith({ log: mockLog, patch: { val: 42.4 } }));
+});
+test("audit: a server refusal of a correction asks to correct the values, not to delete the session", async () => {
+  mockSave.mockRejectedValue({ code: "23514", message: "TRAINING_REJECTED" });
+  render(<SessionEditScreen {...props} />);
+  fireEvent.changeText(screen.getByLabelText("Série 1, secondes"), "60");
+  fireEvent.press(screen.getByText("Enregistrer la correction"));
+  expect(await screen.findByText(/Corrige-la, puis réessaie/)).toBeTruthy();
+  expect(screen.queryByText(/Supprime-la/)).toBeNull();
+});
 test("offline correction stays blocked", () => {
   mockOnline = false;
   render(<SessionEditScreen {...props} />);

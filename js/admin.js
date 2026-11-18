@@ -58,7 +58,10 @@
             order: 'date',
             descending: true,
             create: false,
-            archive: { field: 'status', value: 'deleted', action: 'delete_activity' },
+            // No status field and no archive here: titan_admin_upsert_row_v1 cannot change another player's session (the training
+            // guard answers TRAINING_USER_MISMATCH), and status 'deleted' is excluded by nothing. Exclusion goes through the
+            // moderation case (titan_session_exclusion_v1: audited, reversible).
+            archive: false,
             filters: [
                 { key: 'status', label: 'Statut', options: ['', 'valid', 'suspicious', 'rejected', 'deleted'] },
                 { key: 'is_suspicious', label: 'Suspect', options: YES_NO }
@@ -74,7 +77,6 @@
                 { key: 'is_suspicious', label: 'Suspect', type: 'boolean' }
             ],
             fields: [
-                { key: 'status', label: 'Statut', type: 'select', options: ['valid', 'suspicious', 'rejected', 'deleted'] },
                 { key: 'is_suspicious', label: 'Activite suspecte', type: 'boolean' },
                 { key: 'admin_note', label: 'Note admin', type: 'textarea', full: true }
             ],

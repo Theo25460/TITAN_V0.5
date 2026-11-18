@@ -31,6 +31,14 @@ test("known types become sessions with moving time and km; recent, unknown and b
   expect([p.unknown, p.recent, p.invalid]).toEqual([1, 1, 1]);
 });
 
+test("audit: an imperial account's export (first Distance in miles) is read from the metres column", () => {
+  const imperial = [header, '201,"May 5, 2024, 6:30:00 PM",Dix miles,Run,,5400,10,,,false,,,,,,5400,5200,16093.4'].join("\n");
+  expect(parseStravaActivities(imperial).items).toEqual([{ id: "strava-201", sport: "running", startedAt: "2024-05-05T18:30:00.000Z", minutes: 86.7, km: 16.09 }]);
+  // A file with a single Distance column keeps reading it, in km.
+  const single = ["Activity ID,Activity Date,Activity Type,Elapsed Time,Distance", '202,"May 6, 2024, 7:00:00 AM",Run,1800,5.4'].join("\n");
+  expect(parseStravaActivities(single).items[0].km).toBe(5.4);
+});
+
 test("a file that is not a Strava export is refused with a clear message", () => {
   expect(() => parseStravaActivities("a,b\n1,2")).toThrow(/activities\.csv/);
 });

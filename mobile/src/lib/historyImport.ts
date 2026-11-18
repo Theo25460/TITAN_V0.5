@@ -66,7 +66,11 @@ export function parseStravaActivities(csv: string, now = Date.now()): ParsedHist
   if (rows.length < 2) return out;
   const head = rows[0].map((h) => h.trim().toLowerCase());
   const col = (name: string) => head.indexOf(name);
-  const iId = col("activity id"), iDate = col("activity date"), iType = col("activity type"), iElapsed = col("elapsed time"), iMoving = col("moving time"), iDist = col("distance");
+  const iId = col("activity id"), iDate = col("activity date"), iType = col("activity type"), iElapsed = col("elapsed time"), iMoving = col("moving time");
+  // The full export has two « Distance » columns: the first in the account's display unit (km, or miles for an imperial account),
+  // a later one always in metres. The metres one is read whenever it is there; a file with a single column keeps it, in km.
+  const iDist = col("distance"), iMetres = head.lastIndexOf("distance");
+  const metres = iMetres > iDist;
   if (iDate < 0 || iType < 0 || iElapsed < 0) throw new Error("Ce fichier ne ressemble pas à activities.csv d’un export Strava.");
   for (const r of rows.slice(1)) {
     const type = (r[iType] ?? "").trim();
@@ -76,7 +80,7 @@ export function parseStravaActivities(csv: string, now = Date.now()): ParsedHist
     if (!sport) { out.unknown++; continue; }
     const date = parseStravaDate(r[iDate] ?? "");
     const seconds = Number(((iMoving >= 0 && Number(r[iMoving]) > 0 ? r[iMoving] : r[iElapsed]) ?? "").replace(",", "."));
-    const km = iDist >= 0 ? Number((r[iDist] ?? "").replace(",", ".")) : NaN;
+    const km = iDist < 0 ? NaN : metres ? Number((r[iMetres] ?? "").replace(",", ".")) / 1000 : Number((r[iDist] ?? "").replace(",", "."));
     if (!date || !Number.isFinite(seconds) || seconds < 60 || seconds > 86400) { out.invalid++; continue; }
     if (now - date.getTime() < 30 * 86_400_000) { out.recent++; continue; }
     const rawId = (iId >= 0 ? r[iId] : "").trim();
