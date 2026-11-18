@@ -3,7 +3,7 @@ import { LiveScene } from "../src/core/live";
 import { LiveTrail, mix } from "../src/components/LiveTrail";
 
 // « L'Expédition » on the phone: the same geometry as the website, drawn with react-native-svg.
-const base = { beatOne: "manche", beatMany: "manches", label: "La Joute", seed: "badminton", family: "jeu", elan: { value: 30, max: 90 } };
+const base = { beatOne: "manche", beatMany: "manches", label: "La Joute", seed: "badminton", family: "jeu", elanValue: 30, elanMax: 90 };
 
 test("each beat lights one waypoint and the drawn trail appears with the first beat", () => {
   const view = render(<LiveTrail {...base} lit={0} planned={3} echo={null} />);

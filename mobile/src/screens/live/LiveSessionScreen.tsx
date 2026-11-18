@@ -439,7 +439,7 @@ export function LiveSessionScreen({ navigation, route }: Props) {
       {view === "aventure" ? (
         <>
           <View style={{ gap: space.s3 }}>
-            <LiveTrail lit={v.beats} planned={v.planCount} echo={v.echo?.beats ?? null} beatOne={v.beatOne} beatMany={v.beatMany} label={config.voieName} seed={config.sport} family={config.family} goalRatio={v.goal?.ratio ?? null} elan={v.elan} numbers={v.numbers} />
+            <LiveTrail lit={v.beats} planned={v.planCount} echo={v.echo?.beats ?? null} beatOne={v.beatOne} beatMany={v.beatMany} label={config.voieName} seed={config.sport} family={config.family} goalRatio={v.goal?.ratio ?? null} elanValue={v.elan.value} elanMax={v.elan.max} numbers={v.numbers} />
             {v.numbers ? (
               <View style={{ gap: 4 }}>
                 <T variant="caption" tone="muted">Élan du jour : {Math.round(v.elan.value)} / {v.elan.max}</T>
