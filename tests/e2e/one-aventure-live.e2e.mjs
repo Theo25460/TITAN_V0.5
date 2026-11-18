@@ -235,8 +235,8 @@ test("moments: a new level and a record are scenes of what the server confirmed,
     const errors = []; page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(BASE + "/training");
     await page.waitForFunction(() => window.state?.user && window.TitanMoment && document.querySelector("[data-pick-title]"));
-    const open = (extra) => page.evaluate((x) => {
-      document.querySelectorAll("dialog[open]").forEach((d) => d.close());
+    // One moment at a time: the previous sheet is closed and gone before the next one opens.
+    const open = async (extra) => { await page.evaluate(() => document.querySelectorAll("dialog[open]").forEach((d) => d.close())); await page.waitForFunction(() => !document.querySelector("dialog.moment-sheet")); return page.evaluate((x) => {
       window.state.user.id = "00000000-0000-4000-8000-000000000321";
       const at = (days) => new Date(Date.now() - days * 86400000).toISOString();
       const older = { id: "old-1", client_event_id: "old-1", sport: "running", val: 6, unit: "km", date: at(20), xp: 30, syncStatus: "confirmed", details: { duration: 36 } };
@@ -244,7 +244,7 @@ test("moments: a new level and a record are scenes of what the server confirmed,
         details: { duration: 60, ...(x.confirmed ? { serverReward: { xp: 64, requested_xp: 64, credits: 6, leveled_up: x.levelUp ? 1 : 0, level_after: 15, xp_after: 40 } } : {}) } };
       window.state.history = [log, older];
       window.TitanMoment.open(log);
-    }, extra);
+    }, extra); };
     const sheet = page.locator("dialog.moment-sheet");
 
     // Not confirmed yet: no scene, no gain.
