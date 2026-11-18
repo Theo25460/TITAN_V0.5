@@ -267,3 +267,11 @@ crests are untouched; three true-alpha objects from the owner's Drive are in use
 of credits in the Atelier, the relic belongs to Records, the seal to the exploration notebook); the Champion, Titan and
 Légende candidates of PR #147 are kept ready and inactive until approved (`BADGES` in `js/app/crest.js`).
 
+
+## 12. Sport icons (18 November 2026)
+
+Each of the 260 sports has its own glyph (254 drawings of their own, three shared for a stated reason), built from shared parts by
+`tools/sport-icons/` into `js/app/sport-icons.js` and copied to Android with the other icons. Same 24 grid and 1.65 stroke as the
+interface icons, a 1.1 stroke for texture, at most one mass tinted at 22 %, the athlete placed from joint angles with fixed proportions,
+context in the lower band. A glyph takes `currentColor`: the family colour in a list, the ink on a selected chip. The five families have
+their own marks (`family-*`). Rules, naming, fallback, how to add a sport and the weakest glyphs: `docs/design/SPORT_ICONS.md`.

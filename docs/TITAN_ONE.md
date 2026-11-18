@@ -27,6 +27,10 @@ d'entrée ; le détail historique reste dans `docs/v131/`. Consolidation GitHub 
 > bibliothèques d'illustrations (`design/titan-visual-library/global-v2/registry/fusion-20261117.json`). Captures avant/après :
 > `docs/design/captures/signature/`. Aucune règle serveur, aucun paiement, aucune migration touchés ; rien de publié.
 
+> **18 novembre 2026 — Iconographie sportive** : chacun des 260 sports a son glyphe (254 dessins propres, 3 partages justifiés), système
+> à règles (grille 24, trait 1,65, athlète à proportions fixes, une masse teintée), généré par `tools/sport-icons/`, branché sur le Web
+> et Android, cinq marques de famille. Règles, registre, limites : [`design/SPORT_ICONS.md`](design/SPORT_ICONS.md).
+
 ## 0. Finition du 17 novembre 2026 — état réel (remplace les statuts de la section suivante quand ils diffèrent)
 
 Pourquoi la preview paraissait cassée alors que tout était vert, et ce qui a été corrigé (détail et garde-fous : `DESIGN.md` § 10) :
