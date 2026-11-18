@@ -57,7 +57,8 @@ jobs:
   e2e:
     name: Parcours navigateur (Playwright)
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    # 1 093 journeys run one at a time (24.4 min on 18 Nov 2026, the consolidated release added journeys): room to grow without a silent cut.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
