@@ -1200,3 +1200,23 @@
   .live-campv > .sig-empty,
   .live-campv > .live-skeleton { grid-column: 2; grid-row: 1 / span 2; }
 }
+
+/* The settings of the preparation hold in 320 px: a row of choices takes the width and shares it; the four levels of immersion
+   (one of them two words long) stand two by two on a phone. */
+.live-prep .live-block .asc-seg {
+  display: grid;
+  width: 100%;
+  grid-auto-columns: minmax(0, 1fr);
+}
+.live-prep .live-block .asc-seg button {
+  min-height: 44px;
+  padding-inline: var(--s2);
+  white-space: normal;
+  line-height: 1.15;
+}
+@media (max-width: 479px) {
+  .live-prep .live-block .asc-seg[aria-label="immersion"] {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

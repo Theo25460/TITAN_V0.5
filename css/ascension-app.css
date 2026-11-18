@@ -5031,7 +5031,8 @@
 .moment-scene-copy strong { font-family: var(--font-display); font-stretch: var(--w-figure); font-weight: 300; font-size: 96px; line-height: 0.86; font-variant-numeric: tabular-nums; color: var(--tx); }
 .moment-scene-copy span:last-child { margin-top: 6px; font-family: var(--font-display); font-stretch: var(--w-title); font-size: 19px; color: var(--accent, var(--cy)); }
 .moment-scene.is-rank .moment-scene-copy span:first-child { color: var(--am); }
-.moment-crest { position: absolute; right: var(--s5); bottom: var(--s3); width: 116px; aspect-ratio: auto; opacity: 0; transform: translateY(10px) scale(0.9); }
+.moment-scene .moment-crest { position: absolute; display: block; right: var(--s5); bottom: var(--s3); width: 116px; aspect-ratio: auto; opacity: 0; transform: translateY(10px) scale(0.9); }
+.moment-scene .moment-crest::after { bottom: 0; }
 .moment-scene.is-rank .moment-crest { width: 132px; }
 .moment-crest .crest, .moment-crest img, .moment-crest svg { width: 100%; height: auto; display: block; }
 .moment-hero[data-play="1"] .ma-trail { animation: momentTrail 1100ms cubic-bezier(0.16, 1, 0.3, 1) 150ms backwards; }
