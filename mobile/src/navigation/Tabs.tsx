@@ -67,6 +67,7 @@ export function Tabs() {
   const pending = queue.items.length;
   return (
     <Tab.Navigator
+      backBehavior="history"
       tabBar={props => layout.columns < 5 ? <AccessibleTabBar {...props} width={width} fontScale={fontScale} /> : <BottomTabBar {...props} />}
       screenOptions={({ route }) => ({
         headerShown: false,

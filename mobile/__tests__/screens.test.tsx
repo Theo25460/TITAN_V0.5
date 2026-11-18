@@ -158,6 +158,8 @@ describe("with account data", () => {
   });
   test("QG montre les 8 dernières semaines et la séance à refaire (AUD-24)", () => {
     show(<S.Home />);
+    expect(screen.queryByTestId("qg-cadence")).toBeNull();
+    fireEvent.press(screen.getByTestId("qg-details"));
     expect(screen.getByTestId("qg-cadence")).toBeTruthy();
     expect(screen.getByText("Mes 8 dernières semaines")).toBeTruthy();
     expect(screen.getByTestId("repeat-last")).toBeTruthy();

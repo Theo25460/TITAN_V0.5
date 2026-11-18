@@ -65,7 +65,7 @@ export const stackOptions: NativeStackNavigationOptions = {
   headerTitleStyle: { fontFamily: fonts.display, fontSize: 19 },
   headerShadowVisible: false,
   contentStyle: { backgroundColor: colors.bg },
-  animation: "ios_from_right",
+  animation: "default",
   headerBackButtonDisplayMode: "minimal",
 };
 
