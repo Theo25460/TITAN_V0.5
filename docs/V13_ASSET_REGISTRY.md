@@ -74,13 +74,13 @@ La décision `retain` conserve le fichier. `fix` signale une vérification ou co
 | Fichier | Famille | Octets | Dimensions | Décision |
 |---|---|---:|---|---|
 | `assets/ascension/contours.svg` | world-map-decoration | 28400 | 800×600 | retain |
-| `assets/objects/coffre-tactique-256.webp` | brand | 12952 | 256×256 | fix |
-| `assets/objects/coffre-tactique-512.webp` | brand | 34678 | 512×512 | fix |
+| `assets/objects/coffre-tactique-256.webp` | brand | 12952 | 256×256 | retain |
+| `assets/objects/coffre-tactique-512.webp` | brand | 34678 | 512×512 | retain |
 | `assets/objects/coffre-tactique-96.webp` | brand | 3630 | 96×96 | fix |
 | `assets/objects/relique-maitrise-256.webp` | brand | 26090 | 256×256 | fix |
 | `assets/objects/relique-maitrise-512.webp` | brand | 74324 | 512×512 | fix |
 | `assets/objects/relique-maitrise-96.webp` | brand | 6306 | 96×96 | fix |
-| `assets/objects/sceau-exploration-256.webp` | brand | 21422 | 256×256 | fix |
+| `assets/objects/sceau-exploration-256.webp` | brand | 21422 | 256×256 | retain |
 | `assets/objects/sceau-exploration-512.webp` | brand | 65432 | 512×512 | fix |
 | `assets/objects/sceau-exploration-96.webp` | brand | 4704 | 96×96 | fix |
 | `assets/ranks/eclaireur-256.webp` | ranks | 10486 | 256×256 | retain |

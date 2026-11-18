@@ -24,6 +24,22 @@
       "visualOwner": "not established",
       "usage": [
         {
+          "source": "css/one-profil-atelier.css",
+          "lines": [
+            843,
+            844
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "css/public.css",
+          "lines": [
+            1143,
+            1144
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "css/signature.css",
           "lines": [
             21
@@ -47,6 +63,8 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "css/one-profil-atelier.css",
+          "css/public.css",
           "css/signature.css"
         ]
       },
@@ -69,7 +87,15 @@
       "ratio": 1,
       "source": "existing repository asset",
       "visualOwner": "not established",
-      "usage": [],
+      "usage": [
+        {
+          "source": "js/app/atelier.js",
+          "lines": [
+            348
+          ],
+          "evidence": "literal"
+        }
+      ],
       "platform": "web",
       "distribution": "web-public-build-candidate",
       "expectedDeliveredBytes": 12952,
@@ -85,11 +111,13 @@
       },
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
-        "sourceEvidence": []
+        "sourceEvidence": [
+          "js/app/atelier.js"
+        ]
       },
       "rpgUsage": false,
-      "decision": "fix",
-      "reason": "no literal usage found, verify dynamic consumers before archiving",
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
       "technicalValidation": "dimensions-read",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -106,7 +134,15 @@
       "ratio": 1,
       "source": "existing repository asset",
       "visualOwner": "not established",
-      "usage": [],
+      "usage": [
+        {
+          "source": "js/app/atelier.js",
+          "lines": [
+            348
+          ],
+          "evidence": "literal"
+        }
+      ],
       "platform": "web",
       "distribution": "web-public-build-candidate",
       "expectedDeliveredBytes": 34678,
@@ -122,11 +158,13 @@
       },
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
-        "sourceEvidence": []
+        "sourceEvidence": [
+          "js/app/atelier.js"
+        ]
       },
       "rpgUsage": false,
-      "decision": "fix",
-      "reason": "no literal usage found, verify dynamic consumers before archiving",
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
       "technicalValidation": "dimensions-read",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -291,7 +329,15 @@
       "ratio": 1,
       "source": "existing repository asset",
       "visualOwner": "not established",
-      "usage": [],
+      "usage": [
+        {
+          "source": "js/app/atelier.js",
+          "lines": [
+            482
+          ],
+          "evidence": "literal"
+        }
+      ],
       "platform": "web",
       "distribution": "web-public-build-candidate",
       "expectedDeliveredBytes": 21422,
@@ -307,11 +353,13 @@
       },
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
-        "sourceEvidence": []
+        "sourceEvidence": [
+          "js/app/atelier.js"
+        ]
       },
       "rpgUsage": false,
-      "decision": "fix",
-      "reason": "no literal usage found, verify dynamic consumers before archiving",
+      "decision": "retain",
+      "reason": "preserve existing artwork and usage",
       "technicalValidation": "dimensions-read",
       "visualValidation": "pending-human-review",
       "capture": null
@@ -414,6 +462,13 @@
             28
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            32
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "web",
@@ -433,7 +488,8 @@
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
           "js/app/crest.js",
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -520,6 +576,13 @@
             29
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            33
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "web",
@@ -539,7 +602,8 @@
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
           "js/app/crest.js",
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -616,6 +680,13 @@
       "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
       "usage": [
         {
+          "source": "index.html",
+          "lines": [
+            33
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "js/app/crest.js",
           "lines": [],
           "evidence": "dynamic-family"
@@ -624,6 +695,13 @@
           "source": "mobile/src/core/images.ts",
           "lines": [
             31
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            35
           ],
           "evidence": "literal"
         }
@@ -644,8 +722,10 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
+          "index.html",
           "js/app/crest.js",
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -732,6 +812,13 @@
             30
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            34
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "web",
@@ -751,7 +838,8 @@
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
           "js/app/crest.js",
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -830,21 +918,21 @@
         {
           "source": "debuter-titan.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
@@ -937,14 +1025,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            27
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            52
+            53
           ],
           "evidence": "literal"
         },
@@ -1360,14 +1448,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            27
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            52
+            53
           ],
           "evidence": "literal"
         },
@@ -1534,7 +1622,7 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            31
+            32
           ],
           "evidence": "literal"
         },
@@ -1625,14 +1713,14 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            27
+            28
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            52
+            53
           ],
           "evidence": "literal"
         },
@@ -2589,7 +2677,7 @@
         {
           "source": "index.html",
           "lines": [
-            32
+            33
           ],
           "evidence": "literal"
         },
@@ -3237,28 +3325,28 @@
         {
           "source": "aujourdhui.html",
           "lines": [
-            25
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "aventures-sportives.html",
           "lines": [
-            30
+            31
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
@@ -3272,23 +3360,21 @@
         {
           "source": "defis-sportifs.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            68
+            69
           ],
           "evidence": "literal"
         },
         {
           "source": "js/app/atelier.js",
-          "lines": [
-            266
-          ],
-          "evidence": "literal"
+          "lines": [],
+          "evidence": "dynamic-family"
         },
         {
           "source": "js/app/aventure.js",
@@ -3325,56 +3411,63 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            37
+            38
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            36
+            37
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            31
+            32
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-velo.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         }
@@ -3411,6 +3504,7 @@
           "mobile/src/core/web/renaissance-catalog.js",
           "motivation-sport.html",
           "niveaux-et-xp.html",
+          "onboarding.html",
           "pour-les-coachs.html",
           "progression-sportive.html",
           "sports.html",
@@ -3442,14 +3536,21 @@
         {
           "source": "aventures-sportives.html",
           "lines": [
-            27
+            28
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "css/one-entree.css",
+          "lines": [
+            158
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            52
+            53
           ],
           "evidence": "literal"
         },
@@ -3508,6 +3609,7 @@
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
           "aventures-sportives.html",
+          "css/one-entree.css",
           "index.html",
           "js/app/atelier.js",
           "js/app/aventure.js",
@@ -3541,7 +3643,14 @@
         {
           "source": "aujourdhui.html",
           "lines": [
-            25
+            27
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "css/one-entree.css",
+          "lines": [
+            166
           ],
           "evidence": "literal"
         },
@@ -3574,6 +3683,13 @@
           "source": "mobile/src/core/web/renaissance-catalog.js",
           "lines": [],
           "evidence": "dynamic-family"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            29
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "web",
@@ -3593,12 +3709,14 @@
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
           "aujourdhui.html",
+          "css/one-entree.css",
           "js/app/atelier.js",
           "js/app/aventure.js",
           "js/app/profil.js",
           "js/app/shell-nav.js",
           "js/renaissance-catalog.js",
-          "mobile/src/core/web/renaissance-catalog.js"
+          "mobile/src/core/web/renaissance-catalog.js",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -7814,7 +7932,7 @@
         {
           "source": "index.html",
           "lines": [
-            25
+            26
           ],
           "evidence": "literal"
         }
@@ -7861,7 +7979,7 @@
         {
           "source": "index.html",
           "lines": [
-            25
+            26
           ],
           "evidence": "literal"
         }
@@ -11058,6 +11176,13 @@
             28
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            32
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "native",
@@ -11076,7 +11201,8 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -11152,6 +11278,13 @@
             29
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            33
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "native",
@@ -11170,7 +11303,8 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -11241,9 +11375,23 @@
       "visualOwner": "TITAN owner, badge approved for the library on 2026-11-14",
       "usage": [
         {
+          "source": "index.html",
+          "lines": [
+            33
+          ],
+          "evidence": "literal"
+        },
+        {
           "source": "mobile/src/core/images.ts",
           "lines": [
             31
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            35
           ],
           "evidence": "literal"
         }
@@ -11264,7 +11412,9 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "mobile/src/core/images.ts"
+          "index.html",
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -11340,6 +11490,13 @@
             30
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            34
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "native",
@@ -11358,7 +11515,8 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "mobile/src/core/images.ts"
+          "mobile/src/core/images.ts",
+          "onboarding.html"
         ]
       },
       "rpgUsage": true,
@@ -11431,21 +11589,21 @@
         {
           "source": "debuter-titan.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-course-a-pied.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "journal-entrainement.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
@@ -11604,7 +11762,7 @@
         {
           "source": "fonctionnalites.html",
           "lines": [
-            31
+            32
           ],
           "evidence": "literal"
         },
@@ -11941,7 +12099,7 @@
         {
           "source": "index.html",
           "lines": [
-            32
+            33
           ],
           "evidence": "literal"
         },
@@ -12137,28 +12295,28 @@
         {
           "source": "aujourdhui.html",
           "lines": [
-            25
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "aventures-sportives.html",
           "lines": [
-            30
+            31
           ],
           "evidence": "literal"
         },
         {
           "source": "carnet-musculation.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "comprendre-mes-donnees.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
@@ -12172,21 +12330,14 @@
         {
           "source": "defis-sportifs.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "index.html",
           "lines": [
-            68
-          ],
-          "evidence": "literal"
-        },
-        {
-          "source": "js/app/atelier.js",
-          "lines": [
-            266
+            69
           ],
           "evidence": "literal"
         },
@@ -12200,56 +12351,63 @@
         {
           "source": "motivation-sport.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "niveaux-et-xp.html",
           "lines": [
-            37
+            38
+          ],
+          "evidence": "literal"
+        },
+        {
+          "source": "onboarding.html",
+          "lines": [
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "pour-les-coachs.html",
           "lines": [
-            28
+            29
           ],
           "evidence": "literal"
         },
         {
           "source": "progression-sportive.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "sports.html",
           "lines": [
-            36
+            37
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-escalade.html",
           "lines": [
-            31
+            32
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-sportif.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         },
         {
           "source": "suivi-velo.html",
           "lines": [
-            26
+            27
           ],
           "evidence": "literal"
         }
@@ -12277,10 +12435,10 @@
           "css/ascension-app.css",
           "defis-sportifs.html",
           "index.html",
-          "js/app/atelier.js",
           "mobile/src/core/images.ts",
           "motivation-sport.html",
           "niveaux-et-xp.html",
+          "onboarding.html",
           "pour-les-coachs.html",
           "progression-sportive.html",
           "sports.html",
@@ -12567,8 +12725,8 @@
       ],
       "source": "index.html",
       "description": "Inline SVG brand and public header",
-      "bytes": 39334,
-      "version": "sha256:cbb0199c0645df062c8b789ebaf30790ca1c15ddb7bbc6b9cb852498dcd1c476",
+      "bytes": 39489,
+      "version": "sha256:de2c507301ea1e6e8365c9f4c09111af97d96155caed3ece42d8c89316b01d46",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12735,8 +12893,8 @@
       ],
       "source": "js/app/profil.js",
       "description": "Earned distinctions and passport",
-      "bytes": 91710,
-      "version": "sha256:e564dfdd3b022e7ff4bc7079d6e339253a72414cfb34cec9495abe2fbe030997",
+      "bytes": 92744,
+      "version": "sha256:d38911b784bb9d50ba0548afd594c1a92d77c31ce643aefdfba6abc210d76094",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12882,8 +13040,8 @@
       ],
       "source": "js/app/atelier.js",
       "description": "Cosmetic frames, map and card styles",
-      "bytes": 42580,
-      "version": "sha256:61acc05660cda9ea36cf1a35c8ec48466dbef669042973c6e3cf61564dd91ad3",
+      "bytes": 64908,
+      "version": "sha256:388735ebb0be03829da9c63c1e4aacb803dda839a8d2187f257b6c4e302c1e27",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
