@@ -161,6 +161,7 @@ test("Explorer: no figure in the adventure view, discoveries instead, and a repo
   await start();
   expect(savedState().reference).toBeNull();
   logSet("Fentes bulgares", "20", "10");
+  expect(screen.queryByTestId("live-intent-explorer")).toBeNull();
   fireEvent.press(screen.getByText("Vue aventure"));
   expect(screen.queryByText(/Élan du jour/)).toBeNull();
   expect(screen.queryByText(/frappe/)).toBeNull();
@@ -169,7 +170,10 @@ test("Explorer: no figure in the adventure view, discoveries instead, and a repo
   const book = within(screen.getByTestId("live-intent-explorer"));
   expect(book.getByText("Carnet de découvertes")).toBeTruthy();
   expect(book.getByText("• Un mouvement nouveau dans ton répertoire")).toBeTruthy();
-  for (const t of book.getAllByText(/./)) expect(String(t.props.children)).not.toMatch(/\d/);
+  fireEvent.press(screen.getByText("Vue sportive"));
+  expect(screen.getByTestId("live-exercise").props.value).toBe("Fentes bulgares");
+  fireEvent.press(screen.getByText("Vue aventure"));
+  for (const t of within(screen.getByTestId("live-intent-explorer")).getAllByText(/./)) expect(String(t.props.children)).not.toMatch(/\d/);
   fireEvent.press(screen.getByTestId("live-finish"));
   await waitFor(() => expect(screen.getByTestId("live-keep")).toBeTruthy());
   expect(within(screen.getByTestId("live-recap")).getByText(/Sur ton chemin : un mouvement nouveau dans ton répertoire\./)).toBeTruthy();
@@ -207,6 +211,8 @@ test("a pause shows one calm line on screen, and silence shows none", async () =
   await start();
   expect(screen.queryByTestId("live-interlude")).toBeNull();
   await act(async () => { fireEvent.press(screen.getByTestId("live-pause")); });
+  expect(screen.queryByTestId("live-interlude")).toBeNull();
+  fireEvent.press(screen.getByText("Vue aventure"));
   const line = screen.getByTestId("live-interlude");
   expect(LiveVoies.resolve("muscu_gym").calm).toContain(line.props.children);
   // Never announced: the calm line is not a live region.
