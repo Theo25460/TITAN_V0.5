@@ -41,7 +41,7 @@ installables pour tester, refusés par Play Console.
 3. **Sécurité des données** (l'application n'ajoute aucune collecte par rapport au site) :
    - collectées : adresse e-mail et identifiant de compte (gestion du compte) ; activité sportive saisie, notes, traces GPX
      importées (fonctionnalité de l'application) ; nom affiché et contenus partagés volontairement avec des amis ;
-   - **périmé** : voir `PUBLIER_PLAY_CONSOLE.md` § 4 et § 4 bis. La permission `AD_ID` est dans tous les builds ; les données AdMob ne sont partagées qu'avec `ads=live`
+   - **périmé** : voir `PUBLIER_PLAY_CONSOLE.md` § 4 et § 4 bis. La permission `AD_ID` n'est dans le paquet qu'avec `ads=live` (bloquée sinon), et les données AdMob ne sont partagées qu'avec `ads=live`
      (`AD_ID` présent pour AdMob, sous consentement ; attribution et sujets Privacy Sandbox retirés), aucune statistique d'usage côté application Android ;
    - chiffrement en transit (HTTPS) ; suppression du compte possible dans l'application (Profil › Compte › Supprimer)
      ou par e-mail à titanteam.app@gmail.com (URL publique de suppression du site à renseigner quand elle sera déployée).
@@ -51,7 +51,7 @@ installables pour tester, refusés par Play Console.
 6. Catégorie : Santé et remise en forme. Politique de confidentialité : https://titan-app.fr/legal_privacy.
 7. Permissions déclarées : `INTERNET`, `ACCESS_NETWORK_STATE`, `POST_NOTIFICATIONS` (rappels facultatifs, demandés
    seulement quand l'utilisateur les active), `VIBRATE`, `RECEIVE_BOOT_COMPLETED` (reprogrammer les rappels après
-   redémarrage), `WAKE_LOCK`, plus localisation précise et `FOREGROUND_SERVICE_LOCATION` (GPS), `ACTIVITY_RECOGNITION` (pas), Santé Connect (`READ_STEPS`, `READ_EXERCISE`), `BILLING`, `AD_ID`. Aucune localisation en arrière-plan, caméra, contacts ou stockage.
+   redémarrage), `WAKE_LOCK`, plus localisation précise et `FOREGROUND_SERVICE_LOCATION` (GPS), `ACTIVITY_RECOGNITION` (pas), Santé Connect (`READ_STEPS`, `READ_EXERCISE`), `BILLING`, et `AD_ID` seulement avec `ads=live`. Aucune localisation en arrière-plan, caméra, contacts ou stockage.
 8. Tester sur un téléphone via le lien de test interne, puis promouvoir en test fermé (exigence Google pour les comptes
    personnels : 12 testeurs pendant 14 jours), puis production. **Aucune publication automatique.**
 

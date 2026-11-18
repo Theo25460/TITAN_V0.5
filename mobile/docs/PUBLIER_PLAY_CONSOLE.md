@@ -2,9 +2,9 @@
 
 Rédigé le 21/10/2026 pour l'application native `fr.titanapp.app`, **mis à jour le 18/11/2026 (release TITAN ONE 1.4.0)**.
 Les déclarations dépendent des options du build (`ads`, `billing`) : la table du § 4 bis dit quoi répondre pour chaque combinaison.
-Ce que le paquet contient **toujours**, quelles que soient les options : la permission `AD_ID` (le contrôle du paquet l'exige, kit AdMob),
-la permission `BILLING` (Play Billing 9.1.0), la localisation précise avec service de premier plan « localisation » (GPS), le compteur de
-pas (`ACTIVITY_RECOGNITION`) et Santé Connect en lecture (`READ_STEPS`, `READ_EXERCISE`). Référence juridique : `docs/v131/lot6-textes-juridique.md` § 6.
+Ce que le paquet contient **toujours**, quelles que soient les options : la permission `BILLING` (Play Billing 9.1.0), la localisation précise avec service de premier plan « localisation » (GPS), le compteur de
+pas (`ACTIVITY_RECOGNITION`) et Santé Connect en lecture (`READ_STEPS`, `READ_EXERCISE`). La permission `AD_ID` n'est dans le paquet
+**qu'avec des publicités** (`ads=live`) : un build `ads=off` la bloque et le contrôle du paquet le vérifie. Référence juridique : `docs/v131/lot6-textes-juridique.md` § 6.
 
 Ce qui est établi par le dépôt est écrit tel quel. Ce qui dépend de la console Google est marqué **(à vérifier dans la
 console)** : ses intitulés et ses règles changent, relis la page d'aide au moment de la saisie. **Rien n'est publié
@@ -17,7 +17,7 @@ automatiquement** : chaque envoi est une action que tu fais.
 | Identifiant et clé | `fr.titanapp.app`, même clé d'envoi que la TWA (empreinte SHA-256 `8E:35:9E:DE:…:20:5C`) : Play verra une mise à jour, pas une nouvelle application |
 | Numéro de version | Registre : `1301` (1.2.1) distribué en test fermé ; `1302`, `1303` (deux fois), `1304` (1.3.2, 17/11) signés mais non distribués — à confirmer dans l'explorateur d'App Bundles. Dernier code signé : `mobile/docs/last-version-code.txt`. Un build `upload` **refuse** un `version_code` vide ou inférieur ou égal, et un `version_name` vide ou `1.0.0` |
 | Secrets GitHub | `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD` sont créés : le build signé avec la vraie clé a déjà réussi (artefact `titan-android-1011-upload`) et le workflow **refuse** une clé dont l'empreinte n'est pas la bonne |
-| Contrôles du paquet | identifiant, `versionCode`, cible API ≥ 36, permissions en liste fermée, Play Billing 9.1.0 unique, `AD_ID` présent, signature de l'APK **et de l'AAB** par la clé d'envoi, adresse Supabase de production, aucun trafic en clair ; l'AAB signé n'est publié que si le parcours émulateur a réussi (job « AAB signé pour Play ») |
+| Contrôles du paquet | identifiant, `versionCode`, cible API ≥ 36, permissions en liste fermée, Play Billing 9.1.0 unique, `AD_ID` présent avec annonces et absent sans, signature de l'APK **et de l'AAB** par la clé d'envoi, adresse Supabase de production, aucun trafic en clair ; l'AAB signé n'est publié que si le parcours émulateur a réussi (job « AAB signé pour Play ») |
 | Visuels | 6 captures 1080 × 2160 dans `mobile/docs/play-store/` ; icône `image/logo-512.png` et image 1024 × 500 `docs/play-store/feature-graphic-1024x500.png` (PR #115) |
 
 ## 1. Construire le bundle final signé
@@ -70,7 +70,7 @@ Textes prêts à coller (ils ne promettent rien qui ne soit pas dans l'applicati
 | Formulaire | Réponse | Pourquoi |
 |---|---|---|
 | Publicités | selon `ads` : **Non** avec `ads=off`, **Oui** avec `ads=live` (§ 4 bis) | kit AdMob présent dans tous les builds ; il n'affiche rien avec `ads=off` |
-| Identifiant publicitaire | **Oui** (finalité publicité) dans **tous** les builds | la permission `AD_ID` est toujours dans le paquet ; répondre « Non » bloque la release dans la console |
+| Identifiant publicitaire | **Non** avec `ads=off` (permission `AD_ID` absente du paquet) ; **Oui** (finalité publicité) avec `ads=live` | la réponse doit suivre le manifeste du build envoyé (`permissions.txt` de l'artefact) |
 | Achats intégrés / abonnements | **Oui** avec `billing=true` (`titan01`, `titan02`, `titan03`) | la feuille de paiement ne s'ouvre qu'après le feu vert du serveur (`GET play-billing` = 204) ; sans `PLAY_BILLING_ENABLED=true` sur Netlify, aucun achat n'est possible |
 | Accès à l'application | Compte nécessaire. **Fournis un compte de test** | crée un compte dédié (pas un vrai) sur titan-app.fr, confirme son e-mail, finis son accueil, et saisis l'identifiant et le mot de passe dans le formulaire |
 | Public cible | **à décider** : 13+ ou 18+ ; éviter « moins de 13 ans » | fonctions sociales entre amis, pseudos, messages de guilde |
@@ -104,9 +104,9 @@ précis tant qu'elle n'est pas prise.
 
 | Options | « Contient des annonces » | Identifiant publicitaire | Achats intégrés | Sécurité des données en plus |
 |---|---|---|---|---|
-| `ads=off`, `billing=true`, `partial_release=true` (**release 1.4.0**) | Non | Oui (permission présente) | Oui | historique d'achats |
+| `ads=off`, `billing=true`, `partial_release=true` (**release 1.4.0**) | Non | **Non** (permission absente) | Oui | historique d'achats |
 | `ads=live`, `billing=true` | **Oui** | Oui, publicité | Oui | lignes AdMob (identifiant, interactions, diagnostics, position approximative) partagées avec Google |
-| `ads=off`, `billing=false`, `partial_release=true` | Non | Oui (permission présente) | Non | — |
+| `ads=off`, `billing=false`, `partial_release=true` | Non | Non | Non | — |
 | `ads=test` | **interdit** pour un build `upload` (bannières « Test Ad » chez de vrais utilisateurs) | | | |
 
 ## 5. Test interne (l'étape qui prouve que tout marche)

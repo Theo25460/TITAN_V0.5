@@ -56,7 +56,10 @@ const config: ExpoConfig = {
       "android.permission.ACCESS_COARSE_LOCATION",
       "android.permission.READ_MEDIA_IMAGES",
       "android.permission.READ_MEDIA_VIDEO",
-      // com.google.android.gms.permission.AD_ID is NOT blocked: AdMob needs the advertising id (consent-gated by UMP) to serve and cap ads normally.
+      // com.google.android.gms.permission.AD_ID ships only in a build with ads (EXPO_PUBLIC_TITAN_ADS=1): AdMob then needs the advertising id
+      // (consent-gated by UMP) to serve and cap ads normally. A build without ads blocks it, so its Play declarations can honestly say
+      // "no advertising id" (release audit, 18 Nov 2026: the SDK is never started without ads, yet the permission was declared).
+      ...(process.env.EXPO_PUBLIC_TITAN_ADS === "1" ? [] : ["com.google.android.gms.permission.AD_ID"]),
       // The Privacy Sandbox APIs below stay blocked: TITAN uses no attribution or topics.
       "android.permission.ACCESS_ADSERVICES_ATTRIBUTION",
       "android.permission.ACCESS_ADSERVICES_AD_ID",

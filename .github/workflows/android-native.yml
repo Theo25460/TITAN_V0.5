@@ -216,7 +216,13 @@ jobs:
           if [ -n "$extra" ]; then echo "::error::Permissions inattendues :"; echo "$extra"; exit 1; fi
           if ! grep -q "com.android.vending.BILLING" permissions.txt; then echo "::error::permission Billing absente dans le paquet"; exit 1; fi
           # AdMob standard mode: the advertising id permission must be present (consent-gated by UMP), or ads are served degraded.
-          grep -q "com.google.android.gms.permission.AD_ID" permissions.txt || { echo "::error::permission AD_ID absente : AdMob servirait des annonces dégradées"; exit 1; }
+          # With ads: AD_ID must be present (AdMob would serve degraded ads without it). Without ads: it must be absent (nothing uses it,
+          # and the Play declarations of such a build say "no advertising id").
+          if [ -n "$EXPO_PUBLIC_TITAN_ADS" ]; then
+            grep -q "com.google.android.gms.permission.AD_ID" permissions.txt || { echo "::error::permission AD_ID absente : AdMob servirait des annonces dégradées"; exit 1; }
+          elif grep -q "com.google.android.gms.permission.AD_ID" permissions.txt; then
+            echo "::error::permission AD_ID présente dans un build sans publicité"; exit 1
+          fi
           # GPS: foreground (user-started recording) only. Background location and coarse location must never ship.
           if grep -qE "ACCESS_BACKGROUND_LOCATION|ACCESS_COARSE_LOCATION" permissions.txt; then echo "::error::localisation en arrière-plan ou approximative présente"; exit 1; fi
           grep -q "android.permission.ACCESS_FINE_LOCATION" permissions.txt || { echo "::error::ACCESS_FINE_LOCATION absente (GPS)"; exit 1; }
