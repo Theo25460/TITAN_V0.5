@@ -137,7 +137,7 @@
     const story = words.summited ? words.route.camps[3][1] : Number(c.camps) > 0 ? words.route.camps[Number(c.camps) - 1][1] : "";
     return `<article class="sig-plate cm-cordee-card" data-cordee="${esc(c.id)}" data-status="${esc(c.status)}" data-route="${esc(words.route.id)}">
       <div class="cm-cordee-view"><img src="/assets/renaissance/${view}-small.webp" srcset="/assets/renaissance/${view}-xs.webp 480w, /assets/renaissance/${view}-small.webp 800w" sizes="(min-width: 1100px) 620px, 100vw" alt="" width="800" height="450" loading="lazy" decoding="async"></div>
-      <div class="cm-cordee-top"><div class="asc-between"><p class="asc-eyebrow">Route de ${esc(words.route.world)}</p>${state}</div>
+      <div class="cm-cordee-top"><div class="asc-between"><p class="asc-eyebrow">Route ${esc(/^les /.test(words.route.world) ? `des ${words.route.world.slice(4)}` : `de ${words.route.world}`)}</p>${state}</div>
         <h3>${esc(words.route.name)}</h3>
         <p class="cm-cordee-intro">${esc(words.route.intro)}</p></div>
       <div class="cm-cordee-body">

@@ -162,8 +162,14 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 .cm-requests { display: grid; gap: var(--s2); margin: 0; }
 .cm-requests .asc-list { margin-top: var(--s1); }
 .cm-request { flex-wrap: wrap; row-gap: var(--s2); }
+.cm-request .asc-row-main { flex: 1 1 9rem; }
+.cm-request .asc-row-title { white-space: normal; overflow-wrap: anywhere; }
 .cm-request .cm-actions { margin-left: auto; }
 .cm-request .cm-actions .asc-btn { min-width: 96px; }
+@media (max-width: 559px) {
+  .cm-requests .cm-request .cm-actions { flex: 1 1 100%; padding-left: 52px; }
+  .cm-requests .cm-request .cm-actions .asc-btn { flex: 1 1 0; }
+}
 .cm-invitation.cm-request {
   display: flex;
   align-items: flex-start;
@@ -236,8 +242,9 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 }
 .cm-live-panel { min-width: 0; }
 .cm-live-panel:focus-within { outline: 0; }
-.cm-live-panel > [tabindex="-1"]:focus-visible,
-.cm-live-panel > * > [tabindex="-1"]:focus-visible { outline: 2px solid var(--space); outline-offset: 4px; border-radius: var(--r2); }
+/* A scene that receives the focus after its tab was chosen is a place, not a control: no ring around the whole block. */
+.cm-live-panel [tabindex="-1"]:focus,
+.cm-col > [tabindex="-1"]:focus { outline: 0; }
 
 /* A scene on a plate (the expedition, the guest's welcome); a scene on the ground (challenges, guild). */
 .cm-scene {
@@ -336,30 +343,34 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 /* The view from the route: the painting of the world it crosses, fading into the steel of the plate. */
 .cm-cordee-view {
   position: relative;
-  height: 168px;
+  height: 196px;
   overflow: hidden;
 }
 .cm-cordee-view img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 42%;
+  object-position: 50% 30%;
+  -webkit-mask-image: linear-gradient(180deg, #000 38%, transparent 97%);
+  mask-image: linear-gradient(180deg, #000 38%, transparent 97%);
 }
 .cm-cordee-view::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(13, 17, 22, 0.1) 0%, rgba(13, 17, 22, 0.82) 58%, var(--steel-2) 100%);
+  background: linear-gradient(180deg, rgba(13, 17, 22, 0) 30%, rgba(13, 17, 22, 0.55) 78%, rgba(13, 17, 22, 0) 100%);
 }
 .cm-cordee-card[data-status="ended"] .cm-cordee-view img { filter: grayscale(0.85) brightness(0.8); }
 .cm-cordee-top {
   position: relative;
   display: grid;
   gap: var(--s2);
-  margin-top: -84px;
+  margin-top: -76px;
   padding: 0 var(--s5);
 }
-.cm-cordee-top .asc-eyebrow { margin: 0; color: var(--space-hi); }
+.cm-cordee-top .asc-eyebrow { margin: 0; color: var(--space-hi); text-shadow: 0 1px 6px rgba(9, 12, 16, 0.9); }
+.cm-cordee-top .sig-state:not(.is-worn, .is-rare) { background: rgba(9, 12, 16, 0.78); color: var(--tx); }
+.cm-cordee-top .sig-state.is-rare { background: var(--am); color: var(--am-ink); }
 .cm-cordee-top .asc-between { gap: var(--s2); align-items: center; }
 .cm-cordee-card h3 {
   margin: 0;
@@ -542,8 +553,8 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 .cm-cordee-card > .asc-actions { padding: 0 var(--s5) calc(var(--s5) + var(--s1)); padding-right: calc(var(--s5) + var(--cut)); }
 .cm-cordee-card > .asc-actions .asc-btn { min-height: 44px; }
 @media (min-width: 720px) {
-  .cm-cordee-view { height: 220px; }
-  .cm-cordee-top { margin-top: -96px; padding: 0 var(--s7); }
+  .cm-cordee-view { height: 260px; }
+  .cm-cordee-top { margin-top: -92px; padding: 0 var(--s7); }
   .cm-cordee-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s7); padding: var(--s6) var(--s7); }
   .cm-cordee-card > .asc-actions { padding-left: var(--s7); padding-bottom: var(--s7); }
 }
@@ -619,6 +630,7 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 .cm-add-row .asc-input { flex: 1; min-width: 0; }
 .cm-sent { padding-top: var(--s3); border-top: 1px solid var(--line-2); }
 .cm-blocks { justify-self: start; margin-top: 0; }
+.cm-col-side .asc-fold-list { grid-template-columns: minmax(0, 1fr); }
 .asc-toast .cm-undo { flex: none; align-self: center; margin-left: auto; min-height: 44px; }
 
 /* ---------- 7. Not signed in ---------- */
@@ -626,3 +638,169 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 .cm-guest .asc-eyebrow { color: var(--space-hi); }
 @media (min-width: 720px) { .cm-guest { padding: var(--s7); } }
 .cm-guest .cm-preview { border-color: var(--line-2); }
+
+/* ---------- 8. A challenge or a cordée opened from a link (defi.html) ----------
+   What a guest sees first: what it is, what it asks, what the others will see, then one action. Never a name. */
+.df-main > #defi { max-width: 720px; }
+.df-card {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.df-top {
+  position: relative;
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s5) var(--s5) 0;
+}
+.df-top.is-over { margin-top: -76px; padding-top: 0; }
+.df-top .asc-eyebrow { margin: 0; color: var(--space-hi); text-shadow: 0 1px 6px rgba(9, 12, 16, 0.9); }
+.df-top h2 {
+  margin: 0;
+  font-size: clamp(30px, 8vw, 44px);
+  line-height: 1;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.df-body {
+  display: grid;
+  gap: var(--s4);
+  padding: var(--s4) var(--s5) calc(var(--s5) + var(--s2));
+}
+.df-body p { margin: 0; }
+.df-goal { font-size: 18px; line-height: 1.45; }
+.df-goal strong { color: var(--space-hi); }
+.df-facts {
+  display: grid;
+  gap: var(--s3);
+  margin: 0;
+  padding: var(--s4) 0;
+  list-style: none;
+  border-top: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+}
+.df-facts li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: var(--s3);
+  align-items: start;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tx-2);
+}
+.df-facts .t-icon { width: 18px; height: 18px; margin-top: 2px; color: var(--space); }
+.df-camps { --row: 46px; margin: 0; }
+.df-card .cm-privacy { background: rgba(9, 12, 16, 0.42); }
+.df-actions { display: grid; gap: var(--s3); }
+.df-actions .asc-btn { min-height: 48px; }
+.df-notice { color: var(--warn); font-weight: 700; }
+.df-invalid h2 { margin: 0; font-size: 21px; }
+@media (max-width: 479px) {
+  .df-actions .asc-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .df-actions .asc-btn { width: 100%; }
+}
+@media (min-width: 720px) {
+  .df-top { padding: var(--s7) var(--s7) 0; }
+  .df-top.is-over { margin-top: -96px; }
+  .df-body { padding: var(--s5) var(--s7) var(--s7); }
+}
+
+/* ---------- 9. Coaching: a sharing one chose ----------
+   The first thing under the tabs is the link itself: with whom, what exactly is shared (said in words and in shape), and
+   that it can be changed or stopped. Then the conversation, the week, the proposals, and the exact list the coach reads. */
+#coaching > .asc-note { background: transparent; padding: 0; color: var(--tx-2); }
+#coaching > .asc-note .t-icon { color: var(--space); }
+#coaching .co-card {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s5);
+  border: 0;
+}
+#coaching .co-card > .asc-eyebrow { margin: 0; color: var(--space-hi); }
+#coaching .co-card .asc-between { gap: var(--s3); align-items: flex-start; }
+#coaching .co-card h3 {
+  margin: 0;
+  font-size: clamp(24px, 6vw, 32px);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+#coaching .co-card .sig-state { flex: none; margin-top: 4px; }
+.co-scope {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--line-2);
+}
+.co-scope > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: var(--s3);
+  align-items: start;
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.co-scope dt {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tx);
+}
+.co-scope dt .t-icon { flex: none; width: 16px; height: 16px; color: var(--space); }
+.co-scope dd {
+  display: grid;
+  justify-items: start;
+  gap: var(--s1);
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--tx-2);
+}
+.co-scope dd small { font-size: 12.5px; color: var(--tx-3); }
+.co-hold {
+  display: flex;
+  gap: var(--s2);
+  align-items: flex-start;
+  margin: 0;
+  color: var(--tx-2);
+}
+.co-hold .t-icon { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--space); }
+.co-hold a { color: var(--space); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+#coaching .co-card .asc-btn { min-height: 44px; }
+#co-seen { scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4)); }
+#co-seen:focus { outline: 0; }
+.co-intro { display: grid; gap: var(--s4); padding: var(--s5); }
+.co-intro .asc-eyebrow { color: var(--space-hi); }
+#coaching .sig-empty h2 { margin: 0; font-size: 21px; }
+@media (min-width: 720px) {
+  #coaching .co-card,
+  .co-intro { padding: var(--s7); }
+}
+@media (min-width: 900px) {
+  /* Wide: the three things shared stand side by side, each a column under its own rule. */
+  .co-scope { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--s6); border-top: 0; }
+  .co-scope > div { grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--s2); border-top: 1px solid var(--line-2); border-bottom: 0; }
+}
+
+/* ---------- 10. The public athlete card (athlete.html) ----------
+   A plate that carries one person: the face, the name, the rank as an object, then what they chose to show. */
+.ap-hero { display: grid; gap: var(--s5); padding: var(--s5); }
+.ap-hero .asc-eyebrow { color: var(--space-hi); }
+.ap-id { align-items: center; }
+.ap-id > div { flex: 1 1 0; min-width: 0; }
+.ap-crest { --obj: 84px; margin-left: auto; }
+.ap-crest .crest { width: 100%; height: 100%; }
+.ap-hero .pf-name { overflow-wrap: anywhere; }
+.ap-shown { margin-top: var(--s4); }
+.ap-missing { justify-items: start; }
+.ap-cta {
+  border: 0;
+  border-radius: 0;
+  border-top: 2px solid var(--tx);
+  background: none;
+  padding: var(--s4) 0 0;
+}
+@media (max-width: 419px) { .ap-crest { --obj: 64px; } }
+@media (min-width: 720px) { .ap-hero { padding: var(--s7); } }

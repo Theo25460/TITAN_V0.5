@@ -121,8 +121,13 @@
     document.querySelectorAll(".asc-sheet[open]:not(.help-report)").forEach(d => d.close());
   }
   const sending = () => mutation && current(mutation.job);
+  /* The blocks other modules draw inside this page (since the last visit, the Cordée, the Duo, the optional panels) answer
+     their own clicks and keep their own pending states: this page never handles or locks what is inside them. */
+  const FOREIGN = "#retour, #cordee, #duo, #communaute-extras";
+  const foreign = (node) => !!node?.closest?.(FOREIGN);
   function lockControls(task, scope) {
     scope.querySelectorAll("button, input, select, textarea").forEach(control => {
+      if (foreign(control)) return;
       if (!task.controls.has(control)) task.controls.set(control, control.disabled);
       control.disabled = true;
     });
@@ -810,6 +815,7 @@
   }
 
   function onClick(e) {
+    if (foreign(e.target)) return;
     const tab = e.target.closest("a[data-live]");
     if (tab && status === "ready") {
       // Another scene: it opens in place, the address remembers it, the focus goes to it. No jump, no history entry.
@@ -874,7 +880,7 @@
 
   function onSubmit(e) {
     const f = e.target;
-    if (!root.contains(f)) return;
+    if (!root.contains(f) || foreign(f)) return;
     e.preventDefault();
     if (!current(viewContext)) return clear("transition");
     if (sending()) return;
