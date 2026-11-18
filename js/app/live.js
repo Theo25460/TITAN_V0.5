@@ -196,31 +196,53 @@
       return;
     }
     const tabs = seg("tab", [["seance", "Séance live"], ["camp", "Camp de base"]], tab);
+    // The page says where it stands, so that the styles can quieten everything while a session runs.
+    root.dataset.state = tab === "camp" ? "camp" : state && state.status !== "ready" ? (state.status === "ended" ? "report" : "run") : prep ? "prep" : "pick";
     root.innerHTML = `<div class="live-tabs">${tabs}</div>${tab === "camp" ? campHtml() : state && state.status !== "ready" ? (state.status === "ended" ? reportHtml() : liveHtml()) : prep ? prepHtml() : pickHtml()}`;
   }
+
+  /* One scene from the choice of the sport to the Camp: the ascent of « l'Expédition » opens every state of the page, and what
+     the state has to say (the sport, the clock of the session told, the chapter of the Cordée) is written on its sky. */
+  const stage = (svg, copy, attrs = "") => `<div class="live-stage"${attrs}>${svg}<div class="live-stage-copy">${copy}</div></div>`;
+  /** The scene before anything happened: the traveller at the camp, the plan (when there is one) as the waypoints ahead. */
+  const stillScene = (c, planCount) => sceneSvg({ beats: 0, planCount: planCount || null, echo: null, goal: null, elan: { value: 0, max: 90 } }, c, false, true);
 
   function pickHtml() {
     const fav = (window.state?.user?.favoriteSports || []).filter((s) => window.SPORTS_CONFIG?.[s]);
     const ids = [...new Set([...fav, ...window.TitanSports.POPULAR])].slice(0, 12);
-    return `<section class="asc-stack"><p class="asc-eyebrow cy">TITAN LIVE</p><h1 class="asc-h1">Quelle séance vas-tu vivre ?</h1>
-      <p class="asc-muted">Chaque sport a sa Voie : ses missions, son rythme, son accompagnement.</p>
+    return `<section class="live-flow live-pick">${stage(stillScene({ sport: "titan", family: "endurance" }, 0), `<p class="asc-eyebrow cy">TITAN LIVE</p><h1 class="asc-h1">Quelle séance vas-tu vivre ?</h1>
+      <p>Chaque sport a sa Voie : ses missions, son rythme, son accompagnement.</p>`)}
       <div class="live-grid">${ids.map((id) => `<button type="button" class="asc-btn asc-btn-secondary" data-act="pick" data-v="${esc(id)}">${esc(window.TitanSports.label(id))}</button>`).join("")}</div>
       <label class="asc-field"><span>Autre sport</span><input class="asc-input" data-k="search" placeholder="Badminton, escalade, yoga…" autocomplete="off"></label>
       <div class="live-grid" id="live-results"></div></section>`;
   }
 
+  /* The three intents, told apart before a word is read: a trail cut into stages up to a flag, one mark set just above the
+     last one, places scattered with no line between them. Drawn here; no image exists for them. */
+  const INTENT_GLYPH = {
+    atteindre: '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M5 34 18 27 31 22 44 13 57 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><g fill="currentColor"><circle cx="18" cy="27" r="3.4"/><circle cx="31" cy="22" r="3.4"/><circle cx="44" cy="13" r="3.4"/></g><path d="M57 8V1l6 2.6L57 6" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    depasser: '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M4 22h56" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 4" opacity=".7"/><path d="M4 12h56" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M32 35V15m-7 7 7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    explorer: '<svg viewBox="0 0 64 40" aria-hidden="true"><g fill="currentColor"><circle cx="9" cy="28" r="2.6"/><circle cx="22" cy="10" r="3.6"/><circle cx="36" cy="26" r="2.2"/><circle cx="47" cy="8" r="2.8"/><circle cx="57" cy="24" r="3.2"/></g><path d="M3 37c6-4 11 3 17 0s11-4 17-1 12 3 18 0c2-1 4-1 6 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></svg>',
+  };
+  /* What each intent really changes (docs/live/GAME_DESIGN.md § 2 bis), in the order a session is lived. */
+  const INTENT_CHANGES = {
+    atteindre: ["Ton plan ou ton objectif est découpé en étapes, quatre au plus.", "Les étapes se cochent une à une, annoncées une fois. Aucune comparaison avec tes séances passées.", "Le récit dit les étapes franchies : ce qui est fait reste fait."],
+    depasser: ["Un seul seuil, tiré de ta dernière séance réellement comparable.", "Le seuil s’affiche avec ta référence. Il se retire de lui-même si l’effort ressenti atteint 8 ou en récupération.", "Seuil franchi avec de la réserve, ou mis de côté quand il le fallait."],
+    explorer: ["Rien à régler : ni objectif, ni plan chiffré.", "Aucun chiffre sur la vue aventure : un carnet de découvertes se remplit.", "Un récit sans un seul chiffre."],
+  };
+
   /** What the chosen intent will concretely do in this session, for this sport, from this athlete's own journal. */
   function intentPreview(ds, c) {
-    const intent = V().INTENTS[prep.intent];
     let own = "";
     if (prep.intent === "atteindre") {
       const st = L().stages(ds, 0);
-      own = st ? `<p class="asc-small"><strong>Tes étapes :</strong> ${st.list.map((x) => esc(x.label)).join(" · ")}</p>` : `<p class="asc-small asc-muted">Choisis un objectif ou un plan : il sera découpé en étapes.</p>`;
+      own = st ? `<p class="live-own"><strong>Tes étapes :</strong> ${st.list.map((x) => esc(x.label)).join(" · ")}</p>` : `<p class="live-own asc-muted">Choisis un objectif ou un plan : il sera découpé en étapes.</p>`;
     } else if (prep.intent === "depasser") {
       const th = L().thresholdOf(ds, 0);
-      own = `<p class="asc-small"><strong>${th.status === "open" ? "Ton seuil" : "Aujourd’hui"} :</strong> ${esc(th.text)}</p>${c.serene ? "" : `<p class="asc-small asc-muted">${esc(journalContext(prep.sport).basis)}</p>`}`;
-    } else own = `<p class="asc-small asc-muted">Rien à régler : ni objectif, ni plan chiffré. ${esc(c.curios.length ? "Le monde se révèle au fil de la pratique." : "")}</p>`;
-    return `<div class="live-intent" data-intent="${esc(prep.intent)}"><ul class="live-brings">${intent.brings.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>${own}</div>`;
+      own = `<p class="live-own"><strong>${th.status === "open" ? "Ton seuil" : "Aujourd’hui"} :</strong> ${esc(th.text)}</p>${c.serene ? "" : `<p class="asc-small asc-muted">${esc(journalContext(prep.sport).basis)}</p>`}`;
+    } else own = `<p class="live-own asc-muted">${esc(c.curios.length ? "Le monde se révèle au fil de la pratique." : "Pratique librement : la séance compte comme les autres.")}</p>`;
+    return `<div class="live-intent" data-intent="${esc(prep.intent)}">${own}
+      <ol class="live-changes">${["Avant", "Pendant", "Après"].map((when, i) => `<li><span class="live-when">${when}</span><span>${esc(INTENT_CHANGES[prep.intent][i])}</span></li>`).join("")}</ol></div>`;
   }
 
   function prepHtml() {
@@ -232,33 +254,41 @@
     // The web records no GPS trace: a distance goal could never move, so it is not offered here (Android measures it).
     const goals = [["none", "Aucun"], ["time", "Durée"], ["beats", cap(c.beat.many)]];
     const stake = W().stake(prep.sport, world);
-    return `<section class="asc-stack">
-      <div><p class="asc-eyebrow cy">${esc(c.voieName)}</p><h1 class="asc-h1">${esc(c.label)}</h1><p class="asc-muted">${esc(c.signature)}</p></div>
-      <div class="asc-section"><h2 class="asc-h3">Ton intention</h2>${Object.values(V().INTENTS).map((i) => `<button type="button" class="live-choice" data-act="intent" data-v="${i.id}" aria-pressed="${prep.intent === i.id}"><strong>${esc(i.label)}</strong><span class="asc-small asc-muted">${esc(i.promise)}</span></button>`).join("")}
-        ${intentPreview(ds, c)}</div>
-      ${free ? "" : `<div class="asc-section"><h2 class="asc-h3">Objectif (facultatif)</h2>${seg("goal", goals, prep.goalKind)}${prep.goalKind !== "none" ? `<label class="asc-field"><span>Valeur</span><input class="asc-input" data-k="goalValue" inputmode="decimal" value="${esc(prep.goalValue)}"></label>` : `<p class="asc-small asc-muted">Sans objectif, ${c.plan.count ? "ton plan sert de cap." : "la séance reste libre."}</p>`}</div>
-      ${c.plan.count ? `<div class="asc-section"><h2 class="asc-h3">Plan : ${prep.planCount} ${esc(prep.planCount > 1 ? c.beat.many : c.beat.one)}</h2><div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="plan" data-v="-1">Moins</button><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="plan" data-v="1">Plus</button></div></div>` : ""}`}
-      <div class="asc-section"><h2 class="asc-h3">Immersion</h2>${seg("immersion", imm, prep.immersion)}<p class="asc-small asc-muted">${esc(V().IMMERSION[prep.immersion].hint)}</p>${c.maxImmersion < 3 ? `<p class="asc-small asc-muted">${esc(c.safetyLabel)} : ${esc(c.safetyWhy)}</p>` : ""}</div>
-      <div class="asc-section"><h2 class="asc-h3">Missions</h2><p class="asc-small asc-muted">${c.offerMode === "before" ? "Pendant l’effort, TITAN ne te sollicitera pas : choisis jusqu’à deux missions, elles se valident à la fin." : "Jusqu’à deux maintenant, ou laisse TITAN t’en proposer au bon moment."}</p>
-        ${missions.map((m) => `<button type="button" class="live-choice" data-act="mission" data-v="${esc(m.id)}" aria-pressed="${prep.picked.includes(m.id)}"><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">${esc(m.text)}</span>${m.safetyNote ? `<span class="asc-small asc-muted">${esc(m.safetyNote)}</span>` : ""}</button>`).join("")}</div>
-      <label class="live-toggle"><input type="checkbox" data-k="recovery"${prep.recovery ? " checked" : ""}> Séance de récupération</label>
-      ${c.voie === "paroi" ? `<label class="live-toggle"><input type="checkbox" data-k="project"${prep.project ? " checked" : ""}> Je travaille un projet</label>` : ""}
-      <div class="asc-section live-stake"><h2 class="asc-h3">Ce que cette séance fait avancer</h2><ul class="live-brings">${stake.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul><p class="asc-small asc-muted">La séance compte pour ton suivi sportif même si tu n’ouvres jamais le Camp de base.</p></div>
-      <p class="asc-small asc-muted">${esc(c.fallback)}</p>
-      <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-ghost" data-act="back">Changer de sport</button><button type="button" class="asc-btn asc-btn-primary" data-act="start">Commencer</button></div>
+    // Two parts: what this session is (the scene, the intent and what it changes, what it feeds), then what can be set. The
+    // action to start stays in reach under them: the page is long, the decision is not.
+    return `<section class="live-flow live-prep" data-intent="${esc(prep.intent)}">
+      <div class="live-prep-main">
+        ${stage(stillScene(c, free ? 0 : prep.planCount), `<p class="asc-eyebrow cy">${esc(c.voieName)}</p><h1 class="asc-h1">${esc(c.label)}</h1>`)}
+        <p class="live-signature">${esc(c.signature)}</p>
+        <div class="live-block"><h2 class="asc-h3">Ton intention</h2>
+          <div class="live-intents" role="group" aria-label="Ton intention">${Object.values(V().INTENTS).map((i) => `<button type="button" class="live-intent-card" data-act="intent" data-v="${i.id}" aria-pressed="${prep.intent === i.id}">${INTENT_GLYPH[i.id]}<strong>${esc(i.label)}</strong><span>${esc(i.short)}</span></button>`).join("")}</div>
+          ${intentPreview(ds, c)}</div>
+        <div class="live-block live-stake"><h2 class="asc-h3">Ce que cette séance fait avancer</h2><ul class="live-brings">${stake.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul><p class="asc-small asc-muted">La séance compte pour ton suivi sportif même si tu n’ouvres jamais le Camp de base.</p></div>
+      </div>
+      <div class="live-prep-side">
+        ${free ? "" : `<div class="live-block"><h2 class="asc-h3">Objectif (facultatif)</h2>${seg("goal", goals, prep.goalKind)}${prep.goalKind !== "none" ? `<label class="asc-field"><span>Valeur</span><input class="asc-input" data-k="goalValue" inputmode="decimal" value="${esc(prep.goalValue)}"></label>` : `<p class="asc-small asc-muted">Sans objectif, ${c.plan.count ? "ton plan sert de cap." : "la séance reste libre."}</p>`}</div>
+        ${c.plan.count ? `<div class="live-block live-plan"><h2 class="asc-h3">Plan : ${prep.planCount} ${esc(prep.planCount > 1 ? c.beat.many : c.beat.one)}</h2><div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary" data-act="plan" data-v="-1">Moins</button><button type="button" class="asc-btn asc-btn-secondary" data-act="plan" data-v="1">Plus</button></div></div>` : ""}`}
+        <div class="live-block"><h2 class="asc-h3">Immersion</h2>${seg("immersion", imm, prep.immersion)}<p class="asc-small asc-muted">${esc(V().IMMERSION[prep.immersion].hint)}</p>${c.maxImmersion < 3 ? `<p class="asc-small asc-muted">${esc(c.safetyLabel)} : ${esc(c.safetyWhy)}</p>` : ""}</div>
+        <div class="live-block"><h2 class="asc-h3">Missions</h2><p class="asc-small asc-muted">${c.offerMode === "before" ? "Pendant l’effort, TITAN ne te sollicitera pas : choisis jusqu’à deux missions, elles se valident à la fin." : "Jusqu’à deux maintenant, ou laisse TITAN t’en proposer au bon moment."}</p>
+          <div class="live-missions">${missions.map((m) => `<button type="button" class="live-choice" data-act="mission" data-v="${esc(m.id)}" aria-pressed="${prep.picked.includes(m.id)}"><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">${esc(m.text)}</span>${m.safetyNote ? `<span class="asc-small asc-muted">${esc(m.safetyNote)}</span>` : ""}</button>`).join("")}</div></div>
+        <div class="live-block live-toggles"><label class="live-toggle"><input type="checkbox" data-k="recovery"${prep.recovery ? " checked" : ""}> Séance de récupération</label>
+        ${c.voie === "paroi" ? `<label class="live-toggle"><input type="checkbox" data-k="project"${prep.project ? " checked" : ""}> Je travaille un projet</label>` : ""}
+        <p class="asc-small asc-muted">${esc(c.fallback)}</p></div>
+      </div>
+      <div class="live-start"><button type="button" class="asc-btn asc-btn-ghost" data-act="back">Changer de sport</button><button type="button" class="asc-btn asc-btn-primary" data-act="start">Commencer</button></div>
     </section>`;
   }
 
   /** « L'Expédition »: the adventure view. Geometry from the shared core (js/core/live-scene.js), colours from Ascension tokens. */
-  function sceneSvg(v, c, ended = false) {
+  function sceneSvg(v, c, ended = false, decorative = false) {
     const s = window.TitanLiveScene.scene({ beats: v.beats, planCount: v.planCount, echoBeats: v.echo ? v.echo.beats : null,
       goalRatio: v.goal ? v.goal.ratio : null, elan: v.elan, seed: c.sport, ended });
-    const label = v.numbers === false ? `${cap(c.voieName)} : le sentier avance avec ta pratique${s.summit.reached ? ", sommet atteint" : ""}`
+    const label = decorative ? "" : v.label ? v.label : v.numbers === false ? `${cap(c.voieName)} : le sentier avance avec ta pratique${s.summit.reached ? ", sommet atteint" : ""}`
       : `${cap(c.voieName)} : ${v.beats} ${v.beatLabel}${v.planCount ? ` sur ${v.planCount}` : ""}, élan du jour ${Math.round(v.elan.value)} sur ${v.elan.max}${v.echo ? `, Écho à ${v.echo.beats}` : ""}${s.summit.reached ? ", sommet atteint" : ""}`;
     const t = s.traveller;
-    return `<svg class="live-scene" data-family="${esc(c.family)}" viewBox="0 0 ${s.width} ${s.height}" role="img" aria-label="${esc(label)}">
+    return `<svg class="live-scene" data-family="${esc(c.family)}" viewBox="0 0 ${s.width} ${s.height}" ${decorative ? 'aria-hidden="true"' : `role="img" aria-label="${esc(label)}"`}>
       <defs><linearGradient id="live-sky" x1="0" y1="0" x2="0" y2="1"><stop class="live-sky-top" offset="0"/><stop class="live-sky-low" offset="1"/></linearGradient></defs>
-      <rect class="live-sky" width="${s.width}" height="${s.height}" rx="14"/>
+      <rect class="live-sky" width="${s.width}" height="${s.height}"/>
       ${s.stars.map((p) => `<circle class="live-star" cx="${p.x}" cy="${p.y}" r="${p.r}"/>`).join("")}
       <circle class="live-disc-halo" cx="${s.sky.x}" cy="${s.sky.y}" r="${s.sky.r + 7}"/><circle class="live-disc" cx="${s.sky.x}" cy="${s.sky.y}" r="${s.sky.r}"/>
       ${s.ridges.map((d, i) => `<path class="live-ridge r${i + 1}" d="${d}"/>`).join("")}
@@ -314,24 +344,26 @@
     const c = V().resolve(state.sport);
     const v = L().view(state, Date.now());
     drawnShape = shape(v);
-    return `<section class="asc-stack live-run" data-view="${viewMode}">
+    // While the body works the page is quiet: one large clock, the gesture of the sport, the ascent. Nothing here is a bright field.
+    return `<section class="live-flow live-run" data-view="${viewMode}" data-status="${state.status === "active" ? "active" : "paused"}" data-intent="${esc(state.intent || "")}">
+      <h1 class="sr-only">Séance en cours : ${esc(c.label)}</h1>
       <div class="live-viewseg">${seg("view", [["sport", "Vue sportive"], ["aventure", "Vue aventure"]], viewMode)}</div>
-      ${interrupted ? `<div class="asc-panel live-warn"><strong>Séance retrouvée</strong><p class="asc-small asc-muted">La page a été fermée pendant ${Math.round(interrupted.gapS / 60)} min. Le chrono a continué.</p><div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="trim">J’étais à l’arrêt</button><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="keepgap">Je continuais</button></div></div>` : ""}
+      ${interrupted ? `<div class="live-warn"><strong>Séance retrouvée</strong><p class="asc-small asc-muted">La page a été fermée pendant ${Math.round(interrupted.gapS / 60)} min. Le chrono a continué.</p><div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary" data-act="trim">J’étais à l’arrêt</button><button type="button" class="asc-btn asc-btn-secondary" data-act="keepgap">Je continuais</button></div></div>` : ""}
       <div class="live-head"><p class="asc-eyebrow ${state.status === "active" ? "cy" : ""}">${state.status === "active" ? esc(c.label) : "En pause"}</p><p class="live-clock" aria-label="Temps actif ${clock(v.activeS)}">${clock(v.activeS)}</p>
         ${v.goal ? `<div class="live-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(v.goal.ratio * 100)}" aria-label="Progression de l’objectif"><i style="width:${Math.round(v.goal.ratio * 100)}%"></i></div>` : ""}</div>
       <div class="live-cols">
         <div class="live-pane live-pane-sport">${panelHtml(v, c)}</div>
-        <div class="live-pane live-pane-aventure">${sceneSvg(v, c)}
+        <div class="live-pane live-pane-aventure"><div class="live-stage">${sceneSvg(v, c)}</div>
           ${v.numbers === false ? `<p class="live-scene-line asc-muted">Le sentier avance avec ta pratique.</p>` : `<p class="live-scene-line"><strong class="asc-num">${v.beats}</strong> ${esc(v.beatLabel)}${v.planCount ? ` sur ${v.planCount}` : ""} <span class="asc-muted">· Élan du jour ${Math.round(v.elan.value)} / ${v.elan.max}</span></p>`}
-          ${v.lastEvent && (v.lastEvent.text === cue?.text || (v.numbers === false && /\d/.test(v.lastEvent.text))) ? "" : `<p class="asc-small asc-muted">${esc(v.lastEvent?.text || c.tagline)}</p>`}
+          ${v.lastEvent && (v.lastEvent.text === cue?.text || (v.numbers === false && /\d/.test(v.lastEvent.text))) ? "" : `<p class="live-tagline">${esc(v.lastEvent?.text || c.tagline)}</p>`}
           ${intentHtml(v)}</div>
       </div>
       ${v.interlude ? `<p class="live-interlude">${esc(v.interlude.text)}</p>` : ""}
       ${cue && state.level >= 1 ? `<div class="live-cue" role="status"><strong>${esc(cue.text)}</strong>${cue.why ? `<span class="asc-small asc-muted">Pourquoi : ${esc(cue.why)}</span>` : ""}</div>` : ""}
-      ${offer && v.tapsAllowed ? `<div class="asc-panel live-offer"><p class="asc-eyebrow cy">Mission proposée</p><strong>${esc(offer.label)}</strong><p class="asc-small asc-muted">${esc(offer.text)}</p><div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-act="accept">Accepter</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-act="decline">Pas aujourd’hui</button></div></div>` : ""}
+      ${offer && v.tapsAllowed ? `<div class="live-offer"><p class="asc-eyebrow cy">Mission proposée</p><strong>${esc(offer.label)}</strong><p class="asc-small asc-muted">${esc(offer.text)}</p><div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-primary" data-act="accept">Accepter</button><button type="button" class="asc-btn asc-btn-ghost" data-act="decline">Pas aujourd’hui</button></div></div>` : ""}
       ${v.missions.active.map((m) => `<div class="live-mission"><span class="asc-small">Mission en cours</span><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">${m.metric === "declared" ? "À confirmer à la fin." : m.metric === "report" ? "Se vérifie au rapport." : m.target != null ? `${m.value ?? 0} / ${Math.ceil(m.target)}` : esc(m.text)}</span></div>`).join("")}
-      ${v.tapsAllowed ? `<div><p class="asc-small asc-muted">Effort ressenti (facultatif)</p><div class="asc-row-flex">${[3, 5, 7, 8, 9].map((x) => `<button type="button" class="asc-chip${state.feel === x ? " cy" : ""}" data-act="feel" data-v="${x}">${x}/10</button>`).join("")}</div></div>` : ""}
-      <div class="asc-row-flex live-controls"><button type="button" class="asc-btn asc-btn-secondary" data-act="pause">${state.status === "active" ? "Pause" : "Reprendre"}</button><button type="button" class="asc-btn asc-btn-primary" data-act="finish">Terminer</button></div>
+      ${v.tapsAllowed ? `<div class="live-feel"><p class="asc-small asc-muted" id="live-feel-label">Effort ressenti (facultatif)</p><div class="live-feel-row" role="group" aria-labelledby="live-feel-label">${[3, 5, 7, 8, 9].map((x) => `<button type="button" data-act="feel" data-v="${x}" aria-pressed="${state.feel === x}">${x}<small>/10</small></button>`).join("")}</div></div>` : ""}
+      <div class="live-controls"><button type="button" class="asc-btn asc-btn-secondary" data-act="pause">${state.status === "active" ? "Pause" : "Reprendre"}</button><button type="button" class="asc-btn asc-btn-primary" data-act="finish">Terminer</button></div>
     </section>`;
   }
 
@@ -342,44 +374,56 @@
     const fields = [...new Set(rm.flatMap((m) => [m.check.field, m.check.requires, m.check.per?.field].filter(Boolean)))];
     const label = (id) => (window.TitanSports.conf(c.sport)?.extraFields || []).find((f) => f.id === id)?.label || id;
     const declared = c.missions.filter((m) => m.check.metric === "declared" && state.missions.active.includes(m.id));
-    return `<section class="asc-stack">
-      <div><p class="asc-eyebrow cy">${esc(c.voieName)} · séance terminée</p><h1 class="asc-h1">${clock(v.activeS)}</h1></div>
-      ${sceneSvg(v, c, true)}
-      <div class="live-story" aria-label="Le récit de ta séance"><p class="asc-eyebrow">Le récit de ta séance</p>${L().recap(state).lines.map((l) => `<p>${esc(l)}</p>`).join("")}</div>
+    const lines = L().recap(state).lines;
+    // The session told: the same ascent, stopped where the effort brought it, the time on its sky, then the story in the
+    // order it happened — its first sentence says what the intent became.
+    return `<section class="live-flow live-report" data-intent="${esc(state.intent || "")}">
+      ${stage(sceneSvg(v, c, true), `<p class="asc-eyebrow cy">${esc(c.voieName)} · séance terminée</p><h1 class="asc-h1 live-clock-end">${clock(v.activeS)}</h1>`)}
+      <div class="live-story" aria-label="Le récit de ta séance"><p class="asc-eyebrow">Le récit de ta séance</p>${lines.map((l, i) => `<p${i === 0 ? ' class="live-story-lead"' : ""}>${esc(l)}</p>`).join("")}</div>
       ${v.numbers === false ? "" : `<dl class="live-recap" aria-label="Ce que ton effort a tracé">
         <div><dt>${esc(cap(v.beatLabel))}</dt><dd class="asc-num">${v.beats}${v.planCount ? ` / ${v.planCount}` : ""}</dd></div>
         <div><dt>Missions accomplies</dt><dd class="asc-num">${state.missions.done.length}</dd></div>
         <div><dt>Élan du jour</dt><dd class="asc-num">${Math.round(v.elan.value)} / ${v.elan.max}</dd></div>
       </dl>`}
-      <div class="asc-section"><h2 class="asc-h3">Effort ressenti</h2><div class="asc-scale" role="group" aria-label="Effort ressenti de 1 à 10">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((x) => `<button type="button" data-act="rpe" data-v="${x}" aria-pressed="${rpe === x}">${x}</button>`).join("")}</div></div>
-      ${fields.length ? `<div class="asc-section"><h2 class="asc-h3">Rapport</h2>${fields.map((f) => `<label class="asc-field"><span>${esc(label(f))}</span><input class="asc-input" data-k="report:${esc(f)}" inputmode="decimal" value="${esc(report[f] ?? "")}"></label>`).join("")}</div>` : ""}
-      ${declared.length ? `<div class="asc-section"><h2 class="asc-h3">Missions à confirmer</h2>${declared.map((m) => `<button type="button" class="live-choice" data-act="declare" data-v="${esc(m.id)}"><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">${esc(m.text)}</span><span class="asc-small">Je l’ai fait</span></button>`).join("")}</div>` : ""}
+      <div class="live-block"><h2 class="asc-h3">Effort ressenti</h2><div class="asc-scale" role="group" aria-label="Effort ressenti de 1 à 10">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((x) => `<button type="button" data-act="rpe" data-v="${x}" aria-pressed="${rpe === x}">${x}</button>`).join("")}</div></div>
+      ${fields.length ? `<div class="live-block"><h2 class="asc-h3">Rapport</h2>${fields.map((f) => `<label class="asc-field"><span>${esc(label(f))}</span><input class="asc-input" data-k="report:${esc(f)}" inputmode="decimal" value="${esc(report[f] ?? "")}"></label>`).join("")}</div>` : ""}
+      ${declared.length ? `<div class="live-block"><h2 class="asc-h3">Missions à confirmer</h2><div class="live-missions">${declared.map((m) => `<button type="button" class="live-choice" data-act="declare" data-v="${esc(m.id)}"><strong>${esc(m.label)}</strong><span class="asc-small asc-muted">${esc(m.text)}</span><span class="asc-small">Je l’ai fait</span></button>`).join("")}</div></div>` : ""}
       <p class="asc-small asc-muted">Tu vérifies ensuite la séance dans le formulaire habituel. Les récompenses du monde sont confirmées par le serveur après l’envoi, à ta prochaine visite du Camp de base.</p>
-      <button type="button" class="asc-btn asc-btn-primary asc-btn-block" data-act="keep">Vérifier et enregistrer</button>
-      <button type="button" class="asc-btn asc-btn-ghost" data-act="abandon">Abandonner la séance</button>
+      <div class="live-end"><button type="button" class="asc-btn asc-btn-primary asc-btn-block" data-act="keep">Vérifier et enregistrer</button>
+      <button type="button" class="asc-btn asc-btn-ghost" data-act="abandon">Abandonner la séance</button></div>
     </section>`;
   }
 
   function campHtml() {
-    if (worldError) return `<section class="asc-panel"><p>${esc(worldError)}</p><button type="button" class="asc-btn asc-btn-secondary" data-act="reload-world">Réessayer</button></section>`;
-    if (!world) return `<div class="asc-skeleton live-skeleton"></div>`;
+    // The Camp is the foot of the same ascent: while it loads or when it cannot be read, the scene stays and says so.
+    const campScene = (beats) => sceneSvg({ beats, planCount: 10, echo: null, goal: null, elan: { value: 0, max: 90 }, label: `La Cordée : ${beats} chapitre${beats > 1 ? "s" : ""} sur 10` }, { sport: "camp", family: "mobilite", voieName: "Le Camp de base" });
+    if (worldError) return `<section class="live-flow live-campv">${stage(campScene(0), `<p class="asc-eyebrow cy">Le Camp de base</p><h1 class="asc-h1">Le camp ne répond pas</h1>`)}
+      <div class="sig-empty"><h3>Rien n’est perdu</h3><p>${esc(/compte/.test(worldError) ? worldError : "Le Camp de base n’a pas pu être lu. Tes séances et ce que tu as bâti sont conservés.")}</p><button type="button" class="asc-btn asc-btn-secondary" data-act="reload-world">Réessayer</button></div></section>`;
+    if (!world) return `<section class="live-flow live-campv" aria-busy="true">${stage(campScene(0), `<p class="asc-eyebrow cy">Le Camp de base</p><h1 class="asc-h1">Le camp se prépare…</h1>`)}<div class="asc-skeleton live-skeleton"></div></section>`;
     const w = world;
     const cordee = W().cordee({ days: w.days, voies: w.distinctVoies });
     const res = [["Éclats", w.wallet.eclats, "eclats"], ...Object.values(V().ESSENCES).map((e) => [e.label, w.wallet.essences[e.id] || 0, e.family])];
-    return `<section class="asc-stack">
-      <div><p class="asc-eyebrow cy">Le Camp de base</p><h1 class="asc-h1">${esc(cordee.unlocked ? cordee.chapters[cordee.chapters.length - 1].title : "Le camp sous la neige")}</h1><p class="asc-muted">Tes séances live retressent la Cordée. Rien ici ne s’achète et rien ne se perd.</p></div>
+    const pips = (n, of) => Array.from({ length: of }, (_, i) => `<i${i < n ? ' class="on"' : ""}></i>`).join("");
+    return `<section class="live-flow live-campv">
+      ${stage(campScene(cordee.unlocked), `<p class="asc-eyebrow cy">Le Camp de base</p><h1 class="asc-h1">${esc(cordee.unlocked ? cordee.chapters[cordee.chapters.length - 1].title : "Le camp sous la neige")}</h1>`)}
+      <p class="live-signature">Tes séances live retressent la Cordée. Rien ici ne s’achète et rien ne se perd.</p>
       <div class="live-res">${res.map(([l, n, f]) => `<div class="live-res-item" data-family="${esc(f)}"><span class="asc-small asc-muted">${esc(l)}</span><strong class="asc-num">${Number(n)}</strong></div>`).join("")}</div>
-      <div class="asc-section live-horizon"><h2 class="asc-h3">Ce qui vient</h2>${W().horizon(w).map((h) => `<div class="live-next${h.ready ? " ready" : ""}"><strong>${esc(h.title)}</strong><span class="asc-small asc-muted">${esc(h.text)}</span></div>`).join("")}<p class="asc-small asc-muted">Rien n’expire : ces repères avancent quand tu reviens, à ton rythme.</p></div>
-      <div class="asc-section"><h2 class="asc-h3">Bâtiments</h2>${Object.values(W().BUILDINGS).map((b) => {
+      <div class="live-camp-cols">
+        <div class="live-block live-horizon"><h2 class="asc-h3">Ce qui vient</h2>${W().horizon(w).map((h) => `<div class="live-next${h.ready ? " ready" : ""}"><strong>${esc(h.title)}</strong><span class="asc-small asc-muted">${esc(h.text)}</span>${h.ready ? `<span class="sig-state is-worn">Prêt</span>` : ""}</div>`).join("")}<p class="asc-small asc-muted">Rien n’expire : ces repères avancent quand tu reviens, à ton rythme.</p></div>
+        <div class="live-block"><h2 class="asc-h3">La Cordée · ${cordee.unlocked} / ${cordee.of}</h2>${cordee.chapters.length ? `<ol class="live-chapters" reversed>${cordee.chapters.slice().reverse().map((ch) => `<li class="live-chapter"><span class="live-chapter-n asc-num" aria-hidden="true">${ch.index}</span><div><strong><span class="sr-only">${ch.index}. </span>${esc(ch.title)}</strong><p class="asc-small asc-muted">${esc(ch.text)}</p></div></li>`).join("")}</ol>` : `<p class="asc-muted">La première séance live déblaie le seuil du camp.</p>`}</div>
+      </div>
+      <div class="live-block"><h2 class="asc-h3">Bâtiments</h2><div class="live-buildings">${Object.values(W().BUILDINGS).map((b) => {
         const level = w.buildings[b.id] || 0;
         const plan = W().buildPlan(b.id, level, w.wallet);
-        return `<div class="asc-panel live-building" data-slot="camp/${esc(b.id)}-${level}"><div class="asc-row-flex"><strong>${esc(b.name)}</strong><span class="asc-small asc-muted">${esc(W().LEVEL_NAMES[level])}</span></div><p class="asc-small asc-muted">${esc(b.text)}</p>
-          <div class="live-bar"><i style="width:${Math.round((level / W().MAX_LEVEL) * 100)}%"></i></div>
-          ${plan ? `<button type="button" class="asc-btn ${plan.affordable ? "asc-btn-primary" : "asc-btn-secondary"} asc-btn-sm" data-act="build" data-v="${esc(b.id)}"${plan.affordable ? "" : " disabled"}>Rebâtir · ${plan.useEssence ? `${plan.useEssence} ${esc(V().ESSENCES[plan.essence]?.label || "")}` : ""}${plan.useEssence && plan.useEclats ? " + " : ""}${plan.useEclats ? `${plan.useEclats} éclats` : ""}</button>` : `<span class="asc-small">Niveau maximal</span>`}</div>`;
-      }).join("")}</div>
-      <div class="asc-section"><h2 class="asc-h3">La Cordée · ${cordee.unlocked} / ${cordee.of}</h2>${cordee.chapters.length ? cordee.chapters.slice().reverse().map((ch) => `<div class="live-chapter"><strong>${ch.index}. ${esc(ch.title)}</strong><p class="asc-small asc-muted">${esc(ch.text)}</p></div>`).join("") : `<p class="asc-muted">La première séance live déblaie le seuil du camp.</p>`}</div>
-      <div class="asc-section"><h2 class="asc-h3">Les Marches</h2>${Object.keys(V().VOIES).map((id) => { const r = W().region(id, w.voies[id]); if (!r.lands) return ""; const arc = W().arc(id, w.voies[id]); return `<div class="asc-panel"><div class="asc-row-flex"><strong>${esc(r.name)}</strong><span class="asc-small asc-muted">${r.lands} / ${r.of} terres</span></div><p class="asc-small asc-muted">${esc(arc[arc.length - 1]?.text || "")}</p>${r.guardianReady ? `<p class="asc-small live-amber">${esc(r.guardian)} t’attend.</p>` : ""}</div>`; }).join("") || `<p class="asc-muted">Chaque Voie pratiquée en séance live révèle sa région.</p>`}</div>
-      <div class="asc-section"><h2 class="asc-h3">Trouvailles · ${w.collection.length}</h2><div class="asc-row-flex">${w.collection.map((k) => { const [vo, i] = k.split(":"); const f = W().FINDS[vo]?.[Number(i)]; return f ? `<span class="asc-chip${Number(i) >= 4 ? " am" : ""}">${esc(f[0])}</span>` : ""; }).join("") || `<p class="asc-muted">Les trouvailles apparaissent au fil des séances, un peu plus souvent quand tu explores.</p>`}</div></div>
+        const cost = plan ? `${plan.useEssence ? `${plan.useEssence} ${esc(V().ESSENCES[plan.essence]?.label || "")}` : ""}${plan.useEssence && plan.useEclats ? " + " : ""}${plan.useEclats ? `${plan.useEclats} éclats` : ""}` : "";
+        // A level that cannot be paid yet is said as a sentence: no button that does nothing.
+        return `<div class="sig-plate live-building${plan?.affordable ? " is-relief" : ""}" data-slot="camp/${esc(b.id)}-${level}"><div class="live-building-head"><strong>${esc(b.name)}</strong><span class="sig-state${level ? " is-owned" : " is-locked"}">${esc(W().LEVEL_NAMES[level])}</span></div>
+          <span class="live-levels" role="img" aria-label="Niveau ${level} sur ${W().MAX_LEVEL}">${pips(level, W().MAX_LEVEL)}</span>
+          <p class="asc-small asc-muted">${esc(b.text)}</p>
+          ${!plan ? `<p class="asc-small">Niveau maximal</p>` : plan.affordable ? `<button type="button" class="asc-btn asc-btn-primary" data-act="build" data-v="${esc(b.id)}">Rebâtir · ${cost}</button>` : `<p class="asc-small live-cost">Niveau « ${esc(W().LEVEL_NAMES[level + 1])} » : ${cost}. Pas encore réunis.</p>`}</div>`;
+      }).join("")}</div></div>
+      <div class="live-block"><h2 class="asc-h3">Les Marches</h2><div class="live-marches">${Object.keys(V().VOIES).map((id) => { const r = W().region(id, w.voies[id]); if (!r.lands) return ""; const arc = W().arc(id, w.voies[id]); return `<div class="live-marche"><div class="live-building-head"><strong>${esc(r.name)}</strong><span class="asc-small asc-muted asc-num">${r.lands} / ${r.of} terres</span></div><span class="live-levels" aria-hidden="true">${pips(r.lands, r.of)}</span><p class="asc-small asc-muted">${esc(arc[arc.length - 1]?.text || "")}</p>${r.guardianReady ? `<p class="asc-small"><span class="sig-state is-rare">${esc(r.guardian)} t’attend</span></p>` : ""}</div>`; }).join("") || `<p class="asc-muted">Chaque Voie pratiquée en séance live révèle sa région.</p>`}</div></div>
+      <div class="live-block"><h2 class="asc-h3">Trouvailles · ${w.collection.length}</h2><div class="live-finds-row">${w.collection.map((k) => { const [vo, i] = k.split(":"); const f = W().FINDS[vo]?.[Number(i)]; return f ? `<span class="sig-state${Number(i) >= 4 ? " is-rare" : ""}">${esc(f[0])}${Number(i) >= 4 ? " · rare" : ""}</span>` : ""; }).join("") || `<p class="asc-muted">Les trouvailles apparaissent au fil des séances, un peu plus souvent quand tu explores.</p>`}</div></div>
     </section>`;
   }
 
@@ -427,6 +471,8 @@
       case "reload-world": world = null; worldError = null; render(); void loadWorld(); break;
       default: break;
     }
+    // A choice redraws the screen: the focus goes back on the control that was pressed, when it is still there.
+    if (!root.contains(document.activeElement)) root.querySelector(`[data-act="${CSS.escape(act)}"]${v != null ? `[data-v="${CSS.escape(v)}"]` : ""}`)?.focus({ preventScroll: true });
   }
 
   function onInput(e) {

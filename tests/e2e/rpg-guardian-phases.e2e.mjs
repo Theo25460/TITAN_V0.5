@@ -82,7 +82,7 @@ test('guardian phases: real discovery engine confirms the final chapter and stor
 });
 test('quest log lists every started region with its chapter and stays optional and non-punitive', async () => {
  const f=await campaignPage('/adventure',{chapter:3,target:2,evidence:{days:1,effort:10}});try{
-  const log=f.page.locator('[data-quest-log]');await log.waitFor();
+  await f.page.locator('[data-av-view-btn="quetes"]').click();const log=f.page.locator('[data-quest-log]');await log.waitFor();
   assert.equal(await log.locator('[data-quest-log-world]').count(),1);
   await log.locator('summary').click();
   const text=await log.innerText();

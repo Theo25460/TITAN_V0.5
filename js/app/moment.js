@@ -96,7 +96,7 @@
       if (capped) lines.push(Number(r.xp) > 0 ? `Plafond de fair-play atteint : ${F().number(r.xp)} XP comptés sur ${F().number(r.requested_xp)}.` : "Plafond de fair-play du jour ou de la semaine atteint : la séance compte pour tes statistiques, pas pour l’XP.");
       else lines.push("Confirmée par le serveur.");
       if (Number(r.leveled_up) > 0) lines.push(`Niveau ${F().number(r.level_after)} atteint.`);
-      return { state: capped ? "capped" : "confirmed", big: `+${F().number(r.xp)} XP`, sub: lines.join(" "), credits: Number(r.credits) || 0, levelUp: Number(r.leveled_up) > 0 ? Number(r.level_after) : null, xp: Number(r.xp) || 0, levelAfter: Number(r.level_after) || null, xpAfter: Number(r.xp_after) || null };
+      return { state: capped ? "capped" : "confirmed", big: `+${F().number(r.xp)} XP`, sub: lines.join(" "), credits: Number(r.credits) || 0, levelUp: Number(r.leveled_up) > 0 ? Number(r.level_after) : null, levels: Number(r.leveled_up) || 0, xp: Number(r.xp) || 0, levelAfter: Number(r.level_after) || null, xpAfter: Number(r.xp_after) || null };
     }
     const offline = !navigator.onLine;
     return { state: "pending", big: "Confirmation en attente", sub: offline ? "Hors ligne, la séance est conservée sur cet appareil et partira dès le retour du réseau." : "Conservée sur cet appareil. Confirmation du serveur en cours…" };
@@ -156,15 +156,47 @@
     const known = rw.levelAfter !== null && rw.xpAfter !== null;
     // The gain is the figure; the level it moves is the same bar as on the QG. Before this session the bar stood at `from`
     // (drawn as a quieter tone under the fill), after it at `to`.
+    // A new level is a short scene, played once: the ascent drawn by the shared geometry of « l'Expédition », its trail inked up to
+    // the summit, the crest of the rank standing on the ground. A new rank says so. Decorative (the words under it state the level).
+    const newRank = rw.levelUp && window.TitanCrest.rankIdOf(Math.max(1, level - Math.max(1, rw.levels || 1))) !== rank;
+    const scene = rw.levelUp ? `<div class="moment-scene${newRank ? " is-rank" : ""}">${ascentSvg(rank)}
+        <p class="moment-scene-copy"><span>${newRank ? "Nouveau rang" : "Niveau atteint"}</span><strong class="asc-num">${F().number(level)}</strong><span>${esc(E().rank(level).name)}</span></p>
+        <div class="moment-crest sig-object">${window.TitanCrest.svg(rank, 132)}</div></div>` : "";
     return `<section class="moment-hero${animate ? "" : " struck"}" aria-hidden="true" data-level-up="${rw.levelUp ? 1 : 0}" data-play="${animate ? 1 : 0}" data-to="${to}" style="--accent:${window.TitanCrest.ACCENT[rank]}">
+      ${scene}
       <div class="moment-ring moment-climb">
         <p class="moment-climb-figure"><span class="moment-ring-xp asc-num" data-count="${rw.xp}">+${F().number(rw.xp)}</span><small>XP</small></p>
         ${known ? `<div class="moment-climb-bar"><span class="mc-before" style="width:${(from * 100).toFixed(2)}%"></span><span class="mc-fill" style="width:${((animate ? from : to) * 100).toFixed(2)}%"></span></div>
         <p class="moment-climb-legend"><span>${rw.levelUp ? `Niveau ${F().number(level)} atteint` : `Niveau ${F().number(level)}`}</span><span>${rw.levelUp ? esc(E().rank(level).name) : `vers le niveau ${F().number(level + 1)}`}</span></p>` : ""}
-        ${rw.levelUp ? `<div class="moment-crest">${window.TitanCrest.svg(rank, 104)}</div>` : ""}
       </div>
     </section>`;
   }
+  /* The ascent behind a new level: ridges, the trail to the summit and its flag, from js/core/live-scene.js. The session page
+     does not load that file: it is fetched when a moment opens, and the scene is completed when it arrives (it is a backdrop:
+     nothing moves and nothing is missing while it loads, or if it never does). */
+  let sceneLoad = null;
+  function ensureScene() {
+    if (window.TitanLiveScene) return Promise.resolve(true);
+    if (!sceneLoad) sceneLoad = new Promise((resolve) => {
+      const s = document.createElement("script");
+      s.src = "/js/core/live-scene.js?v=1";
+      s.onload = () => resolve(!!window.TitanLiveScene);
+      s.onerror = () => resolve(false);
+      document.head.append(s);
+    });
+    return sceneLoad;
+  }
+  function ascentInner(seed) {
+    const s = window.TitanLiveScene.scene({ beats: 6, planCount: 6, seed: `rank:${seed}`, ended: true, elan: { value: 90, max: 90 } });
+    return `${s.stars.map((p) => `<circle class="ma-star" cx="${p.x}" cy="${p.y}" r="${p.r}"/>`).join("")}${s.ridges.map((d, i) => `<path class="ma-ridge r${i + 1}" d="${d}"/>`).join("")}<path class="ma-trail" pathLength="1" d="${s.trail}"/>${s.nodes.map((n) => `<circle class="ma-node" cx="${n.x}" cy="${n.y}" r="3.2"/>`).join("")}<g class="ma-flag"><path d="M${s.summit.x} ${s.summit.y} v-22"/><path d="M${s.summit.x} ${s.summit.y - 22} l13 5 l-13 5 z"/></g>`;
+  }
+  const ascentSvg = (seed) => `<svg class="moment-ascent" viewBox="0 0 360 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true"${window.TitanLiveScene ? "" : ` data-ascent="${esc(seed)}"`}>${window.TitanLiveScene ? ascentInner(seed) : ""}</svg>`;
+  function fillScenes(root) {
+    if (!root.querySelector("svg[data-ascent]")) return;
+    if (!window.TitanLiveScene) { ensureScene().then((ok) => { if (ok && root.isConnected) fillScenes(root); }); return; }
+    root.querySelectorAll("svg[data-ascent]").forEach((svg) => { svg.innerHTML = ascentInner(svg.dataset.ascent); svg.removeAttribute("data-ascent"); });
+  }
+
   function playHero(root) {
     const h = root.querySelector(".moment-hero[data-play='1']");
     if (!h) return;
@@ -211,10 +243,15 @@
     const lead = top ? [`Record · ${top.label}`, fmtRecord(top)] : m.find(([k]) => k === "Distance") || m.find(([k]) => k === "Volume") || m.find(([k]) => k === "Durée") || m[0];
     const rest = top ? m : m.filter((x) => x !== lead);
     const others = recs.filter((r) => r !== top);
+    // A record is a mark moved: the bar of the new mark, notched where the previous one stood (the shorter one is the better
+    // one when less is the record). Decorative: both values are written beside it.
+    const was = top && top.previous ? Number(top.previous.value) : 0, now = top ? Number(top.value) : 0;
+    const mark = was > 0 && now > 0 && was !== now ? `<div class="moment-mark${now < was ? " is-lower" : ""}" aria-hidden="true" style="--was:${(Math.max(0.06, Math.min(0.97, Math.min(was, now) / Math.max(was, now))) * 100).toFixed(1)}%"><i class="mm-now"></i><i class="mm-was"></i></div>` : "";
     return `<div class="moment" data-state="${rw.state}"${top ? ' data-record="1"' : ""}>
       <div class="moment-field">
         <h3 class="moment-label">Tu as fait</h3>
         ${lead ? `<p class="moment-lead"><span class="asc-num">${esc(lead[1])}</span><small>${esc(lead[0])}${top && top.previous ? `<br>avant : ${esc(fmtRecord(top, top.previous.value))}` : ""}</small></p>` : ""}
+        ${mark}
         <dl class="moment-metrics">${rest.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}${lead && !top ? `<div class="sr-only"><dt>${esc(lead[0])}</dt><dd>${esc(lead[1])}</dd></div>` : ""}</dl>
       </div>
       ${others.length ? `<section class="moment-block moment-records"><p class="moment-label am">${others.every((r) => r.first) ? (others.length > 1 ? "Premiers repères" : "Premier repère") : others.length > 1 ? "Autres records" : "Autre record"}</p>${others
@@ -255,6 +292,7 @@
     let played = false;
     const firstHtml = () => { const l = current(log); const play = !played && l.syncStatus === "confirmed"; const out = html(l, play); if (play && out.includes("moment-hero")) played = true; return out; };
     body.innerHTML = firstHtml();
+    fillScenes(body);
     const broken = records(current(log)).filter((r) => !r.first);
     if (broken.length) window.TitanAnalytics?.track("record_unlocked", { kind: broken[0].kind, family: S().familyOf(log.sport) });
     const historical = E().isHistorical(log.date);
@@ -298,6 +336,7 @@
         : action ? `a[href="${CSS.escape(action.getAttribute("href"))}"]` : null;
       const l = current(log);
       body.innerHTML = firstHtml();
+      fillScenes(body);
       markRecord();
       playHero(body);
       if (selector) restoreAction(selector);

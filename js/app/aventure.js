@@ -89,7 +89,7 @@
           return `<button type="button" class="av-node${earned ? " is-earned" : ""}${active ? " is-active" : ""}${ch.boss ? " is-boss" : ""}" data-chapter="${ch.index}" style="left:${NODES[i][0]}%;top:${NODES[i][1]}%" aria-label="Balise ${ch.index} : ${esc(ch.name)}. ${earned ? "Allumée" : active ? "Étape en cours" : "À découvrir"}">${ch.boss ? `<img src="/assets/renaissance/guardian-${world.id}-s.webp" alt="" width="256" height="256" decoding="async">${earned ? icon("check") : ""}` : earned ? icon("check") : `<span>${ch.index}</span>`}</button>`;
         })
         .join("")}
-      <div class="av-map-caption"><strong>${esc(world.name)}</strong><span>${p.chapter >= 10 ? "Les neuf balises brillent." : `${done(p)} balise${done(p) > 1 ? "s" : ""} allumée${done(p) > 1 ? "s" : ""} sur 9`}</span></div>
+      <div class="av-map-caption"><strong>${esc(world.name)}</strong><span>${p.chapter >= 10 ? "Les neuf balises brillent." : `${done(p)} balise${done(p) > 1 ? "s" : ""} sur 9`}</span></div>
     </section>`;
   }
 
@@ -276,8 +276,8 @@
     const ready = (questsHtml.match(/data-quest-claim=/g) || []).length;
     const status = {
       chapitre: p.chapter >= 10 ? "terminé" : p.chapter ? `${p.chapter} / 9` : "à ouvrir",
-      quetes: ready ? `${ready} à récupérer` : questsHtml.includes("data-periodic-quest=") ? "en cours" : "libres",
-      sentiers: window.TitanJourneyPanel?.status?.() || (isGuest() ? "avec un compte" : "tes pas"),
+      quetes: ready ? `${ready} prête${ready > 1 ? "s" : ""}` : questsHtml.includes("data-periodic-quest=") ? "en cours" : "libres",
+      sentiers: window.TitanJourneyPanel?.status?.() || (isGuest() ? "compte" : "tes pas"),
       carnet: `${done(p)} / 9`,
     };
     return `<div class="av-views" role="group" aria-label="Explorer ce monde">${VIEWS.map(([id, label]) => `<button type="button" class="av-view-btn" data-av-view-btn="${id}" aria-pressed="${view === id}"><strong>${label}</strong><small data-av-view-status="${id}">${esc(status[id])}</small></button>`).join("")}</div>`;
@@ -352,9 +352,9 @@
     window.TitanJourneyPanel?.mount(root.querySelector("[data-journey-host]"));
     // An address that names a view (/adventure#sentiers from the steps page) opens on it, under the scene.
     if (!journeyHost && viewOf(location.hash)) {
-      const target = root.querySelector(`[data-av-view="${view}"]`);
       requestAnimationFrame(() => {
-        if (target?.isConnected && viewOf(location.hash) === view) target.scrollIntoView();
+        // Read again: another render may have replaced the view between this one and the frame.
+        if (viewOf(location.hash) === view) root.querySelector(`[data-av-view="${view}"]`)?.scrollIntoView();
       });
     }
     if (focusedView) root.querySelector(`.av-views [data-av-view-btn="${focusedView}"]`)?.focus({ preventScroll: true });

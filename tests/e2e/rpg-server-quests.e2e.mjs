@@ -57,13 +57,13 @@ test('server quests: refusal leaves no souvenir, confirmation and refresh retain
   await page.evaluate(()=>{window.TitanAdventure.action=async()=>{throw Error('QUEST_INCOMPLETE');};});
   await page.locator('[data-claim="2"]').click();await page.waitForFunction(()=>document.querySelector('#av-error')?.textContent);assert.equal(await page.locator('[data-quest-souvenir]').count(),0);
   await page.evaluate(()=>{const a=window.TitanAdventure;a.action=async()=>{a.snapshot.campaigns.find(c=>c.id==='aube').chapter=3;a.snapshot.quest_rewards=[{world:'aube',chapter:2,quest_id:'days',earned_at:'2026-10-02T12:00:00Z'}];dispatchEvent(new Event('titan:adventure-updated'));};});
-  await page.locator('[data-claim="2"]').click();await page.locator('[data-quest-souvenir]').waitFor();assert.match(await page.locator('[data-quest-souvenir]').textContent(),/Éclat de constance/);
+  await page.locator('[data-claim="2"]').click();await page.locator('[data-quest-souvenir]').waitFor({state:'attached'});assert.match(await page.locator('[data-quest-souvenir]').textContent(),/Éclat de constance/);
   await page.evaluate(()=>dispatchEvent(new Event('titan:adventure-updated')));assert.equal(await page.locator('[data-quest-souvenir]').count(),1);assert.deepEqual(errors,[]);
  }finally{await context.close();}
 });
 test('server quests: personal rewards withdraw on account transition and foreign owner',async()=>{
  const {page,context,errors}=await accountPage();try{
-  await page.evaluate(()=>{window.TitanAdventure.snapshot.quest_rewards=[{world:'aube',chapter:1,quest_id:'note',earned_at:'2026-10-02'}];dispatchEvent(new Event('titan:adventure-updated'));});await page.locator('[data-quest-souvenir]').waitFor();
+  await page.evaluate(()=>{window.TitanAdventure.snapshot.quest_rewards=[{world:'aube',chapter:1,quest_id:'note',earned_at:'2026-10-02'}];dispatchEvent(new Event('titan:adventure-updated'));});await page.locator('[data-quest-souvenir]').waitFor({state:'attached'});
   assert.equal(await page.evaluate(()=>{window.titanAccountTransition={active:true};dispatchEvent(new Event('titan:account-changing'));return document.querySelectorAll('[data-quest-souvenir]').length;}),0);
   await page.evaluate(()=>{window.titanAccountTransition={active:false};window.TitanAdventure.snapshot.owner='foreign';dispatchEvent(new Event('titan:adventure-updated'));});assert.equal(await page.locator('[data-quest-souvenir]').count(),0);assert.deepEqual(errors,[]);
  }finally{await context.close();}
