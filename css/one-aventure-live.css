@@ -1,0 +1,1222 @@
+/* =====================================================================
+   TITAN ONE « Signature » — lot « RPG, TITAN LIVE et Aventure ».
+   Loaded after signature.css by adventure.html and seance-live.html only.
+
+   Aventure reads in one screen: the destination, the world as a scene
+   (painting, trail, beacons, the guardian on the ninth), the mission in
+   a few lines with its proof — then one view at a time to go deeper
+   (chapter, quests, sentiers, notebook).
+   TITAN LIVE is one continuous scene: the same ascent at the head of the
+   preparation, of the effort, of the story and of the Camp. Calm, dark,
+   large figures; nothing bright while moving.
+   ===================================================================== */
+
+/* ---------- Aventure : the head and the four destinations ---------- */
+.av-main .av-head {
+  padding: var(--s1) 0 var(--s3);
+}
+@media (max-width: 599px) {
+  /* On a phone the sentence under the title would push the mission off the first screen; the scene says it. */
+  .av-main .av-head .asc-art-line { display: none; }
+  .av-main .av-head h1 { font-size: 30px; line-height: 1; }
+}
+.av-main .av-worlds {
+  grid-auto-columns: minmax(148px, 44%);
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+  padding-bottom: 2px;
+}
+.av-main .av-world {
+  min-height: 104px;
+  align-content: space-between;
+  padding: var(--s3);
+  border: 0;
+  border-radius: var(--r2) var(--r2) 0 var(--r2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+  background: var(--steel-2);
+  cursor: pointer;
+}
+.av-main .av-world img {
+  opacity: 0.5;
+  filter: saturate(0.7);
+  transition: opacity var(--t-med) var(--ease), filter var(--t-med) var(--ease), transform 600ms var(--ease-out);
+}
+.av-main .av-world::after {
+  background: linear-gradient(0deg, rgba(9, 12, 16, 0.94) 6%, rgba(9, 12, 16, 0.5) 46%, rgba(9, 12, 16, 0.28));
+}
+.av-main .av-world:hover img { opacity: 0.8; transform: scale(1.04); }
+.av-main .av-world[aria-selected="true"] img { opacity: 1; filter: none; }
+.av-main .av-world[aria-selected="true"]::after {
+  background: linear-gradient(0deg, rgba(9, 12, 16, 0.9) 4%, rgba(9, 12, 16, 0.32) 52%, rgba(9, 12, 16, 0.12));
+}
+/* The destination on the map is framed in the colour of the space and keeps the whole light of its painting. */
+.av-main .av-world::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.av-main .av-world[aria-selected="true"]::before { border-color: var(--space); }
+.av-main .av-world:focus-visible { outline: 3px solid var(--tx); outline-offset: -3px; }
+.av-main .av-world-copy { gap: 1px; }
+.av-main .av-world-copy small { font-size: 12px; letter-spacing: 0; }
+.av-main .av-world-copy strong { font-size: 17px; line-height: 1.08; text-wrap: balance; }
+.av-world-pips {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: var(--s2);
+}
+.av-world-pips i {
+  flex: 1;
+  height: 4px;
+  border-radius: 1px;
+  background: rgba(241, 243, 239, 0.24);
+}
+.av-world-pips i.on { background: var(--world); }
+/* The ninth is the guardian: a diamond at the end of the line. */
+.av-world-pips i:last-child {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-left: 2px;
+  transform: rotate(45deg);
+}
+@media (min-width: 600px) {
+  .av-main .av-worlds { grid-auto-columns: minmax(200px, 1fr); }
+  .av-main .av-world { min-height: 128px; }
+  .av-main .av-world-copy strong { font-size: 19px; }
+}
+@media (min-width: 960px) {
+  .av-main .av-worlds { margin-bottom: var(--s4); }
+  .av-main .av-world[aria-selected="true"] img { opacity: 1; }
+}
+
+/* ---------- Aventure : the scene and the mission ---------- */
+/* In the page (and for the keyboard) the mission comes first; on the screen the world is looked at first and the mission
+   sits on its foot. */
+.av-main .av-grid {
+  gap: 0;
+}
+.av-main .av-map {
+  order: -1;
+  margin: 0 calc(-1 * var(--pad));
+  aspect-ratio: 16 / 11.5;
+  border-radius: 0;
+}
+.av-main .av-map-img {
+  filter: none;
+}
+.av-main .av-map::after {
+  background: linear-gradient(180deg, rgba(9, 12, 16, 0.62) 0%, rgba(9, 12, 16, 0.08) 36%, rgba(9, 12, 16, 0) 60%, rgba(9, 12, 16, 0.8) 100%);
+}
+.av-main .av-trail {
+  z-index: 2;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.85));
+}
+.av-main .av-trail path {
+  stroke: rgba(241, 243, 239, 0.62);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+.av-main .av-trail path.is-done {
+  stroke: var(--space);
+  stroke-width: 3.5;
+  stroke-dasharray: none;
+}
+.av-main .av-trail path.is-next {
+  stroke: var(--space);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 6;
+}
+/* A beacon is a 44 px target; what is drawn inside says where it stands: a check when lit, its number in a ring when it is
+   the step in progress, a small numbered stone when it is ahead. */
+.av-main .av-node {
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  box-shadow: none;
+  animation: none;
+  color: var(--tx);
+  cursor: pointer;
+}
+.av-main .av-node::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  z-index: -1;
+  border-radius: 50%;
+  background: rgba(9, 12, 16, 0.78);
+  box-shadow: 0 0 0 1.5px rgba(241, 243, 239, 0.6);
+  transition: transform var(--t-fast) var(--ease);
+}
+.av-main .av-node { isolation: isolate; }
+.av-main .av-node > span { font-size: 13px; line-height: 1; }
+.av-main .av-node:hover::before,
+.av-main .av-node:focus-visible::before { transform: scale(1.12); }
+.av-main .av-node:focus-visible { outline: 2px solid var(--tx); outline-offset: -4px; }
+.av-main .av-node.is-earned { color: var(--space-ink); background: none; }
+.av-main .av-node.is-earned::before {
+  inset: 6px;
+  background: var(--space);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.av-main .av-node.is-active { color: var(--tx); }
+.av-main .av-node.is-active > span { font-size: 16px; }
+.av-main .av-node.is-active::before {
+  inset: 3px;
+  background: rgba(9, 12, 16, 0.9);
+  box-shadow: 0 0 0 2.5px var(--space), 0 0 0 9px rgba(127, 224, 176, 0.2);
+  animation: av-here 2.6s var(--ease) infinite;
+}
+@keyframes av-here {
+  50% { box-shadow: 0 0 0 2.5px var(--space), 0 0 0 15px rgba(127, 224, 176, 0); }
+}
+/* The ninth beacon is held by the guardian: its portrait on a cut plate, in the mist until the trail reaches it. */
+.av-main .av-node.is-boss,
+.av-main .av-node.is-boss:not(.is-earned) {
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border: 0;
+  border-radius: var(--r2) var(--r2) 0 var(--r2);
+  color: var(--space-ink);
+}
+.av-main .av-node.is-boss::before {
+  inset: 0;
+  border-radius: 0;
+  background: rgba(241, 243, 239, 0.7);
+  box-shadow: none;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+  animation: none;
+}
+.av-main .av-node.is-boss.is-active::before { background: var(--am); }
+.av-main .av-node.is-boss.is-earned::before { background: var(--space); }
+.av-main .av-node.is-boss > img {
+  position: absolute;
+  inset: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  object-fit: cover;
+  object-position: center 24%;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm) + 1px), calc(100% - var(--cut-sm) + 1px) 100%, 0 100%);
+  filter: saturate(0.5) brightness(0.72);
+}
+.av-main .av-node.is-boss.is-active > img,
+.av-main .av-node.is-boss.is-earned > img { filter: none; }
+.av-main .av-node.is-boss > .t-icon {
+  position: absolute;
+  left: -6px;
+  bottom: -6px;
+  width: 20px;
+  height: 20px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--space);
+  color: var(--space-ink);
+}
+/* The name of the world is the title of the scene, set on the sky of the painting where no beacon stands. */
+.av-main .av-map-caption {
+  left: var(--s4);
+  right: auto;
+  top: var(--s3);
+  bottom: auto;
+  display: grid;
+  justify-content: start;
+  gap: 3px;
+  max-width: 36%;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: normal;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0, 0, 0, 0.8);
+}
+.av-main .av-map-caption strong {
+  overflow: visible;
+  font-size: clamp(19px, 5.6vw, 34px);
+  line-height: 1;
+  text-wrap: balance;
+}
+/* The mission: the one slab of the page, set on the foot of the scene. Four things — what to do, the proof, the action,
+   the line of story — then what opens. */
+.av-main .av-mission {
+  position: relative;
+  z-index: 5;
+  margin-top: -26px;
+  padding: var(--s4) var(--s4) var(--s3);
+  gap: var(--s3);
+}
+.av-main .av-mission h2 {
+  font-size: clamp(22px, 6.2vw, 28px);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.av-main .av-mission .asc-eyebrow { margin-bottom: 2px; }
+.av-main .av-todo {
+  padding: var(--s2) 0 0;
+  border-bottom: 0;
+  font-size: 18px;
+  line-height: 1.25;
+}
+.av-proof {
+  display: flex;
+  gap: 4px;
+}
+.av-proof i {
+  flex: 1;
+  max-width: 64px;
+  height: 10px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.18);
+}
+.av-proof i.on { background: var(--space-ink); }
+.av-main .av-mission .asc-btn-primary { min-height: 50px; }
+.av-main .av-story { font-size: 14.5px; }
+.av-mission-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0 var(--s3);
+  border-top: 1.5px solid rgba(0, 0, 0, 0.24);
+}
+.av-mission-foot .av-more {
+  flex: 1 1 190px;
+  min-width: 0;
+  border-top: 0;
+}
+.av-mission-foot .av-more[open] { flex-basis: 100%; }
+.av-mission-foot .av-more > summary { padding-top: 0; }
+.av-mission-foot .av-mission-details {
+  min-height: 44px;
+  margin-right: var(--s2);
+  padding-inline: var(--s3);
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* The other states of the first block (a campaign to start, a world closed for now, a world walked to its end) are a panel
+   one tone above the ground, under the scene. */
+.av-main .av-grid > .av-panel:not(.av-mission) {
+  margin-top: var(--s3);
+  padding: var(--s5) var(--s4);
+  border-top: 0;
+  border-radius: var(--r3);
+  background: var(--bg-2);
+}
+.av-done-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+}
+.av-done-head > div { display: grid; gap: var(--s2); justify-items: start; min-width: 0; }
+.av-main .sig-object,
+.av-celebrate .sig-object,
+.av-chapter-head .sig-object,
+.journey-reveal .sig-object { isolation: isolate; }
+@media (min-width: 720px) {
+  .av-main .av-map {
+    margin: 0;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--r3);
+  }
+  .av-main .av-map-caption { left: var(--s5); top: var(--s5); }
+}
+@media (min-width: 960px) {
+  /* Two panes with intent: the scene takes the width, the mission stands beside it at the height of the eyes. */
+  .av-main .av-grid {
+    grid-template-columns: minmax(0, 1.62fr) minmax(336px, 1fr);
+    gap: var(--s5);
+    align-items: start;
+  }
+  .av-main .av-map { aspect-ratio: 16 / 10.4; }
+  .av-main .av-mission,
+  .av-main .av-grid > .av-panel:not(.av-mission) { margin-top: 0; }
+  .av-main .av-mission { padding: var(--s5) var(--s5) var(--s4); }
+  .av-main .av-node { width: 48px; height: 48px; margin: -24px 0 0 -24px; }
+  .av-main .av-node > span { font-size: 15px; }
+  .av-main .av-node.is-boss,
+  .av-main .av-node.is-boss:not(.is-earned) { width: 72px; height: 72px; margin: -36px 0 0 -36px; }
+}
+
+/* ---------- Aventure : one view at a time ---------- */
+.av-views {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  margin-top: var(--s6);
+  padding: var(--s2) 0;
+  background: var(--bg);
+}
+.av-view-btn {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 1px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 6px var(--s3);
+  border: 0;
+  border-radius: 0;
+  background: var(--bg-2);
+  color: var(--tx-2);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.av-view-btn:first-child { border-radius: var(--r2) 0 0 var(--r2); }
+.av-view-btn:last-child { border-radius: 0 var(--r2) var(--r2) 0; }
+.av-view-btn strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--tx);
+}
+.av-view-btn small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-stretch: var(--w-title);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tx-2);
+}
+.av-view-btn:hover { background: var(--bg-3); }
+.av-view-btn[aria-pressed="true"] { background: var(--space); }
+.av-view-btn[aria-pressed="true"] strong,
+.av-view-btn[aria-pressed="true"] small { color: var(--space-ink); }
+.av-view-btn:focus-visible { outline: 2px solid var(--tx); outline-offset: -3px; }
+@media (max-width: 359px) {
+  .av-view-btn { padding-inline: var(--s2); }
+  .av-view-btn strong { font-size: 15.5px; }
+}
+.av-view {
+  display: grid;
+  gap: var(--s7);
+  min-width: 0;
+  align-content: start;
+  /* A short view keeps the height of a screen: changing view never makes the page jump, and an address that names a view
+     (/adventure#sentiers) can always bring it under the switch. */
+  min-height: 72vh;
+  padding-top: var(--s4);
+  scroll-margin-top: 76px;
+}
+.av-view[hidden] { display: none; }
+.av-view > * { min-width: 0; }
+.av-main .av-view > .av-panel,
+.av-main .av-view > .av-guardian,
+.av-main .av-view > .asc-section,
+.av-main .av-view > .av-rules,
+.av-main .av-view [data-journey-host] { margin-top: 0; }
+.av-main .av-view > .av-panel:empty { display: none; }
+@media (min-width: 1100px) {
+  .av-view-chapitre,
+  .av-view-quetes {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    column-gap: var(--s9);
+    align-items: start;
+  }
+  .av-view-chapitre > .av-enc.is-guardian,
+  .av-view-chapitre > [data-rpg-host],
+  .av-view-quetes > [data-periodic-quests],
+  .av-view-quetes > .sig-empty,
+  .av-view-chapitre > :only-child { grid-column: 1 / -1; }
+}
+
+/* ---------- Aventure : the trial of the chapter and the guardian ---------- */
+.av-enc-copy {
+  display: grid;
+  gap: var(--s2);
+  justify-items: start;
+  min-width: 0;
+}
+.av-enc-copy > p { margin: 0; color: var(--tx-2); line-height: 1.5; max-width: 62ch; }
+.av-enc-proof { display: grid; gap: var(--s3); min-width: 0; }
+.av-enc-sub {
+  margin: var(--s2) 0 0;
+  font-size: 15px;
+  font-weight: 800;
+}
+.av-phases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.av-phases li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: var(--s3);
+  align-items: start;
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--line-2);
+  font-size: 14.5px;
+}
+.av-phases li p { margin: 2px 0 0; }
+.av-phase-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r1);
+  background: var(--bg-3);
+  color: var(--tx-2);
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-weight: 700;
+  font-size: 17px;
+}
+.av-phase-mark .t-icon { width: 17px; height: 17px; }
+.av-phases li[data-state="done"] .av-phase-mark { background: var(--space); color: var(--space-ink); }
+.av-phases li[data-state="active"] .av-phase-mark { box-shadow: inset 0 0 0 2px var(--space); color: var(--tx); }
+.av-phases li[data-state="waiting"] strong { color: var(--tx-2); }
+/* The guardian faces you: its portrait edge to edge, its name on the foot of the painting. */
+.av-main .av-enc.is-guardian {
+  padding-top: 0;
+  border-top: 0;
+}
+.av-presence {
+  position: relative;
+  margin: 0 calc(-1 * var(--pad));
+  aspect-ratio: 16 / 11;
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.av-presence img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+}
+.av-presence::after {
+  content: "";
+  position: absolute;
+  inset: 45% 0 0;
+  background: linear-gradient(180deg, transparent, var(--bg));
+}
+.av-enc.is-guardian .av-enc-copy {
+  position: relative;
+  margin-top: -64px;
+}
+.av-enc.is-guardian .av-enc-copy h2 { font-size: clamp(28px, 8vw, 40px); line-height: 1; }
+/* The guardian of the region when it is still ahead (in the mist) or once it recognised you (in full light). */
+.av-main .av-guardian {
+  display: grid;
+  gap: var(--s3);
+  align-items: start;
+  padding: 0;
+  border-top: 0;
+}
+.av-main .av-guardian img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 21 / 10;
+  border: 0;
+  border-radius: var(--r3) var(--r3) 0 var(--r3);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+  object-fit: cover;
+  object-position: center 20%;
+  filter: saturate(0.45) brightness(0.62);
+}
+.av-main .av-guardian.is-won img { filter: none; aspect-ratio: 16 / 9; }
+.av-main .av-guardian > div { display: grid; gap: var(--s2); justify-items: start; min-width: 0; }
+.av-main .av-guardian p { margin: 0; }
+@media (min-width: 720px) {
+  .av-main .av-guardian { grid-template-columns: minmax(180px, 240px) minmax(0, 1fr); gap: var(--s5); align-items: center; }
+  .av-main .av-guardian img,
+  .av-main .av-guardian.is-won img { aspect-ratio: 1; }
+  .av-main .av-enc.is-guardian {
+    grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
+    column-gap: var(--s7);
+    align-items: start;
+  }
+  .av-presence {
+    grid-row: 1 / span 2;
+    margin: 0;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--r3) var(--r3) 0 var(--r3);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+  }
+  .av-presence::after { display: none; }
+  .av-enc.is-guardian .av-enc-copy { margin-top: 0; }
+}
+/* Optional missions of the chapter and the encounters of the world: rows that open. */
+.av-main .av-view .av-rules { margin-top: 0; }
+.av-main [data-rpg-quests] > summary,
+.av-main [data-quest-log] > summary { min-height: 44px; display: flex; align-items: center; }
+.av-main [data-quest] { align-items: start; }
+.av-main [data-quest][data-complete="true"] .t-icon { color: var(--space); }
+
+/* ---------- Aventure : quests ---------- */
+.av-pq-list {
+  display: grid;
+  gap: var(--s3);
+}
+@media (min-width: 720px) {
+  .av-pq-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.av-pq {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--s2);
+  padding: var(--s4) var(--s4) var(--s6);
+  min-width: 0;
+}
+.av-pq-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  width: 100%;
+}
+.av-pq-head .asc-eyebrow { margin: 0; }
+.av-pq-title {
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.av-pq-track {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  margin-top: var(--s1);
+}
+.av-pq .asc-btn { margin-top: var(--s2); min-height: 44px; }
+
+/* ---------- Aventure : the notebook, a collection of objects ---------- */
+.av-carnet-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding-bottom: var(--s4);
+  border-bottom: 2px solid var(--tx);
+  border-image: linear-gradient(90deg, var(--space) 0 44px, var(--tx) 44px) 1;
+}
+.av-carnet-head > div { display: grid; gap: var(--s1); justify-items: start; min-width: 0; }
+.av-carnet-head p { margin: 0; }
+.av-carnet-head .sig-state { margin-top: var(--s1); }
+.av-main .av-carnet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: var(--s2) var(--s1);
+  margin-top: var(--s3);
+}
+.av-main .av-carnet-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  justify-items: center;
+  gap: var(--s2);
+  padding: var(--s4) var(--s1) var(--s3);
+  border: 0;
+  border-radius: var(--r2);
+  background: transparent;
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.av-main .av-carnet-row:hover,
+.av-main .av-carnet-row:focus-visible { background: var(--bg-2); }
+.av-main .av-carnet-row:hover .av-obj > * { transform: translateY(-3px); }
+.av-obj > * { transition: transform var(--t-med) var(--ease); }
+.av-carnet-copy { display: grid; gap: 1px; justify-items: center; min-width: 0; }
+.av-main .av-carnet-copy small { font-size: 12px; }
+.av-main .av-carnet-copy strong { font-size: 14.5px; line-height: 1.15; text-wrap: balance; }
+.av-main .av-carnet-row .av-carnet-copy span,
+.av-main .av-carnet-row.is-earned .av-carnet-copy span { font-size: 12.5px; line-height: 1.25; color: var(--tx-2); text-wrap: balance; }
+.av-main .av-carnet-row:not(.is-earned):not(.is-current) .av-carnet-copy strong { color: var(--tx-2); }
+/* The guardian's badge is its portrait on a cut plate. */
+.av-obj.is-portrait > img {
+  border-radius: var(--r2) var(--r2) 0 var(--r2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+  object-fit: cover;
+  object-position: center 22%;
+}
+.av-obj > svg { overflow: visible; }
+.av-souvenirs {
+  display: grid;
+  margin-top: var(--s1);
+}
+@media (min-width: 720px) {
+  .av-souvenirs { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s7); }
+}
+.av-souvenir {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s3);
+  margin: 0;
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--line-2);
+}
+.av-souvenir-copy { display: grid; min-width: 0; }
+.av-souvenir-copy small { font-size: 12.5px; color: var(--tx-2); }
+.av-souvenir-copy strong { font-size: 15px; color: var(--tx); }
+.av-chapter-head { gap: var(--s4); }
+.av-chapter-head > div { display: grid; gap: var(--s2); justify-items: start; }
+
+/* ---------- Aventure : les Sentiers ---------- */
+.av-sentiers .journey-head { display: grid; gap: var(--s1); }
+.av-sentiers .journey-figure { display: grid; gap: var(--s1); }
+.av-sentiers .journey-total { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s2); }
+.av-sentiers .journey-total strong { font-size: clamp(3.4rem, 17vw, 6rem); letter-spacing: -0.01em; }
+.av-sentiers .journey-grand {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-top: var(--s1);
+}
+.av-sentiers .journey-album li {
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: var(--s3);
+  align-items: start;
+}
+.av-sentiers .journey-album li > div { display: grid; gap: 5px; min-width: 0; }
+.journey-pin {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--tx-3);
+}
+.journey-pin .t-icon { width: 22px; height: 22px; }
+@media (min-width: 1100px) {
+  .av-sentiers {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--s9);
+    align-items: start;
+  }
+  .av-sentiers > .journey-head,
+  .av-sentiers > .journey-map,
+  .av-sentiers > .journey-actions,
+  .av-sentiers > [data-journey-status] { grid-column: 1 / -1; }
+}
+
+/* ---------- A beacon lit, a guardian met, a world closed ---------- */
+.av-celebrate-prize {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+}
+.av-celebrate-prize > div { display: grid; gap: var(--s1); justify-items: start; min-width: 0; }
+.av-celebrate-prize .asc-eyebrow { margin: 0; }
+.av-celebrate-prize .av-celebrate-title { margin: 0 0 var(--s1); }
+@media (prefers-reduced-motion: no-preference) {
+  /* One short scene, once: the painting settles, the object rises on its shadow after the beacon has lit. */
+  .av-celebrate-art img { animation: av-settle 1100ms var(--ease-out) both; }
+  .av-celebrate-prize .sig-object { animation: av-rise 620ms var(--ease-out) 520ms both; }
+  .av-celebrate-prize > div { animation: av-rise 520ms var(--ease-out) 680ms both; }
+}
+@keyframes av-settle { from { transform: scale(1.08); } }
+@keyframes av-rise { from { opacity: 0; transform: translateY(14px); } }
+
+/* ---------- Aventure : what the captures showed ---------- */
+.av-main .av-carnet-row > .sig-state { display: inline-flex; }
+.av-main .av-map-caption span { white-space: nowrap; }
+@media (min-width: 960px) {
+  /* The slab stands as tall as the scene: what to do at the top, what opens at the foot. */
+  .av-main .av-mission {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+  .av-main .av-mission h2 { font-size: 30px; }
+  .av-main .av-todo { font-size: 20px; }
+  .av-main .av-mission .av-story { flex: 1; font-size: 15.5px; }
+}
+
+/* =====================================================================
+   TITAN LIVE — one scene from the choice of the sport to the Camp.
+   ===================================================================== */
+.live-flow {
+  display: grid;
+  gap: var(--s6);
+  min-width: 0;
+}
+.live-flow > * { min-width: 0; }
+/* The two tabs of the page and the two views of a session: quiet marks, never a bright field. */
+.live-tabs { margin-bottom: var(--s2); }
+.live-tabs .asc-seg,
+.live-viewseg .asc-seg {
+  gap: var(--s1);
+  padding: 0;
+  background: transparent;
+}
+.live-tabs .asc-seg button,
+.live-viewseg .asc-seg button {
+  min-height: 44px;
+  border-radius: var(--r1);
+  color: var(--tx-2);
+}
+.live-tabs .asc-seg button[aria-pressed="true"],
+.live-viewseg .asc-seg button[aria-pressed="true"] {
+  background: var(--bg-3);
+  color: var(--tx);
+  box-shadow: inset 0 -2px 0 var(--space);
+}
+/* The scene: the ascent of « l'Expédition », edge to edge, its sky carried up to hold the words of the state, its foot
+   dissolving into the ground. */
+.live-stage {
+  position: relative;
+  margin: 0 calc(-1 * var(--pad));
+  padding-top: 68px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.live-stage .live-scene {
+  border-radius: 0;
+  margin-bottom: -18px;
+}
+.live-stage::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 26%;
+  background: linear-gradient(180deg, rgba(9, 12, 16, 0), var(--bg));
+  pointer-events: none;
+}
+.live-stage-copy {
+  position: absolute;
+  top: var(--s3);
+  left: var(--pad);
+  right: var(--pad);
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+.live-stage-copy .asc-eyebrow { margin: 0; }
+.live-stage-copy h1 {
+  margin: 0;
+  max-width: 18ch;
+  font-size: clamp(30px, 8.8vw, 52px);
+  line-height: 1;
+  text-wrap: balance;
+  text-shadow: 0 2px 14px var(--bg);
+}
+.live-stage-copy p:not(.asc-eyebrow) { margin: var(--s1) 0 0; color: var(--tx-2); max-width: 44ch; }
+.live-signature {
+  margin: calc(-1 * var(--s3)) 0 0;
+  color: var(--tx-2);
+  font-size: 15.5px;
+  line-height: 1.5;
+  max-width: 62ch;
+}
+.live-block {
+  display: grid;
+  gap: var(--s3);
+  padding-top: var(--s4);
+  border-top: 2px solid var(--tx);
+  border-image: linear-gradient(90deg, var(--space) 0 44px, var(--tx) 44px) 1;
+  min-width: 0;
+}
+.live-block > h2 { margin: 0; }
+.live-block > p { margin: 0; }
+.live-block .asc-seg { justify-self: start; max-width: 100%; }
+
+/* ---------- LIVE : the three intents ---------- */
+.live-intents {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s2);
+}
+.live-intent-card {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 3px;
+  min-width: 0;
+  min-height: 118px;
+  padding: var(--s3);
+  border: 0;
+  border-radius: var(--r2) var(--r2) 0 var(--r2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+  background: var(--bg-2);
+  color: var(--tx-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.live-intent-card svg {
+  width: 60px;
+  height: 38px;
+  margin-bottom: var(--s2);
+  overflow: visible;
+}
+.live-intent-card strong {
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--tx);
+}
+.live-intent-card span { font-size: 12.5px; font-weight: 600; line-height: 1.2; }
+.live-intent-card:hover { background: var(--bg-3); }
+.live-intent-card[aria-pressed="true"] { background: var(--space); color: var(--space-ink); }
+.live-intent-card[aria-pressed="true"] strong { color: var(--space-ink); }
+.live-intent-card:focus-visible { outline: 2px solid var(--tx); outline-offset: -3px; }
+@media (max-width: 359px) {
+  .live-intent-card { padding: var(--s2); }
+  .live-intent-card strong { font-size: 16.5px; }
+  .live-intent-card svg { width: 48px; height: 30px; }
+}
+/* What the chosen intent changes, in the order a session is lived. */
+.live-main .live-intent {
+  gap: var(--s3);
+  margin-top: 0;
+  padding: var(--s4);
+}
+.live-own { margin: 0; font-size: 15.5px; line-height: 1.45; color: var(--tx); }
+.live-changes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.live-changes li {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: var(--s3);
+  padding: var(--s2) 0;
+  border-top: 1px solid var(--line-2);
+  color: var(--tx-2);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.live-when { color: var(--tx); font-size: 13px; font-weight: 800; }
+/* In the preparation, exploring puts the trail in the mist: no waypoint is promised. */
+.live-prep[data-intent="explorer"] .live-stage :is(.live-path, .live-node, .live-summit) { opacity: 0.28; }
+.live-missions { display: grid; gap: var(--s2); }
+.live-missions .live-choice { margin-top: 0; }
+.live-choice { min-height: 56px; }
+.live-toggles { gap: var(--s2); }
+.live-toggle { min-height: 44px; cursor: pointer; }
+.live-toggle input { width: 22px; height: 22px; accent-color: var(--space); }
+.live-plan .asc-btn { min-width: 96px; }
+/* The decision stays in reach under a long page. */
+.live-start {
+  position: sticky;
+  bottom: calc(var(--tabbar) + var(--safe-b));
+  z-index: 5;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s2);
+  margin: 0 calc(-1 * var(--pad));
+  padding: var(--s3) var(--pad);
+  border-top: 1px solid var(--line-2);
+  background: rgba(9, 12, 16, 0.94);
+}
+.live-start .asc-btn { min-height: 52px; }
+.live-start .asc-btn-primary { font-size: 17px; }
+
+/* ---------- LIVE : while the body works ---------- */
+.live-run { gap: var(--s4); }
+.live-run .live-viewseg { margin-bottom: 0; }
+.live-run .live-head { gap: 0; }
+.live-main .live-clock {
+  font-size: clamp(88px, 28vw, 152px);
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+}
+.live-run[data-status="paused"] .live-clock { color: var(--tx-3); }
+.live-run .live-bar { height: 6px; margin-top: var(--s2); background: var(--bg-3); }
+.live-main .live-clock-sm { font-size: 60px; font-weight: 300; line-height: 1; }
+.live-run .live-stage { padding-top: 0; }
+.live-run .live-stage .live-scene { margin-bottom: 0; }
+.live-run .live-stage::after { height: 12%; }
+.live-scene-line strong { font-size: 30px; }
+.live-tagline { margin: 0; color: var(--tx-2); font-size: 14px; line-height: 1.45; text-align: center; }
+/* Nothing bright while moving: the action of the sport is a dark key with a lit edge and lit words, large under the thumb. */
+.live-run .asc-btn { min-height: 52px; }
+.live-run .asc-btn-primary,
+.live-run .live-big:first-child,
+.live-run .live-choice[aria-pressed="true"] {
+  background: var(--bg-4);
+  color: var(--space);
+  box-shadow: inset 0 0 0 1.5px var(--space-line);
+}
+.live-run .asc-btn-primary:hover { background: var(--bg-4); color: var(--space-hi); }
+.live-run .live-big { min-height: 96px; font-size: 19px; }
+.live-run .live-big:first-child span { color: var(--tx-2); }
+.live-run .asc-btn-block { min-height: 64px; font-size: 18px; }
+.live-warn,
+.live-offer {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s4);
+  border-radius: var(--r2);
+  background: var(--bg-2);
+  box-shadow: none;
+}
+.live-warn p,
+.live-offer p { margin: 0; }
+.live-main .live-cue {
+  padding: var(--s3) var(--s4);
+  border-top: 0;
+  border-radius: var(--r2);
+  background: var(--bg-2);
+}
+.live-main .live-cue strong { font-size: 17px; line-height: 1.35; }
+.live-feel { display: grid; gap: var(--s2); }
+.live-feel p { margin: 0; }
+.live-feel-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s1);
+}
+.live-feel-row button {
+  min-height: 48px;
+  border: 0;
+  border-radius: var(--r1);
+  background: var(--bg-2);
+  color: var(--tx-2);
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.live-feel-row button small { font-size: 13px; font-weight: 700; }
+.live-feel-row button[aria-pressed="true"] {
+  background: var(--bg-4);
+  color: var(--tx);
+  box-shadow: inset 0 0 0 1.5px var(--space-line);
+}
+.live-feel-row button:focus-visible { outline: 2px solid var(--space); outline-offset: 2px; }
+.live-main .live-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s2);
+  margin: 0 calc(-1 * var(--pad));
+  padding: var(--s3) var(--pad);
+  bottom: calc(var(--tabbar) + var(--safe-b));
+  z-index: 5;
+  border-top: 1px solid var(--line);
+  background: rgba(9, 12, 16, 0.94);
+}
+
+/* ---------- LIVE : the session told ---------- */
+.live-clock-end.asc-h1 {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-size: clamp(64px, 19vw, 104px);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.9;
+}
+.live-main .live-story {
+  gap: var(--s3);
+  padding: 0;
+  background: none;
+}
+.live-main .live-story p { margin: 0; color: var(--tx-2); }
+.live-main .live-story .live-story-lead {
+  color: var(--tx);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+.live-main .live-recap {
+  gap: 0;
+  border-top: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+}
+.live-main .live-recap > div {
+  padding: var(--s3) var(--s3) var(--s3) 0;
+  border-radius: 0;
+  background: none;
+}
+.live-main .live-recap dd { font-size: 30px; line-height: 1.1; }
+.live-end { display: grid; gap: var(--s2); }
+.live-end .asc-btn-primary { min-height: 52px; }
+
+/* ---------- LIVE : the Camp de base ---------- */
+.live-main .live-res {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 var(--s3);
+  border-bottom: 1px solid var(--line-2);
+}
+.live-main .live-res-item {
+  --fam: var(--space);
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--line-2);
+  border-radius: 0;
+  background: none;
+}
+.live-main .live-res-item[data-family="endurance"] { --fam: var(--fam-endurance); }
+.live-main .live-res-item[data-family="force"] { --fam: var(--fam-force); }
+.live-main .live-res-item[data-family="technique"] { --fam: var(--fam-technique); }
+.live-main .live-res-item[data-family="jeu"] { --fam: var(--fam-jeu); }
+.live-main .live-res-item[data-family="mobilite"] { --fam: var(--fam-mobilite); }
+/* The colour of a family is a mark beside the name of its essence: the name says it first. */
+.live-res-item > span::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 2px;
+  background: var(--fam);
+}
+.live-res-item strong { font-size: 30px; line-height: 1.1; font-family: var(--font-display); font-stretch: var(--w-figure); }
+.live-camp-cols { display: grid; gap: var(--s6); }
+.live-main .live-next {
+  position: relative;
+  margin: 0;
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--line-2);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  justify-items: start;
+}
+.live-horizon { gap: 0; }
+.live-horizon > h2 { margin-bottom: var(--s3); }
+.live-horizon > p { padding-top: var(--s3); border-top: 1px solid var(--line-2); }
+.live-next .sig-state { margin-top: var(--s1); }
+.live-chapters {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.live-main .live-chapter {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: var(--s3);
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--line-2);
+  border-bottom: 0;
+}
+.live-chapter p { margin: 2px 0 0; }
+.live-chapter-n { font-size: 34px; font-weight: 300; line-height: 0.9; color: var(--tx-3); }
+.live-chapter:first-child .live-chapter-n { color: var(--space); }
+.live-buildings { display: grid; gap: var(--s3); }
+.live-main .live-building {
+  align-content: start;
+  justify-items: start;
+  gap: var(--s2);
+  margin: 0;
+  padding: var(--s4) var(--s4) var(--s6);
+}
+.live-building-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  width: 100%;
+}
+.live-building-head strong {
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-size: 19px;
+  line-height: 1.1;
+}
+.live-building p { margin: 0; }
+.live-building .asc-btn { margin-top: var(--s1); min-height: 44px; }
+.live-levels { display: flex; gap: 4px; width: 100%; }
+.live-levels i { flex: 1; max-width: 44px; height: 6px; border-radius: 1px; background: var(--bg-4); }
+.live-levels i.on { background: var(--space); }
+.live-cost { color: var(--tx-2); }
+.live-marche {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--line-2);
+}
+.live-marche p { margin: 0; }
+.live-finds-row { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.live-finds-row p { margin: 0; }
+.live-prep-main,
+.live-prep-side { display: grid; gap: var(--s6); min-width: 0; align-content: start; }
+@media (min-width: 720px) {
+  .live-main .live-res { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .live-buildings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 960px) {
+  .live-stage { margin: 0; border-radius: var(--r3); }
+  .live-stage-copy { left: var(--s5); right: var(--s5); top: var(--s4); }
+  .live-start,
+  .live-main .live-controls { bottom: 0; margin: 0; padding-inline: 0; }
+  /* Two panes with intent: what the session is, what can be set. */
+  .live-prep {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    column-gap: var(--s8);
+    align-items: start;
+  }
+  .live-prep .live-start { grid-column: 1 / -1; }
+  .live-camp-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); column-gap: var(--s8); align-items: start; }
+  .live-buildings { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .live-report,
+  .live-pick { max-width: 720px; }
+}
+
+/* The Camp is a calm place too: its actions are the same dark keys as during a session. */
+.live-campv .asc-btn-primary {
+  background: var(--bg-4);
+  color: var(--space);
+  box-shadow: inset 0 0 0 1.5px var(--space-line);
+}
+.live-campv .asc-btn-primary:hover { background: var(--bg-4); color: var(--space-hi); }
+@media (min-width: 960px) {
+  /* On a wide screen the scene of the Camp shares its row with what the camp holds. */
+  .live-campv {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--s8);
+  }
+  .live-campv > * { grid-column: 1 / -1; }
+  .live-campv > .live-stage { grid-column: 1; grid-row: 1 / span 2; }
+  .live-campv > .live-signature { grid-column: 2; grid-row: 1; align-self: end; margin: 0; }
+  .live-campv > .live-res { grid-column: 2; grid-row: 2; align-self: start; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .live-campv > .sig-empty,
+  .live-campv > .live-skeleton { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+/* The settings of the preparation hold in 320 px: a row of choices takes the width and shares it; the four levels of immersion
+   (one of them two words long) stand two by two on a phone. */
+.live-prep .live-block .asc-seg {
+  display: grid;
+  width: 100%;
+  grid-auto-columns: minmax(0, 1fr);
+}
+.live-prep .live-block .asc-seg button {
+  min-height: 44px;
+  padding-inline: var(--s2);
+  white-space: normal;
+  line-height: 1.15;
+}
+@media (max-width: 479px) {
+  .live-prep .live-block .asc-seg[aria-label="immersion"] {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

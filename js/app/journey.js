@@ -45,6 +45,15 @@
     return `<div class="journey-map" aria-label="Les quatre régions des sentiers">${regions.join("")}</div>`;
   }
 
+  /* The seal of an exploration milestone: the object that marks a confirmed place of the sentiers. Greyed while it is still ahead. */
+  const seal = (size, ahead) => `<span class="sig-object journey-seal-obj${ahead ? " is-locked" : ""}" style="--obj:${size}px" aria-hidden="true"><img src="/assets/objects/sceau-exploration-${size > 128 ? 512 : size > 48 ? 256 : 96}.webp" alt="" width="${size}" height="${size}" decoding="async"></span>`;
+  /** Where the sentiers stand, in two words, for the view switch of the Aventure page. */
+  function status() {
+    const model = snapshot && account && same(account, context()) ? root.TitanJourney?.model(snapshot, account.owner) : null;
+    if (!model) return "";
+    return model.readyCount ? `${model.readyCount} à révéler` : `${model.earned.length} lieu${model.earned.length > 1 ? "x" : ""}`;
+  }
+
   function explore(model) {
     const s = model.snapshot;
     const today = s.today ? `Aujourd’hui (UTC) : ${number(s.today.steps)} pas · ${esc(s.today.sources.map(id => sources[id] ?? "Source connectée").join(", "))} · reçus le ${date(s.today.updatedAt)}` : "Aucun chiffre reçu pour aujourd’hui. Tes découvertes restent acquises.";
@@ -52,14 +61,15 @@
     const observedLabel = observed ? `${number(observed.steps)} pas aujourd’hui (UTC) · ${esc(observed.sources.map(id => sources[id] ?? "Source connectée").join(", "))}` : "";
     const next = model.next;
     const grand = model.nextGrand;
-    const album = model.earned.slice().reverse().map(d => `<li><strong>${esc(d.name)}</strong><p>${esc(d.story)}</p><small>${number(d.steps)} pas · Confirmé le ${date(d.earnedAt)}</small></li>`);
-    return `<p class="asc-eyebrow cy">L’éveil des mondes</p><h2 class="asc-h2">Les Sentiers du Titan</h2>
-      <p class="asc-small asc-muted">Tes pas explorent les lieux. Tes séances ouvrent les chapitres. Le niveau raconte ta carrière.</p>
+    // A milestone of exploration carries its seal (the object of the sentiers); a plain discovery carries a pin.
+    const album = model.earned.slice().reverse().map(d => `<li class="${d.kind === "discovery" ? "" : "is-milestone"}">${d.kind === "discovery" ? `<span class="journey-pin" aria-hidden="true">${icon("pin")}</span>` : seal(44)}<div><strong>${esc(d.name)}</strong><p>${esc(d.story)}</p><small>${number(d.steps)} pas · Confirmé le ${date(d.earnedAt)}</small></div></li>`);
+    return `<div class="journey-head"><p class="asc-eyebrow cy">L’éveil des mondes</p><h2 class="asc-h2">Les Sentiers du Titan</h2>
+      <p class="asc-small asc-muted">Tes pas explorent les lieux. Tes séances ouvrent les chapitres. Le niveau raconte ta carrière.</p></div>
+      ${model.hasStepData ? `<div class="journey-figure"><p class="journey-total"><strong>${number(s.totalSteps)}</strong> pas explorés</p><p class="asc-small asc-muted">${today}</p></div>` : "<p>Pas de données de pas confirmées pour le moment. Tes séances font toujours avancer les campagnes.</p>"}
       ${map(model)}
-      ${model.hasStepData ? `<p class="journey-total"><strong>${number(s.totalSteps)}</strong> pas explorés</p><p class="asc-small asc-muted">${today}</p>` : "<p>Pas de données de pas confirmées pour le moment. Tes séances font toujours avancer les campagnes.</p>"}
       ${observed || s.observedSteps > 0 ? `<div class="journey-next"><p class="asc-eyebrow">Aperçu des pas reçus</p><p>${number(s.observedSteps ?? 0)} pas enregistrés par tes sources connectées.</p>${observed ? `<p class="asc-small asc-muted">${observedLabel}</p>` : ""}<p class="asc-small asc-muted">Ces relevés attendent une vérification avant de débloquer des souvenirs.</p></div>` : ""}
       ${next ? `<div class="journey-next"><p class="asc-eyebrow cy">Prochaine découverte</p><h3>${esc(next.name)}</h3><p>${number(model.remaining)} pas vers cette découverte</p>${bar(model.segmentPercent, "Vers la prochaine découverte")}
-      ${grand && grand.id !== next.id ? `<p class="asc-small asc-muted">Grand jalon : ${esc(grand.name)} · encore ${number(model.grandRemaining)} pas.</p>` : ""}</div>` : "<p>La première saga est explorée. Ton aventure continue.</p>"}
+      ${grand && grand.id !== next.id ? `<p class="asc-small asc-muted journey-grand">${seal(40, true)}<span>Grand jalon : ${esc(grand.name)} · encore ${number(model.grandRemaining)} pas.</span></p>` : ""}</div>` : "<p>La première saga est explorée. Ton aventure continue.</p>"}
       <div class="journey-saga"><p class="asc-small asc-muted">Première saga · ${number(s.totalSteps)} / ${number(s.goal)} pas</p>${bar(model.sagaPercent, "Première saga d’exploration")}</div>
       ${model.readyCount ? button("sync", "Révéler mes découvertes") : ""}
       <p class="asc-small asc-faint">Le maximum journalier des sources vérifiées alimente les sentiers. Les souvenirs sont cosmétiques.</p>
@@ -94,6 +104,8 @@
     host.querySelectorAll("details").forEach((d, i) => { d.open = !!open[i]; });
     host.querySelectorAll("button").forEach(b => { b.disabled = !!pending; });
     host.setAttribute("aria-busy", String(!!pending));
+    const label = status();
+    if (label && !careerOnly) document.querySelectorAll('[data-av-view-status="sentiers"]').forEach(el => { el.textContent = label; });
   }
 
   function reveal(discovery, milestone, host) {
@@ -105,7 +117,7 @@
     dialog.className = "journey-reveal";
     dialog.dataset.journeyScene = "";
     dialog.setAttribute("aria-labelledby", "journey-reveal-title");
-    dialog.innerHTML = `<p class="asc-eyebrow cy">${discovery ? "Découverte confirmée" : "Jalon de carrière confirmé"}</p><div class="journey-seal" aria-hidden="true">${icon(discovery ? "compass" : "medal")}</div><h2 class="asc-h2" id="journey-reveal-title">${esc(title)}</h2><p>${esc(story)}</p><p class="asc-small asc-muted">${origin} · souvenir cosmétique</p><button class="asc-btn asc-btn-primary" type="button">Continuer l’aventure</button>`;
+    dialog.innerHTML = `<p class="asc-eyebrow cy">${discovery ? "Découverte confirmée" : "Jalon de carrière confirmé"}</p>${discovery ? `<div class="journey-seal is-object" aria-hidden="true">${seal(132)}</div>` : `<div class="journey-seal" aria-hidden="true">${icon("medal")}</div>`}<h2 class="asc-h2" id="journey-reveal-title">${esc(title)}</h2><p>${esc(story)}</p><p class="asc-small asc-muted">${origin} · souvenir cosmétique</p><button class="asc-btn asc-btn-primary" type="button">Continuer l’aventure</button>`;
     dialog.addEventListener("close", () => { dialog.remove(); host.querySelector("button, summary")?.focus({ preventScroll: true }); });
     dialog.querySelector("button").onclick = () => dialog.close();
     document.body.append(dialog);
@@ -166,6 +178,6 @@
     else paint(host);
   }
 
-  root.TitanJourneyPanel = { mount, reset, worldStoryHtml };
+  root.TitanJourneyPanel = { mount, reset, worldStoryHtml, status };
   root.addEventListener("titan:account-changing", reset);
 })(window);

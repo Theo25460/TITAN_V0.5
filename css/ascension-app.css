@@ -5004,10 +5004,51 @@
 .moment-hero[data-level-up="1"].struck .mc-fill { background: var(--accent, var(--am)); }
 .moment-climb-legend { display: flex; justify-content: space-between; gap: var(--s3); margin: 0; font-size: 12.5px; font-weight: 600; color: var(--tx-3); font-variant-numeric: tabular-nums; }
 .moment-climb-legend span:first-child { color: var(--tx-2); font-weight: 700; }
-.moment-hero[data-level-up="1"] .moment-ring { grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--s4); align-items: center; }
-.moment-hero[data-level-up="1"] .moment-ring > :not(.moment-crest) { grid-column: 1; }
-.moment-crest { grid-column: 2; grid-row: 1 / span 3; width: 88px; opacity: 0; transform: translateY(8px) scale(0.92); }
+/* A new level is a short scene (Signature): the ascent of « l'Expédition » as a backdrop, its trail inked up to the summit, the
+   level set large on the sky and the crest of the rank standing on the ground as an object. Played once; the still final frame
+   with reduced motion. The gain and the level bar follow under it. */
+.moment-hero[data-level-up="1"] { display: grid; gap: var(--s4); }
+.moment-scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: 176px;
+  margin: 0 calc(-1 * var(--s5));
+  background: var(--bg-1);
+}
+.moment-ascent { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; }
+.ma-star { fill: var(--tx-3); opacity: 0.5; }
+.ma-ridge.r1 { fill: var(--bg-3); }
+.ma-ridge.r2 { fill: var(--bg-2); }
+.ma-ridge.r3 { fill: var(--bg-1); stroke: var(--line); stroke-width: 1; }
+.ma-trail { fill: none; stroke: var(--accent, var(--cy)); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.ma-node { fill: var(--accent, var(--cy)); }
+.ma-flag path { fill: none; stroke: var(--accent, var(--cy)); stroke-width: 1.6; stroke-linecap: round; }
+.ma-flag path:last-child { fill: var(--accent, var(--cy)); stroke: none; }
+.moment-scene::after { content: ""; position: absolute; inset: 55% 0 0; z-index: -1; background: linear-gradient(180deg, transparent, var(--bg-2)); }
+.moment-scene-copy { position: absolute; left: var(--s5); top: var(--s4); display: grid; justify-items: start; margin: 0; }
+.moment-scene-copy span { font-size: 13px; font-weight: 800; color: var(--tx-2); }
+.moment-scene-copy strong { font-family: var(--font-display); font-stretch: var(--w-figure); font-weight: 300; font-size: 96px; line-height: 0.86; font-variant-numeric: tabular-nums; color: var(--tx); }
+.moment-scene-copy span:last-child { margin-top: 6px; font-family: var(--font-display); font-stretch: var(--w-title); font-size: 19px; color: var(--accent, var(--cy)); }
+.moment-scene.is-rank .moment-scene-copy span:first-child { color: var(--am); }
+.moment-scene .moment-crest { position: absolute; display: block; right: var(--s5); bottom: var(--s3); width: 116px; aspect-ratio: auto; opacity: 0; transform: translateY(10px) scale(0.9); }
+.moment-scene .moment-crest::after { bottom: 0; }
+.moment-scene.is-rank .moment-crest { width: 132px; }
 .moment-crest .crest, .moment-crest img, .moment-crest svg { width: 100%; height: auto; display: block; }
+.moment-hero[data-play="1"] .ma-trail { animation: momentTrail 1100ms cubic-bezier(0.16, 1, 0.3, 1) 150ms backwards; }
+.moment-hero[data-play="1"] .ma-flag { animation: momentFlag 320ms ease-out 1150ms backwards; }
+.moment-hero[data-play="1"] .moment-scene-copy { animation: momentRise 520ms cubic-bezier(0.16, 1, 0.3, 1) 250ms backwards; }
+@keyframes momentTrail { from { stroke-dashoffset: 1; } }
+@keyframes momentFlag { from { opacity: 0; } }
+@keyframes momentRise { from { opacity: 0; transform: translateY(10px); } }
+/* A record: the bar of the new mark on the amber field, notched where the previous one stood. */
+.moment-mark { position: relative; height: 10px; margin: var(--s3) 0 var(--s1); border-radius: 2px; background: rgba(0, 0, 0, 0.16); }
+.moment-mark i { position: absolute; top: 0; bottom: 0; }
+.mm-now { left: 0; width: 100%; border-radius: 2px; background: var(--space-ink); transform-origin: left center; animation: momentMark 900ms cubic-bezier(0.16, 1, 0.3, 1) 200ms backwards; }
+.mm-was { left: var(--was); top: -5px !important; bottom: -5px !important; width: 3px; margin-left: -1.5px; background: var(--space); box-shadow: 0 0 0 1px var(--space-ink); }
+.moment-mark.is-lower .mm-now { width: var(--was); }
+.moment-mark.is-lower .mm-was { left: 100%; margin-left: -3px; }
+@keyframes momentMark { from { transform: scaleX(0.4); } }
 .moment-hero[data-level-up="1"].struck .moment-crest { animation: crestStrike 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .moment-hero[data-level-up="1"][data-play="0"] .moment-crest { opacity: 1; transform: none; animation: none; }
 .moment-next { margin: calc(var(--s2) * -1) 0 0; color: var(--tx-2); font-size: 14.5px; line-height: 1.5; }

@@ -88,13 +88,17 @@
     const unit = d.target > 1 ? d.unit[1] : d.unit[0];
     const action = d.state === "ready"
       ? `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-quest-claim="${esc(d.scope)}" ${claiming ? "disabled" : ""}>${icon("star")} Récupérer mon souvenir</button>`
-      : d.state === "claimed" ? `<span class="asc-chip cy">${icon("check")} Souvenir récupéré</span>` : "";
-    return `<article class="asc-note av-pq" data-periodic-quest="${esc(d.scope)}" data-kind="${esc(d.kind)}" data-state="${d.state}">
-      <div class="asc-stack-sm"><p class="asc-eyebrow">${esc(d.scopeLabel)} · facultative</p><strong>${esc(d.title)}</strong>
+      : "";
+    // Where the quest stands, in words: in progress, ready to be collected, or collected. The plate takes the terrain when it is ready.
+    const tag = d.state === "claimed" ? `<span class="sig-state is-owned">${icon("check")}Souvenir récupéré</span>`
+      : d.state === "ready" ? `<span class="sig-state is-worn">${icon("star")}Souvenir prêt</span>` : `<span class="sig-state">${icon("route")}En cours</span>`;
+    return `<article class="sig-plate av-pq${d.state === "ready" ? " is-relief" : ""}" data-periodic-quest="${esc(d.scope)}" data-kind="${esc(d.kind)}" data-state="${d.state}">
+      <div class="av-pq-head"><p class="asc-eyebrow">${esc(d.scopeLabel)} · facultative</p>${tag}</div>
+      <strong class="av-pq-title">${esc(d.title)}</strong>
       <span class="asc-small">${esc(d.text)}</span>
-      <span class="asc-ascent thin" role="progressbar" aria-label="${esc(d.scopeLabel)}" aria-valuemin="0" aria-valuemax="${d.target}" aria-valuenow="${d.value}"><span style="--p:${d.percent}%"></span></span>
-      <span class="asc-small asc-muted">${d.value}/${d.target} ${esc(unit)}</span>
-      ${action}</div></article>`;
+      <div class="av-pq-track"><span class="asc-ascent thin" role="progressbar" aria-label="${esc(d.scopeLabel)}" aria-valuemin="0" aria-valuemax="${d.target}" aria-valuenow="${d.value}"><span style="--p:${d.percent}%"></span></span>
+      <span class="asc-small asc-muted asc-num">${d.value}/${d.target} ${esc(unit)}</span></div>
+      ${action}</article>`;
   }
 
   /** The panel for the Aventure screen; empty for a guest, a server without the function, or while nothing is known yet. */
@@ -104,7 +108,7 @@
     const s = data.souvenirs || {};
     return `<section class="asc-section av-panel" data-periodic-quests aria-labelledby="pq-title"><div class="asc-section-head"><h2 id="pq-title">Tes quêtes du moment</h2></div>
       <p class="asc-small asc-muted">Deux repères facultatifs, calculés d’après ta pratique réelle. Les terminer donne un souvenir décoratif : ni XP, ni crédits, et rien n’est perdu si tu passes.</p>
-      <div class="asc-stack">${card(data.week)}${card(data.month)}</div>
+      <div class="av-pq-list">${card(data.week)}${card(data.month)}</div>
       ${failure ? `<p class="asc-small asc-faint" role="status">${esc(failure)}</p>` : ""}
       ${(Number(s.weeks) || 0) + (Number(s.months) || 0) ? `<p class="asc-small asc-faint" data-pq-souvenirs>${Number(s.weeks) || 0} souvenir${(Number(s.weeks) || 0) > 1 ? "s" : ""} de semaine · ${Number(s.months) || 0} de mois</p>` : ""}</section>`;
   }

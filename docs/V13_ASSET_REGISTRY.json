@@ -336,6 +336,15 @@
             482
           ],
           "evidence": "literal"
+        },
+        {
+          "source": "js/app/aventure.js",
+          "lines": [
+            104,
+            262,
+            412
+          ],
+          "evidence": "literal"
         }
       ],
       "platform": "web",
@@ -354,7 +363,8 @@
       "accessibleAlternative": {
         "status": "check surrounding label or decorative role",
         "sourceEvidence": [
-          "js/app/atelier.js"
+          "js/app/atelier.js",
+          "js/app/aventure.js"
         ]
       },
       "rpgUsage": false,
@@ -12931,8 +12941,8 @@
       ],
       "source": "js/app/aventure.js",
       "description": "Landscapes, guardian and chapters",
-      "bytes": 37701,
-      "version": "sha256:077fbcb05b3472dea8f3ac0f6d628d9233767f812ccfd98d5900f7bba9b15413",
+      "bytes": 47353,
+      "version": "sha256:6dd6ef05977ffd445fd57b17aa97f692cd67f6433328c69222efaf9a999afa8b",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",
@@ -12950,8 +12960,8 @@
       ],
       "source": "js/app/journey.js",
       "description": "Trail and discovery views",
-      "bytes": 12692,
-      "version": "sha256:6ec829dc9927d1d2af18d07301145c97cd223043d2b6c9c6e1bb002611e7ec08",
+      "bytes": 14180,
+      "version": "sha256:0a12bdd539c43130217de1a1a8dfc1fdd1491013a8a77b79a0e832589863d4d8",
       "resolution": "vector or layout dependent",
       "style": "Ascension tokens",
       "crop": "preserve viewBox, optical centre and touch target",

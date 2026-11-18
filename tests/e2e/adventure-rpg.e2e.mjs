@@ -25,6 +25,8 @@ test('weekly paths suggest a declared favorite and offer two routes open to any 
    window.state.user.favoriteSports = ['swimming'];
    dispatchEvent(new Event('titan:adventure-updated'));
   });
+  // The pistes of the week are in the « Quêtes » view of the page (one view at a time under the scene).
+  await page.locator('[data-av-view-btn="quetes"]').click();
   const paths = page.getByRole('region', {name:'Tes pistes de la semaine'});
   await paths.waitFor({timeout:3000});
   assert.equal(await paths.locator('[data-week-path="alternative"]').count(), 2);
