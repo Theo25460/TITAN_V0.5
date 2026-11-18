@@ -97,9 +97,10 @@ export const EffortRules = g.TitanEffort as {
 export const Sports = g.TitanSports as {
   FORMS: Record<SportForm, { label: string; measures: string[] }>;
   FAMILY_LABEL: Record<Family, string>;
-  FAMILY_ICON: Record<Family, "run" | "weight" | "mountain" | "target" | "leaf">;
-  /** One drawing per kind of practice (racket, glove, ball, bike, wave…), the family icon otherwise. */
+  FAMILY_ICON: Record<Family, "family-endurance" | "family-force" | "family-technique" | "family-jeu" | "family-mobilite">;
+  /** The sport's own glyph (docs/design/SPORT_ICONS.md); a sport unknown to the catalogue gets the closest one, else its family mark. */
   iconOf(id: string): import("./icons.generated").IconName;
+  ICON_SHARED: Record<string, string>;
   POPULAR: string[];
   ensure(): number;
   label(id: string): string;

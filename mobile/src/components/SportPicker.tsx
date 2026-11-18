@@ -56,7 +56,7 @@ export function SportFamilyPicker({ onPick }: { onPick: (id: string) => void }) 
     <View style={{ gap: space.s3 }}>
       <View style={styles.wrap}>
         {Array.from(groups.keys()).map((id) => (
-          <Chip key={id} label={Sports.FAMILY_LABEL[id]} selected={family === id}
+          <Chip key={id} label={Sports.FAMILY_LABEL[id]} icon={Sports.FAMILY_ICON[id]} selected={family === id}
             onPress={() => setFamily(family === id ? null : id)} />
         ))}
       </View>
