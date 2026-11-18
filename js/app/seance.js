@@ -312,11 +312,6 @@
   }
 
   /* ---------- Rendering ---------- */
-  function familyChip(sport) {
-    const fam = S_().familyOf(sport);
-    return `<span class="asc-chip">${icon(S_().FAMILY_ICON[fam])}${esc(S_().FAMILY_LABEL[fam])}</span>`;
-  }
-
   function importSports() {
     const recent = [...(window.state?.history || [])].sort((a,b) => new Date(b.date)-new Date(a.date)).map(log=>log.sport);
     const popular = [...new Set([...recent.slice(0, 8), ...(window.state?.user?.favoriteSports || []), "running", "cycling", "gravel", "trail", "walking", "hiking", "mountain_bike", "nordic_walk"])];
@@ -469,6 +464,7 @@
     const favorites = (window.state?.user?.favoriteSports || []).filter((id) => window.SPORTS_CONFIG?.[id]);
     const mine = [...new Set([...recents.map((l) => l.sport), ...favorites])].slice(0, 8);
     const lastOf = new Map(recents.map((l) => [l.sport, l]));
+    // (the day of the last session is said by « Refaire », just under)
     const counts = new Map();
     for (const l of P().activeLogs(window.state?.history || [])) counts.set(l.sport, (counts.get(l.sport) || 0) + 1);
     const routines = (window.state?.user?.gymRoutines || []).slice(0, 6);
@@ -480,8 +476,7 @@
       const last = lastOf.get(id), n = counts.get(id) || 0, fav = favorites.includes(id);
       return `<button type="button" class="seance-chip sp-tile" data-sport="${esc(id)}" data-family="${esc(S_().familyOf(id))}">
         <span class="sp-tile-icon">${icon(S_().iconOf(id))}</span>
-        <span class="sp-tile-text"><strong>${esc(S_().label(id))}</strong><small>${last ? `${esc(F().relativeDay(last.date))} · ${n} séance${n > 1 ? "s" : ""}` : "Favori"}</small></span>
-        ${fav && last ? `<span class="sp-tile-fav">${icon("star")}<span class="sr-only">Favori</span></span>` : ""}</button>`;
+        <span class="sp-tile-text"><strong>${esc(S_().label(id))}</strong><small>${last ? `${n} séance${n > 1 ? "s" : ""}${fav ? " · favori" : ""}` : "Favori"}</small></span></button>`;
     };
     // The lime field asks one question and holds the one action: the search. On a wide screen « mine » and « every sport » sit side by side.
     return `
@@ -909,7 +904,6 @@
       S = { ...fresh(sport), ...draft, step: "form" };
       resumed = { at: Number(draft.updatedAt) || Date.now() };
       render();
-      status("Brouillon repris. Vérifie la date et les mesures avant d’enregistrer.");
     } else choose(sport, null, { step: false });
   }
 
@@ -1490,7 +1484,6 @@
       S = { ...fresh(draft.sport), ...draft, step: "form" };
       resumed = { at: Number(draft.updatedAt) || Date.now() };
       render();
-      status("Brouillon repris. Vérifie la date et les mesures avant d’enregistrer.");
     } else {
       S = fresh();
       hubOpen = hubOn() && importRequested;
@@ -1548,6 +1541,11 @@
   window.addEventListener("titan:history-updated", () => {
     if (!booted) start();
     else if (S?.step === "pick") render();
+    else if (S?.step === "form" && !hubOpen && !saving && !root.querySelector("[data-last]")) {
+      // The journal arrived after the form was drawn: the reference is added in place, the form being typed is not redrawn.
+      const html = lastHtml();
+      if (html) (root.querySelector("[data-resume]") || root.querySelector(".seance-head"))?.insertAdjacentHTML("afterend", html);
+    }
   });
   ["online", "offline"].forEach((ev) => window.addEventListener(ev, () => { if (booted) { updateNet(); placeQueue(); } }));
   window.addEventListener("titan:pending-changed", () => { if (booted) placeQueue(); });

@@ -436,3 +436,239 @@
 }
 .jr-month-head h2 { font-size: 24px; }
 .jr-summary { margin-bottom: var(--s5); }
+
+/* ---------- 4. Séance : one of 260 sports, without effort ---------- */
+/* While something is typed, the results take the place of the lists: nothing else competes with them. */
+#seance[data-searching] > .seance-pick,
+#seance[data-searching] > .seance-live-entry,
+#seance[data-searching] > .sp-queue { display: none; }
+.seance-results { margin: var(--s4) 0 var(--s5); }
+.seance-results:empty { margin: 0; }
+.sp-count {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin: 0;
+  padding-bottom: var(--s2);
+  border-bottom: 2px solid var(--tx);
+  color: var(--tx);
+  font-weight: 800;
+}
+.sp-keys { display: none; color: var(--tx-3); font-weight: 600; }
+@media (hover: hover) and (min-width: 960px) { .sp-keys { display: inline; } }
+.sp-result { min-height: 68px; padding-left: var(--s2); padding-right: var(--s2); cursor: pointer; }
+.sp-result .asc-row-icon { color: var(--fam, var(--tx-2)); }
+.sp-result .asc-row-title { font-size: 17px; }
+.sp-result mark { background: var(--space); color: var(--space-ink); border-radius: 2px; padding: 0 1px; }
+.sp-result[aria-selected="true"] { background: var(--bg-2); outline: 2px solid var(--space); outline-offset: -2px; border-radius: var(--r1); }
+.sp-result[aria-selected="true"] .asc-row-title { color: var(--space); }
+.sp-done { flex: none; }
+@media (max-width: 359px) { .sp-done { display: none; } }
+.sp-none { margin-top: var(--s2); }
+
+/* The live entry is the other way to record: a cut plate under the field, not a line among others. */
+.seance-live-entry {
+  margin: var(--s4) 0 0;
+  padding: var(--s3) var(--s4);
+  border-bottom: 0;
+  border-radius: var(--r2) var(--r2) 0 var(--r2);
+  background: var(--bg-2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+}
+.seance-live-entry:hover { background: var(--bg-3); }
+.seance-live-entry:focus-visible { outline-offset: -2px; }
+
+/* Sessions waiting on the device. */
+.sp-queue {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 48px;
+  margin-top: var(--s3);
+  padding: var(--s2) var(--s4);
+  border-radius: var(--r2);
+  background: var(--bg-2);
+  color: var(--tx-2);
+  font-size: 14px;
+  text-decoration: none;
+}
+.sp-queue > .t-icon { flex: none; color: var(--warn); }
+.sp-queue[data-kind="err"] > .t-icon { color: var(--err); }
+.sp-queue > span { flex: 1; min-width: 0; }
+.sp-queue > strong { color: var(--space); }
+
+/* « Tes sports » : what one already does, as keys one can hit without reading a list. */
+.sp-mine { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+.sp-tile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s2) 10px;
+  min-height: 64px;
+  padding: var(--s2) var(--s3);
+  text-align: left;
+  cursor: pointer;
+}
+.sp-tile-icon { display: grid; place-items: center; color: var(--fam, var(--tx-2)); }
+.seance-chip .sp-tile-icon .t-icon { width: 22px; height: 22px; color: inherit; }
+.sp-tile-text { display: grid; gap: 1px; min-width: 0; line-height: 1.2; }
+.sp-tile-text strong { font-weight: 750; font-size: 15px; overflow-wrap: break-word; hyphens: auto; }
+.sp-tile-text small { font-size: 12.5px; font-weight: 600; color: var(--tx-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-tile:hover .sp-tile-icon,
+.sp-tile:hover .sp-tile-text small { color: var(--space-ink); }
+@media (max-width: 359px) {
+  .sp-mine { grid-template-columns: minmax(0, 1fr); }
+  .sp-tile { min-height: 56px; }
+}
+
+/* Families are tabs: one is open, its count is said, the others are one tap away. */
+.sp-fams {
+  display: flex;
+  gap: var(--s1);
+  margin: 0 calc(-1 * var(--s4)) var(--s3);
+  padding: 2px var(--s4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sp-fams::-webkit-scrollbar { display: none; }
+.sp-fam {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 var(--s3);
+  border: 0;
+  border-radius: var(--r2);
+  background: var(--bg-2);
+  color: var(--tx-2);
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sp-fam .t-icon { width: 17px; height: 17px; color: var(--fam); }
+.sp-fam small {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--tx-3);
+}
+.sp-fam:hover { color: var(--tx); }
+.sp-fam[aria-selected="true"] { background: var(--tx); color: var(--bg); }
+.sp-fam[aria-selected="true"] .t-icon,
+.sp-fam[aria-selected="true"] small { color: var(--bg); }
+.sp-fam:focus-visible { outline: 2px solid var(--space); outline-offset: 2px; }
+.seance-families { display: block; }
+.sp-panel { display: grid; gap: var(--s3); }
+.sp-panel-head { margin: 0; color: var(--tx-3); font-weight: 600; }
+.sp-sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+.sp-sport { justify-content: flex-start; min-height: 48px; padding: var(--s2) var(--s3); line-height: 1.2; text-align: left; cursor: pointer; }
+.sp-letter-group {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: var(--s2);
+  align-items: start;
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line-2);
+}
+.sp-letter {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 48px;
+  color: var(--tx-3);
+}
+.sp-panel .seance-chip-more { justify-self: start; cursor: pointer; }
+@media (min-width: 620px) {
+  .sp-mine { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .sp-sports { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+}
+@media (min-width: 960px) {
+  .sp-fams { margin: 0 0 var(--s3); padding: 2px 0; flex-wrap: wrap; overflow: visible; }
+}
+@media (min-width: 1100px) {
+  .seance-pick.has-mine { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+  .sp-mine { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ---------- 5. Séance : the form of a sport, and its states ---------- */
+.seance-head { align-items: center; }
+.seance-contract {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--space-ink);
+  opacity: 0.86;
+}
+.seance-contract .t-icon { flex: none; width: 15px; height: 15px; }
+.seance-fav { flex: none; color: var(--space-ink); }
+.seance-fav[aria-pressed="true"] .t-icon { fill: currentColor; }
+.seance-resume {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s2) var(--s3);
+  margin: var(--s4) 0 0;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r2);
+  background: var(--space-soft);
+}
+.seance-resume > .t-icon { color: var(--space); }
+.seance-resume p { display: grid; margin: 0; line-height: 1.3; }
+.seance-resume p strong { color: var(--space); }
+.seance-resume p span { font-size: 13.5px; color: var(--tx-2); }
+@media (max-width: 479px) {
+  .seance-resume > .asc-btn { grid-column: 2 / -1; justify-self: start; }
+}
+.seance-last {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-top: var(--s4);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r2);
+  background: var(--bg-2);
+}
+.seance-last p { display: grid; gap: 2px; margin: 0; min-width: 0; }
+.seance-last p span { font-size: 12.5px; font-weight: 700; color: var(--tx-3); }
+.seance-last p strong {
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.seance-last .asc-btn { flex: none; }
+.seance-resume + .seance-chrono,
+.seance-last + .seance-chrono { margin-top: var(--s4); }
+.seance-net { flex-basis: 100%; margin: 0; padding-right: var(--s2); color: var(--warn); font-weight: 700; }
+.seance-net[hidden] { display: none; }
+/* Saving: the key says it is at work; the page waits. */
+.seance-save[aria-busy="true"] { position: relative; overflow: hidden; }
+.seance-save[aria-busy="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 38%;
+  height: 3px;
+  background: var(--space-ink);
+  animation: seance-busy 900ms linear infinite;
+}
+@keyframes seance-busy { from { transform: translateX(-100%); } to { transform: translateX(270%); } }
+/* The first frame of the page is its field: the question is there before the script. */
+.seance-skel-key { height: 56px; margin-top: var(--s2); border-radius: var(--r2); border: 1.5px solid var(--space-ink); opacity: 0.35; max-width: 264px; }
+.seance-skel-search { height: 60px; border-radius: var(--r2); background: var(--space-ink); }
+.seance-skel-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); margin-top: var(--s8); }
+.seance-skel-tiles > i { height: 64px; border-radius: var(--r2); }
