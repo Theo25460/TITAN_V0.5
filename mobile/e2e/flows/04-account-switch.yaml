@@ -15,6 +15,22 @@ appId: fr.titanapp.app
     id: "tab-profile"
 - takeScreenshot: 19-profil
 - scrollUntilVisible:
+    element: "Connexions & compte"
+    direction: DOWN
+- tapOn: "Connexions & compte"
+- scrollUntilVisible:
+    element: "Confidentialité"
+    direction: DOWN
+- tapOn: "Confidentialité"
+- extendedWaitUntil:
+    visible:
+      id: "privacy-publicProfile"
+    timeout: 20000
+- tapOn:
+    id: "privacy-publicProfile"
+- takeScreenshot: 19b-confidentialite
+- back
+- scrollUntilVisible:
     element:
       id: "logout"
     direction: DOWN

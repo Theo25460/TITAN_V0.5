@@ -82,3 +82,11 @@ appId: fr.titanapp.app
     visible: ".*Athlete A.*"
     timeout: 20000
 - takeScreenshot: 07-qg
+- scrollUntilVisible:
+    element:
+      id: "qg-details"
+    direction: DOWN
+- tapOn:
+    id: "qg-details"
+- scroll
+- takeScreenshot: 07b-suivi-personnel

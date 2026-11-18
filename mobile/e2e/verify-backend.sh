@@ -34,4 +34,7 @@ echo "Account B: $b_logs sessions"
 [[ "$reward" == "1" ]] || fail "adventure chapter 1 not validated server-side"
 [[ "$offline" == "1" ]] || fail "offline session not synchronised exactly once"
 [[ "$b_logs" == "0" ]] || fail "account B has sessions it never recorded"
+requests=$(q "select count(*) from public.friendships where user_id_1='$B' and user_id_2='$A' and status='pending'")
+[[ "$requests" == "1" ]] || fail "expected one pending request from B to A after A opted into discoverability, got $requests"
+echo "Friend request from B to A pending, consent required before friendship."
 echo "Server-side checks passed"

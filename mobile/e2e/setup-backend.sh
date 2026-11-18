@@ -61,4 +61,6 @@ for who in a b; do
     -d "{\"email\":\"e2e-$who@titan.test\",\"password\":\"TitanE2E-$who-2026\",\"data\":{\"full_name\":\"Athlete ${who^^}\",\"username\":\"Athlete ${who^^}\"}}" >/dev/null
 done
 psql_ -tAc "select count(*) from public.profiles where username like 'Athlete %'" | grep -qx 2 || { echo "::error::profiles not created by the signup trigger"; exit 1; }
+# A's code is stable in the disposable replica. Discoverability still requires A's in-app opt-in.
+psql_ -c "update public.profiles set friend_code='TN-TITAN' where id=(select id from auth.users where email='e2e-a@titan.test')"
 echo "Backend ready at $API_URL"

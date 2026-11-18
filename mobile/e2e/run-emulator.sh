@@ -42,6 +42,24 @@ if [ "$status" -eq 0 ]; then
 fi
 adb shell dumpsys meminfo fr.titanapp.app > "$OUT/meminfo.txt" 2>&1 || true
 adb shell dumpsys gfxinfo fr.titanapp.app framestats > "$OUT/framestats.txt" 2>&1 || true
+# Keep the previous aggregate samples above at the historical checkpoint (after restoring
+# the viewport). Measure navigation separately in the same process, with a primed cache.
+journeys="$ROOT/mobile/e2e/journeys"
+maestro="$HOME/.maestro/bin/maestro"
+if [ "$status" -eq 0 ]; then
+  "$maestro" test "$journeys/prepare-tabs.yaml" --test-output-dir "$OUT/perf/prepare" || status=$?
+fi
+if [ "$status" -eq 0 ]; then
+  for pass in warmup 1 2 3; do
+    adb shell dumpsys gfxinfo fr.titanapp.app reset > /dev/null
+    "$maestro" test "$journeys/tabs.yaml" --test-output-dir "$OUT/perf/$pass" || { status=$?; break; }
+    adb shell dumpsys gfxinfo fr.titanapp.app framestats > "$OUT/perf/tabs-$pass.txt"
+    adb shell dumpsys meminfo fr.titanapp.app > "$OUT/perf/memory-$pass.txt"
+  done
+fi
+if [ "$status" -eq 0 ]; then
+  "$maestro" test "$journeys/social.yaml" --test-output-dir "$OUT/social" || status=$?
+fi
 # On failure, print what the device was showing and the app's errors, so the cause is readable in the job log itself.
 if [ "$status" -ne 0 ]; then
   echo "::group::Diagnostic : écran de l'appareil et erreurs de l'application"

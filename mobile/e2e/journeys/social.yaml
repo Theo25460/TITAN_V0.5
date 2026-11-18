@@ -1,0 +1,34 @@
+# Runs on the disposable backend as B after A has enabled discoverability in Privacy.
+appId: fr.titanapp.app
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-qg"
+    timeout: 30000
+- tapOn:
+    id: "tab-qg"
+- scrollUntilVisible:
+    element:
+      id: "qg-community"
+    direction: DOWN
+- tapOn:
+    id: "qg-community"
+- extendedWaitUntil:
+    visible:
+      id: "community-invite"
+    timeout: 30000
+- takeScreenshot: cercle-amis
+- tapOn:
+    id: "community-invite"
+- tapOn:
+    id: "community-friend-code"
+- inputText: "TN-TITAN"
+- hideKeyboard
+- tapOn:
+    id: "community-friend-request"
+- scrollUntilVisible:
+    element: "Demandes envoyées"
+    direction: DOWN
+- assertVisible: "Demandes envoyées"
+- takeScreenshot: demande-envoyee
