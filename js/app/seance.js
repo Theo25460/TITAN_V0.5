@@ -30,6 +30,7 @@
   let manualRequested = false;
   let importRequested = false; // /training?mode=import opens on the import view once the server has opened it
   let initialSport = new URLSearchParams(location.search).get("sport");
+  let resumed = null; // { at } when the form on screen is a draft found on the device, until it is saved, discarded or replaced
   const hubOn = () => window.titanFlags?.enabled?.("screens.activityhub", false) === true;
 
   function invalidateGpx() {
@@ -408,56 +409,150 @@
     for (const s of S_().all()) out[s.family] = (out[s.family] || 0) + 1;
     return out;
   };
+  /* One family is shown at a time (tabs): the one of the sport done last, endurance on a first visit. */
+  let pickFamily = null;
+  const logMain = (l) => {
+    const m = P().minutesOf(l);
+    return l.unit === "km" ? F().distance(l.val) : l.unit === "m" ? `${F().number(l.val)} m` : l.details?.exercises?.length ? `${l.details.exercises.length} exercice${l.details.exercises.length > 1 ? "s" : ""}` : F().duration(m.minutes);
+  };
+
+  /* Sessions kept on this device until the server has them (offline, or refused): said on the page where one records. */
+  function queueHtml() {
+    const items = window.TitanQueue?.list?.() || [];
+    if (!items.length) return "";
+    const refused = items.filter((i) => i.status === "error").length;
+    const waiting = items.length - refused;
+    const many = waiting > 1;
+    const text = refused
+      ? `${refused} séance${refused > 1 ? "s" : ""} refusée${refused > 1 ? "s" : ""} par le serveur${waiting ? `, ${waiting} en attente d’envoi` : ""}.`
+      : `${waiting} séance${many ? "s" : ""} gardée${many ? "s" : ""} sur cet appareil : ${navigator.onLine ? "envoi en attente" : `${many ? "elles partiront" : "elle partira"} au retour du réseau`}.`;
+    return `<a class="sp-queue" data-queue href="/journal#attente" data-kind="${refused ? "err" : "wait"}">${icon(refused ? "alert" : "cloudUp")}<span>${esc(text)}</span><strong>Voir</strong></a>`;
+  }
+  function placeQueue() {
+    if (!root || S?.step !== "pick" || hubOpen) return;
+    const old = root.querySelector("[data-queue]");
+    const html = queueHtml();
+    if (old) old.outerHTML = html;
+    else if (html) root.querySelector(".seance-pick")?.insertAdjacentHTML("beforebegin", html);
+  }
+
+  function familyPanelHtml(f, totals) {
+    const open = openFamilies.has(f);
+    let ids;
+    if (open) ids = S_().all().filter((s) => s.family === f).map((s) => s.id).sort((a, b) => S_().label(a).localeCompare(S_().label(b), "fr"));
+    else {
+      ids = S_().POPULAR.filter((id) => window.SPORTS_CONFIG?.[id] && S_().familyOf(id) === f);
+      for (const s of S_().all().sort((a, b) => (window.SPORTS_CONFIG[a.id]?.sortOrder ?? 999) - (window.SPORTS_CONFIG[b.id]?.sortOrder ?? 999)))
+        if (s.family === f && ids.length < 8 && !ids.includes(s.id)) ids.push(s.id);
+    }
+    const chip = (id) => `<button type="button" class="seance-chip sp-sport" data-sport="${esc(id)}">${esc(S_().label(id))}</button>`;
+    let body;
+    if (open) {
+      // Every sport of the family, alphabetical, under its initial: a list one can run a finger down.
+      const groups = new Map();
+      for (const id of ids) {
+        const letter = S_().norm(S_().label(id)).charAt(0).toUpperCase() || "#";
+        if (!groups.has(letter)) groups.set(letter, []);
+        groups.get(letter).push(id);
+      }
+      body = [...groups].map(([letter, list]) => `<div class="sp-letter-group"><span class="sp-letter" aria-hidden="true">${esc(letter)}</span><div class="sp-sports">${list.map(chip).join("")}</div></div>`).join("");
+    } else body = `<div class="sp-sports">${ids.map(chip).join("")}</div>`;
+    return `<div class="sp-panel" role="tabpanel" id="family-${esc(f)}" aria-labelledby="family-tab-${esc(f)}" data-family="${esc(f)}"${open ? ' data-open="true"' : ""}>
+      <p class="sp-panel-head asc-small">${open ? `Les ${totals[f]} sports, de A à Z` : totals[f] > ids.length ? `Les plus pratiqués sur ${totals[f]}` : `${totals[f]} sport${totals[f] > 1 ? "s" : ""}`}</p>
+      ${body}
+      ${totals[f] > 8 ? `<button type="button" class="seance-chip seance-chip-more" data-family-more="${esc(f)}" aria-expanded="${open}" aria-controls="family-${esc(f)}">${open ? "Réduire" : `Voir les ${totals[f]} sports`}</button>` : ""}</div>`;
+  }
 
   function pickHtml() {
     const recents = recentSports();
     const last3 = recents.slice(0, 3);
     const favorites = (window.state?.user?.favoriteSports || []).filter((id) => window.SPORTS_CONFIG?.[id]);
     const mine = [...new Set([...recents.map((l) => l.sport), ...favorites])].slice(0, 8);
+    const lastOf = new Map(recents.map((l) => [l.sport, l]));
+    const counts = new Map();
+    for (const l of P().activeLogs(window.state?.history || [])) counts.set(l.sport, (counts.get(l.sport) || 0) + 1);
     const routines = (window.state?.user?.gymRoutines || []).slice(0, 6);
     const fams = Object.keys(S_().FAMILY_LABEL);
-    const byFam = Object.fromEntries(fams.map((f) => [f, []]));
-    for (const id of S_().POPULAR) if (window.SPORTS_CONFIG?.[id]) byFam[S_().familyOf(id)].push(id);
-    for (const s of S_().all().sort((a, b) => (window.SPORTS_CONFIG[a.id]?.sortOrder ?? 999) - (window.SPORTS_CONFIG[b.id]?.sortOrder ?? 999)))
-      if (byFam[s.family] && byFam[s.family].length < 8 && !byFam[s.family].includes(s.id)) byFam[s.family].push(s.id);
     const totals = familyTotals();
-    for (const f of fams) {
-      if (!openFamilies.has(f)) continue;
-      // Unfolded: every sport of the family, alphabetical, the popular ones no longer first.
-      byFam[f] = S_().all().filter((s) => s.family === f).map((s) => s.id).sort((a, b) => S_().label(a).localeCompare(S_().label(b), "fr"));
-    }
+    if (!fams.includes(pickFamily)) pickFamily = recents[0] && fams.includes(S_().familyOf(recents[0].sport)) ? S_().familyOf(recents[0].sport) : fams[0];
+    const all = S_().all().length;
+    const tile = (id) => {
+      const last = lastOf.get(id), n = counts.get(id) || 0, fav = favorites.includes(id);
+      return `<button type="button" class="seance-chip sp-tile" data-sport="${esc(id)}" data-family="${esc(S_().familyOf(id))}">
+        <span class="sp-tile-icon">${icon(S_().iconOf(id))}</span>
+        <span class="sp-tile-text"><strong>${esc(S_().label(id))}</strong><small>${last ? `${esc(F().relativeDay(last.date))} · ${n} séance${n > 1 ? "s" : ""}` : "Favori"}</small></span>
+        ${fav && last ? `<span class="sp-tile-fav">${icon("star")}<span class="sr-only">Favori</span></span>` : ""}</button>`;
+    };
     // The lime field asks one question and holds the one action: the search. On a wide screen « mine » and « every sport » sit side by side.
     return `
       <header class="asc-page-head seance-field"><div><h1 tabindex="-1" data-pick-title>Qu’as-tu fait&#8239;?</h1>${modeHtml()}</div>
       <div class="seance-search">
         <label class="sr-only" for="sport-q">Rechercher un sport</label>
         <span class="seance-search-icon">${icon("search")}</span>
-        <input id="sport-q" class="asc-input" type="search" autocomplete="off" placeholder="Chercher un sport…" value="${esc(S.query)}" aria-controls="sport-results">
+        <input id="sport-q" class="asc-input" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="Chercher parmi ${all} sports…" value="${esc(S.query)}" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="sport-results">
       </div></header>
       <nav class="asc-subnav" data-subnav></nav>
-      <div id="sport-results" class="seance-results" role="listbox" aria-label="Sports"></div>
+      <div id="sport-results" class="seance-results"></div>
       ${liveEntryHtml()}
+      ${queueHtml()}
       <div class="seance-pick${mine.length || last3.length || routines.length ? " has-mine" : ""}"><div class="seance-pick-mine">
-      ${mine.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes sports</h2></div><div class="seance-chips">${mine.map((id) => `<button type="button" class="seance-chip" data-sport="${esc(id)}">${icon(S_().iconOf(id))}${esc(S_().label(id))}</button>`).join("")}</div></section>` : ""}
+      ${mine.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes sports</h2></div><div class="sp-mine">${mine.map(tile).join("")}</div></section>` : ""}
       ${last3.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Refaire</h2><span class="asc-small asc-faint">Reprend les mesures, à la date d’aujourd’hui</span></div><div class="asc-list">${last3.map((l) => {
         const m = P().minutesOf(l);
-        const main = l.unit === "km" ? F().distance(l.val) : l.unit === "m" ? `${F().number(l.val)} m` : l.details?.exercises?.length ? `${l.details.exercises.length} exercice${l.details.exercises.length > 1 ? "s" : ""}` : F().duration(m.minutes);
-        return `<button type="button" class="asc-row" data-repeat="${esc(l.client_event_id || l.id)}"><span class="asc-row-icon">${icon("copy")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(S_().label(l.sport))}</span><span class="asc-row-sub">${esc(F().relativeDay(l.date))} · ${esc(main)}${m.minutes && l.unit === "km" ? " · " + esc(F().duration(m.minutes)) : ""}</span></span>${icon("chevron")}</button>`;
+        return `<button type="button" class="asc-row" data-repeat="${esc(l.client_event_id || l.id)}"><span class="asc-row-icon">${icon("copy")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(S_().label(l.sport))}</span><span class="asc-row-sub">${esc(F().relativeDay(l.date))} · ${esc(logMain(l))}${m.minutes && l.unit === "km" ? " · " + esc(F().duration(m.minutes)) : ""}</span></span>${icon("chevron")}</button>`;
       }).join("")}</div></section>` : ""}
       ${routines.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes routines</h2></div><div class="asc-list">${routines.map((r) => `<button type="button" class="asc-row" data-routine="${esc(r.id)}"><span class="asc-row-icon">${icon("layers")}</span><span class="asc-row-main"><span class="asc-row-title">${esc(r.label)}</span><span class="asc-row-sub">${r.exercises.length} exercice${r.exercises.length > 1 ? "s" : ""}</span></span>${icon("chevron")}</button>`).join("")}</div></section>` : ""}
       </div><div class="seance-pick-all">
-      <section class="asc-section"><div class="asc-section-head"><h2>Par famille</h2></div>
-        <div class="seance-families">${fams.map((f) => `<div class="seance-family"><p class="asc-eyebrow">${icon(S_().FAMILY_ICON[f])} ${esc(S_().FAMILY_LABEL[f])}</p><div class="seance-chips" id="family-${esc(f)}">${byFam[f].map((id) => `<button type="button" class="seance-chip" data-sport="${esc(id)}">${esc(S_().label(id))}</button>`).join("")}${totals[f] > 8 ? `<button type="button" class="seance-chip seance-chip-more" data-family-more="${esc(f)}" aria-expanded="${openFamilies.has(f)}" aria-controls="family-${esc(f)}">${openFamilies.has(f) ? "Réduire" : `Voir les ${totals[f]} sports`}</button>` : ""}</div></div>`).join("")}</div>
+      <section class="asc-section"><div class="asc-section-head"><h2>Par famille</h2><span class="asc-small asc-muted">${all} sports</span></div>
+        <div class="sp-fams" role="tablist" aria-label="Familles de sports">${fams.map((f) => `<button type="button" role="tab" class="sp-fam" id="family-tab-${esc(f)}" data-family-tab="${esc(f)}" data-family="${esc(f)}" aria-selected="${f === pickFamily}" aria-controls="family-${esc(f)}" tabindex="${f === pickFamily ? 0 : -1}">${icon(S_().FAMILY_ICON[f])}<span>${esc(S_().FAMILY_LABEL[f])}</span><small>${totals[f] || 0}</small></button>`).join("")}</div>
+        <div class="seance-families">${familyPanelHtml(pickFamily, totals)}</div>
       </section></div></div>`;
   }
 
+  /* What was typed, found in the name of the sport: the match is marked. Accents and case are ignored, one character for one. */
+  const fold = (text) => Array.from(String(text)).map((c) => { const n = c.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase(); return n.length === 1 ? n : c.toLowerCase(); });
+  function marked(label, query) {
+    const chars = Array.from(String(label)), hay = fold(label).join(""), needle = fold(query.trim()).join("");
+    const at = needle ? hay.indexOf(needle) : -1;
+    if (at < 0 || hay.length !== chars.length) return esc(label);
+    return `${esc(chars.slice(0, at).join(""))}<mark>${esc(chars.slice(at, at + needle.length).join(""))}</mark>${esc(chars.slice(at + needle.length).join(""))}`;
+  }
+  const RESULT_LIMIT = 12;
+  let activeResult = -1;
   function resultsHtml() {
-    const list = S.query ? S_().search(S.query, { limit: 10 }) : [];
-    if (!S.query) return "";
-    if (!list.length) return `<p class="asc-empty asc-small">Aucun sport ne correspond. Essaie un mot plus court ou une famille : endurance, force, raquette, combat.</p>`;
-    return `<div class="asc-list">${list
-      .map((r, i) => `<button type="button" class="asc-row" role="option" id="opt-${i}" data-sport="${esc(r.id)}"><span class="asc-row-icon">${icon(S_().iconOf(r.id))}</span><span class="asc-row-main"><span class="asc-row-title">${esc(r.label)}</span><span class="asc-row-sub">${esc(S_().FAMILY_LABEL[r.family])} · ${esc(S_().FORMS[r.form].label.toLowerCase())}</span></span>${icon("chevron")}</button>`)
+    activeResult = -1;
+    if (!S.query.trim()) return "";
+    const list = S_().search(S.query, { limit: RESULT_LIMIT });
+    if (!list.length) return `<div class="sig-empty sp-none">${icon("search")}<h2>Aucun sport ne correspond à « ${esc(S.query.trim())} »</h2><p>Essaie un mot plus court ou une famille : endurance, force, raquette, combat.</p><button type="button" class="asc-btn asc-btn-secondary" data-act="clear-search">${icon("restore")} Effacer la recherche</button></div>`;
+    const done = new Set(recentSports().map((l) => l.sport));
+    const needle = fold(S.query.trim()).join("");
+    return `<p class="sp-count asc-small" role="status">${list.length === RESULT_LIMIT ? `Les ${RESULT_LIMIT} premiers sports : précise pour affiner` : `${list.length} sport${list.length > 1 ? "s" : ""}`}<span class="sp-keys" aria-hidden="true">↑ ↓ pour choisir · Entrée pour ouvrir</span></p>
+      <div class="asc-list sp-results" role="listbox" id="sport-list" aria-label="Sports trouvés">${list
+      .map((r, i) => {
+        // Found by another name (« footing » for running): say which, so the row explains itself.
+        const alias = fold(r.label).join("").includes(needle) ? "" : (S_().aliasesOf(r.id) || []).find((a) => fold(a).join("").includes(needle)) || "";
+        return `<button type="button" class="asc-row sp-result" role="option" aria-selected="false" id="opt-${i}" data-sport="${esc(r.id)}" data-family="${esc(r.family)}"><span class="asc-row-icon">${icon(S_().iconOf(r.id))}</span><span class="asc-row-main"><span class="asc-row-title">${marked(r.label, S.query)}</span><span class="asc-row-sub">${esc(S_().FAMILY_LABEL[r.family])} · ${esc(S_().FORMS[r.form].label.toLowerCase())}${alias ? ` · « ${esc(alias)} »` : ""}</span></span>${done.has(r.id) ? '<span class="sig-state sp-done">Déjà pratiqué</span>' : ""}${icon("chevron")}</button>`;
+      })
       .join("")}</div>`;
+  }
+  /* The search drives the page: while something is typed the results take the place of the lists; the arrows move through them. */
+  function showResults() {
+    const box = document.getElementById("sport-results");
+    if (!box) return;
+    box.innerHTML = resultsHtml();
+    const searching = !!S.query.trim();
+    root.toggleAttribute("data-searching", searching);
+    const input = document.getElementById("sport-q");
+    input?.setAttribute("aria-expanded", String(searching && !!box.querySelector("[role=option]")));
+    input?.removeAttribute("aria-activedescendant");
+  }
+  function moveResult(step) {
+    const options = [...root.querySelectorAll("#sport-results [role=option]")];
+    if (!options.length) return;
+    activeResult = activeResult < 0 ? (step > 0 ? 0 : options.length - 1) : (activeResult + step + options.length) % options.length;
+    options.forEach((o, i) => o.setAttribute("aria-selected", String(i === activeResult)));
+    document.getElementById("sport-q")?.setAttribute("aria-activedescendant", options[activeResult].id);
+    options[activeResult].scrollIntoView({ block: "nearest" });
   }
 
   function whenHtml() {
@@ -596,7 +691,8 @@
     if (form === "climbing") {
       const c = S.climbing;
       const systems = GRADE_SYSTEMS[c.discipline] || GRADE_SYSTEMS.Bloc;
-      return `<section class="seance-block">
+      return `<section class="seance-block">${durationHtml()}</section>
+      <section class="seance-block">
         <div class="asc-form-grid">
           <div class="asc-field"><span>Discipline</span><div class="asc-seg" role="group" aria-label="Discipline">${["Bloc", "Voie"].map((d) => `<button type="button" data-climb="discipline" data-v="${d}" aria-pressed="${c.discipline === d}">${d}</button>`).join("")}</div></div>
           <div class="asc-field"><span>Lieu</span><div class="asc-seg" role="group" aria-label="Lieu">${["Salle", "Extérieur"].map((d) => `<button type="button" data-climb="location" data-v="${d}" aria-pressed="${c.location === d}">${d}</button>`).join("")}</div></div>
@@ -611,8 +707,7 @@
           <label class="asc-field"><span>Meilleure réussie</span><input class="asc-input" data-k="climbing.best" value="${esc(c.best)}" placeholder="${c.system === "V-scale bloc" ? "V4" : c.system === "Français voie" ? "6b+" : "6A"}" autocapitalize="characters"></label>
         </div>
         <p class="asc-small asc-faint">Les cotations restent comparées dans leur système et leur contexte : un 6A en bloc n’est pas un 6a en voie.</p>
-      </section>
-      <section class="seance-block">${durationHtml()}</section>${measuresExtrasHtml(["attempts", "successful_routes", "routes", "grade_max", "max_done", "max_tried"], "Précisions")}`;
+      </section>${measuresExtrasHtml(["attempts", "successful_routes", "routes", "grade_max", "max_done", "max_tried"], "Précisions")}`;
     }
     const unit = S_().unitOf(S.sport);
     return `<section class="seance-block"><div class="seance-big">${!["min", "h"].includes(unit) ? `<label class="asc-field"><span>Valeur</span><div class="seance-unit"><input class="asc-input seance-input-big" inputmode="decimal" type="number" min="0" data-k="value" value="${esc(S.value)}" placeholder="0"><span>${esc(unit)}</span></div></label>` : ""}${durationHtml()}</div></section>
@@ -628,14 +723,51 @@
     return `<label class="asc-field"><span>${label}</span><input class="asc-input" maxlength="120" data-k="extras.${esc(f.id)}" value="${esc(v)}"></label>`;
   }
 
+  const isFavorite = (sport) => (window.state?.user?.favoriteSports || []).includes(sport);
+  function favoriteHtml() {
+    const on = isFavorite(S.sport), label = S_().label(S.sport);
+    return `<button type="button" class="asc-btn asc-btn-ghost asc-btn-icon seance-fav" data-act="favorite" aria-pressed="${on}" aria-label="${esc(`${on ? "Retirer" : "Ajouter"} ${label} ${on ? "des" : "aux"} favoris`)}">${icon("star")}</button>`;
+  }
+  const ago = (ms) => {
+    const min = Math.max(0, Math.round((Date.now() - ms) / 60000));
+    return min < 1 ? "à l’instant" : min < 60 ? `il y a ${min} min` : min < 1440 ? `il y a ${Math.floor(min / 60)} h` : min < 2880 ? "hier" : `il y a ${Math.floor(min / 1440)} jours`;
+  };
+  /* Nothing typed yet: no measure, no exercise named, no file. */
+  const pristine = () => !S.distance && !S.meters && !S.value && !S.durH && !S.durM && !S.durS && !S.gpx
+    && !S.exercises.some((e) => String(e.name || "").trim() || (e.sets || []).some((x) => x.weight || x.reps || x.seconds));
+  /* A draft found on the device is said, with the way out: starting again from an empty form. */
+  function resumeHtml() {
+    if (!resumed) return "";
+    return `<section class="seance-resume" data-resume aria-label="Brouillon repris">${icon("restore")}<p><strong>Brouillon repris</strong><span>Modifié ${esc(ago(resumed.at))}. Vérifie la date et les mesures.</span></p><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="discard-draft">Repartir de zéro</button></section>`;
+  }
+  /* The last session of this sport, as a reference and a shortcut: the same measures, dated now. */
+  const lastOfSport = () => recentSports().find((l) => l.sport === S.sport) || null;
+  function lastHtml() {
+    const l = !resumed && pristine() ? lastOfSport() : null;
+    if (!l) return "";
+    const m = P().minutesOf(l);
+    return `<div class="seance-last" data-last><p><span>Ta dernière fois</span><strong>${esc(F().relativeDay(l.date))} · ${esc(logMain(l))}${m.minutes && l.unit === "km" ? " · " + esc(F().duration(m.minutes)) : ""}</strong></p><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="repeat-last">${icon("copy")} Reprendre</button></div>`;
+  }
+  /* Offline is a state of the save, not an error: the session stays on the device and leaves with the network. */
+  function updateNet() {
+    const el = root?.querySelector("[data-net]");
+    if (!el) return;
+    el.hidden = navigator.onLine;
+    el.textContent = navigator.onLine ? "" : "Hors ligne : la séance sera gardée sur cet appareil et partira au retour du réseau.";
+  }
+
   function formHtml() {
     const t = timer();
+    const fam = S_().familyOf(S.sport);
     return `
-      <header class="asc-page-head seance-head">
+      <header class="asc-page-head seance-head" data-family="${esc(fam)}">
         <button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" data-act="back" aria-label="Changer de sport">${icon("chevronLeft")}</button>
-        <div class="seance-head-main"><h1 class="seance-title" tabindex="-1" data-form-title>${esc(S_().label(S.sport))}</h1></div>
-        ${familyChip(S.sport)}
+        <div class="seance-head-main"><h1 class="seance-title" tabindex="-1" data-form-title>${esc(S_().label(S.sport))}</h1>
+          <p class="seance-contract">${icon(S_().FAMILY_ICON[fam])}<span>${esc(S_().FAMILY_LABEL[fam])} · ${esc(S_().FORMS[S_().formOf(S.sport)].label.toLowerCase())}</span></p></div>
+        ${favoriteHtml()}
       </header>
+      ${resumeHtml()}
+      ${lastHtml()}
       <div class="seance-chrono" data-running="${!!t.started}">
         <span class="asc-num seance-chrono-time" id="chrono" aria-live="off">00:00</span>
         <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-act="chrono">${icon(t.started ? "pause" : "play")}${t.started ? "Pause" : elapsedMs(t) ? "Reprendre" : "Chrono"}</button>
@@ -652,6 +784,7 @@
         ${modeHtml(true)}
       </div>
       <div class="seance-bar" role="region" aria-label="Enregistrer">
+        <p class="asc-small seance-net" data-net hidden></p>
         <p id="seance-status" class="asc-small seance-status" role="status"></p>
         <div class="seance-bar-preview" id="preview" aria-live="polite"></div>
         <button type="button" class="asc-btn asc-btn-primary seance-save" data-act="save">${icon("check")} Enregistrer</button>
@@ -670,11 +803,13 @@
       if (focusSelector) (root.querySelector(focusSelector) || root.querySelector("[data-hub-title]"))?.focus({preventScroll:true});
       return;
     }
+    root.removeAttribute("data-searching");
     if (S.step === "pick") {
-      document.getElementById("sport-results").innerHTML = resultsHtml();
+      showResults();
       window.titanShell?.refresh();
     } else {
       updateDerived();
+      updateNet();
       tick();
     }
   }
@@ -734,6 +869,7 @@
     invalidateGpx();
     localGpxOriginal = null;
     hubOpen = false;
+    resumed = null;
     S = { ...fresh(sport), ...(prefill || {}) };
     if (S_().formOf(sport) === "strength" && !S.exercises.length) S.exercises = [{ name: "", variant: "", kind: "weighted", sets: [{ weight: "", reps: "", rir: "" }] }];
     if (S_().formOf(sport) === "bodyweight" && !S.exercises.length) S.exercises = [{ name: "", variant: "", kind: "bodyweight", sets: [{ weight: "", reps: "", rir: "" }] }];
@@ -758,6 +894,7 @@
       if (S.step !== "form") return;
       invalidateGpx();
       localGpxOriginal = null;
+      resumed = null;
       S = fresh();
       hubOpen = false;
       render();
@@ -770,6 +907,7 @@
     if (draft && draft.sport === sport) {
       hubOpen = false;
       S = { ...fresh(sport), ...draft, step: "form" };
+      resumed = { at: Number(draft.updatedAt) || Date.now() };
       render();
       status("Brouillon repris. Vérifie la date et les mesures avant d’enregistrer.");
     } else choose(sport, null, { step: false });
@@ -889,6 +1027,7 @@
       if (count <= 2) window.TitanAnalytics?.track(count === 1 ? "first_session" : "second_session", { family: S_().familyOf(sport) });
       localGpxOriginal = null;
       const fromPicker = history.state?.seance === "form";
+      resumed = null;
       S = fresh();
       hubOpen = false;
       // The form was one history step after the picker: step back onto it, so Back after the result leaves the page in one press.
@@ -1069,7 +1208,7 @@
     }
     if (el.id === "sport-q") {
       S.query = el.value;
-      document.getElementById("sport-results").innerHTML = resultsHtml();
+      showResults();
       return;
     }
     const k = el.dataset.k;
@@ -1129,10 +1268,17 @@
         history.replaceState(null,"","/training?mode=manual"); render(); root.querySelector("#sport-q")?.focus();
       });
     }
+    if (t.dataset.familyTab) return showFamily(t.dataset.familyTab, false);
+    if (t.dataset.act === "clear-search") {
+      S.query = "";
+      const q = document.getElementById("sport-q");
+      if (q) { q.value = ""; q.focus({ preventScroll: true }); }
+      return showResults();
+    }
     if (t.dataset.familyMore) {
       const f = t.dataset.familyMore;
       if (openFamilies.has(f)) openFamilies.delete(f); else openFamilies.add(f);
-      render();
+      showFamily(f, false);
       root.querySelector(`[data-family-more="${f}"]`)?.focus({ preventScroll: true });
       return;
     }
@@ -1199,7 +1345,27 @@
       }
       return;
     }
+    if (act === "favorite") {
+      if (!window.state?.user) return;
+      const list = Array.isArray(window.state.user.favoriteSports) ? window.state.user.favoriteSports : [];
+      window.state.user.favoriteSports = list.includes(S.sport) ? list.filter((x) => x !== S.sport) : [...new Set([...list, S.sport])];
+      window.saveState?.({ forceCloud: true });
+      t.outerHTML = favoriteHtml();
+      root.querySelector('[data-act="favorite"]')?.focus({ preventScroll: true });
+      return window.titanShell?.toast?.({ type: "ok", title: isFavorite(S.sport) ? "Ajouté à tes sports" : "Retiré de tes favoris", message: S_().label(S.sport) });
+    }
+    if (act === "discard-draft") {
+      clearDraft();
+      choose(S.sport, null, { step: false });
+      return root.querySelector("[data-form-title]")?.focus({ preventScroll: true });
+    }
+    if (act === "repeat-last") {
+      const l = lastOfSport();
+      if (l) choose(S.sport, prefillFromLog(l), { step: false });
+      return root.querySelector("[data-form-title]")?.focus({ preventScroll: true });
+    }
     if (act === "back") {
+      resumed = null;
       localGpxOriginal = null;
       clearDraft();
       // Opened from the picker: undo that history step, so Back does not need a second press on the same list.
@@ -1256,10 +1422,48 @@
 
   function onKey(e) {
     if (saving) return;
-    if (e.target.id === "sport-q" && e.key === "Enter") {
-      const first = S_().search(S.query, { limit: 1 })[0];
-      if (first) choose(first.id);
+    if (e.target.id === "sport-q") {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        if (!root.querySelector("#sport-results [role=option]")) return;
+        e.preventDefault();
+        return moveResult(e.key === "ArrowDown" ? 1 : -1);
+      }
+      if (e.key === "Escape" && S.query) {
+        e.preventDefault();
+        S.query = "";
+        e.target.value = "";
+        return showResults();
+      }
+      if (e.key === "Enter") {
+        const picked = root.querySelectorAll("#sport-results [role=option]")[Math.max(0, activeResult)];
+        const first = picked?.dataset.sport || S_().search(S.query, { limit: 1 })[0]?.id;
+        if (first) choose(first);
+      }
+      return;
     }
+    // Families are tabs: the arrows go from one to the next, Home and End to the ends.
+    const tab = e.target.closest?.("[data-family-tab]");
+    if (tab && ["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) {
+      const tabs = [...root.querySelectorAll("[data-family-tab]")];
+      const at = tabs.indexOf(tab);
+      const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (at + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+      e.preventDefault();
+      showFamily(tabs[next].dataset.familyTab, true);
+    }
+  }
+
+  /* Changing the family redraws its panel only: the search, the field and « mine » do not move. */
+  function showFamily(f, focus) {
+    if (!S_().FAMILY_LABEL[f]) return;
+    pickFamily = f;
+    root.querySelectorAll("[data-family-tab]").forEach((t) => {
+      const on = t.dataset.familyTab === f;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      if (on && focus) { t.focus({ preventScroll: true }); t.scrollIntoView({ block: "nearest", inline: "nearest" }); }
+    });
+    const box = root.querySelector(".seance-families");
+    if (box) box.innerHTML = familyPanelHtml(f, familyTotals());
   }
 
   function boot() {
@@ -1284,6 +1488,7 @@
       choose(params.get("sport"), null, { step: false });
     } else if (draft && window.SPORTS_CONFIG?.[draft.sport]) {
       S = { ...fresh(draft.sport), ...draft, step: "form" };
+      resumed = { at: Number(draft.updatedAt) || Date.now() };
       render();
       status("Brouillon repris. Vérifie la date et les mesures avant d’enregistrer.");
     } else {
@@ -1344,6 +1549,8 @@
     if (!booted) start();
     else if (S?.step === "pick") render();
   });
+  ["online", "offline"].forEach((ev) => window.addEventListener(ev, () => { if (booted) { updateNet(); placeQueue(); } }));
+  window.addEventListener("titan:pending-changed", () => { if (booted) placeQueue(); });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

@@ -70,12 +70,42 @@
       .slice(0, 3);
   }
 
+  const isFresh = (r) => r.kind !== "duration" && new Date(r.log.date).getTime() >= Date.now() - 30 * DAY;
   function cardHtml(r) {
-    return `<button type="button" class="rc-card" data-record="${esc(r.id)}" data-kind="${esc(r.kind)}">
+    const fresh = isFresh(r);
+    return `<button type="button" class="rc-card" data-record="${esc(r.id)}" data-kind="${esc(r.kind)}"${fresh ? ' data-fresh="true"' : ""}>
       <span class="rc-label">${esc(r.label)}</span>
       <strong class="rc-value asc-num">${esc(value(r))}</strong>
       <span class="rc-date">${esc(new Date(r.log.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }))}</span>
+      ${fresh ? `<span class="sig-state is-rare rc-fresh">${icon("star")}Ce mois-ci</span>` : ""}
     </button>`;
+  }
+
+  /* The head of the page: the relic of mastery stands on an amber-inked plate with what was beaten in the last thirty days — each
+     mark with the one it replaced. With records but none this month, the plate says so and shows the latest one. With no record at
+     all the relic stays in the shade: nothing is shown as earned. */
+  const RELIC = (size, locked) => `<span class="sig-object rc-relic${locked ? " is-locked" : ""}" aria-hidden="true"><img src="/assets/objects/relique-maitrise-256.webp" srcset="/assets/objects/relique-maitrise-256.webp 256w, /assets/objects/relique-maitrise-512.webp 512w" sizes="${size}px" width="${size}" height="${size}" alt="" decoding="async" draggable="false"></span>`;
+  function vaultHtml(list, recent) {
+    if (!list.length) return `<section class="sig-empty rc-none">${RELIC(96, true)}<h3>Aucun record pour l’instant</h3><p>Un record naît d’une séance : une distance, une durée sur un parcours, une charge, une cotation. Le premier arrive avec ta prochaine mesure.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></section>`;
+    const marks = list.filter((r) => r.kind !== "duration");
+    const sports = new Set(marks.map((r) => r.sport)).size;
+    const latest = marks.slice().sort((a, b) => new Date(b.log.date) - new Date(a.log.date))[0];
+    const shown = recent.length ? recent : latest ? [latest] : [];
+    const rows = shown.map((r) => {
+      const steps = progression(r);
+      const prev = steps.length > 1 ? steps[steps.length - 2] : null;
+      return `<li><button type="button" class="rc-recent-item" data-record="${esc(r.id)}">
+        <strong class="asc-num">${esc(value(r))}</strong>
+        <span class="rc-recent-what"><span class="rc-recent-label">${esc(r.label)}</span><span class="rc-recent-sport">${esc(SP().label(r.sport))} · ${esc(F().relativeDay(r.log.date))}</span></span>
+        <span class="rc-recent-prev">${prev ? `avant ${esc(value(r, prev.value))}` : "premier repère"}</span>
+      </button></li>`;
+    }).join("");
+    return `<section class="sig-plate is-relief is-amber rc-recent rc-vault" aria-labelledby="rc-vault-title">
+      <div class="rc-vault-head">${RELIC(120, false)}
+        <div><h2 id="rc-vault-title">${recent.length ? `${recent.length === 1 ? "Un record battu" : `${recent.length} records battus`} ces 30 derniers jours` : "Pas de nouveau record ces 30 derniers jours"}</h2>
+        <p class="rc-vault-count">${marks.length} record${marks.length > 1 ? "s" : ""} dans ${sports} sport${sports > 1 ? "s" : ""}${recent.length ? "" : latest ? " · le dernier ci-dessous" : ""}</p></div></div>
+      ${rows ? `<ul class="rc-recent-list">${rows}</ul>` : ""}
+    </section>`;
   }
 
   function render() {
@@ -98,21 +128,37 @@
     const result = navigation.select(groups);
     const u = navigation.settings;
     B().preserveFocus(() => { root.innerHTML = `
-      ${recent.length && u.sport === "all" && !u.query && u.scope === "all" && u.family === "all" && result.page === 1 ? `<section class="asc-hero is-record rc-recent"><p class="asc-eyebrow am">Ces 30 derniers jours</p><div class="rc-recent-list">${recent
-        .map((r) => `<button type="button" class="rc-recent-item" data-record="${esc(r.id)}"><span class="asc-small asc-muted">${esc(SP().label(r.sport))} · ${esc(r.label)}</span><strong class="asc-num">${esc(value(r))}</strong><span class="asc-small asc-faint">${esc(F().relativeDay(r.log.date))}</span></button>`)
-        .join("")}</div></section>` : ""}
+      ${u.sport === "all" && !u.query && u.scope === "all" && u.family === "all" && result.page === 1 ? vaultHtml(list, recent) : ""}
       ${navigation.controls()}
-      ${!list.length && !u.query && u.scope === "all" ? `<p class="asc-small asc-muted">Tes records naîtront de tes séances, avec leur source et leur contexte. <a href="/training">Enregistrer une séance</a></p>` : ""}
-      ${result.items
+      <div class="rc-sports">${result.items
         .map(
           (s) => `<section class="asc-section rc-sport" data-family="${esc(s.family)}">
         <div class="asc-section-head"><h2><span class="rc-sport-icon">${icon(SP().FAMILY_ICON[s.family])}</span>${esc(s.label)}</h2><span class="sn-sport-actions">${s.hasData ? `<span class="asc-small asc-muted">${s.records.length} record${s.records.length > 1 ? "s" : ""}</span>` : ""}${B().favoriteButton(s.sport, s.label)}</span></div>
         ${s.hasData ? `<div class="rc-grid">${s.records.map(cardHtml).join("")}</div>` : `<p class="asc-small asc-muted">Aucune donnée pour ce sport. <a href="/training?sport=${encodeURIComponent(s.sport)}">Enregistrer une séance</a></p>`}</section>`,
         )
-        .join("")}
-      ${result.total ? "" : navigation.empty()}${navigation.footer()}
+        .join("")}</div>
+      ${result.total || (!list.length && u.sport === "all" && !u.query && u.scope === "all" && u.family === "all") ? "" : navigation.empty()}${navigation.footer()}
       <p class="asc-small asc-faint rc-foot">Les records sont recalculés depuis ton journal : une séance corrigée ou archivée les met à jour. Les durées longues ne sont pas des objectifs ; elles restent des repères.</p>`; });
     root.setAttribute("aria-busy", "false");
+  }
+
+  /* The staircase of a record: one step per mark beaten, in time. Up is always better (a faster time climbs too). */
+  function stepsChart(r, steps) {
+    if (steps.length < 3) return "";
+    const score = (s) => (r.kind === "climbing" ? I().grade(s.value, s.log?.details?.extras?.grade_system)?.score : Number(s.value));
+    const ys = steps.map(score);
+    if (ys.some((v) => !Number.isFinite(v))) return "";
+    const t0 = new Date(steps[0].date).getTime(), t1 = new Date(steps[steps.length - 1].date).getTime();
+    const lo = Math.min(...ys), hi = Math.max(...ys), W = 320, H = 104, P = 10;
+    const x = (s) => Math.round((P + (t1 > t0 ? (new Date(s.date).getTime() - t0) / (t1 - t0) : 1) * (W - 2 * P)) * 10) / 10;
+    const y = (v) => { const k = hi > lo ? (v - lo) / (hi - lo) : 1; return Math.round((H - P - (r.kind === "time" ? 1 - k : k) * (H - 2 * P - 8)) * 10) / 10; };
+    let d = `M${x(steps[0])} ${y(ys[0])}`;
+    for (let i = 1; i < steps.length; i++) d += ` H${x(steps[i])} V${y(ys[i])}`;
+    const day = (s) => new Date(s.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+    const first = steps[0], last = steps[steps.length - 1];
+    return `<figure class="rc-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(`${steps.length - 1} améliorations : de ${value(r, first.value)} le ${day(first)} à ${value(r, last.value)} le ${day(last)}`)}" preserveAspectRatio="none">
+        <path class="rc-chart-area" d="${d} V${H} H${x(steps[0])} Z"/><path class="rc-chart-line" d="${d}" vector-effect="non-scaling-stroke"/></svg>
+      <figcaption><span><strong class="asc-num">${esc(value(r, first.value))}</strong> ${esc(day(first))}</span><span><strong class="asc-num">${esc(value(r, last.value))}</strong> ${esc(day(last))}</span></figcaption></figure>`;
   }
 
   function detailHtml(r, steps) {
@@ -121,7 +167,7 @@
       <p class="asc-small asc-muted">${esc(r.context || "")}</p>
       <a class="asc-row" data-record-source href="/journal?session=${encodeURIComponent(X().idOf(r.log))}"><span class="asc-row-icon am">${icon("star")}</span><span class="asc-row-main"><span class="asc-row-title">Séance source</span><span class="asc-row-sub">${esc(new Date(r.log.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }))}</span></span>${icon("chevron")}</a>
       <div class="asc-row-flex">${window.TitanCard ? `<button type="button" class="asc-btn asc-btn-secondary" data-card-record>${icon("share")} Créer une image</button>` : ""}${window.TitanShare?.available() ? `<button type="button" class="asc-btn asc-btn-ghost" data-share-record>${icon("send")} Partager avec mes amis</button>` : ""}</div>
-      ${steps.length > 1 ? `<section class="asc-stack-sm"><p class="asc-eyebrow">Progression</p><ol class="rc-steps">${steps
+      ${steps.length > 1 ? `<section class="asc-stack-sm"><p class="asc-eyebrow">Progression</p>${stepsChart(r, steps)}<ol class="rc-steps">${steps
         .slice()
         .reverse()
         .map((s, i) => `<li${i === 0 ? ' class="is-current"' : ""}><span class="asc-num">${esc(value(r, s.value))}</span><span class="asc-small asc-muted">${esc(new Date(s.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }))}</span></li>`)

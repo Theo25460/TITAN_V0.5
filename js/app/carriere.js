@@ -75,21 +75,54 @@
     return `<section class="asc-panel cr-block" data-career-steps><p class="asc-eyebrow">Pas</p>${body}</section>`;
   }
 
+  /* The ascent: the rank worn stands on a steel plate with the level and the way to the next one; beside it the seven ranks climb
+     like a staircase — reached, current, to come with the level that opens it. A rank to come is shown locked and said so in
+     words. Nothing here is computed by the page: level, XP and rank come from TitanData.progression() (the server's answer for
+     an account, a labelled estimate in discovery mode). */
+  function ascentHtml(P) {
+    const TC = window.TitanCrest, ranks = window.TitanEffort?.RANKS || [];
+    if (!TC || !P?.level || !P.rank || !ranks.length) return '<section class="cr-hero cr-ascent" data-career-hero hidden></section>';
+    const at = ranks.findIndex((r) => r.id === P.rank.id);
+    const next = P.nextRank;
+    const pct = P.next > 0 ? Math.max(0, Math.min(100, Math.round((P.xp / P.next) * 100))) : 0;
+    const toGo = next ? next.level - P.level : 0;
+    const steps = ranks.map((r, i) => {
+      const state = i < at ? "reached" : i === at ? "current" : "ahead";
+      const word = state === "reached" ? "atteint" : state === "current" ? "rang actuel" : `à venir, au niveau ${r.level}`;
+      return `<li class="cr-step" data-rank="${esc(r.id)}" data-state="${state}" style="--i:${i}"${state === "current" ? ' aria-current="step"' : ""} aria-label="${esc(`${r.name}, niveau ${r.level}, ${word}`)}">
+        <span class="sig-object${state === "ahead" ? " is-locked" : ""}" aria-hidden="true">${TC.svg(r.id, state === "current" ? 96 : 64)}</span>
+        <span class="cr-step-text" aria-hidden="true"><strong>${esc(r.name)}</strong><span class="cr-step-level">Niv. ${r.level}</span><span class="cr-step-state">${state === "ahead" ? icon("lock") : state === "reached" ? icon("check") : ""}<span>${state === "reached" ? "Atteint" : state === "current" ? "Rang actuel" : "À venir"}</span></span></span></li>`;
+    }).join("");
+    return `<section class="cr-hero cr-ascent" data-career-hero aria-labelledby="cr-rank-title">
+      <div class="sig-plate is-relief is-cyan cr-rank">
+        <span class="sig-object cr-crest">${TC.svg(P.rank.id, 150)}</span>
+        <div class="cr-rank-text">
+          <p class="cr-rank-level">Niveau <strong class="asc-num">${P.level}</strong></p>
+          <h2 id="cr-rank-title">${esc(P.rank.name)}</h2>
+          ${P.next > 0 ? `<div class="cr-xp"><div class="asc-ascent" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Progression vers le niveau ${P.level + 1} : ${pct} %"><span style="width:${pct}%"></span></div>
+            <p class="asc-small"><strong class="asc-num">${esc(n(P.xp))}</strong> / ${esc(n(P.next))} XP vers le niveau ${P.level + 1}${P.estimated ? " · estimation sur cet appareil" : ""}</p></div>` : ""}
+        </div>
+      </div>
+      <div class="cr-ladder-wrap">
+        <p class="cr-next">${next ? `Prochain rang : <strong>${esc(next.name)}</strong> au niveau ${next.level}, dans ${toGo} niveau${toGo > 1 ? "x" : ""}.` : "Tu portes le plus haut rang de TITAN."}</p>
+        <ol class="cr-ladder" aria-label="Les sept rangs de TITAN">${steps}</ol>
+      </div>
+    </section>`;
+  }
+
   function render() {
     if (!root) return;
     const P = window.TitanData?.progression?.();
     const c = C().build(logs(), { range, stepDays: steps.days && steps.days.length ? steps.days : null, rank: P?.rank ? { level: P.level, id: P.rank.id, name: P.rank.name } : null, xp: P && !P.guest ? P.total ?? null : null });
-    const crest = window.TitanCrest && P?.level ? window.TitanCrest.svg(window.TitanCrest.rankIdOf(P.level), 150) : "";
     const chips = `<div class="cr-ranges" role="group" aria-label="Période">${RANGES.map(([v, l]) => `<button type="button" class="cr-range" data-range="${v}" aria-pressed="${v === range}">${esc(l)}</button>`).join("")}</div>`;
-    const hero = `<section class="asc-panel cr-hero" data-career-hero>${crest ? `<span class="cr-crest">${crest}</span>` : ""}
-      ${P?.rank ? `<p class="asc-eyebrow cy">Niveau ${P.level} · ${esc(P.rank.name)}</p>` : ""}<p class="asc-small asc-muted">${c.first ? `Depuis le ${esc(when(c.first))}` : "Ta carrière commence avec ta première séance."}</p></section>`;
+    const heroKey = [P?.level, P?.xp, P?.next, P?.rank?.id, P?.estimated].join("|");
     let body;
     if (c.empty) {
       body = `<div class="asc-panel cr-empty" role="status"><h2>${range === "all" ? "Ta carrière commence ici" : "Rien sur cette période"}</h2><p class="asc-muted">${range === "all" ? "Enregistre une séance : tes chiffres, tes records et tes grands moments s’écrivent avec ton journal." : "Une période calme ne t’enlève rien. Essaie « Depuis le début » pour revoir tout ton parcours."}</p>${range === "all" ? '<a class="asc-btn asc-btn-primary" href="/training">Enregistrer une séance</a>' : ""}</div>`;
     } else {
       const d = c.distance;
       const hasDistance = d.footKm + d.bikeKm + d.swimMeters + c.elevation.meters > 0;
-      body = `<section class="asc-panel cr-block" data-career-totals><div class="cr-grid">
+      body = `<section class="asc-panel cr-block" data-career-totals>${range === "all" && c.first ? `<p class="asc-small asc-muted cr-since">Depuis le ${esc(when(c.first))}</p>` : ""}<div class="cr-grid">
           ${big(n(c.totals.sessions), c.totals.sessions > 1 ? "séances" : "séance", "cy")}${big(F().hours(c.totals.minutes), "de pratique")}${big(String(c.totals.sports), c.totals.sports > 1 ? "sports pratiqués" : "sport pratiqué")}${big(String(c.totals.activeDays), c.totals.activeDays > 1 ? "jours actifs" : "jour actif")}</div>
           ${c.totals.unmeasuredSessions > 0 ? `<p class="asc-small asc-faint">${c.totals.unmeasuredSessions} séance${c.totals.unmeasuredSessions > 1 ? "s" : ""} sans durée renseignée ${c.totals.unmeasuredSessions > 1 ? "ne comptent" : "ne compte"} pas dans le temps.</p>` : ""}</section>
         ${hasDistance ? `<section class="asc-panel cr-block" data-career-distances><p class="asc-eyebrow">Distances en séance</p><div class="cr-grid">
@@ -104,7 +137,16 @@
         <section class="asc-section" data-career-timeline><div class="asc-section-head"><h2>Dernières séances</h2><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/journal">Ouvrir le journal</a></div><ul class="asc-panel cr-list">${c.timeline.map((s) => `<li><span>${esc(s.label)}<small class="asc-faint"> ${esc(F().relativeDay(s.date))}</small></span><span class="asc-muted">${esc([s.km ? F().distance(s.km) : null, s.minutes ? F().duration(s.minutes) : null].filter(Boolean).join(" · ") || "—")}</span></li>`).join("")}</ul></section>
         <p class="asc-small asc-faint" data-career-note>Calories : TITAN n’en affiche pas tant qu’une source fiable ne les fournit pas. Aucun chiffre n’est inventé. Une séance n’est comptée qu’une seule fois, quelle que soit sa source (saisie, GPS, Santé Connect, Garmin).${c.excluded > 0 ? ` ${c.excluded} séance${c.excluded > 1 ? "s" : ""} en cours de vérification ne ${c.excluded > 1 ? "sont" : "est"} pas comptée${c.excluded > 1 ? "s" : ""}.` : ""}</p>`;
     }
-    root.innerHTML = `${hero}${chips}${body}`;
+    // The ascent is drawn once and kept while only the period changes: its crests are not decoded again and its bar does not refill.
+    const kept = root.querySelector("[data-career-hero]");
+    if (kept && kept.dataset.key === heroKey) {
+      while (kept.nextSibling) kept.nextSibling.remove();
+      kept.insertAdjacentHTML("afterend", `${chips}${body}`);
+    } else {
+      root.innerHTML = `${ascentHtml(P)}${chips}${body}`;
+      const drawn = root.querySelector("[data-career-hero]");
+      if (drawn) drawn.dataset.key = heroKey;
+    }
     root.setAttribute("aria-busy", "false");
   }
 
