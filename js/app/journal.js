@@ -285,6 +285,8 @@
     const r = l.details?.serverReward;
     if (String(window.state?.user?.id || "").startsWith("guest_")) return { cls: "", text: `≈ ${F().number(P().effortOf(l).xp)} XP estimés (mode découverte).` };
     if (l.syncStatus === "confirmed" && r && typeof r === "object" && r.reward_held) {
+      // A session past the daily XP cap can be held with nothing to pay: say what is checked, not « 0 XP arrivent ».
+      if (!(Number(r.held_xp) > 0) && !(Number(r.held_credits) > 0)) return { cls: "", text: "Séance en vérification de routine (24 h au plus) : elle comptera dans les objectifs collectifs une fois confirmée." };
       return { cls: "", text: `Récompense en vérification : ${F().number(r.held_xp)} XP arrivent d’eux-mêmes d’ici 24 h, après une vérification de routine.` };
     }
     if (l.syncStatus === "confirmed") {

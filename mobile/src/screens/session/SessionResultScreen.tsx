@@ -279,10 +279,14 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
                   <T variant="bodyStrong" accessibilityLiveRegion="polite">
                     Récompense en vérification
                   </T>
-                  <T variant="small">
-                    Ta séance est bien enregistrée. Tes {Format.number(receipt.held_xp ?? 0)} XP et {Format.number(receipt.held_credits ?? 0)} crédits arrivent d’eux-mêmes d’ici{" "}
-                    {Math.max(1, Math.ceil((new Date(receipt.release_at ?? Date.now()).getTime() - Date.now()) / 3600000)) || 24} h, après une vérification de routine.
-                  </T>
+                  {(receipt.held_xp ?? 0) > 0 || (receipt.held_credits ?? 0) > 0 ? (
+                    <T variant="small">
+                      Ta séance est bien enregistrée. Tes {Format.number(receipt.held_xp ?? 0)} XP et {Format.number(receipt.held_credits ?? 0)} crédits arrivent d’eux-mêmes d’ici{" "}
+                      {Math.max(1, Math.ceil((new Date(receipt.release_at ?? Date.now()).getTime() - Date.now()) / 3600000)) || 24} h, après une vérification de routine.
+                    </T>
+                  ) : (
+                    <T variant="small">Ta séance est bien enregistrée. Vérification de routine (24 h au plus) : elle comptera dans les objectifs collectifs une fois confirmée.</T>
+                  )}
                 </View>
               </View>
             ) : status === "confirmed" && !historical ? (
