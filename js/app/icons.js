@@ -108,7 +108,9 @@
   function titanIcon(name, className = "") {
     const key = legacy[name] || name;
     const cls = /^[a-zA-Z -]*$/.test(className) ? className : "";
-    return `<svg class="t-icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths[key] || paths.compass}</svg>`;
+    // Sport glyphs and family marks live in js/app/sport-icons.js (loaded right after this file): same grid, same stroke.
+    const sport = /^(sport|family)-/.test(key) ? root.TITAN_SPORT_ICONS?.[key] : null;
+    return `<svg class="t-icon ${cls}${sport ? " t-sport" : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${sport || paths[key] || paths.compass}</svg>`;
   }
   /** TITAN mark: two stacked chevrons, a summit and a rank. */
   function titanMark(className = "asc-brand-mark") {

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Sports, type SportEntry } from "../core";
 import { familyColors, colors, radius, space, TOUCH } from "../theme/tokens";
+import { Chip } from "./Chip";
 import { Field } from "./Field";
 import { Icon } from "./Icon";
 import { Tap } from "./Pressable";
@@ -34,6 +35,32 @@ export function SportSearch({ onPick, selected = [], placeholder = "Padel, natat
           ))}
         </View>
       ) : null}
+    </View>
+  );
+}
+
+/** Browse one family at a time so the full catalogue is reachable without typing. */
+export function SportFamilyPicker({ onPick }: { onPick: (id: string) => void }) {
+  const [family, setFamily] = useState<SportEntry["family"] | null>(null);
+  const groups = useMemo(() => {
+    const catalog = Sports.all().sort((a, b) => a.label.localeCompare(b.label, "fr"));
+    const byFamily = new Map<SportEntry["family"], string[]>();
+    for (const sport of catalog) {
+      const ids = byFamily.get(sport.family) ?? [];
+      ids.push(sport.id);
+      byFamily.set(sport.family, ids);
+    }
+    return byFamily;
+  }, []);
+  return (
+    <View style={{ gap: space.s3 }}>
+      <View style={styles.wrap}>
+        {Array.from(groups.keys()).map((id) => (
+          <Chip key={id} label={Sports.FAMILY_LABEL[id]} icon={Sports.FAMILY_ICON[id]} selected={family === id}
+            onPress={() => setFamily(family === id ? null : id)} />
+        ))}
+      </View>
+      {family ? <SportGrid ids={groups.get(family) ?? []} onPick={onPick} /> : null}
     </View>
   );
 }

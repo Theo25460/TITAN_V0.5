@@ -175,12 +175,12 @@ const codeNative = codeSpecs.filter(([, , path]) => existsSync(file(path))).map(
 
 // Read the same offline catalogue and icon lookup that the product runs.
 const catalog = vm.createContext({});
-for (const path of ['js/app/icons.js', 'js/core/sports-catalog.js', 'js/core/sports.js']) {
+for (const path of ['js/app/icons.js', 'js/app/sport-icons.js', 'js/core/sports-catalog.js', 'js/core/sports.js']) {
   vm.runInContext(read(path), catalog, { filename: path, timeout: 1000 });
 }
-const icons = Array.from(catalog.TITAN_ICON_NAMES, name => ({
+const icons = [...catalog.TITAN_ICON_NAMES, ...Object.keys(catalog.TITAN_SPORT_ICONS)].map(name => ({
   name, viewBox: '0 0 24 24', strokeWidth: 1.65,
-  source: 'js/app/icons.js', sha256: digest(catalog.titanIcon(name)), capture: null,
+  source: catalog.TITAN_SPORT_ICONS[name] ? 'js/app/sport-icons.js' : 'js/app/icons.js', sha256: digest(catalog.titanIcon(name)), capture: null,
 })).sort((a, b) => a.name.localeCompare(b.name, 'en'));
 const sports = Array.from(catalog.TitanSports.all(), ({ id, label, family }) => ({
   id, label, family, icon: catalog.TitanSports.iconOf(id),

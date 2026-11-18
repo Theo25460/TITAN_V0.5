@@ -1,12 +1,12 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "ea4a74d9b552ff6d03bf2e3492beb330ffd34d1f",
+  "sha": "c295ae6c401ec0e4b6994fc15323bd0a6479404e",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
     "effort.js": "8e11c4dece0b44299faf1f70fd1ee1a5225d764673cfda816a07d4d57551b756",
     "sports-catalog.js": "6e96795b3face2c78353c804aec29050e07a5aec6cb9671ae176547f03bab290",
-    "sports.js": "c1b92d5f1e270917425ba13a79d1a460b958ced5547e1e014c05169bffb4f37f",
+    "sports.js": "80e3b094d370cc7b9a5b8309e44943030c2203ed91f4b616f5ee3d453bd37d1b",
     "sport-contracts.js": "9a420ef0de970bdc4fb6705d6d0a93e9583fb69a7c83c6f46549a0e6a2729d8c",
     "progression.js": "02233dbdd1b6f8b3dd4403c1a9f64ce95352702a95c8f0ca82a1e72ac8437a3a",
     "sport-insights.js": "425daa25c78192749f62a704e726b8d1b8c41d68a9cc681b757e06ec3ffa74e5",

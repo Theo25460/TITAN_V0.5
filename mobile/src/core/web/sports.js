@@ -31,24 +31,108 @@
     mobility: "mobilite", mindbody: "mobilite",
   };
   const FAMILY_LABEL = { endurance: "Endurance", force: "Force", technique: "Technique", jeu: "Jeu & combat", mobilite: "Mobilité" };
-  const FAMILY_ICON = { endurance: "run", force: "weight", technique: "mountain", jeu: "target", mobilite: "leaf" };
+  /** The family marks (filters, family tabs, the legend of the programme). Drawn in js/app/sport-icons.js. */
+  const FAMILY_ICON = { endurance: "family-endurance", force: "family-force", technique: "family-technique", jeu: "family-jeu", mobilite: "family-mobilite" };
 
-  /** One drawing per kind of practice, so a padel chip and a boxing chip no longer share the same target. Unknown sports keep their family's icon. */
+  /* Sport icons — docs/design/SPORT_ICONS.md.
+     Every sport of the catalogue has its own glyph named after it: running → "sport-running", ski_touring → "sport-ski-touring"
+     (tests/sport-icons.test.mjs checks that each one exists). The few sports that share a drawing are listed here, with the reason. */
+  const ICON_SHARED = {
+    lacrosse_sixes: "sport-lacrosse", // same stick, same ball: only the format of the game changes
+    camogie: "sport-hurling", // the same hurley and sliotar, played by women
+    freestyle_wrestling: "sport-wrestling-singlet", // the same singlet; the two styles differ by the holds allowed, not by anything visible
+    greco_roman_wrestling: "sport-wrestling-singlet",
+  };
+  /** A sport the offline catalogue does not know yet (added on the server since the last snapshot): the closest drawing by its name,
+      else the mark of its family. Order matters: the first rule that matches wins. */
   const ICON_RULES = [
-    ["racket", /tennis|padel|squash|badminton|pickleball|racquet|racketlon|table_tennis|sepak/],
-    ["glove", /box|mma|karate|judo|aikido|kick|thai|krav|kung|bjj|taekwondo|wrestling|sumo|capoeira|savate|sambo|grappling|hapkido|kendo|fencing|wushu|arnis|goalball/],
-    ["ball", /football|soccer|futsal|futnet|basket|volley|handball|rugby|cricket|baseball|softball|lacrosse|hockey|polo|netball|korfball|dodgeball|ultimate|kabaddi|kho_kho|hurling|camogie|gaelic|bandy|floorball|tchoukball|kho_kho|ringette|cycle_ball|golf|bowling|bocce|petanque|billiards|snooker|croquet/],
-    ["bike", /cycl|bmx|bike|velo|spinning|gravel|handbike|cyclocross/],
-    ["wave", /swim|aqua|surf|kayak|canoe|rowing|sailing|kite|wake|wind|(?<!springboard)(?<!sky)(?:^|_)diving|snorkel|rafting|paddle|dragon_boat|outrigger|bodyboard|skimboard|finswim|freediv|water_ski|lifesaving|swimrun|triathlon|aquathlon|duathlon/],
-    ["run", /^running|walk|hik|trek|trail|sprint|hurdles|athletic|marathon|orienteer|rucking|treadmill|fell_running|rogaining|obstacle|hyrox|elliptical/],
-    ["target", /archery|shooting|darts|biathlon_shoot|boccia|curling/],
-    ["sparkle", /dance|zumba|ballet|salsa|hiphop|breakdance|pole_dance|cheer|circus|gymnastic|acrobatic|trampoline|parkour|skateboard/],
-    ["mountain", /climb|alpin|boulder|via_ferrata|ski|snowboard|canyon|luge|bobsleigh|skeleton|biathlon|snowshoe|ice_/],
+    ["sport-wheelchair-tennis", /wheelchair.*tennis|tennis.*fauteuil/],
+    ["sport-wheelchair-basketball", /wheelchair|fauteuil/],
+    ["sport-table-tennis", /table.?tennis|ping.?pong/],
+    ["sport-beach-tennis", /beach.?tennis/],
+    ["sport-padel", /padel|paddle.?tennis/],
+    ["sport-badminton", /badminton/],
+    ["sport-squash", /squash/],
+    ["sport-pickleball", /pickle/],
+    ["sport-tennis", /tennis|racket|racquet|raquette/],
+    ["sport-beach-volleyball", /beach.?volley/],
+    ["sport-volleyball", /volley/],
+    ["sport-beach-soccer", /beach.?soccer/],
+    ["sport-futsal", /futsal|five|foot.?salle/],
+    ["sport-american-football", /american.?football|football.?americain/],
+    ["sport-football", /football|soccer|^foot/],
+    ["sport-basketball", /basket/],
+    ["sport-handball", /handball|hand/],
+    ["sport-rugby", /rugby/],
+    ["sport-ice-hockey", /ice.?hockey|hockey.?glace/],
+    ["sport-field-hockey", /hockey/],
+    ["sport-baseball", /baseball|softball/],
+    ["sport-golf", /golf/],
+    ["sport-boxing", /box|boxe|pugil/],
+    ["sport-judo", /judo|jujitsu|ju.?jitsu/],
+    ["sport-karate", /karate|kata/],
+    ["sport-wrestling", /wrestl|lutte|grappl/],
+    ["sport-fencing", /fencing|escrime|sabre|epee|fleuret/],
+    ["sport-mma", /mma|combat|martial|fight/],
+    ["sport-mountain-bike", /mtb|vtt|mountain.?bike|enduro|downhill/],
+    ["sport-gravel", /gravel/],
+    ["sport-bmx", /bmx/],
+    ["sport-cycling-indoor", /indoor.?cycl|home.?trainer|zwift|rouleau/],
+    ["sport-spinning", /spin|biking/],
+    ["sport-cycling-road", /road.?cycl|route/],
+    ["sport-cycling", /cycl|bike|velo/],
+    ["sport-open-water-swimming", /open.?water|eau.?libre/],
+    ["sport-swimming", /swim|natation|nage/],
+    ["sport-surfing", /surf/],
+    ["sport-kayak", /kayak|canoe|canoe|pirogue/],
+    ["sport-rowing-machine", /rowing.?machine|ergo|rameur/],
+    ["sport-rowing", /rowing|aviron/],
+    ["sport-sailing", /sail|voile/],
+    ["sport-paddle", /sup|paddle/],
+    ["sport-diving", /diving|plongee|scuba/],
+    ["sport-alpine-skiing", /alpine|ski.?alpin|downhill.?ski|piste/],
+    ["sport-cross-country-skiing", /cross.?country|ski.?de.?fond|nordic.?ski/],
+    ["sport-ski-touring", /touring|randonnee.?ski|skimo/],
+    ["sport-snowboard", /snowboard/],
+    ["sport-ice-skating", /skat|patin/],
+    ["sport-roller", /roller|rollerblade|inline/],
+    ["sport-skateboarding", /skateboard/],
+    ["sport-bouldering", /boulder|bloc/],
+    ["sport-ice-climbing", /ice.?climb|cascade/],
+    ["sport-climbing", /climb|escalade|grimpe/],
+    ["sport-alpinism", /alpin|mountaineer/],
+    ["sport-trail", /trail|ultra/],
+    ["sport-treadmill", /treadmill|tapis/],
+    ["sport-running", /run|course|jog|marathon|footing/],
+    ["sport-nordic-walk", /nordic.?walk|marche.?nordique/],
+    ["sport-hiking", /hik|rando|trek/],
+    ["sport-walking", /walk|marche/],
+    ["sport-triathlon", /triathlon/],
+    ["sport-hiit", /hiit|tabata|interval/],
+    ["sport-crossfit", /crossfit|functional|wod/],
+    ["sport-kettlebell", /kettlebell/],
+    ["sport-weightlifting", /weightlift|halterophilie|olympic.?lift/],
+    ["sport-powerlifting", /powerlift|deadlift|force.?athletique/],
+    ["sport-muscu-gym", /gym|muscu|strength|weight|fitness/],
+    ["sport-street-workout", /calisthen|street.?workout/],
+    ["sport-pilates", /pilates/],
+    ["sport-yoga", /yoga/],
+    ["sport-stretching", /stretch|etirement|souplesse/],
+    ["sport-yoga-mobility", /mobil/],
+    ["sport-ballet", /ballet|classique/],
+    ["sport-dance", /danc|danse/],
+    ["sport-gymnastics", /gymnast/],
+    ["sport-archery", /archery|tir a l arc/],
+    ["sport-shooting", /shoot|tir/],
+    ["sport-equestrian", /horse|equest|equitation|cheval/],
   ];
   function iconOf(id) {
-    const key = norm(id);
-    for (const [icon, re] of ICON_RULES) if (re.test(key)) return icon;
-    return FAMILY_ICON[familyOf(id)] || "target";
+    const key = String(id || "");
+    if (ICON_SHARED[key]) return ICON_SHARED[key];
+    if (snapshot().has(key)) return "sport-" + key.replace(/_/g, "-");
+    const name = norm(key + " " + (conf(key)?.label || ""));
+    for (const [icon, re] of ICON_RULES) if (re.test(name)) return icon;
+    return FAMILY_ICON[familyOf(id)] || FAMILY_ICON.endurance;
   }
 
   /** Sports that open the picker: one tap for most people. */
@@ -189,7 +273,7 @@
     return results.sort((a, b) => b.score - a.score || a.label.localeCompare(b.label, "fr")).slice(0, limit);
   }
 
-  const api = { FORMS, FAMILY_LABEL, FAMILY_ICON, iconOf, POPULAR, norm, ensure, conf, label, aliasesOf, profileOf, unitOf, familyOf, formOf, paceMode, hasElevation, all, search };
+  const api = { FORMS, FAMILY_LABEL, FAMILY_ICON, ICON_SHARED, iconOf, POPULAR, norm, ensure, conf, label, aliasesOf, profileOf, unitOf, familyOf, formOf, paceMode, hasElevation, all, search };
   root.TitanSports = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

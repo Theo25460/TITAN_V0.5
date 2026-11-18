@@ -1,0 +1,1850 @@
+{
+  "generated": "tools/sport-icons/build.mjs",
+  "system": "docs/design/SPORT_ICONS.md",
+  "glyphs": 262,
+  "sports": 260,
+  "ownGlyph": 254,
+  "shared": {
+    "sport-lacrosse": [
+      "lacrosse",
+      "lacrosse_sixes"
+    ],
+    "sport-hurling": [
+      "camogie",
+      "hurling"
+    ],
+    "sport-wrestling-singlet": [
+      "freestyle_wrestling",
+      "greco_roman_wrestling"
+    ]
+  },
+  "families": {
+    "endurance": "family-endurance",
+    "force": "family-force",
+    "technique": "family-technique",
+    "jeu": "family-jeu",
+    "mobilite": "family-mobilite"
+  },
+  "rows": [
+    {
+      "id": "aikido",
+      "label": "Aïkido",
+      "family": "jeu",
+      "glyph": "sport-aikido",
+      "status": "own"
+    },
+    {
+      "id": "alpinism",
+      "label": "Alpinisme",
+      "family": "endurance",
+      "glyph": "sport-alpinism",
+      "status": "own"
+    },
+    {
+      "id": "bmx",
+      "label": "BMX dirt",
+      "family": "endurance",
+      "glyph": "sport-bmx",
+      "status": "own"
+    },
+    {
+      "id": "capoeira",
+      "label": "Capoeira",
+      "family": "jeu",
+      "glyph": "sport-capoeira",
+      "status": "own"
+    },
+    {
+      "id": "rope_jump",
+      "label": "Corde à sauter",
+      "family": "endurance",
+      "glyph": "sport-rope-jump",
+      "status": "own"
+    },
+    {
+      "id": "fitness_class",
+      "label": "Cours collectif",
+      "family": "endurance",
+      "glyph": "sport-fitness-class",
+      "status": "own"
+    },
+    {
+      "id": "running",
+      "label": "Course à pied",
+      "family": "endurance",
+      "glyph": "sport-running",
+      "status": "own"
+    },
+    {
+      "id": "orienteering",
+      "label": "Course d’orientation",
+      "family": "endurance",
+      "glyph": "sport-orienteering",
+      "status": "own"
+    },
+    {
+      "id": "hurdles",
+      "label": "Course de haies",
+      "family": "endurance",
+      "glyph": "sport-hurdles",
+      "status": "own"
+    },
+    {
+      "id": "crossfit",
+      "label": "CrossFit",
+      "family": "endurance",
+      "glyph": "sport-crossfit",
+      "status": "own"
+    },
+    {
+      "id": "dips",
+      "label": "Dips",
+      "family": "force",
+      "glyph": "sport-dips",
+      "status": "own"
+    },
+    {
+      "id": "climbing",
+      "label": "Escalade (mètres grimpés)",
+      "family": "technique",
+      "glyph": "sport-climbing",
+      "status": "own"
+    },
+    {
+      "id": "american_football",
+      "label": "Football américain",
+      "family": "jeu",
+      "glyph": "sport-american-football",
+      "status": "own"
+    },
+    {
+      "id": "powerlifting",
+      "label": "Force athlétique",
+      "family": "force",
+      "glyph": "sport-powerlifting",
+      "status": "own"
+    },
+    {
+      "id": "futsal",
+      "label": "Futsal",
+      "family": "jeu",
+      "glyph": "sport-futsal",
+      "status": "own"
+    },
+    {
+      "id": "plank",
+      "label": "Gainage",
+      "family": "force",
+      "glyph": "sport-plank",
+      "status": "own"
+    },
+    {
+      "id": "gymnastics",
+      "label": "Gymnastique",
+      "family": "technique",
+      "glyph": "sport-gymnastics",
+      "status": "own"
+    },
+    {
+      "id": "bjj",
+      "label": "Jiu-jitsu brésilien",
+      "family": "jeu",
+      "glyph": "sport-bjj",
+      "status": "own"
+    },
+    {
+      "id": "karate",
+      "label": "Karaté",
+      "family": "jeu",
+      "glyph": "sport-karate",
+      "status": "own"
+    },
+    {
+      "id": "kendo",
+      "label": "Kendo",
+      "family": "jeu",
+      "glyph": "sport-kendo",
+      "status": "own"
+    },
+    {
+      "id": "kettlebell",
+      "label": "Kettlebell",
+      "family": "force",
+      "glyph": "sport-kettlebell",
+      "status": "own"
+    },
+    {
+      "id": "kickboxing",
+      "label": "Kickboxing",
+      "family": "jeu",
+      "glyph": "sport-kickboxing",
+      "status": "own"
+    },
+    {
+      "id": "krav_maga",
+      "label": "Krav-maga",
+      "family": "jeu",
+      "glyph": "sport-krav-maga",
+      "status": "own"
+    },
+    {
+      "id": "kung_fu",
+      "label": "Kung-fu",
+      "family": "jeu",
+      "glyph": "sport-kung-fu",
+      "status": "own"
+    },
+    {
+      "id": "lacrosse",
+      "label": "Lacrosse",
+      "family": "jeu",
+      "glyph": "sport-lacrosse",
+      "status": "shared"
+    },
+    {
+      "id": "walking",
+      "label": "Marche",
+      "family": "endurance",
+      "glyph": "sport-walking",
+      "status": "own"
+    },
+    {
+      "id": "farmers_walk",
+      "label": "Marche du fermier",
+      "family": "force",
+      "glyph": "sport-farmers-walk",
+      "status": "own"
+    },
+    {
+      "id": "nordic_walk",
+      "label": "Marche nordique",
+      "family": "endurance",
+      "glyph": "sport-nordic-walk",
+      "status": "own"
+    },
+    {
+      "id": "mma",
+      "label": "MMA",
+      "family": "jeu",
+      "glyph": "sport-mma",
+      "status": "own"
+    },
+    {
+      "id": "thaiboxing",
+      "label": "Boxe thaï",
+      "family": "jeu",
+      "glyph": "sport-thaiboxing",
+      "status": "own"
+    },
+    {
+      "id": "muscu_home",
+      "label": "Musculation à la maison",
+      "family": "force",
+      "glyph": "sport-muscu-home",
+      "status": "own"
+    },
+    {
+      "id": "muscu_builder",
+      "label": "Musculation",
+      "family": "force",
+      "glyph": "sport-muscu-builder",
+      "status": "own"
+    },
+    {
+      "id": "skydiving",
+      "label": "Parachutisme",
+      "family": "technique",
+      "glyph": "sport-skydiving",
+      "status": "own"
+    },
+    {
+      "id": "paragliding",
+      "label": "Parapente",
+      "family": "technique",
+      "glyph": "sport-paragliding",
+      "status": "own"
+    },
+    {
+      "id": "parkour",
+      "label": "Parkour",
+      "family": "technique",
+      "glyph": "sport-parkour",
+      "status": "own"
+    },
+    {
+      "id": "pilates",
+      "label": "Pilates",
+      "family": "mobilite",
+      "glyph": "sport-pilates",
+      "status": "own"
+    },
+    {
+      "id": "bodyweight",
+      "label": "Poids du corps",
+      "family": "force",
+      "glyph": "sport-bodyweight",
+      "status": "own"
+    },
+    {
+      "id": "pole_dance",
+      "label": "Pole dance",
+      "family": "technique",
+      "glyph": "sport-pole-dance",
+      "status": "own"
+    },
+    {
+      "id": "pompes",
+      "label": "Pompes",
+      "family": "force",
+      "glyph": "sport-pompes",
+      "status": "own"
+    },
+    {
+      "id": "hiking",
+      "label": "Randonnée",
+      "family": "endurance",
+      "glyph": "sport-hiking",
+      "status": "own"
+    },
+    {
+      "id": "snowshoeing",
+      "label": "Raquettes",
+      "family": "endurance",
+      "glyph": "sport-snowshoeing",
+      "status": "own"
+    },
+    {
+      "id": "roller",
+      "label": "Roller",
+      "family": "endurance",
+      "glyph": "sport-roller",
+      "status": "own"
+    },
+    {
+      "id": "rugby",
+      "label": "Rugby",
+      "family": "jeu",
+      "glyph": "sport-rugby",
+      "status": "own"
+    },
+    {
+      "id": "sandbag",
+      "label": "Sac de sable",
+      "family": "force",
+      "glyph": "sport-sandbag",
+      "status": "own"
+    },
+    {
+      "id": "muscu_gym",
+      "label": "Musculation en salle",
+      "family": "force",
+      "glyph": "sport-muscu-gym",
+      "status": "own"
+    },
+    {
+      "id": "savate",
+      "label": "Savate boxe française",
+      "family": "jeu",
+      "glyph": "sport-savate",
+      "status": "own"
+    },
+    {
+      "id": "abs_session",
+      "label": "Abdos",
+      "family": "force",
+      "glyph": "sport-abs-session",
+      "status": "own"
+    },
+    {
+      "id": "spinning",
+      "label": "Spinning",
+      "family": "endurance",
+      "glyph": "sport-spinning",
+      "status": "own"
+    },
+    {
+      "id": "sprint",
+      "label": "Fractionné",
+      "family": "endurance",
+      "glyph": "sport-sprint",
+      "status": "own"
+    },
+    {
+      "id": "squat",
+      "label": "Squats au poids du corps",
+      "family": "force",
+      "glyph": "sport-squat",
+      "status": "own"
+    },
+    {
+      "id": "street_workout",
+      "label": "Street workout",
+      "family": "force",
+      "glyph": "sport-street-workout",
+      "status": "own"
+    },
+    {
+      "id": "strongman",
+      "label": "Strongman",
+      "family": "force",
+      "glyph": "sport-strongman",
+      "status": "own"
+    },
+    {
+      "id": "treadmill",
+      "label": "Tapis de course",
+      "family": "endurance",
+      "glyph": "sport-treadmill",
+      "status": "own"
+    },
+    {
+      "id": "tractions",
+      "label": "Tractions",
+      "family": "force",
+      "glyph": "sport-tractions",
+      "status": "own"
+    },
+    {
+      "id": "trail",
+      "label": "Trail",
+      "family": "endurance",
+      "glyph": "sport-trail",
+      "status": "own"
+    },
+    {
+      "id": "trx",
+      "label": "TRX",
+      "family": "force",
+      "glyph": "sport-trx",
+      "status": "own"
+    },
+    {
+      "id": "ultimate",
+      "label": "Ultimate",
+      "family": "jeu",
+      "glyph": "sport-ultimate",
+      "status": "own"
+    },
+    {
+      "id": "cycling_indoor",
+      "label": "Vélo d’intérieur",
+      "family": "endurance",
+      "glyph": "sport-cycling-indoor",
+      "status": "own"
+    },
+    {
+      "id": "cycling",
+      "label": "Vélo",
+      "family": "endurance",
+      "glyph": "sport-cycling",
+      "status": "own"
+    },
+    {
+      "id": "elliptical",
+      "label": "Vélo elliptique",
+      "family": "endurance",
+      "glyph": "sport-elliptical",
+      "status": "own"
+    },
+    {
+      "id": "velotaf",
+      "label": "Vélotaf",
+      "family": "endurance",
+      "glyph": "sport-velotaf",
+      "status": "own"
+    },
+    {
+      "id": "via_ferrata",
+      "label": "Via ferrata",
+      "family": "endurance",
+      "glyph": "sport-via-ferrata",
+      "status": "own"
+    },
+    {
+      "id": "zumba",
+      "label": "Zumba",
+      "family": "technique",
+      "glyph": "sport-zumba",
+      "status": "own"
+    },
+    {
+      "id": "padel",
+      "label": "Padel",
+      "family": "jeu",
+      "glyph": "sport-padel",
+      "status": "own"
+    },
+    {
+      "id": "dance",
+      "label": "Danse",
+      "family": "technique",
+      "glyph": "sport-dance",
+      "status": "own"
+    },
+    {
+      "id": "pickleball",
+      "label": "Pickleball",
+      "family": "jeu",
+      "glyph": "sport-pickleball",
+      "status": "own"
+    },
+    {
+      "id": "gravel",
+      "label": "Gravel",
+      "family": "endurance",
+      "glyph": "sport-gravel",
+      "status": "own"
+    },
+    {
+      "id": "ski_touring",
+      "label": "Ski de randonnée",
+      "family": "endurance",
+      "glyph": "sport-ski-touring",
+      "status": "own"
+    },
+    {
+      "id": "trekking",
+      "label": "Trek",
+      "family": "endurance",
+      "glyph": "sport-trekking",
+      "status": "own"
+    },
+    {
+      "id": "bouldering",
+      "label": "Escalade bloc",
+      "family": "technique",
+      "glyph": "sport-bouldering",
+      "status": "own"
+    },
+    {
+      "id": "climbing_route",
+      "label": "Escalade voie",
+      "family": "technique",
+      "glyph": "sport-climbing-route",
+      "status": "own"
+    },
+    {
+      "id": "rowing_machine",
+      "label": "Rameur",
+      "family": "endurance",
+      "glyph": "sport-rowing-machine",
+      "status": "own"
+    },
+    {
+      "id": "kayak",
+      "label": "Kayak",
+      "family": "endurance",
+      "glyph": "sport-kayak",
+      "status": "own"
+    },
+    {
+      "id": "paddle",
+      "label": "Paddle",
+      "family": "endurance",
+      "glyph": "sport-paddle",
+      "status": "own"
+    },
+    {
+      "id": "yoga_mobility",
+      "label": "Mobilité",
+      "family": "mobilite",
+      "glyph": "sport-yoga-mobility",
+      "status": "own"
+    },
+    {
+      "id": "hiit",
+      "label": "HIIT",
+      "family": "endurance",
+      "glyph": "sport-hiit",
+      "status": "own"
+    },
+    {
+      "id": "hyrox",
+      "label": "Hyrox",
+      "family": "endurance",
+      "glyph": "sport-hyrox",
+      "status": "own"
+    },
+    {
+      "id": "basketball_3x3",
+      "label": "Basketball 3x3",
+      "family": "jeu",
+      "glyph": "sport-basketball-3x3",
+      "status": "own"
+    },
+    {
+      "id": "archery",
+      "label": "Tir à l’arc",
+      "family": "technique",
+      "glyph": "sport-archery",
+      "status": "own"
+    },
+    {
+      "id": "artistic_gymnastics",
+      "label": "Gym artistique",
+      "family": "technique",
+      "glyph": "sport-artistic-gymnastics",
+      "status": "own"
+    },
+    {
+      "id": "artistic_swimming",
+      "label": "Natation artistique",
+      "family": "endurance",
+      "glyph": "sport-artistic-swimming",
+      "status": "own"
+    },
+    {
+      "id": "athletics",
+      "label": "Athlétisme",
+      "family": "endurance",
+      "glyph": "sport-athletics",
+      "status": "own"
+    },
+    {
+      "id": "badminton",
+      "label": "Badminton",
+      "family": "jeu",
+      "glyph": "sport-badminton",
+      "status": "own"
+    },
+    {
+      "id": "baseball",
+      "label": "Baseball",
+      "family": "jeu",
+      "glyph": "sport-baseball",
+      "status": "own"
+    },
+    {
+      "id": "basketball",
+      "label": "Basketball",
+      "family": "jeu",
+      "glyph": "sport-basketball",
+      "status": "own"
+    },
+    {
+      "id": "beach_volleyball",
+      "label": "Beach volley",
+      "family": "jeu",
+      "glyph": "sport-beach-volleyball",
+      "status": "own"
+    },
+    {
+      "id": "bmx_freestyle",
+      "label": "BMX freestyle",
+      "family": "endurance",
+      "glyph": "sport-bmx-freestyle",
+      "status": "own"
+    },
+    {
+      "id": "bmx_racing",
+      "label": "BMX racing",
+      "family": "endurance",
+      "glyph": "sport-bmx-racing",
+      "status": "own"
+    },
+    {
+      "id": "boxing",
+      "label": "Boxe anglaise",
+      "family": "jeu",
+      "glyph": "sport-boxing",
+      "status": "own"
+    },
+    {
+      "id": "canoe_slalom",
+      "label": "Canoë slalom",
+      "family": "endurance",
+      "glyph": "sport-canoe-slalom",
+      "status": "own"
+    },
+    {
+      "id": "canoe_sprint",
+      "label": "Canoë sprint",
+      "family": "endurance",
+      "glyph": "sport-canoe-sprint",
+      "status": "own"
+    },
+    {
+      "id": "sport_climbing",
+      "label": "Escalade sportive",
+      "family": "technique",
+      "glyph": "sport-sport-climbing",
+      "status": "own"
+    },
+    {
+      "id": "cricket",
+      "label": "Cricket",
+      "family": "jeu",
+      "glyph": "sport-cricket",
+      "status": "own"
+    },
+    {
+      "id": "cycling_road",
+      "label": "Cyclisme sur route",
+      "family": "endurance",
+      "glyph": "sport-cycling-road",
+      "status": "own"
+    },
+    {
+      "id": "cycling_track",
+      "label": "Cyclisme sur piste",
+      "family": "endurance",
+      "glyph": "sport-cycling-track",
+      "status": "own"
+    },
+    {
+      "id": "springboard_diving",
+      "label": "Plongeon",
+      "family": "technique",
+      "glyph": "sport-springboard-diving",
+      "status": "own"
+    },
+    {
+      "id": "equestrian",
+      "label": "Équitation",
+      "family": "technique",
+      "glyph": "sport-equestrian",
+      "status": "own"
+    },
+    {
+      "id": "fencing",
+      "label": "Escrime",
+      "family": "jeu",
+      "glyph": "sport-fencing",
+      "status": "own"
+    },
+    {
+      "id": "flag_football",
+      "label": "Flag football",
+      "family": "jeu",
+      "glyph": "sport-flag-football",
+      "status": "own"
+    },
+    {
+      "id": "football",
+      "label": "Football",
+      "family": "jeu",
+      "glyph": "sport-football",
+      "status": "own"
+    },
+    {
+      "id": "golf",
+      "label": "Golf",
+      "family": "technique",
+      "glyph": "sport-golf",
+      "status": "own"
+    },
+    {
+      "id": "handball",
+      "label": "Handball",
+      "family": "jeu",
+      "glyph": "sport-handball",
+      "status": "own"
+    },
+    {
+      "id": "field_hockey",
+      "label": "Hockey sur gazon",
+      "family": "jeu",
+      "glyph": "sport-field-hockey",
+      "status": "own"
+    },
+    {
+      "id": "judo",
+      "label": "Judo",
+      "family": "jeu",
+      "glyph": "sport-judo",
+      "status": "own"
+    },
+    {
+      "id": "lacrosse_sixes",
+      "label": "Lacrosse sixes",
+      "family": "jeu",
+      "glyph": "sport-lacrosse",
+      "status": "shared"
+    },
+    {
+      "id": "modern_pentathlon",
+      "label": "Pentathlon moderne",
+      "family": "endurance",
+      "glyph": "sport-modern-pentathlon",
+      "status": "own"
+    },
+    {
+      "id": "mountain_bike",
+      "label": "VTT",
+      "family": "endurance",
+      "glyph": "sport-mountain-bike",
+      "status": "own"
+    },
+    {
+      "id": "open_water_swimming",
+      "label": "Nage en eau libre",
+      "family": "endurance",
+      "glyph": "sport-open-water-swimming",
+      "status": "own"
+    },
+    {
+      "id": "rhythmic_gymnastics",
+      "label": "Gym rythmique",
+      "family": "technique",
+      "glyph": "sport-rhythmic-gymnastics",
+      "status": "own"
+    },
+    {
+      "id": "rowing",
+      "label": "Aviron",
+      "family": "endurance",
+      "glyph": "sport-rowing",
+      "status": "own"
+    },
+    {
+      "id": "coastal_rowing",
+      "label": "Aviron de mer",
+      "family": "endurance",
+      "glyph": "sport-coastal-rowing",
+      "status": "own"
+    },
+    {
+      "id": "rugby_sevens",
+      "label": "Rugby à 7",
+      "family": "jeu",
+      "glyph": "sport-rugby-sevens",
+      "status": "own"
+    },
+    {
+      "id": "sailing",
+      "label": "Voile",
+      "family": "endurance",
+      "glyph": "sport-sailing",
+      "status": "own"
+    },
+    {
+      "id": "shooting",
+      "label": "Tir sportif",
+      "family": "technique",
+      "glyph": "sport-shooting",
+      "status": "own"
+    },
+    {
+      "id": "skateboarding",
+      "label": "Skateboard",
+      "family": "endurance",
+      "glyph": "sport-skateboarding",
+      "status": "own"
+    },
+    {
+      "id": "softball",
+      "label": "Softball",
+      "family": "jeu",
+      "glyph": "sport-softball",
+      "status": "own"
+    },
+    {
+      "id": "squash",
+      "label": "Squash",
+      "family": "jeu",
+      "glyph": "sport-squash",
+      "status": "own"
+    },
+    {
+      "id": "surfing",
+      "label": "Surf",
+      "family": "endurance",
+      "glyph": "sport-surfing",
+      "status": "own"
+    },
+    {
+      "id": "swimming",
+      "label": "Natation",
+      "family": "endurance",
+      "glyph": "sport-swimming",
+      "status": "own"
+    },
+    {
+      "id": "table_tennis",
+      "label": "Tennis de table",
+      "family": "jeu",
+      "glyph": "sport-table-tennis",
+      "status": "own"
+    },
+    {
+      "id": "taekwondo",
+      "label": "Taekwondo",
+      "family": "jeu",
+      "glyph": "sport-taekwondo",
+      "status": "own"
+    },
+    {
+      "id": "tennis",
+      "label": "Tennis",
+      "family": "jeu",
+      "glyph": "sport-tennis",
+      "status": "own"
+    },
+    {
+      "id": "trampoline_gymnastics",
+      "label": "Trampoline",
+      "family": "technique",
+      "glyph": "sport-trampoline-gymnastics",
+      "status": "own"
+    },
+    {
+      "id": "triathlon",
+      "label": "Triathlon",
+      "family": "endurance",
+      "glyph": "sport-triathlon",
+      "status": "own"
+    },
+    {
+      "id": "volleyball",
+      "label": "Volleyball",
+      "family": "jeu",
+      "glyph": "sport-volleyball",
+      "status": "own"
+    },
+    {
+      "id": "water_polo",
+      "label": "Water-polo",
+      "family": "jeu",
+      "glyph": "sport-water-polo",
+      "status": "own"
+    },
+    {
+      "id": "weightlifting",
+      "label": "Haltérophilie",
+      "family": "force",
+      "glyph": "sport-weightlifting",
+      "status": "own"
+    },
+    {
+      "id": "wrestling",
+      "label": "Lutte",
+      "family": "jeu",
+      "glyph": "sport-wrestling",
+      "status": "own"
+    },
+    {
+      "id": "alpine_skiing",
+      "label": "Ski alpin",
+      "family": "endurance",
+      "glyph": "sport-alpine-skiing",
+      "status": "own"
+    },
+    {
+      "id": "biathlon",
+      "label": "Biathlon",
+      "family": "endurance",
+      "glyph": "sport-biathlon",
+      "status": "own"
+    },
+    {
+      "id": "bobsleigh",
+      "label": "Bobsleigh",
+      "family": "endurance",
+      "glyph": "sport-bobsleigh",
+      "status": "own"
+    },
+    {
+      "id": "cross_country_skiing",
+      "label": "Ski de fond",
+      "family": "endurance",
+      "glyph": "sport-cross-country-skiing",
+      "status": "own"
+    },
+    {
+      "id": "curling",
+      "label": "Curling",
+      "family": "technique",
+      "glyph": "sport-curling",
+      "status": "own"
+    },
+    {
+      "id": "figure_skating",
+      "label": "Patinage artistique",
+      "family": "endurance",
+      "glyph": "sport-figure-skating",
+      "status": "own"
+    },
+    {
+      "id": "freestyle_skiing",
+      "label": "Ski freestyle",
+      "family": "endurance",
+      "glyph": "sport-freestyle-skiing",
+      "status": "own"
+    },
+    {
+      "id": "ice_hockey",
+      "label": "Hockey sur glace",
+      "family": "jeu",
+      "glyph": "sport-ice-hockey",
+      "status": "own"
+    },
+    {
+      "id": "luge",
+      "label": "Luge",
+      "family": "endurance",
+      "glyph": "sport-luge",
+      "status": "own"
+    },
+    {
+      "id": "nordic_combined",
+      "label": "Combiné nordique",
+      "family": "endurance",
+      "glyph": "sport-nordic-combined",
+      "status": "own"
+    },
+    {
+      "id": "short_track_speed_skating",
+      "label": "Short track",
+      "family": "endurance",
+      "glyph": "sport-short-track-speed-skating",
+      "status": "own"
+    },
+    {
+      "id": "skeleton",
+      "label": "Skeleton",
+      "family": "endurance",
+      "glyph": "sport-skeleton",
+      "status": "own"
+    },
+    {
+      "id": "ski_jumping",
+      "label": "Saut à ski",
+      "family": "endurance",
+      "glyph": "sport-ski-jumping",
+      "status": "own"
+    },
+    {
+      "id": "ski_mountaineering",
+      "label": "Ski alpinisme",
+      "family": "endurance",
+      "glyph": "sport-ski-mountaineering",
+      "status": "own"
+    },
+    {
+      "id": "snowboard",
+      "label": "Snowboard",
+      "family": "endurance",
+      "glyph": "sport-snowboard",
+      "status": "own"
+    },
+    {
+      "id": "speed_skating",
+      "label": "Patinage de vitesse",
+      "family": "endurance",
+      "glyph": "sport-speed-skating",
+      "status": "own"
+    },
+    {
+      "id": "duathlon",
+      "label": "Duathlon",
+      "family": "endurance",
+      "glyph": "sport-duathlon",
+      "status": "own"
+    },
+    {
+      "id": "aquathlon",
+      "label": "Aquathlon",
+      "family": "endurance",
+      "glyph": "sport-aquathlon",
+      "status": "own"
+    },
+    {
+      "id": "swimrun",
+      "label": "Swimrun",
+      "family": "endurance",
+      "glyph": "sport-swimrun",
+      "status": "own"
+    },
+    {
+      "id": "obstacle_course",
+      "label": "Course à obstacles",
+      "family": "endurance",
+      "glyph": "sport-obstacle-course",
+      "status": "own"
+    },
+    {
+      "id": "rucking",
+      "label": "Rucking",
+      "family": "endurance",
+      "glyph": "sport-rucking",
+      "status": "own"
+    },
+    {
+      "id": "stair_climbing",
+      "label": "Montée d’escaliers",
+      "family": "endurance",
+      "glyph": "sport-stair-climbing",
+      "status": "own"
+    },
+    {
+      "id": "handbike",
+      "label": "Handbike",
+      "family": "endurance",
+      "glyph": "sport-handbike",
+      "status": "own"
+    },
+    {
+      "id": "wheelchair_basketball",
+      "label": "Basket fauteuil",
+      "family": "jeu",
+      "glyph": "sport-wheelchair-basketball",
+      "status": "own"
+    },
+    {
+      "id": "para_swimming",
+      "label": "Para-natation",
+      "family": "endurance",
+      "glyph": "sport-para-swimming",
+      "status": "own"
+    },
+    {
+      "id": "para_athletics",
+      "label": "Para-athlétisme",
+      "family": "endurance",
+      "glyph": "sport-para-athletics",
+      "status": "own"
+    },
+    {
+      "id": "dragon_boat",
+      "label": "Bateau-dragon",
+      "family": "endurance",
+      "glyph": "sport-dragon-boat",
+      "status": "own"
+    },
+    {
+      "id": "netball",
+      "label": "Netball",
+      "family": "jeu",
+      "glyph": "sport-netball",
+      "status": "own"
+    },
+    {
+      "id": "korfball",
+      "label": "Korfball",
+      "family": "jeu",
+      "glyph": "sport-korfball",
+      "status": "own"
+    },
+    {
+      "id": "floorball",
+      "label": "Floorball",
+      "family": "jeu",
+      "glyph": "sport-floorball",
+      "status": "own"
+    },
+    {
+      "id": "inline_hockey",
+      "label": "Roller hockey",
+      "family": "jeu",
+      "glyph": "sport-inline-hockey",
+      "status": "own"
+    },
+    {
+      "id": "roller_derby",
+      "label": "Roller derby",
+      "family": "jeu",
+      "glyph": "sport-roller-derby",
+      "status": "own"
+    },
+    {
+      "id": "lifesaving_sport",
+      "label": "Sauvetage sportif",
+      "family": "endurance",
+      "glyph": "sport-lifesaving-sport",
+      "status": "own"
+    },
+    {
+      "id": "freediving",
+      "label": "Apnée",
+      "family": "endurance",
+      "glyph": "sport-freediving",
+      "status": "own"
+    },
+    {
+      "id": "snorkeling",
+      "label": "Snorkeling",
+      "family": "endurance",
+      "glyph": "sport-snorkeling",
+      "status": "own"
+    },
+    {
+      "id": "roller_ski",
+      "label": "Ski-roues",
+      "family": "endurance",
+      "glyph": "sport-roller-ski",
+      "status": "own"
+    },
+    {
+      "id": "aquagym",
+      "label": "Aquagym",
+      "family": "endurance",
+      "glyph": "sport-aquagym",
+      "status": "own"
+    },
+    {
+      "id": "ballet",
+      "label": "Danse classique",
+      "family": "technique",
+      "glyph": "sport-ballet",
+      "status": "own"
+    },
+    {
+      "id": "bowling",
+      "label": "Bowling",
+      "family": "technique",
+      "glyph": "sport-bowling",
+      "status": "own"
+    },
+    {
+      "id": "canyoning",
+      "label": "Canyoning",
+      "family": "endurance",
+      "glyph": "sport-canyoning",
+      "status": "own"
+    },
+    {
+      "id": "circus",
+      "label": "Arts du cirque",
+      "family": "technique",
+      "glyph": "sport-circus",
+      "status": "own"
+    },
+    {
+      "id": "darts",
+      "label": "Fléchettes",
+      "family": "technique",
+      "glyph": "sport-darts",
+      "status": "own"
+    },
+    {
+      "id": "diving",
+      "label": "Plongée",
+      "family": "endurance",
+      "glyph": "sport-diving",
+      "status": "own"
+    },
+    {
+      "id": "hiphop",
+      "label": "Hip-hop",
+      "family": "technique",
+      "glyph": "sport-hiphop",
+      "status": "own"
+    },
+    {
+      "id": "ice_skating",
+      "label": "Patinage sur glace",
+      "family": "endurance",
+      "glyph": "sport-ice-skating",
+      "status": "own"
+    },
+    {
+      "id": "kitesurf",
+      "label": "Kitesurf",
+      "family": "endurance",
+      "glyph": "sport-kitesurf",
+      "status": "own"
+    },
+    {
+      "id": "qigong",
+      "label": "Qi Gong",
+      "family": "mobilite",
+      "glyph": "sport-qigong",
+      "status": "own"
+    },
+    {
+      "id": "salsa",
+      "label": "Danses latines",
+      "family": "technique",
+      "glyph": "sport-salsa",
+      "status": "own"
+    },
+    {
+      "id": "stretching",
+      "label": "Stretching",
+      "family": "mobilite",
+      "glyph": "sport-stretching",
+      "status": "own"
+    },
+    {
+      "id": "taichi",
+      "label": "Tai Chi",
+      "family": "mobilite",
+      "glyph": "sport-taichi",
+      "status": "own"
+    },
+    {
+      "id": "wakeboard",
+      "label": "Wakeboard",
+      "family": "endurance",
+      "glyph": "sport-wakeboard",
+      "status": "own"
+    },
+    {
+      "id": "windsurf",
+      "label": "Planche à voile",
+      "family": "endurance",
+      "glyph": "sport-windsurf",
+      "status": "own"
+    },
+    {
+      "id": "yoga",
+      "label": "Yoga",
+      "family": "mobilite",
+      "glyph": "sport-yoga",
+      "status": "own"
+    },
+    {
+      "id": "acrobatic_gymnastics",
+      "label": "Gym acrobatique",
+      "family": "technique",
+      "glyph": "sport-acrobatic-gymnastics",
+      "status": "own"
+    },
+    {
+      "id": "aerobic_gymnastics",
+      "label": "Gym aérobic",
+      "family": "technique",
+      "glyph": "sport-aerobic-gymnastics",
+      "status": "own"
+    },
+    {
+      "id": "adventure_racing",
+      "label": "Raid aventure",
+      "family": "endurance",
+      "glyph": "sport-adventure-racing",
+      "status": "own"
+    },
+    {
+      "id": "arnis_eskrima",
+      "label": "Arnis / Eskrima",
+      "family": "jeu",
+      "glyph": "sport-arnis-eskrima",
+      "status": "own"
+    },
+    {
+      "id": "arm_wrestling",
+      "label": "Bras de fer sportif",
+      "family": "force",
+      "glyph": "sport-arm-wrestling",
+      "status": "own"
+    },
+    {
+      "id": "artistic_cycling",
+      "label": "Cyclisme artistique",
+      "family": "endurance",
+      "glyph": "sport-artistic-cycling",
+      "status": "own"
+    },
+    {
+      "id": "australian_rules_football",
+      "label": "Football australien",
+      "family": "jeu",
+      "glyph": "sport-australian-rules-football",
+      "status": "own"
+    },
+    {
+      "id": "bandy",
+      "label": "Bandy",
+      "family": "jeu",
+      "glyph": "sport-bandy",
+      "status": "own"
+    },
+    {
+      "id": "beach_handball",
+      "label": "Beach handball",
+      "family": "jeu",
+      "glyph": "sport-beach-handball",
+      "status": "own"
+    },
+    {
+      "id": "beach_soccer",
+      "label": "Beach soccer",
+      "family": "jeu",
+      "glyph": "sport-beach-soccer",
+      "status": "own"
+    },
+    {
+      "id": "beach_tennis",
+      "label": "Beach tennis",
+      "family": "jeu",
+      "glyph": "sport-beach-tennis",
+      "status": "own"
+    },
+    {
+      "id": "billiards_pool",
+      "label": "Billard pool",
+      "family": "technique",
+      "glyph": "sport-billiards-pool",
+      "status": "own"
+    },
+    {
+      "id": "blind_football",
+      "label": "Cécifoot",
+      "family": "jeu",
+      "glyph": "sport-blind-football",
+      "status": "own"
+    },
+    {
+      "id": "bocce",
+      "label": "Bocce",
+      "family": "technique",
+      "glyph": "sport-bocce",
+      "status": "own"
+    },
+    {
+      "id": "boccia",
+      "label": "Boccia",
+      "family": "technique",
+      "glyph": "sport-boccia",
+      "status": "own"
+    },
+    {
+      "id": "bodyboarding",
+      "label": "Bodyboard",
+      "family": "endurance",
+      "glyph": "sport-bodyboarding",
+      "status": "own"
+    },
+    {
+      "id": "breakdance",
+      "label": "Breaking",
+      "family": "technique",
+      "glyph": "sport-breakdance",
+      "status": "own"
+    },
+    {
+      "id": "camogie",
+      "label": "Camogie",
+      "family": "jeu",
+      "glyph": "sport-hurling",
+      "status": "shared"
+    },
+    {
+      "id": "canoe_polo",
+      "label": "Canoë-polo",
+      "family": "endurance",
+      "glyph": "sport-canoe-polo",
+      "status": "own"
+    },
+    {
+      "id": "cheerleading",
+      "label": "Cheerleading",
+      "family": "technique",
+      "glyph": "sport-cheerleading",
+      "status": "own"
+    },
+    {
+      "id": "croquet",
+      "label": "Croquet",
+      "family": "technique",
+      "glyph": "sport-croquet",
+      "status": "own"
+    },
+    {
+      "id": "cycle_ball",
+      "label": "Cycle-ball",
+      "family": "endurance",
+      "glyph": "sport-cycle-ball",
+      "status": "own"
+    },
+    {
+      "id": "cycle_polo",
+      "label": "Cycle polo",
+      "family": "endurance",
+      "glyph": "sport-cycle-polo",
+      "status": "own"
+    },
+    {
+      "id": "cyclocross",
+      "label": "Cyclo-cross",
+      "family": "endurance",
+      "glyph": "sport-cyclocross",
+      "status": "own"
+    },
+    {
+      "id": "disc_golf",
+      "label": "Disc golf",
+      "family": "technique",
+      "glyph": "sport-disc-golf",
+      "status": "own"
+    },
+    {
+      "id": "dodgeball",
+      "label": "Dodgeball",
+      "family": "jeu",
+      "glyph": "sport-dodgeball",
+      "status": "own"
+    },
+    {
+      "id": "dressage",
+      "label": "Dressage",
+      "family": "technique",
+      "glyph": "sport-dressage",
+      "status": "own"
+    },
+    {
+      "id": "eventing",
+      "label": "Concours complet",
+      "family": "technique",
+      "glyph": "sport-eventing",
+      "status": "own"
+    },
+    {
+      "id": "fell_running",
+      "label": "Course en montagne",
+      "family": "endurance",
+      "glyph": "sport-fell-running",
+      "status": "own"
+    },
+    {
+      "id": "finswimming",
+      "label": "Nage avec palmes",
+      "family": "endurance",
+      "glyph": "sport-finswimming",
+      "status": "own"
+    },
+    {
+      "id": "freestyle_wrestling",
+      "label": "Lutte libre",
+      "family": "jeu",
+      "glyph": "sport-wrestling-singlet",
+      "status": "shared"
+    },
+    {
+      "id": "futnet",
+      "label": "Futnet",
+      "family": "jeu",
+      "glyph": "sport-futnet",
+      "status": "own"
+    },
+    {
+      "id": "gaelic_football",
+      "label": "Football gaélique",
+      "family": "jeu",
+      "glyph": "sport-gaelic-football",
+      "status": "own"
+    },
+    {
+      "id": "goalball",
+      "label": "Goalball",
+      "family": "jeu",
+      "glyph": "sport-goalball",
+      "status": "own"
+    },
+    {
+      "id": "grappling",
+      "label": "Grappling",
+      "family": "jeu",
+      "glyph": "sport-grappling",
+      "status": "own"
+    },
+    {
+      "id": "greco_roman_wrestling",
+      "label": "Lutte gréco-romaine",
+      "family": "jeu",
+      "glyph": "sport-wrestling-singlet",
+      "status": "shared"
+    },
+    {
+      "id": "grip_sport",
+      "label": "Grip sport",
+      "family": "force",
+      "glyph": "sport-grip-sport",
+      "status": "own"
+    },
+    {
+      "id": "hapkido",
+      "label": "Hapkido",
+      "family": "jeu",
+      "glyph": "sport-hapkido",
+      "status": "own"
+    },
+    {
+      "id": "highland_games",
+      "label": "Highland games",
+      "family": "force",
+      "glyph": "sport-highland-games",
+      "status": "own"
+    },
+    {
+      "id": "horse_racing",
+      "label": "Course hippique",
+      "family": "technique",
+      "glyph": "sport-horse-racing",
+      "status": "own"
+    },
+    {
+      "id": "hurling",
+      "label": "Hurling",
+      "family": "jeu",
+      "glyph": "sport-hurling",
+      "status": "shared"
+    },
+    {
+      "id": "ice_climbing",
+      "label": "Cascade de glace",
+      "family": "technique",
+      "glyph": "sport-ice-climbing",
+      "status": "own"
+    },
+    {
+      "id": "inline_speed_skating",
+      "label": "Roller de vitesse",
+      "family": "endurance",
+      "glyph": "sport-inline-speed-skating",
+      "status": "own"
+    },
+    {
+      "id": "kabaddi",
+      "label": "Kabaddi",
+      "family": "jeu",
+      "glyph": "sport-kabaddi",
+      "status": "own"
+    },
+    {
+      "id": "karting",
+      "label": "Karting",
+      "family": "technique",
+      "glyph": "sport-karting",
+      "status": "own"
+    },
+    {
+      "id": "kho_kho",
+      "label": "Kho kho",
+      "family": "jeu",
+      "glyph": "sport-kho-kho",
+      "status": "own"
+    },
+    {
+      "id": "motocross",
+      "label": "Motocross",
+      "family": "technique",
+      "glyph": "sport-motocross",
+      "status": "own"
+    },
+    {
+      "id": "outrigger_canoe",
+      "label": "Pirogue va’a",
+      "family": "endurance",
+      "glyph": "sport-outrigger-canoe",
+      "status": "own"
+    },
+    {
+      "id": "para_cycling",
+      "label": "Para-cyclisme",
+      "family": "endurance",
+      "glyph": "sport-para-cycling",
+      "status": "own"
+    },
+    {
+      "id": "para_powerlifting",
+      "label": "Para powerlifting",
+      "family": "force",
+      "glyph": "sport-para-powerlifting",
+      "status": "own"
+    },
+    {
+      "id": "petanque",
+      "label": "Pétanque",
+      "family": "technique",
+      "glyph": "sport-petanque",
+      "status": "own"
+    },
+    {
+      "id": "platform_tennis",
+      "label": "Platform tennis",
+      "family": "jeu",
+      "glyph": "sport-platform-tennis",
+      "status": "own"
+    },
+    {
+      "id": "polo",
+      "label": "Polo",
+      "family": "jeu",
+      "glyph": "sport-polo",
+      "status": "own"
+    },
+    {
+      "id": "race_walking",
+      "label": "Marche athlétique",
+      "family": "endurance",
+      "glyph": "sport-race-walking",
+      "status": "own"
+    },
+    {
+      "id": "racketlon",
+      "label": "Racketlon",
+      "family": "jeu",
+      "glyph": "sport-racketlon",
+      "status": "own"
+    },
+    {
+      "id": "racquetball",
+      "label": "Racquetball",
+      "family": "jeu",
+      "glyph": "sport-racquetball",
+      "status": "own"
+    },
+    {
+      "id": "rafting",
+      "label": "Rafting",
+      "family": "endurance",
+      "glyph": "sport-rafting",
+      "status": "own"
+    },
+    {
+      "id": "real_tennis",
+      "label": "Jeu de paume",
+      "family": "jeu",
+      "glyph": "sport-real-tennis",
+      "status": "own"
+    },
+    {
+      "id": "ringette",
+      "label": "Ringette",
+      "family": "jeu",
+      "glyph": "sport-ringette",
+      "status": "own"
+    },
+    {
+      "id": "rogaining",
+      "label": "Rogaining",
+      "family": "endurance",
+      "glyph": "sport-rogaining",
+      "status": "own"
+    },
+    {
+      "id": "sambo",
+      "label": "Sambo",
+      "family": "jeu",
+      "glyph": "sport-sambo",
+      "status": "own"
+    },
+    {
+      "id": "sepak_takraw",
+      "label": "Sepak takraw",
+      "family": "jeu",
+      "glyph": "sport-sepak-takraw",
+      "status": "own"
+    },
+    {
+      "id": "show_jumping",
+      "label": "Saut d’obstacles",
+      "family": "technique",
+      "glyph": "sport-show-jumping",
+      "status": "own"
+    },
+    {
+      "id": "sitting_volleyball",
+      "label": "Volley assis",
+      "family": "jeu",
+      "glyph": "sport-sitting-volleyball",
+      "status": "own"
+    },
+    {
+      "id": "skimboarding",
+      "label": "Skimboard",
+      "family": "endurance",
+      "glyph": "sport-skimboarding",
+      "status": "own"
+    },
+    {
+      "id": "ski_orienteering",
+      "label": "Orientation à ski",
+      "family": "endurance",
+      "glyph": "sport-ski-orienteering",
+      "status": "own"
+    },
+    {
+      "id": "snooker",
+      "label": "Snooker",
+      "family": "technique",
+      "glyph": "sport-snooker",
+      "status": "own"
+    },
+    {
+      "id": "speed_skiing",
+      "label": "Kilomètre lancé",
+      "family": "endurance",
+      "glyph": "sport-speed-skiing",
+      "status": "own"
+    },
+    {
+      "id": "sumo",
+      "label": "Sumo",
+      "family": "jeu",
+      "glyph": "sport-sumo",
+      "status": "own"
+    },
+    {
+      "id": "surfski",
+      "label": "Surfski",
+      "family": "endurance",
+      "glyph": "sport-surfski",
+      "status": "own"
+    },
+    {
+      "id": "tchoukball",
+      "label": "Tchoukball",
+      "family": "jeu",
+      "glyph": "sport-tchoukball",
+      "status": "own"
+    },
+    {
+      "id": "telemark_skiing",
+      "label": "Ski télémark",
+      "family": "endurance",
+      "glyph": "sport-telemark-skiing",
+      "status": "own"
+    },
+    {
+      "id": "tug_of_war",
+      "label": "Tir à la corde",
+      "family": "force",
+      "glyph": "sport-tug-of-war",
+      "status": "own"
+    },
+    {
+      "id": "underwater_hockey",
+      "label": "Hockey subaquatique",
+      "family": "endurance",
+      "glyph": "sport-underwater-hockey",
+      "status": "own"
+    },
+    {
+      "id": "underwater_rugby",
+      "label": "Rugby subaquatique",
+      "family": "endurance",
+      "glyph": "sport-underwater-rugby",
+      "status": "own"
+    },
+    {
+      "id": "water_skiing",
+      "label": "Ski nautique",
+      "family": "endurance",
+      "glyph": "sport-water-skiing",
+      "status": "own"
+    },
+    {
+      "id": "wheelchair_rugby",
+      "label": "Rugby fauteuil",
+      "family": "jeu",
+      "glyph": "sport-wheelchair-rugby",
+      "status": "own"
+    },
+    {
+      "id": "wheelchair_tennis",
+      "label": "Tennis fauteuil",
+      "family": "jeu",
+      "glyph": "sport-wheelchair-tennis",
+      "status": "own"
+    },
+    {
+      "id": "wushu",
+      "label": "Wushu",
+      "family": "jeu",
+      "glyph": "sport-wushu",
+      "status": "own"
+    }
+  ]
+}

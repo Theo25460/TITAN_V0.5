@@ -440,7 +440,7 @@
       for (const s of S_().all().sort((a, b) => (window.SPORTS_CONFIG[a.id]?.sortOrder ?? 999) - (window.SPORTS_CONFIG[b.id]?.sortOrder ?? 999)))
         if (s.family === f && ids.length < 8 && !ids.includes(s.id)) ids.push(s.id);
     }
-    const chip = (id) => `<button type="button" class="seance-chip sp-sport" data-sport="${esc(id)}">${esc(S_().label(id))}</button>`;
+    const chip = (id) => `<button type="button" class="seance-chip sp-sport" data-sport="${esc(id)}">${icon(S_().iconOf(id))}<span>${esc(S_().label(id))}</span></button>`;
     let body;
     if (open) {
       // Every sport of the family, alphabetical, under its initial: a list one can run a finger down.

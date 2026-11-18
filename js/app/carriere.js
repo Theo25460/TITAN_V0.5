@@ -45,21 +45,21 @@
     const d = c.distance, out = [];
     const lens = (ic, title, tone, body) => out.push(`<section class="asc-panel cr-lens" data-lens><h3>${icon(ic)} ${esc(title)}</h3><div class="cr-grid">${body}</div></section>`);
     if ((c.lenses.includes("run") || c.lenses.includes("hike")) && d.footKm > 0)
-      lens("run", "À pied", "cy", big(F().distance(d.footKm), "parcourus en séance", "cy") + big(String(d.footSessions), d.footSessions > 1 ? "séances avec distance" : "séance avec distance")
+      lens("sport-running", "À pied", "cy", big(F().distance(d.footKm), "parcourus en séance", "cy") + big(String(d.footSessions), d.footSessions > 1 ? "séances avec distance" : "séance avec distance")
         + (d.footPace ? big(F().pace(d.runKm, d.runMinutes), "allure moyenne en course") : "") + (d.footElevation > 0 ? big(`${n(d.footElevation)} m`, "de dénivelé positif") : ""));
     if (c.lenses.includes("bike") && d.bikeKm > 0)
-      lens("bike", "À vélo", "am", big(F().distance(d.bikeKm), "parcourus en séance", "am") + big(String(d.bikeSessions), d.bikeSessions > 1 ? "sorties avec distance" : "sortie avec distance")
+      lens("sport-cycling", "À vélo", "am", big(F().distance(d.bikeKm), "parcourus en séance", "am") + big(String(d.bikeSessions), d.bikeSessions > 1 ? "sorties avec distance" : "sortie avec distance")
         + (d.bikeKmh ? big(`${F().number(d.bikeKmh, 1)} km/h`, "vitesse moyenne") : "") + (d.bikeMinutes ? big(F().hours(d.bikeMinutes), "en selle") : "") + (d.bikeElevation > 0 ? big(`${n(d.bikeElevation)} m`, "de dénivelé positif") : ""));
     if (c.lenses.includes("swim") && d.swimMeters > 0)
-      lens("wave", "À la nage", "cy", big(swim(d.swimMeters), "nagés en séance") + big(String(d.swimSessions), d.swimSessions > 1 ? "séances" : "séance") + (d.swimMinutes ? big(F().duration(d.swimMinutes), "dans l’eau") : ""));
+      lens("sport-swimming", "À la nage", "cy", big(swim(d.swimMeters), "nagés en séance") + big(String(d.swimSessions), d.swimSessions > 1 ? "séances" : "séance") + (d.swimMinutes ? big(F().duration(d.swimMinutes), "dans l’eau") : ""));
     if (c.lenses.includes("strength") && c.strength.sessions > 0)
-      lens("weight", "Renforcement", "cy", big(String(c.strength.sessions), c.strength.sessions > 1 ? "séances détaillées" : "séance détaillée") + big(n(c.strength.sets), "séries") + big(n(c.strength.reps), "répétitions")
+      lens("sport-muscu-builder", "Renforcement", "cy", big(String(c.strength.sessions), c.strength.sessions > 1 ? "séances détaillées" : "séance détaillée") + big(n(c.strength.sets), "séries") + big(n(c.strength.reps), "répétitions")
         + (c.strength.loadedSets > 0 ? big(`${n(c.strength.volumeKg)} kg`, "de volume (séries chargées)", "cy") : ""));
     if (c.lenses.includes("multi"))
       out.push(`<section class="asc-panel cr-lens" data-lens><h3>${icon("layers")} Tes pratiques</h3>
         <div class="cr-share" role="img" aria-label="${esc(c.families.map((f) => `${f.label} ${Math.round(f.share * 100)} %`).join(", "))}">${c.families.map((f) => `<span style="flex:${Math.max(0.02, f.share || 1 / c.families.length)}" data-family="${esc(f.id)}"></span>`).join("")}</div>
         <p class="asc-small asc-muted cr-legend">${c.families.map((f) => `${esc(f.label)} ${Math.round(f.share * 100)} %`).join(" · ")}</p>
-        <ul class="cr-list">${c.sports.slice(0, 5).map((s) => `<li><span>${esc(s.label)}</span><span class="asc-muted">${s.sessions} séance${s.sessions > 1 ? "s" : ""}${s.minutes ? ` · ${esc(F().duration(s.minutes))}` : ""}</span></li>`).join("")}</ul></section>`);
+        <ul class="cr-list">${c.sports.slice(0, 5).map((s) => `<li>${s.sport && window.TitanSports?.iconOf ? icon(window.TitanSports.iconOf(s.sport)) : ""}<span>${esc(s.label)}</span><span class="asc-muted">${s.sessions} séance${s.sessions > 1 ? "s" : ""}${s.minutes ? ` · ${esc(F().duration(s.minutes))}` : ""}</span></li>`).join("")}</ul></section>`);
     return out.join("");
   }
 

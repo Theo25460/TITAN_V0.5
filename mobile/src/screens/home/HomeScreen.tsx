@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Reveal } from "../../components/Motion";
 import { JourneyPreview } from "../../components/JourneyCard";
@@ -66,6 +66,7 @@ function Access({ icon, label, hint, onPress, testID, last }: { icon: IconName; 
     progress) and what I did recently. Everything else is one tap further. */
 export function HomeScreen() {
   const owner = useOwner();
+  const [showDetails, setShowDetails] = useState(false);
   const navigation = useNavigation();
   const profile = useProfile();
   const logsQ = useLogs();
@@ -94,7 +95,7 @@ export function HomeScreen() {
   const action = useMemo(() => Progress.nextAction(ctx), [ctx]);
   // The secondary markers sit below the fold and cost as much as the main action (nextAction calls insights itself):
   // they are computed once the first frame is on screen.
-  const insights = useAfterPaint(() => Progress.insights(ctx).filter((i) => i.id !== action.id).slice(0, 2), [ctx, action.id]) ?? [];
+  const insights = useAfterPaint(() => !showDetails ? [] : Progress.insights(ctx).filter((i) => i.id !== action.id).slice(0, 2), [ctx, action.id, showDetails]) ?? [];
   const cadence = useMemo(() => Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses }), [active, prefs]);
   const week = useMemo(() => Progress.summarize(Progress.weekLogs(active, new Date())), [active]);
   // The week as a programme: one line per sport, one column per day, with the days of the usual week still to come.
@@ -217,6 +218,17 @@ export function HomeScreen() {
 
         {loading || (online && logsQ.error && !logsQ.data) ? null : (
           <>
+            <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
+            <Tap accessibilityState={{ expanded: showDetails }} accessibilityLabel="Mon suivi personnel"
+              onPress={() => setShowDetails((open) => !open)} testID="qg-details" style={styles.access}>
+              <Icon name="journal" size={22} color={colors.cy} />
+              <View style={{ flex: 1 }}>
+                <T variant="title">Mon suivi personnel</T>
+                <T variant="caption" tone="muted">Habitudes, dernières séances et repères</T>
+              </View>
+              <Icon name={showDetails ? "minus" : "plus"} size={22} color={colors.tx2} />
+            </Tap>
+            {showDetails ? <>
             <HealthDetectCard logs={active} />
             <CapsuleArrivedCard onPress={() => navigation.navigate("Capsules")} />
             <SundayRitualCard />
@@ -227,7 +239,6 @@ export function HomeScreen() {
             <FriendsFeedCard />
             <MilestoneCard logs={active} cadence={cadence} />
             <MemoryCard logs={active} />
-            <SinceCard key={String(visit.since)} logs={active} since={visit.since} onClose={visit.close} />
 
             {/* AUD-24: the last eight weeks in notches. No streak to break: a held week is a fact, a calm week is not a fault. */}
             {active.length ? (
@@ -277,6 +288,7 @@ export function HomeScreen() {
             {/* Steps are optional and never a reward: they come last, as one line until there is a number to show. */}
             <TodayStrip steps={steps} />
             {steps.hasAny ? <JourneyPreview owner={owner} /> : null}
+            </> : null}
             <AdBanner placement="hq" />
           </>
         )}

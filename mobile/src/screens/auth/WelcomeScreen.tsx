@@ -1,7 +1,7 @@
 import { ADS_BUILD } from "../../ads/adIds";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Brand } from "../../components/Brand";
 import { Button } from "../../components/Button";
@@ -42,7 +42,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
         <Image source={heroImage} style={styles.heroArt} resizeMode="cover" accessibilityIgnoresInvertColors />
         <Shade from={0.35} start={0.1} to={1} />
       </View>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         <Brand size={40} />
         <Reveal style={{ gap: space.s3 }}>
           <T variant="display">Tes efforts deviennent une aventure.</T>
@@ -100,7 +100,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<RootParams,
             Le même compte que sur titan-app.fr : tes séances et ta progression te suivent.
           </T>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   heroWrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden" },
   // A bundled image carries its own pixel size in its style: without an explicit size the painting is not scaled to its box.
   heroArt: { ...StyleSheet.absoluteFill, width: "100%", height: "100%" },
-  content: { flex: 1, justifyContent: "space-between", paddingHorizontal: space.s5, gap: space.s4 },
+  content: { flexGrow: 1, justifyContent: "space-between", paddingHorizontal: space.s5, gap: space.s4 },
   loop: { borderTopWidth: 2, borderTopColor: colors.tx },
   step: { flexDirection: "row", gap: space.s3, alignItems: "flex-start", paddingVertical: space.s3, borderBottomWidth: 1, borderBottomColor: colors.line2 },
   swatch: { width: 10, height: 10, marginTop: 6 },
