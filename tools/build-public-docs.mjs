@@ -232,7 +232,9 @@ writeFileSync(
   "service.html",
   page({
     route: "/service",
-    title: "Assistance TITAN : aide, connexion et contact — application de sport",
+    // « l’application de sport » stays inside the first 60 characters: it is what tells this TITAN apart from its namesakes when the
+    // title is cut in a result page (/service: 37 impressions, 0 clic du 09 au 15/11/2026, requêtes visibles toutes « titan »).
+    title: "Assistance TITAN, l’application de sport : connexion, aide, contact",
     description: "Assistance de TITAN, l’application de suivi sportif : connexion, séance en attente, XP, TITAN+, données, signalement. Trouve ta réponse ou écris à l’équipe.",
     image: "valley",
     schema: [help.schema],
@@ -359,7 +361,9 @@ const GUIDES = {
 };
 const relatedGuides = (routes) => `<section class="pub-section"><div class="pub-wrap"><div class="pub-head"><p class="pub-eyebrow">À lire aussi</p><h2>Guides voisins</h2></div>${cards(routes.map((r) => [...GUIDES[r], r]), 4)}</div></section>`;
 
-function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, sections, faqItems, parent, related = [] }) {
+// cta: the first button says what the visitor opens (same destination, /onboarding). At most 23 characters so that it stays on one
+// line in a 320 px screen (measured on 18/11/2026).
+function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, sections, faqItems, parent, related = [], cta = "Commencer" }) {
   const f = faq(faqItems, "Questions fréquentes");
   const breadcrumb = breadcrumbTrail(route, eyebrow, parent);
   writeFileSync(
@@ -371,7 +375,7 @@ function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, s
       image,
       schema: [f.schema],
       breadcrumb,
-      body: `<header class="pub-page-head"><div class="pub-wrap">${breadcrumb.html}<p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="pub-lead">${lead}</p><div class="pub-cta"><a class="asc-btn asc-btn-primary" href="/onboarding">Commencer ${icon("arrow")}</a><a class="asc-btn asc-btn-secondary" href="/fonctionnalites">Toutes les fonctionnalités</a></div></div></header>
+      body: `<header class="pub-page-head"><div class="pub-wrap">${breadcrumb.html}<p class="pub-eyebrow">${eyebrow}</p><h1>${h1}</h1><p class="pub-lead">${lead}</p><div class="pub-cta"><a class="asc-btn asc-btn-primary" href="/onboarding">${cta} ${icon("arrow")}</a><a class="asc-btn asc-btn-secondary" href="/fonctionnalites">Toutes les fonctionnalités</a></div></div></header>
         <div class="pub-wrap"><article class="pub-article">${sections.map(([t, body]) => `<section><h2>${t}</h2><div class="pub-prose">${body}</div></section>`).join("")}</article></div>${related.length ? relatedGuides(related) : ""}${f.html}${finalCta(image === "valley" ? "archipelago" : "valley")}`,
     }),
   );
@@ -379,6 +383,7 @@ function seoGuide({ route, file, title, h1, eyebrow, description, image, lead, s
 
 seoGuide({
   route: "/journal-course-a-pied",
+  cta: "Commencer mon journal",
   parent: SPORTS_PARENT,
   file: "journal-course-a-pied.html",
   title: "Journal de course à pied : allure, records et progression | TITAN",
@@ -403,6 +408,7 @@ seoGuide({
 });
 seoGuide({
   route: "/carnet-musculation",
+  cta: "Ouvrir mon carnet",
   parent: SPORTS_PARENT,
   file: "carnet-musculation.html",
   title: "Carnet de musculation : séries, charges, RIR et progression | TITAN",
@@ -427,6 +433,7 @@ seoGuide({
 });
 seoGuide({
   route: "/suivi-escalade",
+  cta: "Ouvrir mon carnet",
   parent: SPORTS_PARENT,
   file: "suivi-escalade.html",
   title: "Cotations de bloc en escalade : Fontainebleau et V-scale | TITAN",
@@ -476,6 +483,7 @@ seoGuide({
 });
 seoGuide({
   route: "/suivi-sportif",
+  cta: "Commencer mon journal",
   parent: SPORTS_PARENT,
   file: "suivi-sportif.html",
   title: "Suivi sportif multisport : un journal pour tous tes sports",
@@ -500,6 +508,7 @@ seoGuide({
 });
 seoGuide({
   route: "/journal-entrainement",
+  cta: "Commencer mon journal",
   parent: FEATURES_PARENT,
   file: "journal-entrainement.html",
   title: "Journal d’entraînement en ligne, gratuit et hors ligne | TITAN",
@@ -573,6 +582,7 @@ seoGuide({
 
 seoGuide({
   route: "/suivi-velo",
+  cta: "Ouvrir mon journal vélo",
   parent: SPORTS_PARENT,
   file: "suivi-velo.html",
   title: "Suivi vélo, gravel et VTT : journal, GPX et dénivelé | TITAN",

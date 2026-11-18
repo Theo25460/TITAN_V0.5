@@ -61,10 +61,13 @@ const homeFaq = faq([
 ]);
 const home = page({
   route: "/",
-  title: "TITAN — Journal sportif multisport, progression et aventure",
-  description: "Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, privé par défaut, aucune publicité sur le site.",
+  /* Search Console (Observatoire, 09–15/11/2026): the visible brand queries are « titan application », « application titan » and « titan app »,
+     shared with other products named Titan (team GPS trackers, workout apps, sports clubs). The title therefore says what TITAN is — an
+     application de suivi sportif — inside its first 60 characters, so the right person recognises it and the wrong one can skip it. */
+  title: "TITAN — Application de suivi sportif multisport et gratuite",
+  description: "Application gratuite de suivi sportif en français : un journal pour 260 sports, tes statistiques, tes records et une progression façon RPG. Privé par défaut.",
   schema: [
-    { "@type": "WebApplication", name: "TITAN", url: `${SITE}/`, applicationCategory: "SportsApplication", operatingSystem: "Web, Android, iOS (navigateur)", isAccessibleForFree: true, offers: [{ "@type": "Offer", name: "Classique", price: "0", priceCurrency: "EUR" }, { "@type": "Offer", name: "TITAN+", availability: "https://schema.org/ComingSoon" }] },
+    { "@type": "WebApplication", name: "TITAN", url: `${SITE}/`, description: "Journal d’entraînement multisport : séances, statistiques, records et progression pour 260 sports, sur le Web.", inLanguage: "fr-FR", publisher: { "@id": `${SITE}/#organization` }, applicationCategory: "SportsApplication", operatingSystem: "Web, Android, iOS (navigateur)", isAccessibleForFree: true, offers: [{ "@type": "Offer", name: "Classique", price: "0", priceCurrency: "EUR" }, { "@type": "Offer", name: "TITAN+", availability: "https://schema.org/ComingSoon" }] },
     homeFaq.schema,
   ],
   body: `<section class="pub-hero"><img class="pub-hero-bg" src="/image/editorial/valley-hero-1600.webp" srcset="/image/editorial/valley-hero-800.webp 800w, /image/editorial/valley-hero-1600.webp 1600w" sizes="100vw" width="1600" height="900" alt="" fetchpriority="high" decoding="async">

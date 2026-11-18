@@ -2,17 +2,19 @@
 
 Cette référence reprend les métadonnées de l'accueil dans la branche de travail. Ce n'est pas une capture des résultats Google ni une preuve de déploiement. Google peut réécrire le titre ou l'extrait selon la requête et le contenu visible.
 
+Changement du 18/11/2026 (Opération SEO V1.3.1, `docs/seo/OPERATION_SEO_V131.md`) : le titre et la description disent d'emblée que TITAN est une application de suivi sportif. Les requêtes de marque visibles dans Search Console (« titan application », « application titan », « titan app ») sont partagées avec d'autres produits nommés Titan ; le mot « application » et le mot « sport » tiennent dans les 60 premiers caractères (test `tests/seo-crawl.test.mjs`). Ancien titre : « TITAN — Journal sportif multisport, progression et aventure ».
+
 ```text
-TITAN — Journal sportif multisport, progression et aventure
+TITAN — Application de suivi sportif multisport et gratuite
 https://titan-app.fr/
-Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, privé par défaut, aucune publicité sur le site.
+Application gratuite de suivi sportif en français : un journal pour 260 sports, tes statistiques, tes records et une progression façon RPG. Privé par défaut.
 ```
 
 Aperçu demandé pour le partage social :
 
 ```text
-TITAN — Journal sportif multisport, progression et aventure
-Enregistre toutes tes séances, comprends tes progrès et fais avancer une aventure avec ton sport réel. Gratuit, privé par défaut, aucune publicité sur le site.
+TITAN — Application de suivi sportif multisport et gratuite
+Application gratuite de suivi sportif en français : un journal pour 260 sports, tes statistiques, tes records et une progression façon RPG. Privé par défaut.
 Image: https://titan-app.fr/image/og-titan.jpg
 Favicon Google: https://titan-app.fr/favicon.ico
 ```
