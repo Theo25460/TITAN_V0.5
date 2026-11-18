@@ -33,7 +33,9 @@ appId: fr.titanapp.app
     direction: DOWN
 - tapOn:
     id: "atelier-preview-cos_frame_neon"
-- assertVisible: "Encore .* crédits à gagner en séance."
+# A has already earned credits. The preview shows the real post-exchange balance.
+- assertVisible: "Solde après échange · .* crédits"
+- assertVisible: "Obtenir pour 450 crédits"
 - takeScreenshot: 19a-apercu-atelier
 - back
 - back
