@@ -23,7 +23,7 @@ describe("RPG heraldry", () => {
     expect(screen.getByLabelText("Balise allumée")).toBeTruthy();
   });
   test("an approved rank shows its sculpted badge in the same box as the vector crest; the others, and `vector`, stay drawn", () => {
-    const approved = ["eclaireur", "explorateur", "sentinelle", "gardien"] as const;
+    const approved = ["eclaireur", "explorateur", "sentinelle", "gardien", "champion", "titan", "legende"] as const;
     for (const id of RANK_IDS) {
       const { unmount } = render(<RankCrest rank={id} size={86} />);
       const badge = screen.queryByTestId(`rank-badge-${id}`);
@@ -100,4 +100,12 @@ describe("La révélation de progression", () => {
     expect(screen.queryByTestId("progress-reveal")).toBeNull();
     expect(onDone).toHaveBeenCalledTimes(1);
   });
+});
+
+test("a sport glyph passes its colour to the SVG root, so solid parts (heads, balls) are not drawn in black", () => {
+  const { Icon } = require("../src/components/Icon");
+  const { UNSAFE_root } = render(<Icon name="sport-running" color="#3DD9E8" />);
+  const svg = UNSAFE_root.findAll((n: { props?: Record<string, unknown> }) => n.props?.viewBox === "0 0 24 24")[0];
+  expect(svg.props.color).toBe("#3DD9E8");
+  expect(svg.props.stroke).toBe("#3DD9E8");
 });

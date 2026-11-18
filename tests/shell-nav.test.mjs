@@ -17,7 +17,7 @@ function boot(stored, { shell = "", territory = "progres" } = {}) {
   const el = () => { const node = { className: "", attrs: {}, innerHTML: "", dataset: {}, setAttribute(k, v) { this.attrs[k] = v; } }; made.push(node); return node; };
   const body = { classList: { contains: c => c === "asc" }, dataset: { territory, title: "Progrès", ...(shell ? { shell } : {}) }, prepend() {}, append() {} };
   const { titanIcon, titanMark } = require("../js/app/icons.js");
-  const window = { titanIcon, titanMark, TitanCrest: { BADGES: ["eclaireur", "explorateur", "sentinelle", "gardien"] }, addEventListener() {} };
+  const window = { titanIcon, titanMark, TitanCrest: { BADGES: ["eclaireur", "explorateur", "sentinelle", "gardien", "champion", "titan", "legende"] }, addEventListener() {} };
   const context = { window, document: { body, title: "Progrès — TITAN", documentElement: { setAttribute() {} }, querySelector: () => null, createElement: el },
     localStorage: { getItem: k => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) } };
   vm.runInNewContext(source, context);
@@ -64,7 +64,9 @@ test("nothing remembered, a damaged memory or a forged one: the visitor, and no 
 });
 
 test("a rank without an approved crest shows none; a focused flow draws no navigation; forgetting removes the memory", () => {
-  assert.doesNotMatch(boot({ id: "u1", name: "Sam", level: 16, rank: "champion" }).made[0].innerHTML, /assets\/ranks/);
+  // Every rank has its sculpted badge since 18 Nov 2026 (Champion, Titan, Légende integrated); an unknown rank id shows none.
+  assert.match(boot({ id: "u1", name: "Sam", level: 16, rank: "champion" }).made[0].innerHTML, /assets\/ranks\/champion-256\.webp/);
+  assert.doesNotMatch(boot({ id: "u1", name: "Sam", level: 16, rank: "inconnu" }).made[0].innerHTML, /assets\/ranks/);
   assert.equal(boot({ id: "u1", name: "Sam", level: 16 }, { shell: "none" }).made.length, 0);
   const { nav, store } = boot({ id: "u1", name: "Sam", level: 16 });
   nav.remember({ id: "u2", guest: false, name: "Lou", level: 2, avatar: "scout", rank: "eclaireur" });

@@ -10,7 +10,9 @@
   var SHIELD = "M60 14 L100 26 V64 C100 94 82 116 60 128 C38 116 20 94 20 64 V26 Z";
   var INNER = "M60 23 L92 33 V64 C92 89 77 107 60 117 C43 107 28 89 28 64 V33 Z";
   /* Approved sculpted badges, by rank id. Add an id here (and its two files in /assets/ranks) once its badge is approved. */
-  var BADGES = ["eclaireur", "explorateur", "sentinelle", "gardien"];
+  /* Champion, Titan and Légende: candidates « mission-1 » of 17 Nov 2026 integrated on 18 Nov 2026 (release audit: same sculpted family,
+     real transparency). Légende echoes Gardien's castle, set apart by its crown, star and gold: a later refinement may redraw its centre. */
+  var BADGES = ["eclaireur", "explorateur", "sentinelle", "gardien", "champion", "titan", "legende"];
   var seq = 0;
 
   function rankName(id) {

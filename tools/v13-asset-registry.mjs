@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from '
 import { basename, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
+const TOP_RANK = /\/(champion|titan|legende)-(256|512)\.webp$/; // integrated 2026-11-18, not part of the 2026-11-14 approval
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const assetRoots = ['assets', 'css/fonts', 'docs/play-store', 'image', 'mobile/assets', 'mobile/docs/play-store'];
@@ -128,9 +129,11 @@ function inventoryAsset(path) {
   return {
     path, family, bytes: bytes.length, sha256, version: `sha256:${sha256}`, format: extname(path).slice(1),
     width, height, ratio: width ? Number((width / height).toFixed(4)) : null,
-    source: family === 'ranks' ? 'approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)'
+    source: family === 'ranks' && TOP_RANK.test(path) ? 'rank badge candidate « mission-1 » of 2026-11-17, design/titan-visual-library/global-v2/proposed/exports/ranks/mission-1-20261117 (byte-identical to PR #147)'
+      : family === 'ranks' ? 'approved rank badge export, design/titan-visual-library/global-v2/approved/exports/ranks (PR #147)'
       : path.startsWith('mobile/assets/rpg/') ? 'existing bundled reuse of Web artwork' : 'existing repository asset',
-    visualOwner: family === 'ranks' ? 'TITAN owner, badge approved for the library on 2026-11-14' : 'not established', usage, platform: native ? 'native' : 'web', distribution,
+    visualOwner: family === 'ranks' && TOP_RANK.test(path) ? 'integrated by the release of 2026-11-18 after a quality review (same sculpted family, real transparency); owner approval pending'
+      : family === 'ranks' ? 'TITAN owner, badge approved for the library on 2026-11-14' : 'not established', usage, platform: native ? 'native' : 'web', distribution,
     expectedDeliveredBytes: original || family === 'store-listing' ? 0 : bytes.length,
     style: legacy ? 'legacy winter and science fiction illustration' : 'Ascension #05070A / #3DD9E8 / #F4BB54',
     crop: cropFor(family), safeArea: 'focal bounds to measure on rendered surfaces',

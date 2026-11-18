@@ -14,7 +14,7 @@ const ICON = { flexShrink: 0 } as const;
 export const Icon = memo(function Icon({ name, size = 22, color = colors.tx2, strokeWidth = 1.65 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
   const parts = ICONS[name] ?? ICONS.compass;
   return (
-    <Svg width={size} height={size} style={ICON} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" accessible={false}>
+    <Svg width={size} height={size} style={ICON} viewBox="0 0 24 24" fill="none" stroke={color} color={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" accessible={false}>
       {parts.map(([tag, props], i) => {
         const C = TAGS[tag] as React.ComponentType<Record<string, unknown>>;
         return <C key={i} {...props} />;

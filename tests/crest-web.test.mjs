@@ -33,7 +33,7 @@ test('each vector crest is a labelled SVG that grows richer with the rank (gem, 
 });
 
 test('a rank whose sculpted badge is approved shows that image; the others keep the vector crest', () => {
-  assert.deepEqual([...C.BADGES], ['eclaireur', 'explorateur', 'sentinelle', 'gardien']);
+  assert.deepEqual([...C.BADGES], ['eclaireur', 'explorateur', 'sentinelle', 'gardien', 'champion', 'titan', 'legende']);
   for (const r of C.RANKS) {
     const html = C.svg(r, 76);
     if (!C.BADGES.includes(r)) { assert.match(html, /^<svg class="crest"/, `${r} stays vector until its badge is approved`); continue; }

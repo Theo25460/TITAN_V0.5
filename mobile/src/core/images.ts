@@ -29,4 +29,7 @@ export const rankImages: Record<string, { small: number; large: number }> = {
   explorateur: { small: require("../../assets/rank/explorateur-256.webp"), large: require("../../assets/rank/explorateur-512.webp") },
   sentinelle: { small: require("../../assets/rank/sentinelle-256.webp"), large: require("../../assets/rank/sentinelle-512.webp") },
   gardien: { small: require("../../assets/rank/gardien-256.webp"), large: require("../../assets/rank/gardien-512.webp") },
+  champion: { small: require("../../assets/rank/champion-256.webp"), large: require("../../assets/rank/champion-512.webp") },
+  titan: { small: require("../../assets/rank/titan-256.webp"), large: require("../../assets/rank/titan-512.webp") },
+  legende: { small: require("../../assets/rank/legende-256.webp"), large: require("../../assets/rank/legende-512.webp") },
 };
