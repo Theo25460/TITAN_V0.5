@@ -17,7 +17,7 @@
   };
 
   function missing(root, offline, notYet, temporary = false) {
-    root.innerHTML = `<section class="asc-hero ap-hero"><p class="asc-eyebrow">Carte d’athlète</p><h1 class="cm-exp-title">${offline ? "Pas de réseau." : notYet ? "Les cartes d’athlète sont momentanément indisponibles." : temporary ? "Carte temporairement indisponible." : "Cette carte n’est pas disponible."}</h1>
+    root.innerHTML = `<section class="sig-plate is-relief ap-hero ap-missing"><p class="asc-eyebrow">Carte d’athlète</p><h1 class="cm-exp-title">${offline ? "Pas de réseau." : notYet ? "Les cartes d’athlète sont momentanément indisponibles." : temporary ? "Carte temporairement indisponible." : "Cette carte n’est pas disponible."}</h1>
       <p class="asc-lead">${offline ? "La carte s’affichera dès que la connexion revient." : notYet ? "Elles sont momentanément indisponibles." : temporary ? "Le serveur n’a pas répondu correctement. Tu peux réessayer." : "Le lien est peut-être ancien, ou son auteur a choisi de ne plus la montrer."}</p>
       <div class="asc-row-flex">${offline || temporary ? '<button type="button" id="athlete-retry" class="asc-btn asc-btn-primary">Réessayer</button>' : ""}<a class="asc-btn asc-btn-primary" href="/">Découvrir TITAN</a></div></section>`;
     root.setAttribute("aria-busy", "false");
@@ -27,6 +27,9 @@
     const avatar = AVATARS.includes(c.avatar) ? c.avatar : "scout";
     const frame = FRAME.test(c.appearance?.frame || "") ? c.appearance.frame : "";
     const rank = c.level ? E().rank(c.level) : null;
+    // The rank is an object: the approved crest, or the vector one for the ranks that have no approved image (crest.js decides).
+    let crest = "";
+    try { crest = rank && window.TitanCrest ? window.TitanCrest.svg(window.TitanCrest.rankIdOf(c.level), 84) : ""; } catch { crest = ""; }
     const since = c.member_since ? new Date(`${c.member_since}-01T12:00:00Z`).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) : "";
     const sports = (c.sports || []).map((s) => {
       const hours = (Number(s.minutes) || 0) / 60;
@@ -35,11 +38,12 @@
     });
     document.title = `${c.name} — carte d’athlète TITAN`;
     root.innerHTML = `
-      <section class="asc-hero ap-hero">
-        <div class="pf-id"><span class="pf-avatar"${frame ? ` data-frame="${esc(frame)}"` : ""}><img src="/assets/renaissance/${avatar}-s.webp" alt="" width="128" height="128"></span>
-          <div>${rank ? `<p class="asc-eyebrow cy">${esc(rank.name)} · niveau ${esc(c.level)}</p>` : `<p class="asc-eyebrow cy">Athlète TITAN</p>`}<h1 class="pf-name">${esc(c.name)}</h1>${since ? `<p class="asc-small asc-muted">Sur TITAN depuis ${esc(since)}</p>` : ""}</div></div>
+      <section class="sig-plate is-relief ap-hero">
+        <div class="pf-id ap-id"><span class="pf-avatar"${frame ? ` data-frame="${esc(frame)}"` : ""}><img src="/assets/renaissance/${avatar}-s.webp" alt="" width="128" height="128"></span>
+          <div>${rank ? `<p class="asc-eyebrow cy">${esc(rank.name)} · niveau ${esc(c.level)}</p>` : `<p class="asc-eyebrow cy">Athlète TITAN</p>`}<h1 class="pf-name">${esc(c.name)}</h1>${since ? `<p class="asc-small asc-muted">Sur TITAN depuis ${esc(since)}</p>` : ""}</div>${crest ? `<span class="sig-object ap-crest" aria-hidden="true">${crest}</span>` : ""}</div>
         ${c.totals ? `<dl class="wk-stats ap-totals"><div><dt>Séances</dt><dd class="asc-num">${F().number(c.totals.sessions)}</dd></div><div><dt>Temps</dt><dd class="asc-num">${esc(F().hours(c.totals.minutes))}</dd></div><div><dt>Semaines actives</dt><dd class="asc-num">${F().number(c.totals.weeks)}</dd></div></dl>` : ""}
       </section>
+      <p class="cm-privacy ap-shown">${icon("eye")}<span><strong>Une carte choisie.</strong> ${esc(c.name)} décide de ce qu’elle montre. Jamais de notes, de santé, de poids, de traces GPS ni de dates de séance.</span></p>
       ${sports.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Sports et maîtrise</h2></div><div class="pf-mastery">${sports
         .map(
           (s) => `<div class="pf-mastery-row" data-family="${esc(s.family)}"><span class="jr-icon">${icon(SP().FAMILY_ICON[s.family])}</span>
