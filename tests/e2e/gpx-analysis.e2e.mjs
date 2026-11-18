@@ -50,7 +50,15 @@ test('the first offline GPX import in the installed PWA can load the worker and 
   await page.reload({waitUntil:'load'});
   await page.waitForFunction(()=>navigator.serviceWorker.controller);
   const cachedParser=await page.evaluate(async()=>{
-   const worker=await caches.match('/js/core/gpx-worker.js');
+   // The build stamps the worker address with its content digest (/js/core/gpx-worker.js?rev=…), as the session page requests it:
+   // find that exact entry in the offline cache, then the exact parser request it imports.
+   let worker=null;
+   for(const name of await caches.keys()){
+    const cache=await caches.open(name);
+    const request=(await cache.keys()).find(r=>new URL(r.url).pathname==='/js/core/gpx-worker.js');
+    if(request){worker=await cache.match(request);break;}
+   }
+   if(!worker) return false;
    const parserUrl=/importScripts\(['"]([^'"]+)['"]\)/.exec(await worker.text())?.[1];
    return !!parserUrl && !!await caches.match(parserUrl);
   });
