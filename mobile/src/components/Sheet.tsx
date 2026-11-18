@@ -12,16 +12,16 @@ export function Sheet({ visible, onClose, title, children, footer }: { visible: 
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
   return (
-    <Modal visible={visible} transparent animationType={reduced ? "fade" : "slide"} onRequestClose={onClose} statusBarTranslucent navigationBarTranslucent>
+    <Modal visible={visible} transparent animationType={reduced ? "none" : "slide"} onRequestClose={onClose} statusBarTranslucent navigationBarTranslucent>
       <KeyboardAvoidingView behavior="height" style={styles.wrap}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" accessibilityRole="button">
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessible={false} importantForAccessibility="no-hide-descendants">
           <View style={styles.scrim} />
         </Pressable>
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + space.s4 }]} accessibilityViewIsModal>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + space.s4, paddingLeft: Math.max(space.s4, insets.left), paddingRight: Math.max(space.s4, insets.right) }]} accessibilityViewIsModal>
           <View style={styles.grip} />
           <View style={styles.head}>
             {title ? (
-              <T variant="h3" style={{ flex: 1 }}>
+              <T variant="h3" accessibilityRole="header" style={{ flex: 1 }}>
                 {title}
               </T>
             ) : (
@@ -31,7 +31,7 @@ export function Sheet({ visible, onClose, title, children, footer }: { visible: 
               <Icon name="close" size={20} color={colors.tx2} />
             </Tap>
           </View>
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: space.s4, paddingBottom: space.s2 }} style={{ maxHeight: "100%" }}>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: space.s4, paddingBottom: space.s2 }} style={{ flexShrink: 1 }}>
             {children}
           </ScrollView>
           {footer ? <View style={{ paddingTop: space.s3 }}>{footer}</View> : null}

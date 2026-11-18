@@ -20,6 +20,7 @@ export function LoginScreen({ navigation, route }: NativeStackScreenProps<RootPa
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
+  const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
   async function submit() {
@@ -28,7 +29,10 @@ export function LoginScreen({ navigation, route }: NativeStackScreenProps<RootPa
     if (!EMAIL_RE.test(email.trim())) next.email = "Indique une adresse e-mail valide.";
     if (!password) next.password = "Indique ton mot de passe.";
     setErrors(next);
-    if (next.email || next.password) return;
+    if (next.email || next.password) {
+      (next.email ? emailRef : passwordRef).current?.focus();
+      return;
+    }
     if (!online) return setErrors({ form: "La connexion demande Internet. Vérifie ton réseau puis réessaie." });
     setBusy(true);
     clearNotice();
@@ -49,7 +53,7 @@ export function LoginScreen({ navigation, route }: NativeStackScreenProps<RootPa
         </T>
       </View>
       {notice ? <T tone="warn" variant="small">{notice}</T> : null}
-      <Field label="E-mail" value={email} onChangeText={setEmail} error={errors.email} autoCapitalize="none" autoComplete="email" keyboardType="email-address" textContentType="emailAddress" returnKeyType="next" onSubmitEditing={() => passwordRef.current?.focus()} testID="login-email" />
+      <Field ref={emailRef} label="E-mail" value={email} onChangeText={setEmail} error={errors.email} autoCapitalize="none" autoComplete="email" keyboardType="email-address" textContentType="emailAddress" returnKeyType="next" onSubmitEditing={() => passwordRef.current?.focus()} testID="login-email" />
       <Field ref={passwordRef} label="Mot de passe" value={password} onChangeText={setPassword} error={errors.password} secure autoComplete="current-password" returnKeyType="go" onSubmitEditing={submit} testID="login-password" />
       {errors.form ? (
         <T variant="small" tone="err" accessibilityRole="alert" accessibilityLiveRegion="assertive">
