@@ -9,7 +9,7 @@ import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
 import { SpaceField } from "../../components/SpaceField";
 import { Section } from "../../components/Section";
-import { SportGrid, SportSearch } from "../../components/SportPicker";
+import { SportFamilyPicker, SportGrid, SportSearch } from "../../components/SportPicker";
 import { T } from "../../components/Text";
 import { Format, Progress, Sports } from "../../core";
 import { useLogs, usePrefs } from "../../data/hooks";
@@ -136,6 +136,7 @@ export function RecordScreen() {
                 </View>
               </Section>
             ) : null}
+            <Section title="Par famille"><SportFamilyPicker onPick={open} /></Section>
             <Section title="Populaires">
               <SportGrid ids={popular} onPick={open} />
             </Section>
