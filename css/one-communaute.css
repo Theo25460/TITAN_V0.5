@@ -524,7 +524,7 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
   position: relative;
   min-height: 36px;
   padding-left: 24px;
-  grid-template-columns: minmax(0, 1.3fr) minmax(48px, 1fr) auto;
+  grid-template-columns: minmax(0, 1.7fr) minmax(44px, 0.8fr) auto;
 }
 .cm-cordee-members li::before {
   content: "";
@@ -555,8 +555,13 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 @media (min-width: 720px) {
   .cm-cordee-view { height: 260px; }
   .cm-cordee-top { margin-top: -92px; padding: 0 var(--s7); }
-  .cm-cordee-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s7); padding: var(--s6) var(--s7); }
+  .cm-cordee-body { padding: var(--s6) var(--s7); }
   .cm-cordee-card > .asc-actions { padding-left: var(--s7); padding-bottom: var(--s7); }
+}
+/* The route and the party stand side by side only where the plate itself is wide enough for names to be read in full. */
+.cm-cordee-card { container-type: inline-size; }
+@container (min-width: 700px) {
+  .cm-cordee-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--s7); }
 }
 .cm-rules { border-top: 1px solid var(--line-2); }
 .cm-rules summary {

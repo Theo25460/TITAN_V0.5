@@ -335,6 +335,13 @@
       navHtml = tabs;
       if (held) nav.querySelector(`[data-live="${held}"]`)?.focus({ preventScroll: true });
     }
+    // On a phone the tabs scroll sideways: the one shown is brought fully into the strip (the page itself does not move).
+    const tab = nav?.querySelector('[aria-current="true"]');
+    if (tab && nav.scrollWidth > nav.clientWidth) {
+      const pad = 16, left = tab.offsetLeft - nav.offsetLeft, right = left + tab.offsetWidth;
+      if (left - pad < nav.scrollLeft) nav.scrollLeft = left - pad;
+      else if (right + pad > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = right + pad - nav.clientWidth;
+    }
     scene.querySelectorAll("[data-live-panel]").forEach((panel) => { panel.hidden = panel.dataset.livePanel !== on; });
     scene.dataset.live = shown = on;
     if (wanted && openAnchor(wanted)) wanted = null;
@@ -509,11 +516,15 @@
   }
 
   function challengesHtml() {
+    const order = (c) => (c.status === "ended" ? 2 : c.my_status === "invited" ? 0 : 1);
     const list = data?.challenges || [];
     const friends = data?.friends || [];
     return `<section class="cm-section cm-scene-plain" id="defis" tabindex="-1" aria-labelledby="cm-challenges-title"><div class="cm-scene-head"><h2 id="cm-challenges-title">Défis</h2>${list.length ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-new-challenge>${icon("plus")} Lancer un défi</button>` : ""}</div>
       <p class="cm-section-intro">Une période, une mesure commune, aucune mise. Chaque participant voit la progression des autres dans ce défi, rien d’autre.</p>
       ${list.length ? `<div class="cm-challenges">${list
+        .slice()
+        // What waits for an answer first, then what is running, then what is over (the server's order inside each).
+        .sort((a, b) => order(a) - order(b))
         .map((c) => {
           const m = METRICS[c.metric] || METRICS.effort_minutes;
           const end = new Date(c.ends_at);
