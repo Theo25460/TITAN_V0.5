@@ -310,6 +310,8 @@
 #records .sn-selects select { width: 100%; min-width: 0; }
 #records .sn-hide { align-self: end; min-height: 48px; }
 #records .sn-controls > .asc-btn { grid-column: 1 / -1; justify-self: start; }
+/* Narrow phones: one filter per line, so « Toutes les catégories » is never cut. */
+@media (max-width: 400px) { #records .sn-controls { grid-template-columns: minmax(0, 1fr); } }
 @media (min-width: 720px) {
   #records .sn-controls { grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); }
   #records .sn-search { grid-column: auto; }

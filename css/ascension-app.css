@@ -2581,6 +2581,8 @@
     display: grid;
     align-content: space-between;
   }
+  /* The brand is a link: it must not stretch over the whole column (the top of the painting became an invisible link). */
+  .auth-side > .auth-brand { justify-self: start; }
 }
 .auth-side > * {
   position: relative;

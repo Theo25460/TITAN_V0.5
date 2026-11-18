@@ -12,7 +12,7 @@
   let root = null;
   let range = "all";
   let steps = { state: "idle", days: null, owner: null };
-  const guest = () => !window.state?.user?.id || window.state?.user?.guest === true;
+  const guest = () => !window.state?.user?.id || window.state?.user?.guest === true || String(window.state.user.id).startsWith("guest_");
   const logs = () => window.state?.history || [];
   const n = (v) => F().number(v);
   const when = (iso) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });

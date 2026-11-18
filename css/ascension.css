@@ -1747,7 +1747,7 @@ html[data-motion="reduced"] *::after {
 @media (max-width: 359px) {
   .asc-topbar { gap: var(--s2); padding-inline: var(--s3); }
   .asc-me { min-width: 0; flex: 0 1 auto; }
-  .asc-me-level { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 6.5em; }
+  .asc-me-level { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 7.2em; }
 }
 .asc-grid-2 > * { min-width: 0; }
 

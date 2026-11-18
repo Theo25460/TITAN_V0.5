@@ -202,7 +202,7 @@
     addStyles();
     addSettingsButton();
     if (savedChoice() === "granted") initTag();
-    if (savedChoice() === null) showBanner();
+    if (savedChoice() === null && !EXCLUDED.test(location.pathname)) showBanner();
     window.addEventListener("storage", event => {
       if (event.key === KEY && event.newValue !== event.oldValue) location.reload();
     });
