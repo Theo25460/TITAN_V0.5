@@ -4,7 +4,7 @@
 // Disabled unless PLAY_BILLING_ENABLED=true. Authentication, strongest first: a Pub/Sub OIDC token signed
 // by Google for PLAY_RTDN_AUDIENCE and PLAY_RTDN_SERVICE_ACCOUNT; or the secret in the push URL (PLAY_RTDN_TOKEN).
 import crypto from 'node:crypto';
-import { acknowledgePlaySubscription, allowsPlayTestPurchases, googleAccessToken, interpretSubscription, network, PLAY_ACCOUNT_ID, playEntitlementPayload } from './play-billing.mjs';
+import { acknowledgePlaySubscription, googleAccessToken, interpretSubscription, network, PLAY_ACCOUNT_ID, playEntitlementPayload } from './play-billing.mjs';
 import { verifyPubSubJwt } from './play-auth.mjs';
 import { readBoundedBytes } from './request-body.mjs';
 
@@ -84,7 +84,7 @@ export default async function handler(request) {
             return gone.ok ? reply(200) : reply(503);
         }
         if (!lookup.ok) return reply(503);
-        const subscription = interpretSubscription(lookup.data, { allowedProducts, allowTestPurchases: allowsPlayTestPurchases(url) });
+        const subscription = interpretSubscription(lookup.data, { allowedProducts });
         if (subscription.error || subscription.linkedPurchaseToken === purchaseToken) return reply(200);
         const userId = firstPurchase ? subscription.boundAccount : owner.data;
         if (typeof userId !== 'string' || !PLAY_ACCOUNT_ID.test(userId)) return reply(200);
