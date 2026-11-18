@@ -6,8 +6,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORK="${RUNNER_TEMP:-/tmp}/titan-supabase"
 CLI="npx --yes supabase@2.121.0"
-PROD_HEAD="20261102150000"
-PROD_HOTFIX="20261104085851"
+# The last migration registered in production (supabase_migrations.schema_migrations), kept in one versioned file so this replica can
+# never drift from the backend the build will talk to. Update it in the same commit that records a production migration.
+PROD_HEAD="$(tr -d '[:space:]' < "$ROOT/tools/db/production-head.txt")"
+[[ "$PROD_HEAD" =~ ^[0-9]{14}$ ]] || { echo "::error::tools/db/production-head.txt must hold one migration version"; exit 1; }
 
 rm -rf "$WORK" && mkdir -p "$WORK" && cd "$WORK"
 $CLI init --force >/dev/null
@@ -27,15 +29,11 @@ for f in "$ROOT"/supabase/migrations/*.sql; do
   [[ "$v" < "20261005150000" || "$v" > "$PROD_HEAD" ]] && continue
   echo "  · $(basename "$f")"; psql_ -f "$f"
 done
-# Production already has these function definitions, even though their migration entry is missing.
-hotfix="$ROOT/supabase/migrations/${PROD_HOTFIX}_business_conflicts_no_transaction_retry.sql"
-echo "  · $(basename "$hotfix") (deployed definitions)"
-psql_ -f "$hotfix"
 if [[ "${E2E_INCLUDE_PENDING:-0}" == 1 ]]; then
-  echo "Pending migrations from this checkout"
+  echo "Pending migrations from this checkout (after the production head)"
   for f in "$ROOT"/supabase/migrations/*.sql; do
     v="$(basename "$f" | cut -d_ -f1)"
-    [[ "$v" > "$PROD_HOTFIX" ]] || continue
+    [[ "$v" > "$PROD_HEAD" ]] || continue
     echo "  · $(basename "$f")"; psql_ -f "$f"
   done
 fi
