@@ -12,7 +12,7 @@
 
 create table if not exists private.titan_play_notification_inbox (
   message_id text primary key check (char_length(message_id) between 1 and 200),
-  purchase_token text not null check (purchase_token ~ '^[A-Za-z0-9._~-]{16,2048}$'),
+  purchase_token text not null check (char_length(purchase_token) between 16 and 2048 and purchase_token ~ '^[A-Za-z0-9._~-]+$'),
   kind text not null check (kind in ('subscription', 'voided')),
   notification_type integer check (notification_type between 0 and 100),
   authenticated boolean not null default false,
@@ -48,7 +48,7 @@ declare
   v_processed timestamptz;
 begin
   if p_message_id is null or char_length(p_message_id) not between 1 and 200
-     or p_purchase_token is null or p_purchase_token !~ '^[A-Za-z0-9._~-]{16,2048}$'
+     or p_purchase_token is null or char_length(p_purchase_token) not between 16 and 2048 or p_purchase_token !~ '^[A-Za-z0-9._~-]+$'
      or p_kind not in ('subscription', 'voided') then
     raise exception 'PLAY_NOTIFICATION_INVALID' using errcode = '22023';
   end if;

@@ -88,7 +88,7 @@ export const BUNDLES = {
   v20: {
     out: "supabase/release-v20", after: "20261121130000", until: "20261122090000",
     before: { private: [119, "43c6cececcca", "6266862d9620"], public: [321, "32c8b51edcd3", "3992427182c7"] },
-    expected: { private: [119, "43c6cececcca", "6266862d9620"], public: [324, "39442f678587", "4a49c3fa2d15"] },
+    expected: { private: [119, "43c6cececcca", "6266862d9620"], public: [324, "39442f678587", "e6031fff7442"] },
     beforeNote: "This is the state production reaches at the end of the v18 bundle (v19, the coach-places decision of PR #155, is not part of this chain).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
