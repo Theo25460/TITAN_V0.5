@@ -126,7 +126,7 @@ Rappels de lecture : une variation de quelques impressions n'est pas une tendanc
 | Boutons des guides | Une ligne à 320, 390 et 1 440 px, aucun débordement (Playwright) |
 | Lighthouse 12 mobile (build local, non compressé) | `/` : perf 95, SEO 100, a11y 100, LCP 2,7 s, CLS 0 · `/suivi-escalade` : 98, LCP 2,3 s · `/service` : 97, LCP 2,6 s · `/carnet-musculation` : 98, LCP 2,3 s. Mesure de laboratoire, pas de données terrain |
 | Production (`check-seo-live`, 18/11) | 29/38 : build du 4 novembre (écart attendu tant que la V1.3.1 n'est pas publiée) |
-| Preview Netlify | Voir la PR : le relais réseau de cette session refuse `*.netlify.app` ; la preview doit être contrôlée avec `node tools/check-seo-live.mjs https://deploy-preview-<n>--titano-app.netlify.app` depuis un poste qui y a accès |
+| Preview Netlify (PR #162) | Construite par Netlify (`deploy-preview-162--titano-app.netlify.app`) ; l'hôte a été autorisé dans l'environnement de la session et répond **200** sur `/sitemap.xml`. Le contrôle page par page n'a **pas** pu être lancé depuis la session (exécution refusée par le mode automatique) : à faire avec `node tools/check-seo-live.mjs https://deploy-preview-162--titano-app.netlify.app` (attendu : tout conforme, hors indexabilité) |
 
 ### Anomalies restantes
 
