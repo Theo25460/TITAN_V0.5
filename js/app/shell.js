@@ -425,6 +425,9 @@
   };
   window.addEventListener("titan:account-changing", () => { flagsRun++; flagsOwner = null; flagValues = {}; flagsAt = 0; });
   ["titan:account-changed", "titan:history-updated"].forEach((ev) => window.addEventListener(ev, () => refreshFlags(ev === "titan:account-changed")));
+  // A tab left open for hours (a live session, the Communauté) also picks up a switched-off feature: on return to the tab, at most
+  // once per TTL (refreshFlags returns early while the cached values are fresh).
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refreshFlags(false); });
 
   /* ---------- Legacy compatibility ---------- */
   window.titanShell = { refresh, toast, sheet, confirm, user, look, territories: TERRITORIES, esc };
