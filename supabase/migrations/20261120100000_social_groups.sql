@@ -15,9 +15,17 @@
 --      not) and titan_buddy_v1 returns the last result for 14 days (« last »), with the partner named only while they are still friends,
 --      so the pair can celebrate and start again. A pairing ended early by either side or by a block is not frozen.
 --   4. Clubs had no common goal. An administrator may set a weekly effort goal; every member reads the club's total of the week, the goal
---      and how many members were active — never a name or a share, as for the rest of the club space.
+--      and how many members were active — never a name or a share, as for the rest of the club space. The total and the active count are
+--      given only from 3 members (the threshold of the club season trophies): in a club of two, the total minus one's own minutes would be
+--      the other member's week. A smaller club reads the goal with null totals.
+--   5. The risk review at recording (private.titan_session_risk, 20261020000000) ran only when the session earned XP or credits: a
+--      session recorded past the daily or weekly cap was never scored, so an implausible one (100 km run in an hour) got no hold and
+--      counted in every collective goal of point 1. titan_submit_training_session now scores every non-historical session and holds a
+--      « review » one even with 0 XP and 0 credit (the hold table accepts zero amounts; release, exclusion and restoration credit 0).
+--      Same body as 20261020000000 otherwise: same signature, columns and grants.
 -- Nothing here grants XP or credits. Additive. The caller owns the transaction: never BEGIN/COMMIT here.
--- Rollback: re-apply private.titan_effort_days from 20261005200000, titan_challenge_result_v1 from 20261029160000, titan_buddy_v1,
+-- Rollback: re-apply private.titan_effort_days from 20261005200000, titan_submit_training_session from 20261020000000 (create or replace,
+-- same signature), titan_challenge_result_v1 from 20261029160000, titan_buddy_v1,
 -- titan_buddy_invite_v1 from 20261029130000; drop functions public.titan_club_week_v1(uuid), public.titan_club_goal_set_v1(uuid, integer),
 -- private.titan_buddy_close(uuid), private.titan_member_named(uuid, uuid, uuid); drop columns final_inviter_days, final_invitee_days, reached
 -- of private.titan_buddies and weekly_goal of private.titan_clubs.
@@ -296,8 +304,9 @@ begin
   select count(*)::integer, coalesce(sum(x.minutes), 0), count(*) filter (where x.minutes > 0)::integer into v_members, v_minutes, v_active
     from (select m.user_id, coalesce((select sum(d.minutes) from private.titan_effort_days(m.user_id, v_from, v_from + interval '7 days', greatest(v_from, m.joined_at), 90) d), 0) as minutes
             from private.titan_club_members m where m.club_id = p_club) x;
-  return jsonb_build_object('club', p_club, 'weekStart', v_from, 'goal', v_c.weekly_goal, 'minutes', round(v_minutes),
-    'members', v_members, 'active', v_active, 'canSet', v_role = 'admin');
+  -- Totals from 3 members only (header, point 4): below, they would give away another member's minutes.
+  return jsonb_build_object('club', p_club, 'weekStart', v_from, 'goal', v_c.weekly_goal, 'minutes', case when v_members >= 3 then round(v_minutes) end,
+    'members', v_members, 'active', case when v_members >= 3 then v_active end, 'canSet', v_role = 'admin');
 end;
 $function$;
 
@@ -322,5 +331,160 @@ end;
 $function$;
 revoke all on function public.titan_club_week_v1(uuid), public.titan_club_goal_set_v1(uuid, integer) from public, anon;
 grant execute on function public.titan_club_week_v1(uuid), public.titan_club_goal_set_v1(uuid, integer) to authenticated;
+
+-- ---------------------------------------------------------------------------------------------
+-- 5. Every non-historical session is risk-scored, whatever it earned (body of 20261020000000, one condition changed).
+-- ---------------------------------------------------------------------------------------------
+create or replace function public.titan_submit_training_session(
+  p_sport text, p_category text, p_val numeric, p_unit text default ''::text,
+  p_details jsonb default '{}'::jsonb, p_date timestamptz default now()
+)
+returns table(log_id text, xp integer, credits integer, credits_after integer, xp_after integer, level_after integer,
+  level_bonus integer, leveled_up integer, requested_xp integer, requested_credits integer,
+  weekly_xp_remaining integer, weekly_credits_remaining integer, server_version text,
+  reward_held boolean, held_xp integer, held_credits integer, release_at timestamptz)
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+  v_sport text := left(regexp_replace(trim(coalesce(p_sport, 'unknown')), '[[:cntrl:]]', '', 'g'), 80);
+  v_category text := lower(left(regexp_replace(trim(coalesce(p_category, 'training')), '[[:cntrl:]]', '', 'g'), 80));
+  v_unit text := lower(left(regexp_replace(trim(coalesce(p_unit, '')), '[[:cntrl:]]', '', 'g'), 24));
+  v_details jsonb := coalesce(p_details, '{}'::jsonb);
+  v_val numeric := coalesce(p_val, 0);
+  v_effort jsonb;
+  v_historical boolean;
+  v_raw_xp integer := 0;
+  v_daily_xp integer := 0;
+  v_day_used integer := 0;
+  v_xp integer := 0;
+  v_credits integer := 0;
+  v_log_id text;
+  v_progress record;
+  v_cap record;
+  v_event uuid := coalesce(nullif(v_details ->> 'client_event_id', '')::uuid, gen_random_uuid());
+  v_request jsonb := jsonb_build_object('sport', p_sport, 'category', p_category, 'val', p_val, 'unit', p_unit, 'details', p_details, 'date', p_date);
+  v_receipt public.training_receipts%rowtype;
+  v_response jsonb;
+  v_version constant text := 'sport-effort-v300';
+  v_held boolean := false;
+  v_release_at timestamptz;
+begin
+  if v_user_id is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  perform 1 from public.profiles where id = v_user_id and not coalesce(is_suspended, false) for update;
+  if not found then raise exception 'PROFILE_UNAVAILABLE' using errcode = '42501'; end if;
+
+  select * into v_receipt from public.training_receipts where user_id = v_user_id and client_event_id = v_event;
+  if found then
+    if v_receipt.request <> v_request then raise exception 'EVENT_CONTENT_CONFLICT' using errcode = '23505'; end if;
+    return query select r.* from jsonb_to_record(v_receipt.response) as r(log_id text, xp integer, credits integer,
+      credits_after integer, xp_after integer, level_after integer, level_bonus integer, leveled_up integer,
+      requested_xp integer, requested_credits integer, weekly_xp_remaining integer, weekly_credits_remaining integer,
+      server_version text, reward_held boolean, held_xp integer, held_credits integer, release_at timestamptz);
+    return;
+  end if;
+
+  if jsonb_typeof(v_details) <> 'object' or octet_length(v_details::text) > 100000 then
+    raise exception 'TRAINING_DETAILS_INVALID' using errcode = '22023';
+  end if;
+  if p_date is null then raise exception 'TRAINING_DATE_REQUIRED' using errcode = '22023'; end if;
+  if v_val <= 0 or v_val > 300000 then raise exception 'TRAINING_VALUE_OUT_OF_RANGE' using errcode = '22023'; end if;
+  if p_date > now() + interval '10 minutes' or p_date < timestamptz '1990-01-01' then
+    raise exception 'TRAINING_DATE_OUT_OF_RANGE' using errcode = '22023';
+  end if;
+  if coalesce(public.titan_numeric_from_json(v_details, 'duration'), 0) > 1440
+     or coalesce(public.titan_numeric_from_json(v_details, 'val2'), 0) > 1440
+     or (v_unit = 'min' and v_val > 1440) then
+    raise exception 'TRAINING_DURATION_OUT_OF_RANGE' using errcode = '22023';
+  end if;
+
+  v_historical := p_date < now() - interval '30 days';
+  v_effort := public.titan_effort_v300(v_sport, v_unit, v_val, v_details);
+  v_raw_xp := case when v_historical then 0 else (v_effort ->> 'xp')::integer end;
+
+  if not v_historical then
+    select coalesce(sum(l.xp), 0)::integer into v_day_used
+      from public.training_logs l
+     where l.user_id = v_user_id
+       and l.created_at >= (date_trunc('day', now() at time zone 'Europe/Paris') at time zone 'Europe/Paris');
+    v_daily_xp := least(v_raw_xp, greatest(0, 1800 - v_day_used));
+  end if;
+
+  select * into v_cap from public.titan_apply_weekly_reward_cap(v_user_id, v_daily_xp, floor(v_daily_xp * 0.1)::integer);
+  v_xp := coalesce(v_cap.xp_awarded, 0);
+  v_credits := coalesce(v_cap.credits_awarded, 0);
+
+  insert into public.training_logs(client_event_id, user_id, sport, category, val, unit, xp, date, details)
+  values (v_event, v_user_id, v_sport, v_category, v_val, v_unit, v_xp, p_date,
+    v_details || jsonb_build_object(
+      'serverReward', not v_historical,
+      'serverVersion', v_version,
+      'historical', v_historical,
+      'rewardEligible', not v_historical,
+      'balanceProfile', v_effort ->> 'profile',
+      'effort', v_effort,
+      'requestedXp', v_raw_xp,
+      'requestedCredits', floor(v_raw_xp * 0.1)::integer,
+      'credits', v_credits,
+      'creditRatio', 0.1,
+      'dailyXpCap', 1800,
+      'dailyCapped', v_daily_xp < v_raw_xp,
+      'weeklyXpCap', v_cap.xp_cap,
+      'weeklyCreditCap', v_cap.credit_cap,
+      'weeklyXpRemaining', greatest(0, coalesce(v_cap.xp_cap, 0) - coalesce(v_cap.xp_used, 0)),
+      'weeklyCreditsRemaining', greatest(0, coalesce(v_cap.credit_cap, 0) - coalesce(v_cap.credits_used, 0)),
+      'weeklyCapped', coalesce(v_cap.is_capped, false)))
+  returning id::text into v_log_id;
+  if v_log_id is null then raise exception 'TRAINING_REJECTED' using errcode = '23514'; end if;
+
+  -- CHEAT15: a session whose risk at recording reaches "review" (score >= 8) has its reward held for at most 24 hours
+  -- (released by private.titan_release_due_reward_holds, cancelled by an exclusion, granted by a restoration).
+  -- Nothing already granted is ever taken back; the weekly allowance stays consumed.
+  -- Every non-historical session is scored, whatever it earned: a session past the daily or weekly cap (0 XP, 0 credit) is held
+  -- too, with zero amounts, so that it stays out of every collective count (private.titan_confirmed_sessions) until it is released.
+  if not v_historical then
+    -- A session missing from the 100 most recent scored ones (a back-dated entry among many newer sessions) cannot be
+    -- scored: it is held out of caution rather than rewarded unchecked.
+    v_held := coalesce((select max(case when e ->> 'id' = v_log_id then (e ->> 'score')::integer end) >= 8
+                          from jsonb_array_elements(private.titan_session_risk(v_user_id, 100)) e), true);
+  end if;
+  if v_held then
+    v_release_at := now() + interval '24 hours';
+    insert into private.titan_reward_holds(log_id, user_id, xp, credits, release_at)
+    values (v_log_id::uuid, v_user_id, v_xp, v_credits, v_release_at);
+    select greatest(0, coalesce(p.credits, 0)) as credits_after, greatest(0, coalesce(p.xp, 0)) as xp_after,
+           greatest(1, coalesce(p.level, 1)) as level_after, 0 as level_bonus, 0 as leveled_up
+      into v_progress from public.profiles p where p.id = v_user_id;
+  else
+    select * into v_progress from public.titan_apply_progression_reward(v_user_id, v_xp, v_credits);
+  end if;
+
+  v_response := jsonb_build_object('log_id', v_log_id, 'xp', case when v_held then 0 else v_xp end,
+    'credits', case when v_held then 0 else v_credits end,
+    'credits_after', v_progress.credits_after, 'xp_after', v_progress.xp_after, 'level_after', v_progress.level_after,
+    'level_bonus', v_progress.level_bonus, 'leveled_up', v_progress.leveled_up,
+    'requested_xp', v_raw_xp, 'requested_credits', floor(v_raw_xp * 0.1)::integer,
+    'weekly_xp_remaining', greatest(0, coalesce(v_cap.xp_cap, 0) - coalesce(v_cap.xp_used, 0)),
+    'weekly_credits_remaining', greatest(0, coalesce(v_cap.credit_cap, 0) - coalesce(v_cap.credits_used, 0)),
+    'server_version', v_version,
+    'reward_held', v_held, 'held_xp', case when v_held then v_xp else 0 end,
+    'held_credits', case when v_held then v_credits else 0 end, 'release_at', v_release_at);
+  insert into public.training_receipts(user_id, client_event_id, request, response) values (v_user_id, v_event, v_request, v_response);
+
+  return query select v_log_id, case when v_held then 0 else v_xp end, case when v_held then 0 else v_credits end,
+    v_progress.credits_after::integer, v_progress.xp_after::integer,
+    v_progress.level_after::integer, v_progress.level_bonus::integer, v_progress.leveled_up::integer,
+    v_raw_xp, floor(v_raw_xp * 0.1)::integer,
+    greatest(0, coalesce(v_cap.xp_cap, 0) - coalesce(v_cap.xp_used, 0))::integer,
+    greatest(0, coalesce(v_cap.credit_cap, 0) - coalesce(v_cap.credits_used, 0))::integer,
+    v_version, v_held, case when v_held then v_xp else 0 end, case when v_held then v_credits else 0 end, v_release_at;
+end;
+$function$;
+
+revoke all on function public.titan_submit_training_session(text, text, numeric, text, jsonb, timestamptz) from public, anon;
+grant execute on function public.titan_submit_training_session(text, text, numeric, text, jsonb, timestamptz) to authenticated;
+grant execute on function public.titan_submit_training_session(text, text, numeric, text, jsonb, timestamptz) to service_role;
 
 notify pgrst, 'reload schema';

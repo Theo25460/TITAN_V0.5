@@ -2,7 +2,9 @@
 -- Covered: a session whose reward is held or cancelled, or that the server never stamped, counts for no collective goal (Duo, challenge,
 -- guild week) and a released one counts again; a finished challenge names only oneself, friends and link partners; a Duo that reaches its
 -- end keeps its result for both, with the partner named only while still friends; a Duo stopped early keeps none; a club's weekly goal is
--- set by an administrator only and read by members as a total without any name; non-members read nothing; no XP and no credit.
+-- set by an administrator only and read by members as a total without any name, only from 3 members (null totals below); non-members
+-- read nothing; no XP and no credit. A session past the daily cap is still risk-scored: an implausible one is held (zero amounts) and is
+-- not a confirmed session until released.
 begin;
 do $$
 declare k text; v uuid;
@@ -146,6 +148,14 @@ begin
   perform public.titan_club_join_v1(code, null);
   r := public.titan_club_week_v1(club);
   assert (r->>'members')::int = 2 and (r->>'goal')::int = 300 and not (r->>'canSet')::boolean and r::text not like '%qa_g_%', 'a member reads a total without names: ' || r::text;
+  -- Two members: the total minus one's own minutes would be the other member's week, so no total and no active count.
+  assert r ? 'minutes' and r ? 'active' and r->'minutes' = 'null'::jsonb and r->'active' = 'null'::jsonb, 'a club of two reads the goal with null totals: ' || r::text;
+  -- From three members the totals are given.
+  perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+  perform public.titan_club_join_v1(code, null);
+  r := public.titan_club_week_v1(club);
+  assert (r->>'members')::int = 3 and jsonb_typeof(r->'minutes') = 'number' and jsonb_typeof(r->'active') = 'number', 'three members read the totals: ' || r::text;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
   ok := false; begin perform public.titan_club_goal_set_v1(club, 600); exception when others then ok := sqlerrm = 'CLUB_ADMIN_REQUIRED'; end;
   assert ok, 'a member cannot set the goal';
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
@@ -153,5 +163,51 @@ begin
   assert ok, 'a goal of at least 60 minutes';
   assert (public.titan_club_goal_set_v1(club, null)->>'goal') is null, 'the goal can be removed';
   assert (select xp from public.profiles where id = a) is not distinct from xp0 and (select credits from public.profiles where id = a) is not distinct from cr0, 'no XP, no credit';
+end $$;
+
+-- 5. A session recorded past the daily XP cap is still risk-scored: an implausible one (100 km run in 60 minutes) is held with zero
+--    amounts and stays out of the confirmed sessions until released; a plausible capped one is not held and counts.
+reset role;
+do $$
+declare v uuid := gen_random_uuid();
+begin
+  perform set_config('request.jwt.claims', '{}', true);
+  insert into auth.users(id, raw_user_meta_data) values (v, '{}');
+  -- The day's allowance of 1 800 XP is already used.
+  set local session_replication_role = replica;
+  insert into public.training_logs(user_id, sport, category, val, unit, xp, date, details)
+  values (v, 'cycling', 'cardio', 40, 'km', 1800, now() - interval '5 hours', '{"duration":120,"serverReward":true}');
+  set local session_replication_role = origin;
+  perform set_config('titan.g_cap', v::text, true);
+end $$;
+set local role authenticated;
+do $$
+declare v uuid := current_setting('titan.g_cap')::uuid; r record; fine record;
+begin
+  perform set_config('request.jwt.claims', json_build_object('sub', v, 'role', 'authenticated')::text, true);
+  select * into fine from public.titan_submit_training_session('running', 'cardio', 10, 'km', jsonb_build_object('duration', 60, 'client_event_id', gen_random_uuid()), now() - interval '3 hours');
+  assert fine.xp = 0 and not fine.reward_held, 'a plausible session past the cap: 0 XP, not held: ' || row_to_json(fine)::text;
+  select * into r from public.titan_submit_training_session('running', 'cardio', 100, 'km', jsonb_build_object('duration', 60, 'client_event_id', gen_random_uuid()), now() - interval '1 hour');
+  assert r.xp = 0 and r.credits = 0 and r.reward_held and r.held_xp = 0 and r.held_credits = 0, 'capped and implausible: held with zero amounts: ' || row_to_json(r)::text;
+  perform set_config('titan.g_cap_held', r.log_id, true);
+  perform set_config('titan.g_cap_fine', fine.log_id, true);
+end $$;
+reset role;
+do $$
+declare v uuid := current_setting('titan.g_cap')::uuid; h uuid := current_setting('titan.g_cap_held')::uuid; f uuid := current_setting('titan.g_cap_fine')::uuid;
+begin
+  perform set_config('request.jwt.claims', '{}', true);
+  assert (select status = 'held' and xp = 0 and credits = 0 from private.titan_reward_holds where log_id = h), 'a zero-amount hold is recorded';
+  assert not exists (select 1 from private.titan_reward_holds where log_id = f), 'no hold for the plausible session';
+  assert not exists (select 1 from private.titan_confirmed_sessions(v, now() - interval '1 day', now() + interval '1 day', '-infinity') s where s.log_id = h),
+    'the held session is absent from the confirmed sessions';
+  assert exists (select 1 from private.titan_confirmed_sessions(v, now() - interval '1 day', now() + interval '1 day', '-infinity') s where s.log_id = f),
+    'the plausible capped session counts';
+  -- Released like any hold after 24 hours: nothing to credit, and it counts again.
+  update private.titan_reward_holds set release_at = now() - interval '1 minute' where log_id = h;
+  perform private.titan_release_due_reward_holds();
+  assert (select status from private.titan_reward_holds where log_id = h) = 'released', 'a zero-amount hold is released';
+  assert exists (select 1 from private.titan_confirmed_sessions(v, now() - interval '1 day', now() + interval '1 day', '-infinity') s where s.log_id = h),
+    'released: it counts again';
 end $$;
 rollback;

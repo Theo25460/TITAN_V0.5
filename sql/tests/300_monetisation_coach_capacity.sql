@@ -1,5 +1,6 @@
 -- Monetisation, lot C (20261121100000): the places of the coach's current offer apply to every coach action. Links beyond the places are
--- paused (never deleted), resume by themselves, and the seats (TITAN+ included) follow the same order. Full rollback.
+-- paused (never deleted), resume by themselves, and the seats (TITAN+ included) follow the same order. The athlete of a paused link still
+-- reads, marks read and reports the messages already there; the coach's unread count leaves paused links out. Full rollback.
 begin;
 do $$
 declare c uuid := '53000000-0000-4000-8000-0000000000c0'; u uuid[] := array[]::uuid[]; i integer;
@@ -40,7 +41,7 @@ create function public.zz_cc_elite(p_user uuid) returns boolean language sql as 
 do $$
 declare
   c uuid := current_setting('titan.cc_c')::uuid; u uuid[] := string_to_array(current_setting('titan.cc_u'), ',')::uuid[];
-  l uuid[] := array[]::uuid[]; i integer; snap jsonb; sessions jsonb := jsonb_build_object('to_date', current_date);
+  l uuid[] := array[]::uuid[]; i integer; snap jsonb; sessions jsonb := jsonb_build_object('to_date', current_date); msg uuid; page jsonb;
 begin
   -- Coach Ultra (titan03, seeded mapping): seven athletes, all active, all with TITAN+.
   perform public.zz_cc_pay(c, 'cc-ultra-0123456789ab', 'titan03', true);
@@ -53,6 +54,9 @@ begin
     assert public.zz_cc_try(c, 'sessions', sessions || jsonb_build_object('link_id', l[i])) = 'ok', 'Ultra: link '||i||' usable';
     assert public.zz_cc_elite(u[i]), 'Ultra: athlete '||i||' has TITAN+';
   end loop;
+  -- While every link is active: the coach writes to athlete 7, athlete 6 writes to the coach.
+  perform public.zz_cc_as(c); msg := public.titan_coach_message_send_v1(l[7], 'Séance de seuil jeudi');
+  perform public.zz_cc_as(u[6]); perform public.titan_coach_message_send_v1(l[6], 'Bien reçu');
 
   -- Downgrade Coach Ultra → Coach (Google replaces the token): five places. Links 6 and 7, the most recent, are paused on both sides.
   perform public.zz_cc_pay(c, 'cc-coach-0123456789ab', 'titan02', true, 'cc-ultra-0123456789ab');
@@ -62,6 +66,22 @@ begin
   assert public.zz_cc_try(c, 'message', jsonb_build_object('link_id', l[7])) = 'SHARING_UNAVAILABLE', 'no message from the coach through a paused link';
   assert public.zz_cc_try(u[7], 'message', jsonb_build_object('link_id', l[7])) = 'SHARING_UNAVAILABLE', 'no message from the athlete either';
   assert public.zz_cc_try(c, 'message', jsonb_build_object('link_id', l[1])) = 'ok', 'an active link keeps its messages';
+  -- The athlete of a paused link keeps the thread already there: reads it, marks it read, reports a message; the badge goes out.
+  assert public.zz_cc_try(u[7], 'messages', jsonb_build_object('link_id', l[7])) = 'ok', 'the athlete of a paused link reads the thread';
+  perform public.zz_cc_as(u[7]);
+  page := public.titan_coach_messages_v1(l[7]);
+  assert jsonb_array_length(page->'rows') = 1 and page->'rows'->0->>'body' = 'Séance de seuil jeudi', 'the coach''s message is there: '||page::text;
+  assert (public.titan_coach_unread_v1()->>l[7]::text)::int = 1, 'one unread message on the paused link';
+  assert public.titan_coach_messages_read_v1(l[7]) = 1, 'the athlete marks it read on a paused link';
+  assert public.titan_coach_unread_v1() = '{}'::jsonb, 'no badge left for the athlete';
+  assert public.titan_coach_message_report_v1(msg, 'harassment'), 'the athlete reports a message of a paused link';
+  assert exists (select 1 from private.titan_coach_message_reports r where r.message_id = msg and r.reporter_id = u[7]), 'the report is recorded';
+  -- The coach keeps the capacity rule: no reading through a paused link, and its unread count leaves the paused link out.
+  assert public.zz_cc_try(c, 'messages', jsonb_build_object('link_id', l[6])) = 'SHARING_UNAVAILABLE', 'the coach does not read a paused link';
+  perform public.zz_cc_as(c);
+  assert not (public.titan_coach_unread_v1() ? l[6]::text), 'no stuck badge for the coach on a paused link';
+  begin perform public.titan_coach_messages_read_v1(l[6]); assert false, 'coach marked read through a paused link';
+  exception when others then assert sqlerrm = 'SHARING_UNAVAILABLE', 'coach mark-read refused: '||sqlerrm; end;
   assert not public.zz_cc_elite(u[6]) and not public.zz_cc_elite(u[7]) and public.zz_cc_elite(u[5]), 'seats follow the same order';
   perform public.zz_cc_as(c); snap := public.titan_coach_portal('snapshot');
   assert (snap->>'capacity')::int = 5 and (snap->>'seatsUsed')::int = 7, 'capacity 5, seven links kept: '||snap::text;
@@ -74,6 +94,10 @@ begin
   -- A place is freed (athlete 2 leaves): the oldest paused link resumes by itself, with its seat.
   assert public.zz_cc_try(u[2], 'revoke', jsonb_build_object('link_id', l[2], 'revision', (select revision from public.coach_links where id = l[2]))) = 'ok';
   assert public.zz_cc_try(c, 'sessions', sessions || jsonb_build_object('link_id', l[6])) = 'ok', 'link 6 resumes when a place is free';
+  perform public.zz_cc_as(c);
+  assert (public.titan_coach_unread_v1()->>l[6]::text)::int = 1, 'the resumed link shows its unread message to the coach again';
+  -- A revoked link (athlete 2 left) is closed to its athlete too.
+  assert public.zz_cc_try(u[2], 'messages', jsonb_build_object('link_id', l[2])) = 'SHARING_UNAVAILABLE', 'a revoked link is unreadable';
   assert public.zz_cc_elite(u[6]) and not public.zz_cc_elite(u[7]), 'its seat comes back, link 7 still waits';
   -- A paused athlete can still change the scope or leave.
   assert public.zz_cc_try(u[7], 'scope', jsonb_build_object('link_id', l[7], 'revision', (select revision from public.coach_links where id = l[7]), 'since_date', current_date)) = 'ok', 'scope stays editable';

@@ -19,6 +19,9 @@ Données seulement : aucune fonction créée ou modifiée, aucune règle de réc
 3. `99-check-after.sql` : deux lignes `ok = true` (empreinte inchangée : le paquet ne touche aucune fonction), puis les postflights
    v11, v13 et v131.
 
+Empreintes remesurées le 18 novembre 2026 après la correction d'audit de v15 (`private 104 7772609c3673 ccca14f98fa2`,
+`public 309 5eb4c4873e06 b4dbcb08ceb1`, avant comme après) ; rien ne change dans ce paquet.
+
 Sans ce paquet, rien ne casse : le serveur connaît seulement onze missions de plus qu'aucun client ne propose. Il devient
 nécessaire le jour où le moteur **ajoute** une mission (le serveur ignore une mission inconnue).
 

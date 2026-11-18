@@ -9,7 +9,7 @@ begin
 
   -- 1. The rules are exactly the ones the published matrix lists.
   select array_agg(id order by id) into ids from private.titan_retention_rules;
-  assert ids = array['admin_audit','admin_logs','analytics','appeals','audit_logs','billing_events','bug_reports','cache_reconciliation','contact_messages','moderation_decisions','moderation_reports','reports_legacy','reward_holds','social_action_log','support_general','support_payment','support_rights','suspicious_actions','verification_requests'], 'rule ids: '||array_to_string(ids,',');
+  assert ids = array['admin_audit','admin_logs','analytics','appeals','audit_logs','billing_events','bug_reports','cache_reconciliation','contact_messages','moderation_decisions','moderation_reports','reports_legacy','reward_holds','social_action_limits','social_action_log','support_general','support_payment','support_rights','suspicious_actions','verification_requests'], 'rule ids: '||array_to_string(ids,',');
   assert (select keep from private.titan_retention_rules where id='analytics')=interval '13 months' and (select keep from private.titan_retention_rules where id='support_general')=interval '6 months'
     and (select keep from private.titan_retention_rules where id='support_rights')=interval '12 months' and (select keep from private.titan_retention_rules where id='billing_events')=interval '13 months', 'documented durations';
 
@@ -36,6 +36,9 @@ begin
   insert into public.reports(status,description,created_at) values('resolved','qa_old_done',old_ts),('pending','qa_old_pending',old_ts),('resolved','qa_young_done',young_ts);
   insert into public.audit_logs(table_name,operation,record_id,created_at) values('qa_table','UPDATE','qa-old-audit',old_ts),('qa_table','UPDATE','qa-young-audit',young_ts);
   insert into public.titan_social_action_log(actor_id,action,created_at) values(v,'friend_add',now()-interval '100 days'),(v,'friend_remove',young_ts);
+  -- The nine limiter counters (20261120090000) are kept 30 days; the other social actions keep their 90 days.
+  insert into public.titan_social_action_log(actor_id,action,created_at) values(v,'buddy_invite',now()-interval '40 days'),(v,'cordee_create',now()-interval '40 days'),
+    (v,'friend_link',now()-interval '10 days'),(v,'block_user',now()-interval '40 days');
   insert into private.titan_moderation_decisions(at,user_id,decision,reason) values(old_ts,w,'watch','qa reverted one') returning id into d_old;
   insert into private.titan_moderation_decisions(at,user_id,decision,reason,reverts) values(young_ts,w,'revert','qa the revert',d_old);
   insert into private.titan_moderation_decisions(at,user_id,decision,reason) values(old_ts,w,'suspend','qa suspend lifted'),(young_ts,w,'restore','qa restore'),(old_ts,x,'suspend','qa suspend still active');
@@ -50,6 +53,10 @@ begin
   assert not exists(select 1 from public.audit_logs where record_id='qa-old-audit') and exists(select 1 from public.audit_logs where record_id='qa-young-audit'), 'audit journal 12 months';
   assert not exists(select 1 from public.audit_logs where table_name in ('admin_logs','reports') and operation='DELETE' and (old_data->>'description' like 'qa_old%' or old_data->>'action'='qa_old')), 'purged rows leave no copy in audit_logs';
   assert not exists(select 1 from public.titan_social_action_log where actor_id=v and action='friend_add') and exists(select 1 from public.titan_social_action_log where actor_id=v and action='friend_remove'), 'social journal 90 days';
+  assert not exists(select 1 from public.titan_social_action_log where actor_id=v and action in ('buddy_invite','cordee_create'))
+    and exists(select 1 from public.titan_social_action_log where actor_id=v and action='friend_link')
+    and exists(select 1 from public.titan_social_action_log where actor_id=v and action='block_user'), 'limiter counters 30 days, other social actions 90 days';
+  assert (counts->>'social_action_limits')::int >= 2, 'the counters rule ran: '||counts::text;
   assert exists(select 1 from private.titan_moderation_decisions where reason='qa reverted one'), 'a decision that a younger one reverts is kept';
   assert not exists(select 1 from private.titan_moderation_decisions where reason='qa suspend lifted') and exists(select 1 from private.titan_moderation_decisions where reason='qa suspend still active'), 'a lifted suspension expires, an active one stays';
   assert (counts->>'moderation_decisions')::int>=0 and (counts->>'admin_logs')::int>=1 and (counts->>'reports_legacy')::int>=1, 'no rule failed';

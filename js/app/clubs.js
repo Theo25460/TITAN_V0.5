@@ -109,11 +109,13 @@
     const w = weeks[c.id];
     if (!w) return "";
     const goal = Number(w.goal) || 0;
+    // Below 3 members the server keeps the totals to itself (null): no figure, no bar, the goal only.
+    const hidden = w.minutes == null;
     const pct = goal ? Math.min(100, Math.round((Number(w.minutes) / goal) * 100)) : 0;
     const set = w.canSet ? `<div class="asc-actions"><label class="sr-only" for="club-goal-${esc(c.id)}">Objectif de la semaine en minutes</label><input id="club-goal-${esc(c.id)}" class="asc-input" type="number" min="60" max="100000" step="30" inputmode="numeric" data-club-draft="goal-${esc(c.id)}" value="${esc(val("goal-" + c.id) || (goal || ""))}" placeholder="Minutes" style="max-width:9rem">
         <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-club-goal="${esc(c.id)}" ${busy ? "disabled" : ""}>${goal ? "Changer l’objectif" : "Fixer un objectif"}</button></div>` : "";
-    return `<div class="asc-stack" data-club-week="${esc(c.id)}"><p class="asc-small"><strong>Cette semaine ensemble</strong> · ${n(w.minutes)} min d’effort${goal ? ` / ${n(goal)}` : ""} · ${n(w.active)} membre${Number(w.active) > 1 ? "s" : ""} actif${Number(w.active) > 1 ? "s" : ""} sur ${n(w.members)}</p>
-      ${goal ? `<span class="asc-ascent thin" role="progressbar" aria-label="Objectif commun du club" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(goal, Number(w.minutes))}"><span style="--p:${pct}%"></span></span>${Number(w.minutes) >= goal ? '<p class="asc-small cy">Objectif de la semaine atteint ensemble.</p>' : ""}` : (w.canSet ? '<p class="asc-small asc-muted">Fixe un objectif commun en minutes d’effort : tous les sports comptent pareil, 90 min au plus par personne et par jour.</p>' : "")}
+    return `<div class="asc-stack" data-club-week="${esc(c.id)}"><p class="asc-small"><strong>Cette semaine ensemble</strong> · ${hidden ? `${goal ? `objectif ${n(goal)} min d’effort · ` : ""}le total s’affiche à partir de 3 membres` : `${n(w.minutes)} min d’effort${goal ? ` / ${n(goal)}` : ""} · ${n(w.active)} membre${Number(w.active) > 1 ? "s" : ""} actif${Number(w.active) > 1 ? "s" : ""} sur ${n(w.members)}`}</p>
+      ${goal && hidden ? "" : goal ? `<span class="asc-ascent thin" role="progressbar" aria-label="Objectif commun du club" aria-valuemin="0" aria-valuemax="${goal}" aria-valuenow="${Math.min(goal, Number(w.minutes))}"><span style="--p:${pct}%"></span></span>${Number(w.minutes) >= goal ? '<p class="asc-small cy">Objectif de la semaine atteint ensemble.</p>' : ""}` : (w.canSet ? '<p class="asc-small asc-muted">Fixe un objectif commun en minutes d’effort : tous les sports comptent pareil, 90 min au plus par personne et par jour.</p>' : "")}
       <p class="asc-small asc-faint">Seul le total est visible : personne ne voit la part d’un autre membre.</p>${set}</div>`;
   }
 

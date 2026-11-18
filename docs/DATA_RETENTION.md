@@ -28,6 +28,7 @@ Décision de Théo du 20/10/2026 (Q-002) : déterminer les durées **les plus co
 | `reward_holds` | retenues de récompenses réglées | 3 mois après le règlement | trace utile au support récent | supprimées avec le compte |
 | `verification_requests` | demandes de vérification et réponses du joueur | 12 mois | preuve que la vérification a eu lieu en cas de recours ; ouverte, répondue ou close, elle expire à 12 mois pour ne pas garder un texte libre indéfiniment | supprimées avec le compte |
 | `social_action_log` | journal des actions sociales | 90 jours | limitation de débit et diagnostic | identité détachée |
+| `social_action_limits` | compteurs des limites sociales (invitations Duo, relances, liens de défi et d'ami, intentions, cordées) : neuf actions du même journal | 30 jours | leur plus longue fenêtre de limite est d'un jour ; migration `20261120090000` (non appliquée) | supprimés avec le compte (auteur en `ON DELETE CASCADE`) |
 | `cache_reconciliation` | rapports techniques de cohérence entre l'appareil et le compte (résumés chiffrés, au plus 20 par compte et par jour) | 90 jours | diagnostic d'un écart de synchronisation ; migration `20261116100000` | supprimés avec le compte |
 
 ## Conservé volontairement, sans purge

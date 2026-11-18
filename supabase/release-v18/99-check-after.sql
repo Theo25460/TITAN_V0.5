@@ -1,5 +1,5 @@
 -- Read-only. After the bundle: every row must show ok = true.
-with expected(schema, fonctions, droits, corps) as (values ('private', 119, '43c6cececcca', '6266862d9620'), ('public', 321, '32c8b51edcd3', '3992427182c7')), actual as (
+with expected(schema, fonctions, droits, corps) as (values ('private', 120, '0c180d72fbc0', 'd8ef8377869f'), ('public', 321, '32c8b51edcd3', 'eba6a58d9dff')), actual as (
 select n.nspname as schema, count(*) as fonctions,
   substr(md5(string_agg(p.oid::regprocedure::text || '|' || p.prosecdef || has_function_privilege('anon', p.oid, 'EXECUTE') || has_function_privilege('authenticated', p.oid, 'EXECUTE')
     || coalesce(array_to_string(p.proconfig, ','), ''), ';' order by p.oid::regprocedure::text collate "C")), 1, 12) as droits,

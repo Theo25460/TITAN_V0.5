@@ -19,6 +19,7 @@ l'acquitte, et `play-reconcile` la traite une fois la facturation ouverte. Un ac
 3. `99-check-after.sql` : deux lignes `ok = true`, puis les postflights v11, v13 et v131.
 
 Empreintes mesurées sur une réplique vierge (`tools/db/test-migrations.sh`) : avant = état v18 attendu (identique), après = `public` 324 fonctions.
+Remesurées le 18 novembre 2026 après les corrections d'audit de v15, v17 et v18 (`private` 120 fonctions depuis v18) ; rien ne change dans ce paquet.
 Répétition : `sql/tests/300_play_notification_inbox.sql`.
 
 Retour arrière : en-tête de la migration (trois `drop function` puis `drop table`). La fonction déployée tolère l'absence de la table

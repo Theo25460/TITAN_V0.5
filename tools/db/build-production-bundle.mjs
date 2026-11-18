@@ -46,7 +46,7 @@ export const BUNDLES = {
   v15: {
     out: "supabase/release-v15", after: "20261117170000", until: "20261118090000",
     before: { private: [103, "78dde17392e0", "4f6481c4b912"], public: [309, "5eb4c4873e06", "95c0de5e6ce0"] },
-    expected: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
+    expected: { private: [104, "7772609c3673", "ccca14f98fa2"], public: [309, "5eb4c4873e06", "b4dbcb08ceb1"] },
     beforeNote: "This is the state production reaches at the end of the v14 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
@@ -55,8 +55,8 @@ export const BUNDLES = {
   // function is created or changed, so the fingerprint is the one the v15 bundle leaves.
   v16: {
     out: "supabase/release-v16", after: "20261118090000", until: "20261119090000",
-    before: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
-    expected: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
+    before: { private: [104, "7772609c3673", "ccca14f98fa2"], public: [309, "5eb4c4873e06", "b4dbcb08ceb1"] },
+    expected: { private: [104, "7772609c3673", "ccca14f98fa2"], public: [309, "5eb4c4873e06", "b4dbcb08ceb1"] },
     beforeNote: "This is the state production reaches at the end of the v15 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
@@ -65,8 +65,8 @@ export const BUNDLES = {
   // « Depuis ta dernière visite » digest. NOT applied: additive, rehearsed on a replica (tools/db/test-migrations.sh).
   v17: {
     out: "supabase/release-v17", after: "20261119090000", until: "20261120120000",
-    before: { private: [104, "7772609c3673", "1ba0ccace409"], public: [309, "5eb4c4873e06", "c1fd3b6d6f95"] },
-    expected: { private: [116, "365bcfe300a2", "10fb8e93b6cc"], public: [320, "28448708715e", "6a3a797bdb5d"] },
+    before: { private: [104, "7772609c3673", "ccca14f98fa2"], public: [309, "5eb4c4873e06", "b4dbcb08ceb1"] },
+    expected: { private: [116, "365bcfe300a2", "644cad28a912"], public: [320, "28448708715e", "bc974d683fad"] },
     beforeNote: "This is the state production reaches at the end of the v16 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
@@ -77,8 +77,8 @@ export const BUNDLES = {
   // only so that each bundle's fingerprint check stays exact.
   v18: {
     out: "supabase/release-v18", after: "20261120120000", until: "20261121130000",
-    before: { private: [116, "365bcfe300a2", "10fb8e93b6cc"], public: [320, "28448708715e", "6a3a797bdb5d"] },
-    expected: { private: [119, "43c6cececcca", "6266862d9620"], public: [321, "32c8b51edcd3", "3992427182c7"] },
+    before: { private: [116, "365bcfe300a2", "644cad28a912"], public: [320, "28448708715e", "bc974d683fad"] },
+    expected: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [321, "32c8b51edcd3", "eba6a58d9dff"] },
     beforeNote: "This is the state production reaches at the end of the v17 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
@@ -87,8 +87,8 @@ export const BUNDLES = {
   // Additive, service role only, rehearsed on a replica (sql/tests/300_play_notification_inbox.sql).
   v20: {
     out: "supabase/release-v20", after: "20261121130000", until: "20261122090000",
-    before: { private: [119, "43c6cececcca", "6266862d9620"], public: [321, "32c8b51edcd3", "3992427182c7"] },
-    expected: { private: [119, "43c6cececcca", "6266862d9620"], public: [324, "39442f678587", "9c5a39a831fb"] },
+    before: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [321, "32c8b51edcd3", "eba6a58d9dff"] },
+    expected: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [324, "39442f678587", "81ad6534245e"] },
     beforeNote: "This is the state production reaches at the end of the v18 bundle (v19, the coach-places decision of PR #155, is not part of this chain).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },

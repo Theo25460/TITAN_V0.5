@@ -102,4 +102,21 @@ begin
   delete from auth.users where id = f;
   assert not exists (select 1 from private.titan_ranking_optin where user_id = f), 'erased with the account';
 end $$;
+-- The ranking follows the confirmation rule of every collective count (private.titan_confirmed_sessions): a session whose reward is
+-- held, or a session the server never stamped, adds no active day; a released hold counts again.
+do $$
+declare a uuid := current_setting('titan.fr_a')::uuid; held uuid := gen_random_uuid();
+begin
+  perform set_config('request.jwt.claims','{}',true);
+  assert (select active_days from private.titan_fair_score(a)) = 12, 'fixture: twelve counted days';
+  set local session_replication_role = replica;
+  insert into public.training_logs(id, user_id, sport, val, unit, xp, date, details)
+  values (held, a, 'running', 5, 'km', 10, pg_temp.fr_day(13), '{"serverReward":true,"effort":{"effort_minutes":60}}'),
+         (gen_random_uuid(), a, 'running', 5, 'km', 10, pg_temp.fr_day(27), '{"effort":{"effort_minutes":60}}');
+  set local session_replication_role = origin;
+  insert into private.titan_reward_holds(log_id, user_id, xp, credits, release_at) values (held, a, 10, 1, now() + interval '1 day');
+  assert (select active_days from private.titan_fair_score(a)) = 12, 'a held session and an unstamped one add no active day';
+  update private.titan_reward_holds set status = 'released', settled_at = now() where log_id = held;
+  assert (select active_days from private.titan_fair_score(a)) = 13, 'the released session counts';
+end $$;
 rollback;

@@ -9,7 +9,7 @@ do $titan_guard$ begin
   end if;
 end $titan_guard$;
 -- >>> repository file, byte for byte
--- TITAN Sport excellence, lot C (integrations). Applies after 20261117170000. Additive and idempotent: two function bodies are
+-- TITAN Sport excellence, lot C (integrations). Applies after 20261117170000. Additive and idempotent: three function bodies are
 -- replaced and one pure function is added; no row is read, changed or deleted by this file, no grant is widened.
 -- NOT APPLIED TO PRODUCTION by the session that wrote it: it needs the owner's release approval (docs/SPORT_EXCELLENCE.md).
 --
@@ -23,8 +23,15 @@ end $titan_guard$;
 --    A sport whose catalogue unit is « m » now receives metres.
 -- 3. titan_archive_imported_v1 refused the source 'archive' (the Strava history import, 20261117140000), although that migration
 --    documents archiving it « like other sources ». It is accepted now; nothing else changes (owner only, rate limit, imported only).
--- Rollback: re-apply private.titan_import_core from 20261114180000_v131_import_dedupe.sql and titan_archive_imported_v1 from
--- 20261028110000_garmin_link.sql; drop private.titan_sport_dedupe_group(text).
+-- 4. Archiving a source is ONE server statement, but the training trigger (private.titan_limit_training_mutation, 20261019122259)
+--    charged every archived row to the player's edit budget (120 an hour, 600 a day): archiving more than 120 imported sessions (a
+--    history import alone may bring 300) raised TRAINING_RATE_LIMIT and rolled everything back. titan_archive_imported_v1 now announces
+--    itself with a transaction-local setting (titan.bulk_archive, the pattern of titan.billing_write), restored right after its UPDATE,
+--    and the trigger lets that archive through without stamping the budget. Only an archive (archived_at set from null) of that one
+--    statement is exempt; archiving grants nothing, and the call keeps its own limit of 10 an hour.
+-- Rollback: re-apply private.titan_import_core from 20261114180000_v131_import_dedupe.sql, titan_archive_imported_v1 from
+-- 20261028110000_garmin_link.sql and private.titan_limit_training_mutation from 20261019122259_training_mutation_rate_limits.sql;
+-- drop private.titan_sport_dedupe_group(text).
 
 create or replace function private.titan_sport_dedupe_group(p_sport text)
 returns text
@@ -118,6 +125,56 @@ $function$;
 
 revoke all on function private.titan_import_core(uuid, text, text, text, timestamptz, numeric, numeric) from public, anon, authenticated;
 
+-- The training mutation budget of 20261019122259, body unchanged but for the second line: the bulk archive of
+-- titan_archive_imported_v1 (setting titan.bulk_archive, transaction-local, set only by that function around its UPDATE) is not charged.
+create or replace function private.titan_limit_training_mutation()
+returns trigger language plpgsql security definer set search_path = '' as $function$
+declare
+  u uuid := auth.uid();
+  a text;
+  stamps timestamptz[];
+  at_time timestamptz;
+  hour_count integer;
+  day_count integer;
+  hour_limit integer;
+  day_limit integer;
+begin
+  if auth.role() is distinct from 'authenticated' or u is null or u <> new.user_id then return null; end if;
+  if tg_op = 'UPDATE' and coalesce(current_setting('titan.bulk_archive', true), '') = 'imported'
+     and old.archived_at is null and new.archived_at is not null then return null; end if;
+  a := case when tg_op = 'UPDATE' then 'update'
+    when coalesce(new.details ->> 'historical', 'false') = 'true' and new.xp = 0 then 'history'
+    else 'create' end;
+  hour_limit := case a when 'create' then 12 when 'update' then 120 else 300 end;
+  day_limit := case a when 'create' then 40 when 'update' then 600 else 300 end;
+
+  -- The conflict and row lock serialize even simultaneous first mutations. Each following
+  -- query gets the current READ COMMITTED snapshot, so the final allowance is not shared.
+  insert into private.titan_training_rate_state(user_id, action) values (u, a) on conflict do nothing;
+  select times into stamps from private.titan_training_rate_state where user_id=u and action=a for update;
+  at_time := clock_timestamp(); -- after waiting, never caller-supplied or transaction-start time
+  select coalesce(array_agg(t order by t), '{}'::timestamptz[]), count(*)::integer,
+    count(*) filter (where t > at_time - interval '1 hour')::integer
+    into stamps, day_count, hour_count
+    from unnest(stamps) t where t > at_time - interval '24 hours';
+  if hour_count >= hour_limit or day_count >= day_limit then
+    -- A table INSERT followed by RAISE EXCEPTION would disappear on rollback. LOG is outside
+    -- transaction rollback. Only these structured fields are emitted, never the activity payload.
+    raise log 'TITAN_TRAINING_RATE_LIMIT owner=% action=% hour=% day=%', u, a, hour_count, day_count;
+    raise exception 'TRAINING_RATE_LIMIT' using errcode='23514', hint='Retry after the rolling quota window expires.';
+  end if;
+  update private.titan_training_rate_state set times=array_append(stamps, at_time), updated_at=at_time
+    where user_id=u and action=a;
+  -- One low-severity observation at a full budget, not a ban or an invalid-performance verdict.
+  if hour_count + 1 = hour_limit or day_count + 1 = day_limit then
+    perform public.titan_log_suspicious_action(u, 'training_mutation.budget', 'low', 'TRAINING_MUTATION_BUDGET_REACHED',
+      jsonb_build_object('operation', a, 'hour_count', hour_count+1, 'day_count', day_count+1,
+        'hour_limit', hour_limit, 'day_limit', day_limit));
+  end if;
+  return null;
+end $function$;
+revoke all on function private.titan_limit_training_mutation() from public, anon, authenticated;
+
 create or replace function public.titan_archive_imported_v1(p_source text)
 returns integer
 language plpgsql
@@ -127,14 +184,18 @@ as $function$
 declare
   v_uid uuid := auth.uid();
   v_n integer;
+  v_bulk text := current_setting('titan.bulk_archive', true);
 begin
   if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
   if p_source is null or p_source not in ('health_connect', 'garmin', 'archive') then raise exception 'SOURCE_UNKNOWN' using errcode = '22023'; end if;
   perform private.titan_rate_limit(v_uid, 'source_archive', 10);
+  -- One server statement archives the whole source: its rows are not charged one by one to the edit budget (header, point 4).
+  perform set_config('titan.bulk_archive', 'imported', true);
   update public.training_logs l set archived_at = now()
    where l.user_id = v_uid and l.archived_at is null
      and l.id in (select i.log_id from private.titan_imported_activities i where i.user_id = v_uid and i.source = p_source and i.status = 'imported');
   get diagnostics v_n = row_count;
+  perform set_config('titan.bulk_archive', coalesce(v_bulk, ''), true);
   return v_n;
 end;
 $function$;
