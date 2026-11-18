@@ -42,6 +42,7 @@ export function PrivacyScreen() {
         {ITEMS.map(([key, label, hint], i) => (
           <ToggleRow
             key={key}
+            testID={`privacy-${key}`}
             label={label}
             hint={hint}
             value={privacy[key] === true}

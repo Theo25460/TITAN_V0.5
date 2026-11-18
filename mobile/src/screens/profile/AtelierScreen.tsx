@@ -5,7 +5,7 @@ import { Alert } from "../../components/Dialog";
 import { Avatar } from "../../components/Avatar";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
-import { Chip } from "../../components/Chip";
+import { Sheet } from "../../components/Sheet";
 import { ProgressBar } from "../../components/Progress";
 import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
@@ -26,6 +26,32 @@ import { colors, radius, space } from "../../theme/tokens";
 type Slot = "frame" | "map" | "card";
 const SLOT_LABEL: Record<Slot, string> = { frame: "Cadres", map: "Ambiances", card: "Cartes" };
 
+function statusOf(item: api.AtelierItem, equipped: boolean) {
+  if (equipped) return "Équipé";
+  if (item.owned) return "Dans ta collection";
+  if (item.unlock === "credits") return `${Format.number(item.price)} crédits`;
+  if (item.unlock === "rank") return `Récompense du niveau ${item.min_level}`;
+  if (item.unlock === "plus") return "TITAN+ · bientôt";
+  return "À débloquer";
+}
+
+function Piece({ item, avatar, level, large = false }: { item: api.AtelierItem; avatar?: string | null; level: number; large?: boolean }) {
+  const card = CARD_STYLES[item.cosmetic];
+  const overlay = MAP_OVERLAYS[item.cosmetic];
+  return (
+    <View style={[styles.preview, large && { height: 164 }]} importantForAccessibility="no-hide-descendants">
+      {item.slot === "frame" ? <Avatar id={avatar} frame={item.cosmetic} size={large ? 116 : 58} />
+        : item.slot === "map" ? <View style={styles.mapPrev}>
+          <Image source={worldImages.valley} style={styles.mapArt} resizeMode="cover" accessibilityIgnoresInvertColors />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: overlay?.color, opacity: overlay?.opacity ?? 0 }]} />
+        </View> : <View style={[styles.cardPrev, large && { width: "85%", height: 128, padding: 16 }, { backgroundColor: card?.bg, borderColor: card?.line }]}>
+          <T variant="caption" color={card?.ac}>TITAN</T>
+          <T variant={large ? "h2" : "bodyStrong"} color={card?.tx}>Niv. {level}</T>
+        </View>}
+    </View>
+  );
+}
+
 /** Cosmetics only, bought with credits earned by training; possession and appearance are decided by the server. */
 export function AtelierScreen() {
   const owner = useOwner();
@@ -36,6 +62,7 @@ export function AtelierScreen() {
   const online = useOnline();
   const [slot, setSlot] = useState<Slot>("frame");
   const [busy, setBusy] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const a = q.data;
 
   async function refresh() {
@@ -56,7 +83,7 @@ export function AtelierScreen() {
   }
 
   function buy(item: api.AtelierItem) {
-    Alert.alert(`Obtenir « ${item.name} » ?`, `${Format.number(item.price)} crédits gagnés par tes séances. Purement visuel : aucun avantage sportif ni de classement.`, [
+    Alert.alert(`Obtenir « ${item.name} » ?`, `${Format.number(item.price)} crédits pour ajouter cette pièce à ta collection et l’équiper. Purement visuel : aucun avantage sportif ni de classement.`, [
       { text: "Annuler", style: "cancel" },
       {
         text: `Échanger ${item.price} crédits`,
@@ -87,6 +114,8 @@ export function AtelierScreen() {
 
   const items = a.items.filter((i) => i.slot === slot);
   const equipped = a.appearance?.[slot];
+  const piece = items.find(item => item.id === selected);
+  const level = adventure?.level ?? a.level;
 
   return (
     <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
@@ -111,45 +140,13 @@ export function AtelierScreen() {
         <View style={styles.grid}>
           {items.map((item) => {
             const isOn = equipped === item.cosmetic;
-            const lockedRank = item.unlock === "rank" && !item.owned && (adventure?.level ?? a.level) < item.min_level;
-            const plusOnly = item.unlock === "plus" && !item.owned;
+            const status = statusOf(item, isOn);
             return (
-              <Card key={item.id} style={[styles.item, isOn && { borderColor: colors.cy }]}>
-                <View style={styles.preview}>
-                  {slot === "frame" ? (
-                    <Avatar id={adventure?.avatar} frame={item.cosmetic} size={58} />
-                  ) : slot === "map" ? (
-                    <View style={styles.mapPrev}>
-                      <Image source={worldImages.valley} style={styles.mapArt} resizeMode="cover" accessibilityIgnoresInvertColors />
-                      <View style={[StyleSheet.absoluteFill, { backgroundColor: MAP_OVERLAYS[item.cosmetic]?.color, opacity: MAP_OVERLAYS[item.cosmetic]?.opacity ?? 0 }]} />
-                    </View>
-                  ) : (
-                    <View style={[styles.cardPrev, { backgroundColor: CARD_STYLES[item.cosmetic]?.bg, borderColor: CARD_STYLES[item.cosmetic]?.line }]}>
-                      <T variant="caption" color={CARD_STYLES[item.cosmetic]?.ac}>
-                        TITAN
-                      </T>
-                      <T variant="bodyStrong" color={CARD_STYLES[item.cosmetic]?.tx}>
-                        Niv. {adventure?.level ?? a.level}
-                      </T>
-                    </View>
-                  )}
-                </View>
-                <T variant="bodyStrong" numberOfLines={1}>
-                  {item.name}
-                </T>
-                {isOn ? (
-                  <Chip label="Équipé" tone="ok" icon="check" />
-                ) : item.owned ? (
-                  <Button small kind="secondary" label="Équiper" loading={busy === item.id} disabled={!online || !!busy} onPress={() => equip(item)} />
-                ) : item.unlock === "credits" ? (
-                  <Button small kind="amber" label={`${Format.number(item.price)} cr.`} loading={busy === item.id} disabled={!online || !!busy || a.credits < item.price} onPress={() => buy(item)} accessibilityHint={a.credits < item.price ? `Il te manque ${item.price - a.credits} crédits` : undefined} />
-                ) : lockedRank ? (
-                  <T variant="caption" tone="faint">Niveau {item.min_level}</T>
-                ) : plusOnly ? (
-                  <T variant="caption" tone="faint">TITAN+ · bientôt</T>
-                ) : (
-                  <T variant="caption" tone="faint">À débloquer</T>
-                )}
+              <Card key={item.id} style={styles.item} onPress={() => setSelected(item.id)}
+                testID={`atelier-preview-${item.id}`} accessibilityLabel={`${item.name}. ${status}. Voir l’aperçu`}>
+                <Piece item={item} avatar={adventure?.avatar} level={level} />
+                <T variant="bodyStrong">{item.name}</T>
+                <T variant="caption" tone={isOn ? "accent" : "muted"}>{status}</T>
               </Card>
             );
           })}
@@ -158,6 +155,25 @@ export function AtelierScreen() {
       <T variant="caption" tone="faint">
         Catalogue permanent, sans rotation ni compte à rebours. Les cadres de rang se gagnent en progressant.
       </T>
+      {piece ? (
+        <Sheet visible onClose={() => setSelected(null)} title={piece.name}>
+          <Piece item={piece} avatar={adventure?.avatar} level={level} large />
+          <T variant="bodyStrong">{statusOf(piece, equipped === piece.cosmetic)}</T>
+          {piece.description ? <T variant="small">{piece.description}</T> : null}
+          {!online ? <T tone="warn">Connecte-toi pour modifier ta collection.</T> : null}
+          {equipped !== piece.cosmetic && (piece.owned ? (
+            <Button label="Équiper" disabled={!online || !!busy} loading={busy === piece.id} onPress={() => void equip(piece)} />
+          ) : piece.unlock === "credits" ? (
+            <>
+              <T variant="small">{a.credits < piece.price
+                ? `Encore ${Format.number(piece.price - a.credits)} crédits à gagner en séance.`
+                : `Solde après échange · ${Format.number(a.credits - piece.price)} crédits`}</T>
+              <Button kind="amber" label={`Obtenir pour ${Format.number(piece.price)} crédits`} disabled={!online || !!busy || a.credits < piece.price}
+                onPress={() => { setSelected(null); buy(piece); }} />
+            </>
+          ) : null)}
+        </Sheet>
+      ) : null}
     </Screen>
   );
 }
@@ -169,5 +185,5 @@ const styles = StyleSheet.create({
   mapPrev: { width: "100%", height: "100%", borderRadius: radius.r2, overflow: "hidden" },
   // A bundled image carries its own pixel size in its style: without an explicit size the painting is not scaled to its box.
   mapArt: { ...StyleSheet.absoluteFill, width: "100%", height: "100%" },
-  cardPrev: { width: 110, height: 70, borderRadius: 10, borderWidth: 1, padding: 8, justifyContent: "space-between" },
+  cardPrev: { maxWidth: "100%", width: 110, height: 70, borderRadius: 10, borderWidth: 1, padding: 8, justifyContent: "space-between" },
 });

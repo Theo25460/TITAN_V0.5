@@ -30,7 +30,10 @@ const metrics = { frame: { x: 0, y: 0, width: 360, height: 740 }, insets: { top:
 
 async function exchange() {
   render(<SafeAreaProvider initialMetrics={metrics}><AtelierScreen /></SafeAreaProvider>);
-  fireEvent.press(screen.getByText("120 cr."));
+  fireEvent.press(screen.getByTestId("atelier-preview-frame-ember"));
+  expect(screen.getByText("Solde après échange · 180 crédits")).toBeTruthy();
+  expect(mockPurchase).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByText("Obtenir pour 120 crédits"));
   expect(mockAlert).toHaveBeenCalledTimes(1);
   const [title, body, buttons] = mockAlert.mock.calls[0] as [string, string, { text: string; onPress?: () => Promise<void> }[]];
   expect(title).toBe("Obtenir « Cadre Braise » ?");
@@ -63,4 +66,33 @@ test("a refused exchange never tries to put the piece on and explains the refusa
   await exchange();
   expect(mockAppearance).not.toHaveBeenCalled();
   expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({ kind: "err", title: "Échange impossible" }));
+});
+
+test("le solde insuffisant permet l’essayage et explique le chemin restant", () => {
+  mockAtelier.credits = 20;
+  try {
+    render(<SafeAreaProvider initialMetrics={metrics}><AtelierScreen /></SafeAreaProvider>);
+    fireEvent.press(screen.getByTestId("atelier-preview-frame-ember"));
+    expect(screen.getByText("Encore 100 crédits à gagner en séance.")).toBeTruthy();
+    fireEvent.press(screen.getByText("Obtenir pour 120 crédits"));
+    expect(mockAlert).not.toHaveBeenCalled();
+    expect(mockPurchase).not.toHaveBeenCalled();
+  } finally {
+    mockAtelier.credits = 300;
+  }
+});
+
+test("une pièce acquise s’équipe sans second échange", async () => {
+  item.owned = true;
+  try {
+    mockAppearance.mockResolvedValue(undefined);
+    render(<SafeAreaProvider initialMetrics={metrics}><AtelierScreen /></SafeAreaProvider>);
+    fireEvent.press(screen.getByTestId("atelier-preview-frame-ember"));
+    await act(async () => { fireEvent.press(screen.getByText("Équiper")); });
+    expect(mockPurchase).not.toHaveBeenCalled();
+    expect(mockAppearance).toHaveBeenCalledWith("owner-a", "frame", item.id);
+    expect(mockToast).toHaveBeenCalledWith({ kind: "ok", title: "Cadre Braise équipé" });
+  } finally {
+    item.owned = false;
+  }
 });
