@@ -17,41 +17,64 @@
   const valid = /^[0-9a-f]{64}$/.test(token);
   let busy = false;
 
+  const icon = (n) => window.titanIcon(n);
   const show = (html) => { const el = root(); if (!el) return; el.innerHTML = html; el.setAttribute("aria-busy", "false"); };
-  const invalid = (message = ERRORS.LINK_INVALID) => show(`<div class="asc-empty" data-defi-invalid><h2>Lien indisponible</h2><p>${esc(message)}</p><a class="asc-btn asc-btn-secondary" href="/aujourdhui">Aller au QG</a></div>`);
+  const invalid = (message = ERRORS.LINK_INVALID) => show(`<div class="sig-empty df-invalid" data-defi-invalid>${icon("link")}<h2>Lien indisponible</h2><p>${esc(message)}</p><a class="asc-btn asc-btn-secondary" href="/aujourdhui">Aller au QG</a></div>`);
   const signedIn = () => { const id = window.state?.user?.id; return !!id && !String(id).startsWith("guest_"); };
   const when = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }); };
   const next = () => encodeURIComponent(`/defi?t=${token}`);
+  const heading = (text) => { const h = document.querySelector(".asc-page-head h1"); if (h) h.textContent = text; };
+  /* Each route of the Grande Cordée crosses one world of the Adventure: its painting is the first thing a guest sees. */
+  const VIEW = { aube: "valley", marees: "archipelago", forge: "forge", aurores: "aurora" };
+
+  /* What the page asks of whoever opened the link: join on a tap when signed in; otherwise an account first, then back here. */
+  const actionsHtml = (label) => signedIn()
+    ? `<div class="asc-actions df-actions"><button type="button" class="asc-btn asc-btn-primary" data-defi-join>${label}</button></div>`
+    : `<div class="df-actions"><div class="asc-actions"><a class="asc-btn asc-btn-primary" href="/login?mode=signup&next=${next()}" data-defi-signup>Créer un compte</a><a class="asc-btn asc-btn-secondary" href="/login?next=${next()}" data-defi-login>Se connecter</a></div>
+        <p class="asc-small asc-muted">Pour rejoindre, connecte-toi ou crée un compte : tu reviendras ici ensuite. Ouvrir cette page ne t’engage à rien.</p></div>`;
+  const privacyHtml = (text) => `<p class="cm-privacy">${icon("eye")}<span><strong>Ce que les autres verront :</strong> ${text}</span></p>`;
 
   /* Social lot C: a Grande Cordée link says what it is — a common goal across sports — still without any name. */
-  function renderCordee(p, actions) {
+  function renderCordee(p) {
     const C = window.TitanCordee;
     const route = C?.ROUTES?.[p.route];
     const pace = C?.PACES?.[p.pace];
-    show(`<section class="asc-panel qg-steps-card" data-defi-card data-defi-cordee><p class="asc-eyebrow">Grande Cordée</p><h2>${esc(p.title)}</h2>
-      ${route ? `<p>${esc(route.intro)}</p>` : ""}
-      <p>Un objectif commun, chacun avec son sport : <strong>${esc(window.TitanFormat.number(p.target))} longueurs</strong> par membre${pace ? ` (allure ${esc(pace.label.toLowerCase())})` : ""}, avant le <strong>${esc(when(p.endsAt))}</strong>.</p>
-      <p class="asc-small asc-muted">Un jour avec 12 minutes d’effort confirmé apporte une longueur, 35 minutes deux. Chaque nouvelle famille de sport ouvre des longueurs en plus. ${Number(p.participants) > 1 ? `${Number(p.participants)} membres déjà.` : "Un membre pour l’instant."}</p>
-      <p class="asc-small asc-faint">En rejoignant, ton pseudo et tes longueurs sont visibles des membres qui sont tes amis et de la personne qui t’a invité ; les autres voient « Membre de la cordée ». Ni XP ni crédit : un titre au sommet. Tu peux quitter à tout moment.</p>
-      ${actions}<p class="asc-small" role="status" data-defi-notice hidden></p></section>`);
+    const view = VIEW[p.route];
+    heading("Une cordée t’attend");
+    show(`<article class="sig-plate df-card" data-defi-card data-defi-cordee>
+      ${view ? `<div class="cm-cordee-view"><img src="/assets/renaissance/${view}-small.webp" srcset="/assets/renaissance/${view}-xs.webp 480w, /assets/renaissance/${view}-small.webp 800w" sizes="(min-width: 960px) 720px, 100vw" alt="" width="800" height="450" decoding="async"></div>` : ""}
+      <div class="df-top${view ? " is-over" : ""}"><p class="asc-eyebrow">Grande Cordée · invitation</p><h2>${esc(p.title)}</h2>
+        ${route ? `<p class="cm-cordee-intro">${esc(route.intro)}</p>` : ""}</div>
+      <div class="df-body">
+        <p class="df-goal">Un objectif commun, chacun avec son sport : <strong>${esc(window.TitanFormat.number(p.target))} longueurs</strong> par membre${pace ? ` (allure ${esc(pace.label.toLowerCase())})` : ""}, avant le <strong>${esc(when(p.endsAt))}</strong>.</p>
+        <ul class="df-facts">
+          <li>${icon("group")}<span>${Number(p.participants) > 1 ? `${Number(p.participants)} membres déjà.` : "Un membre pour l’instant."} Personne n’atteint le sommet seul.</span></li>
+          <li>${icon("clock")}<span>Un jour avec 12 minutes d’effort confirmé apporte une longueur, 35 minutes deux. Chaque nouvelle famille de sport ouvre des longueurs en plus.</span></li>
+          <li>${icon("medal")}<span>Ni XP ni crédit : un titre au sommet. Tu peux quitter à tout moment.</span></li>
+        </ul>
+        ${route ? `<ol class="cm-cordee-camps df-camps" aria-label="Les quatre camps de la route" style="--pn:0"><li class="cm-cordee-start" aria-hidden="true"><span class="cm-cordee-camp-dot"></span><span class="cm-cordee-camp-text"><small>Départ</small></span></li>${route.camps.map(([name], i) => `<li data-reached="false"${i === 3 ? ' data-summit="true"' : ""}><span class="cm-cordee-camp-dot" aria-hidden="true">${i === 3 ? icon("flag") : i + 1}</span><span class="cm-cordee-camp-text"><strong>${esc(name)}</strong><small>${i === 3 ? "Sommet" : `Camp à ${(i + 1) * 25} %`}</small></span></li>`).join("")}</ol>` : ""}
+        ${privacyHtml("En rejoignant, ton pseudo et tes longueurs sont visibles des membres qui sont tes amis et de la personne qui t’a invité ; les autres voient « Membre de la cordée ».")}
+        ${actionsHtml("S’encorder")}<p class="asc-small df-notice" role="status" data-defi-notice hidden></p>
+      </div></article>`);
   }
 
   function render(p) {
-    if (p.kind === "cordee") return renderCordee(p, signedIn()
-      ? `<button type="button" class="asc-btn asc-btn-primary" data-defi-join>S’encorder</button>`
-      : `<p class="asc-small asc-muted">Pour rejoindre, connecte-toi ou crée un compte : tu reviendras ici ensuite.</p>
-         <div class="asc-actions"><a class="asc-btn asc-btn-primary" href="/login?next=${next()}" data-defi-login>Se connecter</a><a class="asc-btn asc-btn-secondary" href="/login?mode=signup&next=${next()}" data-defi-signup>Créer un compte</a></div>`);
+    if (p.kind === "cordee") return renderCordee(p);
     const metric = METRICS[p.metric] || p.metric;
     const sport = p.sport ? ` en ${esc(window.TitanSports?.label?.(p.sport) || p.sport)}` : "";
-    const actions = signedIn()
-      ? `<button type="button" class="asc-btn asc-btn-primary" data-defi-join>Rejoindre le défi</button>`
-      : `<p class="asc-small asc-muted">Pour rejoindre, connecte-toi ou crée un compte : tu reviendras ici ensuite.</p>
-         <div class="asc-actions"><a class="asc-btn asc-btn-primary" href="/login?next=${next()}" data-defi-login>Se connecter</a><a class="asc-btn asc-btn-secondary" href="/login?mode=signup&next=${next()}" data-defi-signup>Créer un compte</a></div>`;
-    show(`<section class="asc-panel qg-steps-card" data-defi-card><p class="asc-eyebrow">Défi entre amis</p><h2>${esc(p.title)}</h2>
-      <p>Atteindre <strong>${esc(window.TitanFormat.number(p.target))} ${esc(metric)}</strong>${sport}, avant le <strong>${esc(when(p.endsAt))}</strong>.</p>
-      <p class="asc-small asc-muted">${Number(p.participants) > 1 ? `${Number(p.participants)} participants déjà.` : "Un participant pour l’instant."} Sans mise : ni XP ni crédit à gagner, le plaisir de se défier.</p>
-      <p class="asc-small asc-faint">En rejoignant, ton nom d’utilisateur et ta progression sur ce défi sont visibles des participants. Rien d’autre. Tu peux quitter le défi à tout moment.</p>
-      ${actions}<p class="asc-small" role="status" data-defi-notice hidden></p></section>`);
+    heading("Un défi t’attend");
+    show(`<article class="sig-plate is-relief df-card" data-defi-card>
+      <div class="df-top"><p class="asc-eyebrow">Défi entre amis · invitation</p><h2>${esc(p.title)}</h2></div>
+      <div class="df-body">
+        <p class="df-goal">Atteindre <strong>${esc(window.TitanFormat.number(p.target))} ${esc(metric)}</strong>${sport}, avant le <strong>${esc(when(p.endsAt))}</strong>.</p>
+        <ul class="df-facts">
+          <li>${icon("group")}<span>${Number(p.participants) > 1 ? `${Number(p.participants)} participants déjà.` : "Un participant pour l’instant."}</span></li>
+          <li>${icon("heart")}<span>Sans mise : ni XP ni crédit à gagner, le plaisir de se défier.</span></li>
+          <li>${icon("clock")}<span>Effort plafonné à 90 min par jour ; seules les séances ajoutées après ton arrivée comptent. Tu peux quitter le défi à tout moment.</span></li>
+        </ul>
+        ${privacyHtml("En rejoignant, ton nom d’utilisateur et ta progression sur ce défi sont visibles des participants. Rien d’autre.")}
+        ${actionsHtml("Rejoindre le défi")}<p class="asc-small df-notice" role="status" data-defi-notice hidden></p>
+      </div></article>`);
   }
 
   async function join() {
@@ -59,7 +82,10 @@
     busy = true;
     const notice = document.querySelector("[data-defi-notice]");
     const button = document.querySelector("[data-defi-join]");
-    if (button) button.disabled = true;
+    const label = button?.textContent || "";
+    const release = () => { if (button) { button.disabled = false; button.removeAttribute("aria-busy"); button.textContent = label; } };
+    if (button) { button.disabled = true; button.setAttribute("aria-busy", "true"); button.textContent = "Un instant…"; }
+    if (notice) notice.hidden = true;
     try {
       const client = window.titanClient || (await window.waitForTitanSupabase?.(8000));
       const { error } = await client.rpc("titan_challenge_link_accept_v1", { p_token: token });
@@ -67,7 +93,7 @@
         const code = Object.keys(ERRORS).find((k) => String(error.message || "").includes(k));
         if (code === "LINK_INVALID") return invalid();
         if (notice) { notice.hidden = false; notice.textContent = code ? ERRORS[code] : "Impossible pour l’instant. Réessaie dans un moment."; }
-        if (button) button.disabled = false;
+        release();
         return;
       }
       const cordee = !!document.querySelector("[data-defi-cordee]");
@@ -75,7 +101,7 @@
       location.assign(cordee ? "/social#cordee" : "/social#defis");
     } catch {
       if (notice) { notice.hidden = false; notice.textContent = "Impossible pour l’instant. Réessaie dans un moment."; }
-      if (button) button.disabled = false;
+      release();
     } finally { busy = false; }
   }
 

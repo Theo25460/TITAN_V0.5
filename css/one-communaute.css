@@ -1,0 +1,811 @@
+/* =====================================================================
+   TITAN ONE « Signature » — Communauté et fonctionnalités sociales.
+   Loaded after signature.css by social.html, defi.html, coaching.html and
+   athlete.html. Tokens of ascension.css and the four ideas of the
+   Signature layer only (la coupe, le relief, l'objet, le passage).
+
+   The Communauté has one spine:
+   1. who is with me      — the circle, faces on the coral field;
+   2. what we do together — one scene featured, the others one tap away;
+   3. what happened       — since the last visit, then Moments;
+   4. the circle to manage — what friends see, invite, sent, blocks.
+   ===================================================================== */
+
+/* ---------- 1. The circle on the coral field ---------- */
+.cm-head > div { width: 100%; }
+.cm-circle {
+  display: grid;
+  align-content: start;
+  gap: var(--s2);
+  /* The strip's height is held from the first paint: the page under it does not move when the server answers. */
+  min-height: 122px;
+  margin: var(--s1) 0 0;
+  min-width: 0;
+}
+body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
+.cm-circle-line {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--space-ink);
+}
+.cm-circle-line strong { font-weight: 800; }
+.cm-rope {
+  display: flex;
+  gap: var(--s1);
+  margin: 0 calc(-1 * var(--pad));
+  padding: var(--s1) var(--pad) var(--s2);
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.cm-rope::-webkit-scrollbar { display: none; }
+.cm-rope > li { flex: none; }
+.cm-face {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 68px;
+  padding: var(--s1) 0;
+  border: 0;
+  border-radius: var(--r2);
+  background: none;
+  color: var(--space-ink);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cm-face-img {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--space-ink);
+  background: var(--space-ink);
+  transition: transform var(--t-fast) var(--ease);
+}
+.cm-face-img img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.cm-face:hover .cm-face-img { transform: translateY(-2px); }
+.cm-face:active .cm-face-img { transform: scale(0.94); }
+/* Active today: a filled mark on the face; the line above and the name of the button say it in words. */
+.cm-face-on {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 2px var(--space-ink);
+}
+.cm-face-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.cm-face-add .cm-face-img {
+  background: transparent;
+  box-shadow: none;
+  border: 2px dashed var(--space-ink);
+}
+.cm-face-add .t-icon { width: 22px; height: 22px; }
+@media (min-width: 960px) {
+  .cm-rope { margin: 0; padding-left: 0; padding-right: 0; flex-wrap: wrap; overflow: visible; }
+}
+
+/* ---------- 2. The spine ---------- */
+#communaute[data-state="ready"] {
+  display: grid;
+  gap: var(--s8);
+}
+.cm-col {
+  display: grid;
+  align-content: start;
+  gap: var(--s8);
+  min-width: 0;
+}
+.cm-col > *,
+.cm-col .asc-section { min-width: 0; margin-top: 0; }
+.cm-col > [hidden] { display: none; }
+@media (min-width: 1100px) {
+  /* Left: what we do together and what happened. Right: the circle and what is optional. */
+  #communaute[data-state="ready"] {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    column-gap: var(--s9);
+    align-items: start;
+  }
+}
+#communaute .asc-btn { min-height: 44px; }
+.cm-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: var(--s2) 0;
+}
+.cm-progress::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--space);
+}
+#communaute [aria-busy="true"]:where(button) { opacity: 0.72; }
+.cm-down { margin-bottom: var(--s6); }
+.cm-down h2 { margin: 0; font-size: 21px; }
+
+/* Who knocks: requests and an opened invitation, answered with one thumb. */
+.cm-door {
+  display: grid;
+  gap: var(--s4);
+  padding: var(--s4);
+  border-radius: var(--r3);
+  background: var(--space-field);
+}
+.cm-door h2 {
+  margin: 0;
+  font-size: 19px;
+  color: var(--space-hi);
+}
+.cm-requests { display: grid; gap: var(--s2); margin: 0; }
+.cm-requests .asc-list { margin-top: var(--s1); }
+.cm-request { flex-wrap: wrap; row-gap: var(--s2); }
+.cm-request .asc-row-main { flex: 1 1 9rem; }
+.cm-request .asc-row-title { white-space: normal; overflow-wrap: anywhere; }
+.cm-request .cm-actions { margin-left: auto; }
+.cm-request .cm-actions .asc-btn { min-width: 96px; }
+@media (max-width: 559px) {
+  .cm-requests .cm-request .cm-actions { flex: 1 1 100%; padding-left: 52px; }
+  .cm-requests .cm-request .cm-actions .asc-btn { flex: 1 1 0; }
+}
+.cm-invitation.cm-request {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+}
+.cm-invitation .cm-avatar img { width: 56px; height: 56px; border-radius: 50%; }
+.cm-invitation h2 { font-size: 19px; line-height: 1.2; color: var(--tx); white-space: normal; }
+.cm-invitation .asc-row-sub { white-space: normal; }
+.cm-invitation .cm-actions { flex: 1 1 100%; }
+.cm-invitation .cm-actions .asc-btn { flex: 1 1 0; }
+.cm-door > .asc-note { background: transparent; padding: 0; }
+
+/* ---------- 3. The scene ---------- */
+.cm-live { display: grid; gap: var(--s4); min-width: 0; }
+.cm-live > .asc-section-head { margin-bottom: 0; }
+.cm-live-nav {
+  display: flex;
+  gap: var(--s2);
+  margin: 0 calc(-1 * var(--pad));
+  padding: 2px var(--pad);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  min-height: 60px;
+}
+.cm-live-nav::-webkit-scrollbar { display: none; }
+.cm-live-tab {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 56px;
+  padding: var(--s2) var(--s4) var(--s2) var(--s3);
+  border-radius: var(--r2) var(--r2) 0 var(--r2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-sm)), calc(100% - var(--cut-sm)) 100%, 0 100%);
+  background: var(--bg-2);
+  color: var(--tx);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), transform 90ms var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.cm-live-tab:hover { background: var(--bg-3); }
+.cm-live-tab:active { transform: scale(0.975); }
+.cm-live-tab:focus-visible { outline-offset: -3px; }
+.cm-live-tab > .t-icon { flex: none; width: 20px; height: 20px; color: var(--space); }
+.cm-live-tab-text { display: grid; gap: 1px; min-width: 0; }
+.cm-live-tab-text strong {
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+.cm-live-tab-status {
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--tx-2);
+  white-space: nowrap;
+}
+.cm-live-tab-status.cm-attention { color: var(--space-hi); font-weight: 700; }
+.cm-live-tab-status.cm-attention::before { content: "● "; font-size: 9px; vertical-align: 1px; }
+.cm-live-tab[aria-current="true"] {
+  background: var(--space);
+  color: var(--space-ink);
+}
+.cm-live-tab[aria-current="true"] > .t-icon,
+.cm-live-tab[aria-current="true"] .cm-live-tab-status { color: var(--space-ink); }
+.cm-live-tab[aria-current="true"]:focus-visible { outline-color: var(--space-ink); }
+@media (min-width: 1100px) {
+  .cm-live-nav { margin: 0; padding: 2px 0; flex-wrap: wrap; overflow: visible; }
+}
+.cm-live-panel { min-width: 0; }
+.cm-live-panel:focus-within { outline: 0; }
+/* A scene that receives the focus after its tab was chosen is a place, not a control: no ring around the whole block. */
+.cm-live-panel [tabindex="-1"]:focus,
+.cm-col > [tabindex="-1"]:focus { outline: 0; }
+
+/* A scene on a plate (the expedition, the guest's welcome); a scene on the ground (challenges, guild). */
+.cm-scene {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s5);
+  scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4));
+}
+@media (min-width: 720px) { .cm-scene { padding: var(--s7); } }
+.cm-scene .asc-eyebrow { color: var(--space-hi); }
+.cm-scene-story { margin: 0; font-size: 16px; line-height: 1.55; color: var(--tx-2); max-width: 60ch; }
+.cm-exp-title { margin: 0; text-wrap: balance; }
+.cm-expedition { margin-bottom: 0; }
+.cm-exp-me { border-top-color: var(--line-2); }
+.cm-scene-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2) var(--s3);
+  min-height: 44px;
+}
+.cm-scene-head h2 {
+  margin: 0;
+  font-size: clamp(24px, 5.6vw, 30px);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+.cm-scene-plain { display: grid; gap: var(--s3); scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4)); }
+.cm-scene-plain > .asc-eyebrow { margin: 0 0 calc(-1 * var(--s2)); color: var(--space-hi); }
+.cm-scene-plain .cm-section-intro { margin: 0; }
+.cm-live .cm-challenges { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.cm-live .cm-challenge { padding: var(--s4) 0; }
+.cm-challenge[data-status="invited"] { border-top-color: var(--space-line); }
+.cm-challenge[data-status="invited"] .asc-chip { background: var(--space); color: var(--space-ink); }
+.cm-challenge[data-status="ended"] h3 { color: var(--tx-2); }
+.cm-live .cm-guild { padding: var(--s3) 0; }
+.cm-guild-forms { width: 100%; }
+.sig-empty .cm-guild-forms .cm-add { margin-bottom: 0; }
+.sig-empty .asc-row-flex { flex-wrap: wrap; }
+.cm-section .sig-empty h3,
+.cm-cordee .sig-empty h3 { font-size: 19px; }
+
+/* The Duo, drawn by binome.js with the markup of the QG: here it is the scene, on a plate. */
+.cm-duo { scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4)); }
+.cm-duo .qg-bd { margin: 0; animation: none; }
+.cm-duo .qg-bd > .asc-section-head {
+  border: 0;
+  border-image: none;
+  padding: 0;
+  margin-bottom: var(--s3);
+}
+.cm-duo .qg-bd > .asc-section-head h2 { font-size: clamp(24px, 5.6vw, 30px); line-height: 1.05; }
+.cm-duo .qg-bd > .asc-panel {
+  position: relative;
+  isolation: isolate;
+  padding: var(--s5);
+  background:
+    linear-gradient(180deg, var(--steel-hi), transparent 1px),
+    linear-gradient(165deg, var(--steel-1), var(--steel-2) 55%, var(--steel-3));
+  border-radius: var(--r3) var(--r3) 0 var(--r3);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+}
+.cm-duo .qg-bd > .asc-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--space);
+  -webkit-mask: var(--relief) right -140px top -80px / 620px auto no-repeat;
+  mask: var(--relief) right -140px top -80px / 620px auto no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.cm-duo .qg-bd > .asc-panel > p:first-child { font-size: 17px; }
+.cm-duo .qg-bd-last { display: grid; gap: var(--s2); padding-bottom: var(--s3); border-bottom: 1px solid var(--line-2); }
+@media (min-width: 720px) { .cm-duo .qg-bd > .asc-panel { padding: var(--s7); } }
+
+/* ---------- 4. La Grande Cordée ---------- */
+.cm-cordee {
+  display: grid;
+  gap: var(--s3);
+  margin-top: 0;
+  scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4));
+}
+.cm-cordee[hidden] { display: none; }
+.cm-cordee > .cm-section-intro { margin: 0; }
+.cm-cordee-list { gap: var(--s5); }
+.cm-cordee-notice .t-icon { color: var(--warn); }
+.cm-cordee-card {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+/* The view from the route: the painting of the world it crosses, fading into the steel of the plate. */
+.cm-cordee-view {
+  position: relative;
+  height: 196px;
+  overflow: hidden;
+}
+.cm-cordee-view img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  -webkit-mask-image: linear-gradient(180deg, #000 38%, transparent 97%);
+  mask-image: linear-gradient(180deg, #000 38%, transparent 97%);
+}
+.cm-cordee-view::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(13, 17, 22, 0) 30%, rgba(13, 17, 22, 0.55) 78%, rgba(13, 17, 22, 0) 100%);
+}
+.cm-cordee-card[data-status="ended"] .cm-cordee-view img { filter: grayscale(0.85) brightness(0.8); }
+.cm-cordee-top {
+  position: relative;
+  display: grid;
+  gap: var(--s2);
+  margin-top: -76px;
+  padding: 0 var(--s5);
+}
+.cm-cordee-top .asc-eyebrow { margin: 0; color: var(--space-hi); text-shadow: 0 1px 6px rgba(9, 12, 16, 0.9); }
+.cm-cordee-top .sig-state:not(.is-worn, .is-rare) { background: rgba(9, 12, 16, 0.78); color: var(--tx); }
+.cm-cordee-top .sig-state.is-rare { background: var(--am); color: var(--am-ink); }
+.cm-cordee-top .asc-between { gap: var(--s2); align-items: center; }
+.cm-cordee-card h3 {
+  margin: 0;
+  font-size: clamp(27px, 7vw, 36px);
+  line-height: 1;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.cm-cordee-intro { margin: 0; font-size: 15px; line-height: 1.5; color: var(--tx-2); max-width: 56ch; }
+.cm-cordee-body {
+  display: grid;
+  gap: var(--s6);
+  padding: var(--s5);
+}
+.cm-cordee-ascent,
+.cm-cordee-party { display: grid; align-content: start; gap: var(--s3); min-width: 0; }
+.cm-cordee-ascent p,
+.cm-cordee-party p { margin: 0; }
+.cm-cordee-figure { font-size: 21px; }
+.cm-cordee-card .asc-ascent { background: rgba(226, 234, 236, 0.12); }
+.cm-cordee-card .asc-ascent > span { background: var(--space); }
+/* The ascent: the start at the bottom, the summit at the top, the rope filled up to where the party stands.
+   Every row has the same height, so a quarter of the objective is a quarter of the rope. */
+.cm-cordee-camps {
+  --row: 52px;
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  grid-template-columns: none;
+  gap: 0;
+  margin: var(--s1) 0;
+  padding: 0;
+  list-style: none;
+}
+.cm-cordee-camps::before,
+.cm-cordee-camps::after {
+  content: "";
+  position: absolute;
+  left: 13px;
+  bottom: calc(var(--row) / 2);
+  width: 2px;
+}
+.cm-cordee-camps::before {
+  top: calc(var(--row) / 2);
+  background: repeating-linear-gradient(180deg, var(--line-3) 0 5px, transparent 5px 10px);
+}
+.cm-cordee-camps::after {
+  left: 12px;
+  width: 4px;
+  height: calc((100% - var(--row)) * var(--pn, 0));
+  border-radius: 2px;
+  background: var(--space);
+}
+.cm-cordee-camps li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  justify-items: start;
+  gap: var(--s3);
+  height: var(--row);
+  font-size: 15px;
+  line-height: 1.25;
+}
+.cm-cordee-camp-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--steel-2);
+  box-shadow: inset 0 0 0 2px var(--line-3);
+  color: var(--tx-2);
+  font-family: var(--font-display);
+  font-stretch: var(--w-figure);
+  font-size: 15px;
+  font-weight: 800;
+}
+.cm-cordee-camp-dot .t-icon { width: 15px; height: 15px; }
+.cm-cordee-camp-text { display: grid; gap: 1px; min-width: 0; }
+.cm-cordee-camp-text strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--tx-2);
+}
+.cm-cordee-camp-text small { font-size: 12.5px; color: var(--tx-3); }
+.cm-cordee-camps li[data-reached="true"] .cm-cordee-camp-dot {
+  border: 0;
+  background: var(--space);
+  box-shadow: none;
+  color: var(--space-ink);
+}
+.cm-cordee-camps li[data-reached="true"] .cm-cordee-camp-text strong { color: var(--tx); }
+.cm-cordee-camps li[data-reached="true"] .cm-cordee-camp-text small { color: var(--space-hi); font-weight: 700; }
+.cm-cordee-camps li[data-next="true"] .cm-cordee-camp-dot { box-shadow: inset 0 0 0 2px var(--space); color: var(--space-hi); }
+.cm-cordee-camps li[data-next="true"] .cm-cordee-camp-text strong { color: var(--tx); }
+/* The summit carries the cut; reached, it is amber, the colour of rare moments. */
+.cm-cordee-camps li[data-summit="true"] .cm-cordee-camp-dot {
+  border-radius: var(--r1) var(--r1) 0 var(--r1);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+  background: var(--bg-4);
+  box-shadow: none;
+}
+.cm-cordee-camps li[data-summit="true"][data-next="true"] .cm-cordee-camp-dot { background: var(--space-soft); color: var(--space-hi); }
+.cm-cordee-camps li[data-summit="true"][data-reached="true"] .cm-cordee-camp-dot { background: var(--am); color: var(--am-ink); }
+.cm-cordee-camps li[data-summit="true"][data-reached="true"] .cm-cordee-camp-text small { color: var(--am); }
+.cm-cordee-start .cm-cordee-camp-dot {
+  width: 12px;
+  height: 12px;
+  margin-left: 8px;
+  background: var(--space);
+  box-shadow: none;
+}
+.cm-cordee-summit { color: var(--am); font-weight: 700; }
+.cm-cordee-story {
+  padding-left: var(--s3);
+  border-left: 2px solid var(--space-line);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tx);
+}
+.cm-cordee-card[data-status="summited"] .cm-cordee-story { border-left-color: var(--am-line); }
+/* The roped party: one rope down the left, a knot per member; a tressed strand is a filled knot and a check. */
+.cm-cordee-party h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-size: 19px;
+  font-weight: 800;
+}
+.cm-cordee-mine { color: var(--tx); }
+.cm-cordee-members {
+  position: relative;
+  gap: 0;
+  padding-left: 0;
+}
+.cm-cordee-members::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 18px;
+  bottom: 18px;
+  width: 2px;
+  background: var(--space-line);
+}
+.cm-cordee-members li {
+  position: relative;
+  min-height: 36px;
+  padding-left: 24px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(44px, 0.8fr) auto;
+}
+.cm-cordee-members li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--steel-2);
+  box-shadow: inset 0 0 0 2px var(--space);
+}
+.cm-cordee-members li[data-strand="true"]::before { background: var(--space); }
+.cm-cordee-members li[data-me="true"] > span:first-child { font-weight: 800; }
+.cm-cordee-members li > span:first-child small { margin-left: 4px; }
+.cm-cordee-members strong { display: inline-flex; align-items: center; gap: 4px; }
+.cm-cordee-members strong .t-icon { width: 14px; height: 14px; color: var(--space); }
+.cm-cordee-together {
+  display: flex;
+  gap: var(--s2);
+  align-items: flex-start;
+  color: var(--tx-2);
+}
+.cm-cordee-together .t-icon { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--space); }
+.cm-cordee-card > .asc-actions { padding: 0 var(--s5) calc(var(--s5) + var(--s1)); padding-right: calc(var(--s5) + var(--cut)); }
+.cm-cordee-card > .asc-actions .asc-btn { min-height: 44px; }
+@media (min-width: 720px) {
+  .cm-cordee-view { height: 260px; }
+  .cm-cordee-top { margin-top: -92px; padding: 0 var(--s7); }
+  .cm-cordee-body { padding: var(--s6) var(--s7); }
+  .cm-cordee-card > .asc-actions { padding-left: var(--s7); padding-bottom: var(--s7); }
+}
+/* The route and the party stand side by side only where the plate itself is wide enough for names to be read in full. */
+.cm-cordee-card { container-type: inline-size; }
+@container (min-width: 700px) {
+  .cm-cordee-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--s7); }
+}
+.cm-rules { border-top: 1px solid var(--line-2); }
+.cm-rules summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tx-2);
+  cursor: pointer;
+}
+.cm-rules[open] summary { color: var(--tx); }
+.cm-rules p { margin: 0 0 var(--s2); max-width: 64ch; }
+
+/* ---------- 5. What happened ---------- */
+.cm-retour-section { margin-bottom: 0; }
+.cm-retour .asc-row > .t-icon:first-child { flex: none; color: var(--space); }
+.cm-retour .asc-btn { min-height: 44px; }
+.cm-moments { gap: 0; }
+.cm-moment { align-items: center; }
+.cm-moment .cm-avatar img { border-radius: 50%; }
+.cm-cheer {
+  min-height: 44px;
+  min-width: 52px;
+  justify-content: center;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), transform 90ms var(--ease);
+}
+.cm-cheer:active { transform: scale(0.92); }
+.cm-cheer:hover { color: var(--space-hi); }
+/* Encouraged: the heart is filled, and the button is pressed for a screen reader. */
+.cm-cheer[aria-pressed="true"] .t-icon { fill: currentColor; }
+
+/* ---------- 6. The circle to manage ---------- */
+.cm-amis { display: grid; gap: var(--s4); }
+.cm-amis > .asc-section-head { margin-bottom: 0; }
+.cm-privacy {
+  display: flex;
+  gap: var(--s3);
+  align-items: flex-start;
+  margin: 0;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r2);
+  background: var(--bg-2);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--tx-2);
+}
+.cm-privacy .t-icon { flex: none; margin-top: 2px; color: var(--space); }
+.cm-privacy strong { color: var(--tx); }
+.cm-privacy a { color: var(--space); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+.cm-friends .cm-avatar img { border-radius: 50%; }
+.cm-invite { display: grid; gap: 0; scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4)); }
+.cm-invite > h3,
+.cm-sent > h3 {
+  margin: 0 0 var(--s2);
+  font-size: 19px;
+}
+.cm-way { margin: 0; font-size: 14px; font-weight: 700; color: var(--tx); }
+.cm-invite .cm-code { align-items: flex-start; margin-bottom: 0; padding: var(--s3) 0; }
+.cm-invite .cm-code > div { display: grid; gap: var(--s1); min-width: 0; }
+.cm-invite .cm-code p { margin: 0; }
+.cm-invite .cm-code > .asc-btn { flex: none; }
+.cm-add[data-add-friend] {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: var(--s3) 0 var(--s4);
+  border-top: 1px solid var(--line-2);
+}
+.cm-add-row { display: flex; gap: var(--s2); }
+.cm-add-row .asc-input { flex: 1; min-width: 0; }
+.cm-sent { padding-top: var(--s3); border-top: 1px solid var(--line-2); }
+.cm-blocks { justify-self: start; margin-top: 0; }
+.cm-col-side .asc-fold-list { grid-template-columns: minmax(0, 1fr); }
+.asc-toast .cm-undo { flex: none; align-self: center; margin-left: auto; min-height: 44px; }
+
+/* ---------- 7. Not signed in ---------- */
+.cm-guest { display: grid; gap: var(--s4); padding: var(--s5); }
+.cm-guest .asc-eyebrow { color: var(--space-hi); }
+@media (min-width: 720px) { .cm-guest { padding: var(--s7); } }
+.cm-guest .cm-preview { border-color: var(--line-2); }
+
+/* ---------- 8. A challenge or a cordée opened from a link (defi.html) ----------
+   What a guest sees first: what it is, what it asks, what the others will see, then one action. Never a name. */
+.df-main > #defi { max-width: 720px; }
+.df-card {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.df-top {
+  position: relative;
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s5) var(--s5) 0;
+}
+.df-top.is-over { margin-top: -76px; padding-top: 0; }
+.df-top .asc-eyebrow { margin: 0; color: var(--space-hi); text-shadow: 0 1px 6px rgba(9, 12, 16, 0.9); }
+.df-top h2 {
+  margin: 0;
+  font-size: clamp(30px, 8vw, 44px);
+  line-height: 1;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.df-body {
+  display: grid;
+  gap: var(--s4);
+  padding: var(--s4) var(--s5) calc(var(--s5) + var(--s2));
+}
+.df-body p { margin: 0; }
+.df-goal { font-size: 18px; line-height: 1.45; }
+.df-goal strong { color: var(--space-hi); }
+.df-facts {
+  display: grid;
+  gap: var(--s3);
+  margin: 0;
+  padding: var(--s4) 0;
+  list-style: none;
+  border-top: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+}
+.df-facts li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: var(--s3);
+  align-items: start;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tx-2);
+}
+.df-facts .t-icon { width: 18px; height: 18px; margin-top: 2px; color: var(--space); }
+.df-camps { --row: 46px; margin: 0; }
+.df-card .cm-privacy { background: rgba(9, 12, 16, 0.42); }
+.df-actions { display: grid; gap: var(--s3); }
+.df-actions .asc-btn { min-height: 48px; }
+.df-notice { color: var(--warn); font-weight: 700; }
+.df-invalid h2 { margin: 0; font-size: 21px; }
+@media (max-width: 479px) {
+  .df-actions .asc-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .df-actions .asc-btn { width: 100%; }
+}
+@media (min-width: 720px) {
+  .df-top { padding: var(--s7) var(--s7) 0; }
+  .df-top.is-over { margin-top: -96px; }
+  .df-body { padding: var(--s5) var(--s7) var(--s7); }
+}
+
+/* ---------- 9. Coaching: a sharing one chose ----------
+   The first thing under the tabs is the link itself: with whom, what exactly is shared (said in words and in shape), and
+   that it can be changed or stopped. Then the conversation, the week, the proposals, and the exact list the coach reads. */
+#coaching > .asc-note { background: transparent; padding: 0; color: var(--tx-2); }
+#coaching > .asc-note .t-icon { color: var(--space); }
+#coaching .co-card {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s5);
+  border: 0;
+}
+#coaching .co-card > .asc-eyebrow { margin: 0; color: var(--space-hi); }
+#coaching .co-card .asc-between { gap: var(--s3); align-items: flex-start; }
+#coaching .co-card h3 {
+  margin: 0;
+  font-size: clamp(24px, 6vw, 32px);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+#coaching .co-card .sig-state { flex: none; margin-top: 4px; }
+.co-scope {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--line-2);
+}
+.co-scope > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: var(--s3);
+  align-items: start;
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.co-scope dt {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tx);
+}
+.co-scope dt .t-icon { flex: none; width: 16px; height: 16px; color: var(--space); }
+.co-scope dd {
+  display: grid;
+  justify-items: start;
+  gap: var(--s1);
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--tx-2);
+}
+.co-scope dd small { font-size: 12.5px; color: var(--tx-3); }
+.co-hold {
+  display: flex;
+  gap: var(--s2);
+  align-items: flex-start;
+  margin: 0;
+  color: var(--tx-2);
+}
+.co-hold .t-icon { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--space); }
+.co-hold a { color: var(--space); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+#coaching .co-card .asc-btn { min-height: 44px; }
+#co-seen { scroll-margin-top: calc(var(--topbar) + var(--safe-t) + var(--s4)); }
+#co-seen:focus { outline: 0; }
+.co-intro { display: grid; gap: var(--s4); padding: var(--s5); }
+.co-intro .asc-eyebrow { color: var(--space-hi); }
+#coaching .sig-empty h2 { margin: 0; font-size: 21px; }
+@media (min-width: 720px) {
+  #coaching .co-card,
+  .co-intro { padding: var(--s7); }
+}
+@media (min-width: 900px) {
+  /* Wide: the three things shared stand side by side, each a column under its own rule. */
+  .co-scope { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--s6); border-top: 0; }
+  .co-scope > div { grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--s2); border-top: 1px solid var(--line-2); border-bottom: 0; }
+}
+
+/* ---------- 10. The public athlete card (athlete.html) ----------
+   A plate that carries one person: the face, the name, the rank as an object, then what they chose to show. */
+.ap-hero { display: grid; gap: var(--s5); padding: var(--s5); }
+.ap-hero .asc-eyebrow { color: var(--space-hi); }
+.ap-id { align-items: center; }
+.ap-id > div { flex: 1 1 0; min-width: 0; }
+.ap-crest { --obj: 84px; margin-left: auto; }
+.ap-crest .crest { width: 100%; height: 100%; }
+.ap-hero .pf-name { overflow-wrap: anywhere; }
+.ap-shown { margin-top: var(--s4); }
+.ap-missing { justify-items: start; }
+.ap-cta {
+  border: 0;
+  border-radius: 0;
+  border-top: 2px solid var(--tx);
+  background: none;
+  padding: var(--s4) 0 0;
+}
+@media (max-width: 419px) { .ap-crest { --obj: 64px; } }
+@media (min-width: 720px) { .ap-hero { padding: var(--s7); } }
