@@ -60,7 +60,7 @@ const LINKS: { icon: IconName; label: string; route: "Journal" | "Records" | "Go
   { icon: "calendar", label: "Semaine type", route: "Plan" },
 ];
 
-function RecapCard({ recap, title, chapter, km, paused = false, local = false, grid, onNext }: { recap: Recap; title: string; chapter: WeekChapter; km: Km[]; paused?: boolean; local?: boolean; grid?: ProgramWeek; onNext: () => void }) {
+function RecapCard({ recap, title, chapter, km, paused = false, local = false, grid, onNext, onJournal }: { recap: Recap; title: string; chapter: WeekChapter; km: Km[]; paused?: boolean; local?: boolean; grid?: ProgramWeek; onNext: () => void; onJournal: () => void }) {
   const w = recap.week;
   const { comparison, story } = chapter;
   const world = story && Codex.worlds.find((item) => item.id === story.world);
@@ -114,6 +114,7 @@ function RecapCard({ recap, title, chapter, km, paused = false, local = false, g
           ))}
         </>
       ) : null}
+      {!recap.empty ? <Button small kind="secondary" icon="journal" testID={title === "Cette semaine" ? "progress-current-journal" : "progress-last-journal"} label="Voir les séances de la semaine" onPress={onJournal} /> : null}
       <Button small kind="secondary" label={chapter.next.label} onPress={onNext} />
     </Card>
   );
@@ -135,16 +136,16 @@ export function ProgressScreen() {
   const journal = useMemo(() => q.confirmed.filter((log) => !log.is_suspicious && !log.archived_at), [q.confirmed]);
   const current = useMemo(() => Progress.recap(journal, { now, goals: goals.data ?? [], current: true }), [journal, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const last = useMemo(() => Progress.recap(journal, { now, goals: goals.data ?? [] }), [journal, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
-  const series = useMemo(() => Questions.weeklySeries(active, { weeks: Number(range) }), [active, range]);
+  const series = useMemo(() => view === "trends" ? Questions.weeklySeries(active, { weeks: Number(range) }) : [], [active, range, view]);
   const month = useMemo(() => Training.summarize(active, 30), [active]);
   const kmCurrent = useMemo(() => kmBySport(journal, current.from.getTime(), current.to.getTime()), [journal, current]);
   const kmLast = useMemo(() => kmBySport(journal, last.from.getTime(), last.to.getTime()), [journal, last]);
   const kmMonth = useMemo(() => kmBySport(active, Date.now() - 30 * 86_400_000, Date.now() + 86_400_000), [active]);
-  const dna = useMemo(() => Progress.dna(active), [active]);
+  const dna = useMemo(() => view === "mastery" ? Progress.dna(active) : null, [active, view]);
   const gridCurrent = useMemo(() => Program.week(journal, { start: current.from, maxRows: 5 }), [journal, current.from]);
   const gridLast = useMemo(() => Program.week(journal, { start: last.from, maxRows: 5 }), [journal, last.from]);
-  const span = useMemo(() => Program.span(active, { weeks: 12, maxRows: 6 }), [active]);
-  const mastery = useMemo(() => Progress.mastery(active), [active]);
+  const span = useMemo(() => view === "trends" ? Program.span(active, { weeks: 12, maxRows: 6 }) : null, [active, view]);
+  const mastery = useMemo(() => view === "mastery" ? Progress.mastery(active) : [], [active, view]);
   const cadence = useMemo(() => Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses }), [active, prefs]);
   const chapter = Progress.weekChapter(journal, { now, owner: owner ?? undefined, adventure: adventure.data, paused: cadence.currentPaused });
   const previousChapter = Progress.weekChapter(journal, { now, start: last.from, owner: owner ?? undefined, adventure: adventure.data });
@@ -195,8 +196,8 @@ export function ProgressScreen() {
         ) : view === "week" ? (
           <>
             <Section title="Ma semaine, mon chapitre">
-              <RecapCard grid={gridCurrent} recap={current} title="Cette semaine" chapter={chapter} km={kmCurrent} paused={cadence.currentPaused} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, chapter.next.href)} />
-              <RecapCard grid={gridLast} recap={last} title="Semaine dernière" chapter={previousChapter} km={kmLast} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, previousChapter.next.href)} />
+              <RecapCard grid={gridCurrent} recap={current} onJournal={() => navigation.navigate("Journal", { weekStart: current.from.getTime() })} title="Cette semaine" chapter={chapter} km={kmCurrent} paused={cadence.currentPaused} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, chapter.next.href)} />
+              <RecapCard grid={gridLast} recap={last} onJournal={() => navigation.navigate("Journal", { weekStart: last.from.getTime() })} title="Semaine dernière" chapter={previousChapter} km={kmLast} local={owner?.startsWith("guest_")} onNext={() => navigateHref(navigation, previousChapter.next.href)} />
             </Section>
             <Card tone="flat" style={{ gap: 6 }}>
               <T variant="bodyStrong">
@@ -210,7 +211,7 @@ export function ProgressScreen() {
         ) : view === "trends" ? (
           <>
             <Section title="Mon programme sur 12 semaines">
-              <ProgramGrid grid={span} testID="progress-program" />
+              {span ? <ProgramGrid grid={span} testID="progress-program" /> : null}
             </Section>
             <YearSquares logs={active} />
             <SelfComparisonCard logs={active} />
@@ -248,7 +249,7 @@ export function ProgressScreen() {
               </Card>
             </Section>
           </>
-        ) : (
+        ) : dna ? (
           <>
             <Card tone="accent" style={{ gap: 8 }}>
               <T variant="eyebrow" tone="accent">
@@ -302,7 +303,7 @@ export function ProgressScreen() {
               ))}
             </Section>
           </>
-        )}
+        ) : null}
         </View>
       </Screen>
     </View>

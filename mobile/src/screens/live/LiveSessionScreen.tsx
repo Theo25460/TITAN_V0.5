@@ -56,6 +56,7 @@ export function LiveSessionScreen({ navigation, route }: Props) {
   const [cue, setCue] = useState<LiveCue | null>(null);
   const [offer, setOffer] = useState<PublicMission | null>(null);
   const [view, setViewMode] = useState<"sport" | "aventure">("sport");
+  const viewingAdventure = useRef(false);
   const [interrupted, setInterrupted] = useState<{ gapS: number; since: number } | null>(null);
   const [rec, setRec] = useState<Recording | null>(null);
   const cells = useRef<Set<string> | null>(null);
@@ -90,7 +91,7 @@ export function LiveSessionScreen({ navigation, route }: Props) {
     if (shown.length) setCue(shown[shown.length - 1]);
     for (const o of outs) {
       if (o.type === "mission_offer") setOffer(o.mission);
-      if (o.type === "mission_done") toast({ kind: "ok", title: "Mission accomplie", message: o.mission.label });
+      if (o.type === "mission_done" && viewingAdventure.current) toast({ kind: "ok", title: "Mission accomplie", message: o.mission.label });
       if (o.type === "event" && s.level >= 1) setCue({ id: o.event.id, at: Date.now(), text: o.event.text, why: "Événement de la Voie", channels: ["screen"], priority: 0 });
     }
   }, [config, toast]);
@@ -200,17 +201,31 @@ export function LiveSessionScreen({ navigation, route }: Props) {
     haptic("success");
   }
 
-  async function pauseResume() {
-    const s = stateRef.current;
-    if (!s) return;
-    if (s.status === "active") { send({ type: "pause" }); if (rec?.status === "recording") setRec(await recorder.pause(owner)); }
-    else { send({ type: "resume" }); if (rec?.status === "paused") setRec(await recorder.resume(owner).catch(() => rec)); }
-  }
-
-  async function finish() {
-    send({ type: "end" });
-    if (rec && rec.status !== "ended") setRec(await recorder.finish(owner));
-    clearLiveNotification();
+  const changing = useRef(false);
+  const [isChanging, setIsChanging] = useState(false);
+  async function changeSession(action: "toggle" | "finish") {
+    const current = stateRef.current;
+    if (!current || changing.current || current.status === "ended") return;
+    changing.current = true;
+    setIsChanging(true);
+    try {
+      if (action === "finish") {
+        if (rec && rec.status !== "ended") setRec(await recorder.finish(owner));
+        send({ type: "end" });
+        clearLiveNotification();
+      } else if (current.status === "active") {
+        if (rec?.status === "recording") setRec(await recorder.pause(owner));
+        send({ type: "pause" });
+      } else {
+        if (rec?.status === "paused") setRec(await recorder.resume(owner));
+        send({ type: "resume" });
+      }
+    } catch {
+      toast({ kind: "warn", title: "Le suivi GPS n’a pas confirmé la commande", message: "Réessaie avant de poursuivre." });
+    } finally {
+      changing.current = false;
+      setIsChanging(false);
+    }
   }
 
   /* ---------------- report and hand-off to the session form ---------------- */
@@ -220,7 +235,23 @@ export function LiveSessionScreen({ navigation, route }: Props) {
   const declaredMissions = useMemo(() => (state ? config.missions.filter((m) => m.check.metric === "declared" && state.missions.active.includes(m.id)) : []), [config, state]);
   const reportFields = useMemo(() => [...new Set(reportMissions.flatMap((m) => [m.check.field as string, m.check.requires as string | undefined, (m.check.per as { field?: string } | undefined)?.field].filter(Boolean) as string[]))], [reportMissions]);
 
+  const keeping = useRef(false);
+  const [isKeeping, setIsKeeping] = useState(false);
   async function keep() {
+    if (keeping.current) return;
+    keeping.current = true;
+    setIsKeeping(true);
+    try {
+      await keepDraft();
+    } catch {
+      toast({ kind: "err", title: "Enregistrement interrompu", message: "Réessaie pour ouvrir le formulaire de validation." });
+    } finally {
+      keeping.current = false;
+      setIsKeeping(false);
+    }
+  }
+
+  async function keepDraft() {
     const s0 = stateRef.current;
     if (!s0) return;
     let s = s0;
@@ -235,7 +266,7 @@ export function LiveSessionScreen({ navigation, route }: Props) {
       const sum = recorder.summary(rec);
       draft = draftFromRecording(rec, sum);
       const pending = buildPending({ track: rec.track, sport: rec.sport, startedAt: sum.start ?? rec.startedAt, distanceKm: sum.distanceKm, activeSeconds: sum.activeSeconds, ascent: sum.ascent, id: `live-${rec.startedAt.toString(36)}` });
-      if (pending) { await queueRoute(owner, pending).catch(() => {}); draft.gpsRouteId = pending.clientRouteId; }
+      if (pending) { await queueRoute(owner, pending); draft.gpsRouteId = pending.clientRouteId; }
       await rememberCells(owner, rec.track).catch(() => {});
     } else {
       draft.durH = ld.durationMin >= 60 ? String(Math.floor(ld.durationMin / 60)) : "";
@@ -344,7 +375,7 @@ export function LiveSessionScreen({ navigation, route }: Props) {
     const done = state.missions.done.length;
     const recap = LiveEngine.recap(state);
     return (
-      <Screen footer={<Button label="Vérifier et enregistrer" icon="check" onPress={() => void keep()} testID="live-keep" />}>
+      <Screen footer={<Button label="Vérifier et enregistrer" loading={isKeeping} icon="check" onPress={() => void keep()} testID="live-keep" />}>
         <View style={{ gap: 4 }}>
           <T variant="eyebrow" tone="accent">{config.voieName} · séance terminée</T>
           <T variant="h1">{clock(v.activeS)}</T>
@@ -378,11 +409,14 @@ export function LiveSessionScreen({ navigation, route }: Props) {
   return (
     <Screen footer={
       <View style={{ flexDirection: "row", gap: space.s2 }}>
-        <Button kind="secondary" icon={state.status === "active" ? "pause" : "play"} label={state.status === "active" ? "Pause" : "Reprendre"} onPress={() => void pauseResume()} style={{ flex: 1 }} testID="live-pause" />
-        <Button kind="primary" icon="stop" label="Terminer" onPress={() => void finish()} style={{ flex: 1 }} testID="live-finish" />
+        <Button kind="secondary" icon={state.status === "active" ? "pause" : "play"} label={state.status === "active" ? "Pause" : "Reprendre"} disabled={isChanging} onPress={() => void changeSession("toggle")} style={{ flex: 1 }} testID="live-pause" />
+        <Button kind="primary" icon="stop" label="Terminer" disabled={isChanging} onPress={() => void changeSession("finish")} style={{ flex: 1 }} testID="live-finish" />
       </View>
     }>
-      <Segmented options={[{ value: "sport", label: "Vue sportive" }, { value: "aventure", label: "Vue aventure" }]} value={view} onChange={setViewMode} accessibilityLabel="Changer de vue" />
+      <Segmented options={[{ value: "sport", label: "Vue sportive" }, { value: "aventure", label: "Vue aventure" }]} value={view} onChange={(next) => {
+        viewingAdventure.current = next === "aventure";
+        setViewMode(next);
+      }} accessibilityLabel="Changer de vue" />
       {interrupted ? (
         <Card tone="amber">
           <T variant="bodyStrong">Séance retrouvée</T>
@@ -398,49 +432,53 @@ export function LiveSessionScreen({ navigation, route }: Props) {
         <T variant="display" accessibilityLabel={`Temps actif ${clock(v.activeS)}`}>{clock(v.activeS)}</T>
         {v.goal ? <View style={{ alignSelf: "stretch", gap: 4 }}><ProgressBar value={v.goal.ratio} accessibilityLabel="Progression de l’objectif" /><T variant="caption" tone="muted" center>Cap : {Math.round(v.goal.ratio * 100)} %</T></View> : null}
       </View>
-      {view === "sport" ? (
+      <View style={view === "aventure" ? { display: "none" } : undefined}
+        importantForAccessibility={view === "aventure" ? "no-hide-descendants" : "auto"}>
         <Panel view={v} config={config} send={send} known={suggested} referenceFor={(name) => LiveEngine.referenceFor(state, name)} />
-      ) : (
-        <View style={{ gap: space.s3 }}>
-          <LiveTrail lit={v.beats} planned={v.planCount} echo={v.echo?.beats ?? null} beatOne={v.beatOne} beatMany={v.beatMany} label={config.voieName} seed={config.sport} family={config.family} goalRatio={v.goal?.ratio ?? null} elan={v.elan} numbers={v.numbers} />
-          {v.numbers ? (
-            <View style={{ gap: 4 }}>
-              <T variant="caption" tone="muted">Élan du jour : {Math.round(v.elan.value)} / {v.elan.max}</T>
-              <ProgressBar value={v.elan.value / v.elan.max} color={colors.cy2} />
+      </View>
+      {view === "aventure" ? (
+        <>
+          <View style={{ gap: space.s3 }}>
+            <LiveTrail lit={v.beats} planned={v.planCount} echo={v.echo?.beats ?? null} beatOne={v.beatOne} beatMany={v.beatMany} label={config.voieName} seed={config.sport} family={config.family} goalRatio={v.goal?.ratio ?? null} elanValue={v.elan.value} elanMax={v.elan.max} numbers={v.numbers} />
+            {v.numbers ? (
+              <View style={{ gap: 4 }}>
+                <T variant="caption" tone="muted">Élan du jour : {Math.round(v.elan.value)} / {v.elan.max}</T>
+                <ProgressBar value={v.elan.value / v.elan.max} color={colors.cy2} />
+              </View>
+            ) : null}
+            {/* The last event of the Voie, unless the companion box below already shows it, or it carries a figure in a session without numbers. */}
+            {v.lastEvent && ((cue && state.level >= 1 && cue.text === v.lastEvent.text) || (!v.numbers && /\d/.test(v.lastEvent.text))) ? null
+              : v.lastEvent ? <T variant="small" tone="muted">{v.lastEvent.text}</T> : <T variant="small" tone="faint">{config.tagline}</T>}
+          </View>
+          <IntentBlock view={v} />
+          {/* The calm line between two efforts: plain text, not a live region, so it is never announced nor spoken. */}
+          {v.interlude ? <T variant="small" tone="muted" center testID="live-interlude">{v.interlude.text}</T> : null}
+          {cue && state.level >= 1 ? (
+            <View style={{ padding: space.s3, borderRadius: radius.r2, backgroundColor: colors.bg2, borderLeftWidth: 3, borderLeftColor: colors.cy }} accessibilityLiveRegion="polite">
+              <T variant="bodyStrong">{cue.text}</T>
+              <T variant="caption" tone="faint">Pourquoi : {cue.why}</T>
             </View>
           ) : null}
-          {/* The last event of the Voie, unless the companion box below already shows it, or it carries a figure in a session without numbers. */}
-          {v.lastEvent && ((cue && state.level >= 1 && cue.text === v.lastEvent.text) || (!v.numbers && /\d/.test(v.lastEvent.text))) ? null
-            : v.lastEvent ? <T variant="small" tone="muted">{v.lastEvent.text}</T> : <T variant="small" tone="faint">{config.tagline}</T>}
-        </View>
-      )}
-      <IntentBlock view={v} />
-      {/* The calm line between two efforts: plain text, not a live region, so it is never announced nor spoken. */}
-      {v.interlude ? <T variant="small" tone="muted" center testID="live-interlude">{v.interlude.text}</T> : null}
-      {cue && state.level >= 1 ? (
-        <View style={{ padding: space.s3, borderRadius: radius.r2, backgroundColor: colors.bg2, borderLeftWidth: 3, borderLeftColor: colors.cy }} accessibilityLiveRegion="polite">
-          <T variant="bodyStrong">{cue.text}</T>
-          <T variant="caption" tone="faint">Pourquoi : {cue.why}</T>
-        </View>
+          {offer && v.tapsAllowed ? (
+            <Card tone="accent">
+              <T variant="eyebrow" tone="accent">Mission proposée</T>
+              <T variant="bodyStrong">{offer.label}</T>
+              <T variant="small" tone="muted">{offer.text}</T>
+              <View style={{ flexDirection: "row", gap: space.s2 }}>
+                <Button small label="Accepter" onPress={() => { send({ type: "accept", id: offer.id }); setOffer(null); }} style={{ flex: 1 }} testID="live-accept" />
+                <Button small kind="ghost" label="Pas aujourd’hui" onPress={() => { send({ type: "decline", id: offer.id }); setOffer(null); }} style={{ flex: 1 }} />
+              </View>
+            </Card>
+          ) : null}
+          {v.missions.active.map((m) => (
+            <View key={m.id} style={{ padding: space.s3, borderRadius: radius.r2, borderWidth: 1, borderColor: colors.line2, gap: 2 }}>
+              <T variant="caption" tone="accent">Mission en cours</T>
+              <T variant="bodyStrong">{m.label}</T>
+              <T variant="small" tone="muted">{m.metric === "declared" ? "À confirmer à la fin." : m.metric === "report" ? "Se vérifie au rapport." : m.target != null ? `${m.value ?? 0} / ${Math.ceil(m.target)}` : m.text}</T>
+            </View>
+          ))}
+        </>
       ) : null}
-      {offer && v.tapsAllowed ? (
-        <Card tone="accent">
-          <T variant="eyebrow" tone="accent">Mission proposée</T>
-          <T variant="bodyStrong">{offer.label}</T>
-          <T variant="small" tone="muted">{offer.text}</T>
-          <View style={{ flexDirection: "row", gap: space.s2 }}>
-            <Button small label="Accepter" onPress={() => { send({ type: "accept", id: offer.id }); setOffer(null); }} style={{ flex: 1 }} testID="live-accept" />
-            <Button small kind="ghost" label="Pas aujourd’hui" onPress={() => { send({ type: "decline", id: offer.id }); setOffer(null); }} style={{ flex: 1 }} />
-          </View>
-        </Card>
-      ) : null}
-      {v.missions.active.map((m) => (
-        <View key={m.id} style={{ padding: space.s3, borderRadius: radius.r2, borderWidth: 1, borderColor: colors.line2, gap: 2 }}>
-          <T variant="caption" tone="accent">Mission en cours</T>
-          <T variant="bodyStrong">{m.label}</T>
-          <T variant="small" tone="muted">{m.metric === "declared" ? "À confirmer à la fin." : m.metric === "report" ? "Se vérifie au rapport." : m.target != null ? `${m.value ?? 0} / ${Math.ceil(m.target)}` : m.text}</T>
-        </View>
-      ))}
       {v.tapsAllowed ? (
         <View style={{ gap: space.s2 }}>
           <T variant="caption" tone="muted">Effort ressenti (facultatif)</T>

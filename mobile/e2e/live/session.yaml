@@ -1,0 +1,64 @@
+# Run against a disposable signed-in test account that already has screens.live
+# enabled server-side. Use a clean account without an overlapping session/draft.
+appId: fr.titanapp.app
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-record"
+    timeout: 30000
+- tapOn:
+    id: "tab-record"
+- scrollUntilVisible:
+    element: "Vivre en direct"
+    direction: DOWN
+- tapOn: "Vivre en direct"
+- scrollUntilVisible:
+    element:
+      id: "record-choose-sport"
+    direction: UP
+- tapOn:
+    id: "record-choose-sport"
+- scrollUntilVisible:
+    element:
+      id: "sport-search"
+    direction: DOWN
+- tapOn:
+    id: "sport-search"
+- inputText: "padel"
+- tapOn:
+    id: "sport-result-padel"
+- takeScreenshot: live-preparation
+- tapOn:
+    id: "live-start"
+- scrollUntilVisible:
+    element:
+      id: "live-point-won"
+    direction: DOWN
+- tapOn:
+    id: "live-point-won"
+- tapOn:
+    id: "live-pause"
+- assertVisible: "Reprendre"
+- tapOn:
+    id: "live-pause"
+- scrollUntilVisible:
+    element: "Vue aventure"
+    direction: UP
+- tapOn: "Vue aventure"
+- takeScreenshot: live-aventure
+- tapOn:
+    id: "live-finish"
+- tapOn:
+    id: "live-keep"
+- tapOn:
+    id: "session-save"
+- runFlow:
+    when:
+      visible: "Cette séance semble déjà dans ton journal"
+    commands:
+      - tapOn: "Enregistrer quand même"
+- extendedWaitUntil:
+    visible: ".*(TITAN a confirmé|Récompense en vérification).*"
+    timeout: 30000
+- takeScreenshot: live-bilan-serveur

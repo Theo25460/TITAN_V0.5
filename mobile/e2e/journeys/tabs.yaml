@@ -1,0 +1,18 @@
+# Start on QG, signed in. End there so repetitions have the same warm starting state.
+appId: fr.titanapp.app
+---
+- tapOn:
+    id: "tab-progress"
+- assertVisible: "Tes statistiques commencent ici"
+- tapOn:
+    id: "tab-record"
+- assertVisible:
+    id: "record-choose-sport"
+- tapOn:
+    id: "tab-adventure"
+- tapOn:
+    id: "tab-profile"
+- tapOn:
+    id: "tab-qg"
+- assertVisible:
+    id: "qg-hero-cta"

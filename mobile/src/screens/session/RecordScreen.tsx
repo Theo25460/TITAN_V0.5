@@ -94,8 +94,8 @@ export function RecordScreen() {
         {liveEnabled ? (
           <Segmented options={[{ value: "log", label: "Saisir après" }, { value: "live", label: "Vivre en direct" }]} value={mode} onChange={setMode} accessibilityLabel="Mode de séance" />
         ) : null}
-        {liveEnabled && liveSaved && liveSaved.status !== "ended" ? (
-          <Button label="Reprendre la séance live" icon="play" onPress={() => navigation.navigate("LiveSession", { sport: liveSaved.sport })} accessibilityHint={`${Sports.label(liveSaved.sport)} · gardée sur ce téléphone`} testID="live-resume" />
+        {liveEnabled && liveSaved ? (
+          <Button label={liveSaved.status === "ended" ? "Valider la séance terminée" : "Reprendre la séance live"} icon="play" onPress={() => navigation.navigate("LiveSession", { sport: liveSaved.sport })} accessibilityHint={`${Sports.label(liveSaved.sport)} · gardée sur ce téléphone`} testID="live-resume" />
         ) : null}
         {liveEnabled && mode === "live" ? <T variant="small" tone="muted">Choisis ton sport : TITAN prépare ta Voie, tes missions et ton accompagnement.</T> : null}
         {!choosing ? <Section title="Accès rapide"><SportGrid ids={shortcuts} onPick={open} /></Section> : null}

@@ -1,0 +1,9 @@
+appId: fr.titanapp.app
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-qg"
+    timeout: 30000
+- tapOn:
+    id: "tab-qg"

@@ -260,6 +260,7 @@ export function ProfileScreen() {
         <PassportGroup title="Mon identité" subtitle="Personnage, collection et jalons de carrière">
           <ProfileRow icon="user" title="Mon personnage" onPress={() => setPersonalise(true)} />
           <ProfileRow icon="star" title="Collection et titres" subtitle="Les souvenirs gagnés par mon effort" onPress={() => navigation.navigate("Tabs", { screen: "Adventure" })} />
+          <ProfileRow icon="star" title="Mon Atelier" subtitle={atelier.data?.items?.filter(item => item.owned && atelier.data.appearance?.[item.slot] === item.cosmetic).map(item => item.name).join(" · ") || "Essayer et équiper mes cosmétiques"} onPress={() => navigation.navigate("Atelier")} />
           <ProfileRow icon="qr" title="Ma carte publique" subtitle="Choisir ce que je partage" onPress={() => navigation.navigate("PublicCard")} />
           <View style={styles.inGroup}><CareerMilestones owner={owner ?? ""} /></View>
         </PassportGroup>

@@ -9,7 +9,7 @@ const mockStackScreen = jest.fn();
 const mockTabOptions = jest.fn();
 
 jest.mock("../src/lib/motion", () => ({ ...jest.requireActual("../src/lib/motion"), useReducedMotion: () => mockReduceMotion }));
-jest.mock("../src/data/auth", () => ({ useAuth: () => ({ owner: "a", status: "signedIn" }) }));
+jest.mock("../src/data/auth", () => ({ useOwner: () => "a", useAuth: () => ({ owner: "a", status: "signedIn" }) }));
 jest.mock("../src/data/hooks", () => ({ useProfile: () => ({ data: null }) }));
 jest.mock("../src/data/queue", () => ({ useQueue: () => ({ items: [] }) }));
 jest.mock("../src/lib/reminders", () => ({}));
