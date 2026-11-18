@@ -247,7 +247,7 @@
         <div class="jr-bar">
           <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>
             <input id="jr-q" class="asc-input" type="search" autocomplete="off" placeholder="Sport, exercice, note…" value="${esc(ui.q)}"></div>
-          <div class="asc-seg jr-view" role="group" aria-label="Vue">${[["list", "Liste", "menu"], ["calendar", "Calendrier", "calendar"]].map(([k, l, i]) => `<button type="button" data-view="${k}" aria-pressed="${ui.view === k}">${icon(i)}<span>${l}</span></button>`).join("")}</div>
+          <div class="asc-seg jr-view" role="group" aria-label="Vue">${[["list", "Liste"], ["calendar", "Calendrier"]].map(([k, l]) => `<button type="button" data-view="${k}" aria-pressed="${ui.view === k}">${icon(k === "list" ? "menu" : "calendar")}<span>${l}</span></button>`).join("")}</div>
         </div>
         <div class="jr-refine">
           <label class="sr-only" for="jr-period">Période</label><select id="jr-period" class="jr-select">${PERIODS.map(([k, l]) => `<option value="${k}" ${ui.period === k ? "selected" : ""}>${l}</option>`).join("")}</select>

@@ -89,7 +89,7 @@
   overflow-wrap: anywhere;
 }
 .cr-xp { display: grid; gap: 6px; margin-top: var(--s3); }
-.cr-xp .asc-ascent { height: 8px; background: rgba(226, 234, 236, 0.1); }
+.cr-xp .asc-ascent { height: 8px; background: var(--bg-4); }
 .cr-xp p { margin: 0; color: var(--tx-2); }
 .cr-xp p strong { color: var(--tx); font-size: 15px; }
 
@@ -258,7 +258,7 @@
   column-gap: var(--s4);
   row-gap: 0;
   padding: var(--s3) 0;
-  border-top: 1px solid rgba(244, 187, 84, 0.22);
+  border-top: 1px solid var(--am-line);
   cursor: pointer;
 }
 .rc-vault .rc-recent-item strong {
@@ -290,7 +290,7 @@
     row-gap: 2px;
     align-content: start;
     border-top: 0;
-    border-left: 1px solid rgba(244, 187, 84, 0.22);
+    border-left: 1px solid var(--am-line);
     padding: 0 0 0 var(--s5);
   }
   .rc-vault .rc-recent-item strong { font-size: 52px; }
@@ -438,9 +438,8 @@
 .jr-summary { margin-bottom: var(--s5); }
 
 /* ---------- 4. Séance : one of 260 sports, without effort ---------- */
-/* While something is typed, the results take the place of the lists: nothing else competes with them. */
+/* While something is typed, the results take the place of the lists; the live entry stays under them, as the other way in. */
 #seance[data-searching] > .seance-pick,
-#seance[data-searching] > .seance-live-entry,
 #seance[data-searching] > .sp-queue { display: none; }
 .seance-results { margin: var(--s4) 0 var(--s5); }
 .seance-results:empty { margin: 0; }
@@ -714,7 +713,7 @@
 .pv-today-title { font-size: clamp(34px, 9vw, 52px); line-height: 0.98; }
 .pv-today .asc-row-flex { margin-top: var(--s3); }
 .pv-today .asc-btn-primary { background: var(--space-ink); color: var(--space); border-color: var(--space-ink); }
-.pv-today .asc-btn-primary:hover { background: #000; }
+.pv-today .asc-btn-primary:hover { background: var(--bg); }
 .pv-today .asc-btn-primary:focus-visible { outline-color: var(--space-ink); }
 .pv-none { margin-bottom: var(--s4); }
 .pv-day { cursor: pointer; }

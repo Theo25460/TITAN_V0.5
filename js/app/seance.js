@@ -476,21 +476,24 @@
       const last = lastOf.get(id), n = counts.get(id) || 0, fav = favorites.includes(id);
       return `<button type="button" class="seance-chip sp-tile" data-sport="${esc(id)}" data-family="${esc(S_().familyOf(id))}">
         <span class="sp-tile-icon">${icon(S_().iconOf(id))}</span>
-        <span class="sp-tile-text"><strong>${esc(S_().label(id))}</strong><small>${last ? `${n} séance${n > 1 ? "s" : ""}${fav ? " · favori" : ""}` : "Favori"}</small></span></button>`;
+        <span class="sp-tile-text"><strong>${esc(S_().label(id))}</strong><small>${last ? `${n} séance${n > 1 ? "s" : ""}${fav ? " · favori" : ""}` : fav ? "Favori" : esc(S_().FAMILY_LABEL[S_().familyOf(id)])}</small></span></button>`;
     };
+    // A first visit has no sport of its own yet: the most practised ones, all families together, take that place.
+    const starters = mine.length ? [] : S_().POPULAR.filter((id) => window.SPORTS_CONFIG?.[id]).slice(0, 12);
     // The lime field asks one question and holds the one action: the search. On a wide screen « mine » and « every sport » sit side by side.
     return `
       <header class="asc-page-head seance-field"><div><h1 tabindex="-1" data-pick-title>Qu’as-tu fait&#8239;?</h1>${modeHtml()}</div>
       <div class="seance-search">
         <label class="sr-only" for="sport-q">Rechercher un sport</label>
         <span class="seance-search-icon">${icon("search")}</span>
-        <input id="sport-q" class="asc-input" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="Chercher parmi ${all} sports…" value="${esc(S.query)}" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="sport-results">
+        <input id="sport-q" class="asc-input" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="Chercher parmi ${all} sports…" value="${esc(S.query)}" aria-autocomplete="list" aria-controls="sport-results">
       </div></header>
       <nav class="asc-subnav" data-subnav></nav>
       <div id="sport-results" class="seance-results"></div>
       ${liveEntryHtml()}
       ${queueHtml()}
-      <div class="seance-pick${mine.length || last3.length || routines.length ? " has-mine" : ""}"><div class="seance-pick-mine">
+      <div class="seance-pick${mine.length || starters.length || last3.length || routines.length ? " has-mine" : ""}"><div class="seance-pick-mine">
+      ${starters.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Les plus pratiqués</h2></div><div class="sp-mine">${starters.map(tile).join("")}</div></section>` : ""}
       ${mine.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes sports</h2></div><div class="sp-mine">${mine.map(tile).join("")}</div></section>` : ""}
       ${last3.length ? `<section class="asc-section"><div class="asc-section-head"><h2>Refaire</h2><span class="asc-small asc-faint">Reprend les mesures, à la date d’aujourd’hui</span></div><div class="asc-list">${last3.map((l) => {
         const m = P().minutesOf(l);
@@ -537,9 +540,7 @@
     box.innerHTML = resultsHtml();
     const searching = !!S.query.trim();
     root.toggleAttribute("data-searching", searching);
-    const input = document.getElementById("sport-q");
-    input?.setAttribute("aria-expanded", String(searching && !!box.querySelector("[role=option]")));
-    input?.removeAttribute("aria-activedescendant");
+    document.getElementById("sport-q")?.removeAttribute("aria-activedescendant");
   }
   function moveResult(step) {
     const options = [...root.querySelectorAll("#sport-results [role=option]")];
@@ -1531,7 +1532,7 @@
     // The live entry follows its own flag without redrawing the page: it is added or removed in place.
     const entry = root.querySelector("[data-live-entry]");
     if (!liveOn()) entry?.remove();
-    else if (!entry && S.step === "pick" && !hubOpen) root.querySelector("[data-subnav]")?.insertAdjacentHTML("afterend", liveEntryHtml());
+    else if (!entry && S.step === "pick" && !hubOpen) (root.querySelector("#sport-results") || root.querySelector("[data-subnav]"))?.insertAdjacentHTML("afterend", liveEntryHtml());
   });
   function start() {
     if (booted || !window.state?.user || window.titanAccountTransition?.active) return;
