@@ -1,6 +1,7 @@
 /* =====================================================================
    TITAN ONE « Signature » — lot « Profil, Atelier 2.0 et abonnements ».
-   Loaded after signature.css by /boutique and /profile only.
+   Loaded after signature.css by /boutique and /profile, and by /titan-plus
+   (public sheets) for its own .tp-* blocks at the end of this file.
    The Atelier rules below replace the layout of the « Atelier » block of
    ascension-app.css (the shared cosmetics — frames, ambiances, card
    styles — stay there: the shell, the profile and the Aventure read them).
@@ -736,7 +737,6 @@
 }
 #profil .pf-ways .asc-btn {
   justify-self: auto;
-  min-height: 44px;
   max-width: 100%;
   padding: var(--s2) var(--s4);
   white-space: normal;
@@ -813,4 +813,172 @@
 @media (max-width: 360px) {
   #profil .pf-crest.sig-object { --obj: 52px; }
   #profil .pf-group-icon { width: 40px; height: 40px; }
+}
+
+/* =====================================================================
+   /titan-plus — the offer page (public sheets: ascension.css + public.css;
+   signature.css is not loaded there, so the cut is declared locally).
+   Every rule below is scoped to the page's own .tp-* blocks.
+   ===================================================================== */
+.tp-head,
+.tp-offers,
+.tp-compare { --tp-cut: 18px; }
+@media (min-width: 960px) {
+  .tp-head,
+  .tp-offers,
+  .tp-compare { --tp-cut: 28px; }
+}
+/* The field: the same cut and the same terrain as the application's header fields. */
+.tp-head {
+  position: relative;
+  isolation: isolate;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--tp-cut)), calc(100% - var(--tp-cut)) 100%, 0 100%);
+}
+.tp-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--space-ink);
+  -webkit-mask: url(/assets/ascension/contours.svg) right -220px top -160px / 900px auto no-repeat;
+  mask: url(/assets/ascension/contours.svg) right -220px top -160px / 900px auto no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.tp-head .pub-lead { max-width: 68ch; }
+.tp-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-top: var(--s5);
+}
+.tp-head-actions .asc-btn-ghost { color: var(--space-ink); text-decoration: underline; text-underline-offset: 4px; }
+
+/* The plans: two plates side by side, the same height, the cut on the corner. */
+.tp-offers .pub-head { margin-bottom: var(--s6); }
+.tp-offers .tp-sub { margin-top: clamp(48px, 7vw, 80px); }
+.tp-plans,
+.tp-avail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s3);
+}
+.tp-plans .pub-card {
+  position: relative;
+  padding: var(--s6) var(--s5) var(--s7);
+  border-radius: var(--r3) var(--r3) 0 var(--r3);
+  background:
+    linear-gradient(180deg, rgba(226, 234, 236, 0.14), transparent 1px),
+    linear-gradient(165deg, #1b232c, #131920 55%, #0d1116);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--tp-cut)), calc(100% - var(--tp-cut)) 100%, 0 100%);
+}
+.tp-plans .pub-card h3 { font-size: clamp(22px, 2.6vw, 28px); line-height: 1.12; }
+.tp-plans .pub-card .pub-price { margin: 0; }
+.tp-plans .pub-card ul { gap: 10px; margin-top: var(--s2); }
+.tp-plans .pub-card > .asc-btn { margin-top: auto; justify-self: start; }
+/* TITAN+ is marked on its edge in amber, the colour it carries everywhere in TITAN. */
+.tp-plans .pub-card.is-plus {
+  box-shadow: inset 0 3px 0 var(--am);
+  background:
+    linear-gradient(180deg, rgba(244, 187, 84, 0.1), transparent 160px),
+    linear-gradient(165deg, #1b232c, #131920 55%, #0d1116);
+}
+.tp-plans .pub-card.is-plus li .t-icon { color: var(--am); }
+.tp-plans.is-coach .pub-card { box-shadow: inset 0 3px 0 var(--line-3); }
+.tp-never {
+  display: flex;
+  gap: var(--s4);
+  align-items: flex-start;
+  margin-top: var(--s3);
+  padding: var(--s5);
+  border-left: 3px solid var(--tx);
+  background: var(--bg-1);
+}
+.tp-never > .t-icon {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  color: var(--tx);
+}
+.tp-never > div { display: grid; gap: var(--s2); min-width: 0; }
+.tp-never p { margin: 0; }
+.tp-never p:last-child { font-size: 17px; color: var(--tx); max-width: 70ch; }
+.tp-seat { margin: var(--s4) 0 0; max-width: 90ch; }
+.tp-avail .pub-card { background: transparent; box-shadow: inset 0 0 0 1px var(--line-2); }
+.tp-avail .pub-card[data-availability="now"] { box-shadow: inset 0 0 0 1px var(--line-2), inset 3px 0 0 var(--cy); }
+@media (min-width: 760px) {
+  .tp-plans,
+  .tp-avail { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s4); }
+  .tp-plans .pub-card { padding: var(--s7) var(--s7) var(--s8); }
+}
+
+/* The comparison: what a subscription adds first, what stays the same after. */
+.tp-compare { border: 0; border-radius: 0; }
+.tp-compare table { min-width: 720px; }
+.tp-compare th[scope="row"] {
+  font-weight: 600;
+  color: var(--tx);
+  text-align: left;
+}
+.tp-compare .tp-group th {
+  padding-top: var(--s6);
+  border-bottom: 2px solid var(--tx);
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--tx);
+  background: none;
+}
+.tp-compare .is-added .tp-group th { border-bottom-color: var(--am); }
+.tp-compare .is-added td:nth-child(n + 3) { color: var(--tx); font-weight: 600; }
+.tp-compare thead th:nth-child(3) { color: var(--am); }
+/* A phone reads it line by line: the function, then the three answers side by side under their names. No sideways scroll. */
+@media (max-width: 759.98px) {
+  .tp-compare { overflow: visible; }
+  .tp-compare table,
+  .tp-compare tbody { display: block; min-width: 0; width: 100%; }
+  .tp-compare thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .tp-compare tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s2) var(--s3);
+    padding: var(--s4) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .tp-compare tr.tp-group { padding: var(--s6) 0 0; border-bottom: 0; }
+  .tp-compare th,
+  .tp-compare td {
+    padding: 0;
+    border: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .tp-compare th[scope="row"],
+  .tp-compare .tp-group th { grid-column: 1 / -1; }
+  .tp-compare .tp-group th { padding: 0 0 var(--s2); border-bottom: 2px solid var(--tx); }
+  .tp-compare .is-added .tp-group th { border-bottom-color: var(--am); }
+  .tp-compare td { font-size: 14px; line-height: 1.35; }
+  .tp-compare td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--tx-3);
+  }
+  .tp-compare td[data-label="TITAN+"]::before { color: var(--am); }
+  /* The same answer three times is said once. */
+  .tp-compare tr.tp-all { grid-template-columns: minmax(0, 1fr); gap: 2px; padding: var(--s3) 0; }
+  .tp-compare tr.tp-all td:nth-child(n + 3) { display: none; }
+  .tp-compare tr.tp-all td::before { content: none; }
+  .tp-compare tr.tp-all td { color: var(--tx-2); }
 }
