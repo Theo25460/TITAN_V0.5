@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { BackHandler } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ToastProvider } from "../src/components/Toast";
 import { OnboardingScreen } from "../src/screens/auth/OnboardingScreen";
@@ -84,4 +85,18 @@ test("a competing destination cannot replace a session launch already being save
 
   expect(mockReset).toHaveBeenCalledTimes(1);
   expect(mockReset).toHaveBeenCalledWith({ index: 1, routes: [{ name: "Tabs" }, { name: "SessionForm", params: { sport: "running" } }] });
+});
+
+test("Android back returns from the shortcut preview with the chosen sport intact", () => {
+  const back = jest.spyOn(BackHandler, "addEventListener");
+  try {
+    start();
+    fireEvent.press(screen.getByTestId("sport-running"));
+    fireEvent.press(screen.getByTestId("onboarding-preview"));
+    act(() => { expect(back.mock.calls.at(-1)?.[1]({ type: "hardwareBackPress", timeStamp: Date.now() })).toBe(true); });
+    expect(screen.getByTestId("sport-running").props.accessibilityState.selected).toBe(true);
+    expect(mockReset).not.toHaveBeenCalled();
+  } finally {
+    back.mockRestore();
+  }
 });
