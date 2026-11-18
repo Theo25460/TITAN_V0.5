@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Share, StyleSheet, View } from "react-native";
+import { Share, StyleSheet, Switch, View } from "react-native";
 import { Alert, ask } from "../../components/Dialog";
 import { Avatar } from "../../components/Avatar";
 import { GuildChat } from "../../components/GuildChat";
@@ -30,6 +30,7 @@ import { colors, space, TOUCH } from "../../theme/tokens";
 import { DuoCard, duoKey } from "./DuoCard";
 import { BlockedAccounts, FriendLinkCard, InvitationCard } from "./FriendLinks";
 import { CordeePanel } from "./CordeePanel";
+import { CoachFollows } from "./CoachFollows";
 import { CircleDigestCard } from "./CircleDigestCard";
 import { useServerFlag } from "../../data/flags";
 import { ClubsPanel, RankingPanel } from "../../components/CommunityPanels";
@@ -50,15 +51,12 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
   const savePrefs = useSavePrefs();
   const invite = parseInvite(route?.params);
   const [tab, setTab] = useState<Tab>(invite.guild ? "guild" : "friends");
+  const [peopleSheet, setPeopleSheet] = useState<"invite" | "coach" | null>(invite.friend ? "invite" : null);
   const [code, setCode] = useState(invite.friend ?? "");
   const [busy, setBusy] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState(false);
-  const [autoShare, setAutoShare] = useState(false);
   const [invitation, setInvitation] = useState<string | null>(invite.invitation);
   const linksOn = useServerFlag("screens.friendlinks");
-  useEffect(() => {
-    readAutoShare(owner).then(setAutoShare).catch(() => {});
-  }, [owner]);
   const s = q.data;
 
   /* A link opened while the screen is already shown (AUD-12) fills the matching field and opens its tab. */
@@ -69,6 +67,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
     } else if (invite.friend) {
       setTab("friends");
       setCode(invite.friend);
+      setPeopleSheet("invite");
     } else if (invite.guild) setTab("guild");
   }, [invite.friend, invite.guild, invite.invitation]);
 
@@ -132,39 +131,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
           <>
             {invitation ? <InvitationCard owner={owner} token={invitation} online={online} onDone={() => setInvitation(null)} /> : null}
             <CircleDigestCard owner={owner} online={online} />
-            <DuoCard key={owner} owner={owner} online={online} />
-            <Card style={{ gap: space.s2 }} testID="auto-share">
-              <View style={styles.row}>
-                <T variant="bodyStrong" style={{ flex: 1 }}>Partager mes séances automatiquement</T>
-                <Chip label={autoShare ? "Activé" : "Désactivé"} selected={autoShare} onPress={() => { const v = !autoShare; setAutoShare(v); void writeAutoShare(owner, v); }} testID="auto-share-toggle" />
-              </View>
-              <T variant="caption" tone="faint">Chaque séance confirmée apparaît dans les moments de tes amis, sans que tu aies à y penser. Jamais en public.</T>
-            </Card>
-            <Card style={{ gap: space.s3 }}>
-              <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
-              <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : `Ton code ne sert que si ton profil est trouvable.${linksOn ? " Le lien personnel ci-dessous marche toujours." : ""}`}</T>
-              <T variant="caption" tone="muted">Tes Moments ne sont vus que par les amis que tu as acceptés. Tes réglages : Profil, puis Confidentialité.</T>
-              <Button small kind="secondary" icon="share" label="Partager mon code" testID="share-friend-code" onPress={() => shareFriendCode(s.me)} />
-            </Card>
-            <Card style={{ gap: space.s3 }}>
-              <Field label="Ajouter un ami" value={code} onChangeText={(v) => setCode(v.toUpperCase())} placeholder="TN-XXXX" autoCapitalize="characters" autoCorrect={false} />
-              <Button
-                label="Envoyer la demande"
-                icon="userPlus"
-                loading={busy === "add"}
-                disabled={!code.trim()}
-                onPress={() =>
-                  act(
-                    "add",
-                    async () => {
-                      const r = await api.friendRequest(code.trim());
-                      setCode("");
-                      toast({ kind: "ok", title: r.status === "friends" ? "Vous êtes maintenant amis" : "Demande envoyée" });
-                    },
-                  )
-                }
-              />
-            </Card>
+            <Button label="Ajouter ou inviter un ami" icon="userPlus" onPress={() => setPeopleSheet("invite")} testID="community-invite" />
             {s.requests_in.length ? (
               <Section title="Demandes reçues">
                 {s.requests_in.map((r) => (
@@ -181,7 +148,8 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
                 ))}
               </Section>
             ) : null}
-            {linksOn ? <FriendLinkCard owner={owner} online={online} /> : null}
+            <DuoCard key={owner} owner={owner} online={online} />
+            <Button label="Mes suivis de coaching" kind="secondary" onPress={() => setPeopleSheet("coach")} />
             {s.requests_out.length ? (
               <Section title="Demandes envoyées">
                 {s.requests_out.map((r) => (
@@ -228,7 +196,8 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
             <BlockedAccounts owner={owner} online={online} />
           </>
         ) : tab === "moments" ? (
-          !s.moments.length ? (
+          <>
+          {!s.moments.length ? (
             <EmptyState icon="sparkle" title="Aucun moment récent" text="Partage une séance depuis son écran de résultat : tes amis pourront t’encourager." />
           ) : (
             s.moments.map((m) => (
@@ -260,13 +229,15 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
                 </View>
               </Card>
             ))
-          )
+          )}
+            <MomentSharing key={owner} owner={owner} />
+          </>
         ) : tab === "challenges" ? (
           <>
             <CordeePanel owner={owner} online={online} friends={s.friends.map((f) => ({ id: f.id, name: f.name }))} />
             <Button label="Lancer un défi" icon="flag" onPress={() => setNewChallenge(true)} testID="new-challenge" />
             <RankingPanel />
-            {!s.friends.length ? <T variant="caption" tone="faint">Ajoute un ami pour lancer un défi.</T> : null}
+            {!s.friends.length ? <T variant="caption" tone="faint">Tu peux inviter des amis par lien après avoir créé ton défi.</T> : null}
             {exp ? (
               <Card tone="accent" style={{ gap: space.s2 }}>
                 <T variant="eyebrow" tone="accent">
@@ -343,6 +314,41 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
           </>
         )}
       </Screen>
+      {peopleSheet ? (
+        <Sheet visible title={peopleSheet === "invite" ? "Ajouter ou inviter un ami" : "Mes suivis de coaching"} onClose={() => setPeopleSheet(null)}>
+          {peopleSheet === "coach" ? <CoachFollows key={owner} owner={owner} online={online} /> : (
+            <>
+              <Card style={{ gap: space.s3 }}>
+                <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
+                <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : `Ton code ne sert que si ton profil est trouvable.${linksOn ? " Le lien personnel ci-dessous marche toujours." : ""}`}</T>
+                <T variant="caption" tone="muted">Tes Moments ne sont vus que par les amis que tu as acceptés. Tes réglages : Profil, puis Confidentialité.</T>
+                <Button small kind="secondary" icon="share" label="Partager mon code" testID="share-friend-code" onPress={() => shareFriendCode(s.me)} />
+              </Card>
+              <Card style={{ gap: space.s3 }}>
+                <Field testID="community-friend-code" label="Ajouter un ami" value={code} onChangeText={(v) => setCode(v.toUpperCase())} placeholder="TN-XXXX" autoCapitalize="characters" autoCorrect={false} />
+                <Button
+                  testID="community-friend-request" label="Envoyer la demande"
+                  icon="userPlus"
+                  loading={busy === "add"}
+                  disabled={!code.trim()}
+                  onPress={() =>
+                    act(
+                      "add",
+                      async () => {
+                        const r = await api.friendRequest(code.trim());
+                        setCode("");
+                        setPeopleSheet(null);
+                        toast({ kind: "ok", title: r.status === "friends" ? "Vous êtes maintenant amis" : "Demande envoyée" });
+                      },
+                    )
+                  }
+                />
+              </Card>
+              {linksOn ? <FriendLinkCard owner={owner} online={online} /> : null}
+            </>
+          )}
+        </Sheet>
+      ) : null}
       <ChallengeSheet
         visible={newChallenge}
         onClose={() => setNewChallenge(false)}
@@ -354,10 +360,44 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
               const r = await api.challengeOpenCreate(p);
               await Share.share({ message: challengeInviteMessage(p.title, r.token) }).catch(() => {});
             } else await api.challengeCreate(p);
-          }, "Défi lancé").then(() => setNewChallenge(false))
+            setNewChallenge(false);
+          }, "Défi lancé")
         }
       />
     </>
+  );
+}
+
+function MomentSharing({ owner }: { owner: string }) {
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+  const toast = useToast();
+  useEffect(() => {
+    let active = true;
+    readAutoShare(owner).then((value) => { if (active) setEnabled(value); })
+      .catch(() => { if (active) toast({ kind: "err", title: "Réglage de partage indisponible" }); });
+    return () => { active = false; };
+  }, [owner, toast]);
+  async function change(value: boolean) {
+    setSaving(true);
+    try {
+      await writeAutoShare(owner, value);
+      setEnabled(value);
+    } catch {
+      toast({ kind: "err", title: "Réglage de partage non enregistré" });
+    } finally {
+      setSaving(false);
+    }
+  }
+  return (
+    <Card style={{ gap: space.s2 }} testID="auto-share">
+      <View style={styles.row}>
+        <T variant="bodyStrong" style={{ flex: 1 }}>Partager mes séances automatiquement</T>
+        <Switch accessibilityLabel="Partager mes séances automatiquement" value={enabled === true}
+          disabled={saving || enabled === null} onValueChange={change} testID="auto-share-toggle" />
+      </View>
+      <T variant="caption" tone="muted">Tes amis acceptés verront tes prochaines séances confirmées dans leurs moments.</T>
+    </Card>
   );
 }
 

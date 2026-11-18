@@ -68,6 +68,7 @@ test("tokens: only 64 lowercase hex characters are kept; the shared message carr
 test("an unfindable profile creates a personal link and shares it, without being asked to become findable", async () => {
   answers({ titan_friend_link_create_v1: { id: "l1", token: TOKEN, expiresAt: "2026-11-27" } });
   show();
+  fireEvent.press(await screen.findByTestId("community-invite", undefined, slow));
   fireEvent.press(await screen.findByTestId("friend-link-create", undefined, slow));
   await waitFor(() => expect(share).toHaveBeenCalledWith({ message: friendLinkMessage(TOKEN) }), slow);
   expect(screen.queryByText("Rendre ton profil trouvable ?")).toBeNull();
