@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
@@ -28,6 +29,38 @@ test('legal documents expose public canonical routes, reciprocal links, deletion
       assert.ok(html.includes(`href="/${target}"`), `${page} links to ${target}`);
     }
     assert.ok(html.includes('mailto:titanteam.app@gmail.com'));
+  }
+});
+
+// A legal text whose wording changes must say so: its version line (« Version N · mise à jour le … ») changes with it. Each versioned
+// document keeps, in tools/data/legal-versions.json, the fingerprint of the body each published version had; editing the body of
+// tools/build-public-docs.mjs without raising the version and the date fails here (the shared navigation, header and footer do not count).
+const legalVersions = JSON.parse(read('tools/data/legal-versions.json'));
+const versionLine = html => html.match(/<p class="pub-fine">([^<]+) · mise à jour le ([^<]+)<\/p>/);
+function legalFingerprint(html) {
+  const body = html.match(/<div class="pub-doc">([\s\S]*)<\/div><\/div><\/main>/)?.[1];
+  assert.ok(body, 'the document body is no longer found');
+  const content = body.replace(/<nav class="pub-toc"[\s\S]*?<\/nav>/, '');
+  const text = content.replace(/<[^>]+>/g, ' ').replace(/&nbsp;|[  ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const links = [...content.matchAll(/href="([^"]+)"/g)].map(m => m[1]);
+  return createHash('sha256').update(`${text}\n${links.join('\n')}`).digest('hex');
+}
+
+test('a legal document never changes its wording under the same version and date', () => {
+  const versioned = readdirSync(new URL('.', root)).filter(f => f.endsWith('.html') && versionLine(read(f))).map(f => f.slice(0, -5)).sort();
+  assert.deepEqual(Object.keys(legalVersions).filter(k => k !== '_').sort(), versioned, 'every versioned document, and only those, has a history');
+  for (const page of versioned) {
+    const html = read(`${page}.html`);
+    const [, ref, updated] = versionLine(html);
+    const history = legalVersions[page];
+    const current = history.at(-1);
+    const sha256 = legalFingerprint(html);
+    assert.equal(`${ref} · ${updated}`, `${current.ref} · ${current.updated}`, `${page}: the page shows another version than the last one of tools/data/legal-versions.json`);
+    assert.equal(sha256, current.sha256, `${page}: its text changed but it still says « ${ref} · mise à jour le ${updated} ». Raise ref and updated in tools/build-public-docs.mjs, regenerate, then APPEND { "ref", "updated", "sha256": "${sha256}" } to tools/data/legal-versions.json (never rewrite a published entry).`);
+    assert.equal(new Set(history.map(v => `${v.ref} · ${v.updated}`)).size, history.length, `${page}: two versions share a version line`);
+    assert.equal(new Set(history.map(v => v.sha256)).size, history.length, `${page}: two versions share the same text`);
+    const numbers = history.map(v => Number(v.ref.match(/^Version (\d+)$/)?.[1])).filter(Number.isFinite);
+    assert.ok(numbers.every((n, i) => i === 0 || n > numbers[i - 1]), `${page}: version numbers only go up`);
   }
 });
 
