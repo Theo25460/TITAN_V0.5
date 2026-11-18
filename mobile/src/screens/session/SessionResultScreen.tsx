@@ -233,7 +233,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
             <Icon name={Sports.iconOf(log.sport)} size={28} color={INK} />
             <View style={{ flex: 1 }}>
               <T variant="caption" color={INK} style={{ opacity: 0.78 }}>
-                {historical ? "Ajoutée à ton historique" : "Séance enregistrée"} · {Format.relativeDay(log.date)}
+                {status === "error" ? "Envoi à corriger" : status === "pending" ? "Gardée sur ce téléphone" : historical ? "Ajoutée à ton historique" : "Séance enregistrée"} · {Format.relativeDay(log.date)}
               </T>
               <T variant="h2" color={INK} numberOfLines={2}>
                 {Sports.label(log.sport)}
@@ -458,6 +458,12 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
           <T variant="eyebrow">Et maintenant</T>
           <T accessibilityLiveRegion="polite">{next}</T>
         </View>
+        {/* Whole buttons, each label on one line: those that do not fit side by side go to the next line and share its width. */}
+        <View style={styles.secondary}>
+          {status === "confirmed" && !historical ? <Button small label="En image" kind="secondary" icon="share" loading={imageBusy} onPress={shareImage} style={styles.secondaryButton} testID="share-image" /> : null}
+          {status === "confirmed" && !shared && !historical ? <Button small label="Aux amis" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={styles.secondaryButton} /> : null}
+          <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={styles.secondaryButton} />
+        </View>
         </View>
       </ScrollView>
       {/* The signature moment: only for a gain the server confirmed (a receipt with XP), never for a held, historical or pending session, and never in the end-to-end build (it would sit over the buttons the flow taps). */}
@@ -478,12 +484,6 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
       ) : null}
       <View style={[styles.actions, { paddingBottom: insets.bottom + space.s4 }]}>
         {status !== "confirmed" ? <Button small label="Voir les envois en attente" kind="secondary" onPress={() => navigation.replace("Pending")} /> : null}
-        {/* Whole buttons, each label on one line: those that do not fit side by side go to the next line and share its width. */}
-        <View style={styles.secondary}>
-          {status === "confirmed" && !historical ? <Button small label="En image" kind="secondary" icon="share" loading={imageBusy} onPress={shareImage} style={styles.secondaryButton} testID="share-image" /> : null}
-          {status === "confirmed" && !shared && !historical ? <Button small label="Aux amis" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={styles.secondaryButton} /> : null}
-          <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={styles.secondaryButton} />
-        </View>
         <Button
           label="Terminer"
           onPress={() => {

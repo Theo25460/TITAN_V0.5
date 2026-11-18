@@ -30,7 +30,7 @@ export function revealPlan(i: RevealInput) {
     rank: rankIdOf(i.level),
     newRank,
     holds: i.leveledUp, // a level-up waits for a tap; an ordinary gain closes by itself
-    autoCloseMs: i.leveledUp ? null : 3200,
+    autoCloseMs: i.leveledUp ? null : 2300,
   };
 }
 
@@ -65,7 +65,8 @@ export function ProgressReveal({ input, onDone }: { input: RevealInput; onDone: 
     haptic("light");
     const timers: ReturnType<typeof setTimeout>[] = [];
     Animated.spring(intro, { toValue: 1, friction: 7, tension: 80, useNativeDriver: true }).start();
-    Animated.timing(fill, { toValue: plan.to, duration: 1100, delay: 250, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(() => {
+    Animated.timing(fill, { toValue: plan.to, duration: 800, delay: 120, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(({ finished }) => {
+      if (!finished || done.current) return;
       haptic("success");
       if (plan.holds) {
         setStruck(true);
@@ -77,17 +78,23 @@ export function ProgressReveal({ input, onDone }: { input: RevealInput; onDone: 
       }
     });
     if (plan.autoCloseMs) timers.push(setTimeout(close, plan.autoCloseMs));
-    return () => timers.forEach(clearTimeout);
+    return () => {
+      timers.forEach(clearTimeout);
+      fill.stopAnimation();
+      intro.stopAnimation();
+      crest.stopAnimation();
+      shock.stopAnimation();
+    };
     // The moment plays once for the receipt it was mounted with.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [reduced]);
   if (reduced) return null;
 
   const accent = RANK_ACCENT[plan.rank];
   const rankName = EffortRules.RANKS.find((x: { id: string }) => x.id === plan.rank)?.name ?? "";
   return (
     <Animated.View style={[StyleSheet.absoluteFill, styles.layer, { opacity: out }]} testID="progress-reveal">
-      <Pressable style={StyleSheet.absoluteFill} onPress={plan.holds && !struck ? undefined : close} accessibilityRole="button" accessibilityLabel="Passer l’animation et continuer">
+      <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityRole="button" accessibilityLabel="Passer l’animation et continuer">
         <View style={styles.center}>
           <Embers key={burst} seed={burst * 17} count={plan.holds ? 34 : 22} palette={plan.holds ? [accent, "#FFFFFF", colors.am] : [colors.cy, colors.cy2, "#FFFFFF"]} />
           <T variant="eyebrow" tone="accent" style={{ marginBottom: space.s4 }}>

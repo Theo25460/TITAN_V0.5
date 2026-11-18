@@ -4,6 +4,7 @@ import { Keyboard, StyleSheet, Text, useWindowDimensions, View } from "react-nat
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Tap } from "../components/Pressable";
 import { Icon, type IconName } from "../components/Icon";
+import { useOwner } from "../data/auth";
 import { useQueue } from "../data/queue";
 import { haptic } from "../lib/haptics";
 import { useReducedMotion } from "../lib/motion";
@@ -64,9 +65,11 @@ export function Tabs() {
   const { width, fontScale } = useWindowDimensions();
   const layout = tabLayout(width - insets.left - insets.right, fontScale, insets.bottom);
   const queue = useQueue();
-  const pending = queue.items.length;
+  const owner = useOwner();
+  const pending = owner === queue.owner ? queue.items.length : 0;
   return (
     <Tab.Navigator
+      backBehavior="history"
       tabBar={props => layout.columns < 5 ? <AccessibleTabBar {...props} width={width} fontScale={fontScale} /> : <BottomTabBar {...props} />}
       screenOptions={({ route }) => ({
         headerShown: false,

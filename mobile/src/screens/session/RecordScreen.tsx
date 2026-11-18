@@ -9,7 +9,7 @@ import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
 import { SpaceField } from "../../components/SpaceField";
 import { Section } from "../../components/Section";
-import { SportGrid, SportSearch } from "../../components/SportPicker";
+import { SportFamilyPicker, SportGrid, SportSearch } from "../../components/SportPicker";
 import { T } from "../../components/Text";
 import { Format, Progress, Sports } from "../../core";
 import { useLogs, usePrefs } from "../../data/hooks";
@@ -73,7 +73,7 @@ export function RecordScreen() {
         <SpaceField id="seance" title="Qu’as-tu fait ?" lead="Choisis ton sport et note l’essentiel : une minute suffit." testID="record-field">
           <View style={{ gap: space.s2 }}>
             {draft ? (
-              <Button kind="ink" label="Reprendre le brouillon" icon="edit" onPress={() => open(draft.sport)} accessibilityHint={`${Sports.label(draft.sport)} · gardé sur ce téléphone`} />
+              <Button kind="ink" label="Reprendre le brouillon" icon="edit" onPress={() => navigation.navigate("SessionForm", { sport: draft.sport })} accessibilityHint={`${Sports.label(draft.sport)} · gardé sur ce téléphone`} />
             ) : null}
             <Button kind="ink" label={choosing ? "Masquer les sports" : "Choisir un sport"} icon={choosing ? "close" : "search"} onPress={() => setChoosing(!choosing)} testID="record-choose-sport" />
           </View>
@@ -98,7 +98,8 @@ export function RecordScreen() {
           <Button label="Reprendre la séance live" icon="play" onPress={() => navigation.navigate("LiveSession", { sport: liveSaved.sport })} accessibilityHint={`${Sports.label(liveSaved.sport)} · gardée sur ce téléphone`} testID="live-resume" />
         ) : null}
         {liveEnabled && mode === "live" ? <T variant="small" tone="muted">Choisis ton sport : TITAN prépare ta Voie, tes missions et ton accompagnement.</T> : null}
-        {!choosing && repeats.length ? (
+        {!choosing ? <Section title="Accès rapide"><SportGrid ids={shortcuts} onPick={open} /></Section> : null}
+        {!choosing && mode === "log" && repeats.length ? (
           <Section title="Refaire">
             <View style={{ gap: space.s2 }}>
               {repeats.map((log, i) =>
@@ -107,7 +108,6 @@ export function RecordScreen() {
             </View>
           </Section>
         ) : null}
-        {!choosing ? <Section title="Accès rapide"><SportGrid ids={shortcuts} onPick={open} /></Section> : null}
         {choosing ? (
           <>
             <SportSearch onPick={open} />
@@ -136,6 +136,7 @@ export function RecordScreen() {
                 </View>
               </Section>
             ) : null}
+            <Section title="Par famille"><SportFamilyPicker onPick={open} /></Section>
             <Section title="Populaires">
               <SportGrid ids={popular} onPick={open} />
             </Section>
@@ -147,7 +148,7 @@ export function RecordScreen() {
           <Section title="Autres façons d’enregistrer">
             <Card tone="plain">
               <Way icon="route" title="Suivre ma sortie en GPS" text={`${Sports.label(gpsSport)} · distance, allure et dénivelé, écran verrouillé`} onPress={() => navigation.navigate("GpsRecord", { sport: gpsSport })} testID="gps-shortcut" />
-              <Way line icon="upload" title="Importer un fichier GPX" text={`Ouvre la séance de ${Sports.label(gpsSport).toLowerCase()} : le bouton d’import est sous les mesures.`} onPress={() => open(gpsSport)} testID="record-gpx" />
+              <Way line icon="upload" title="Importer un fichier GPX" text={`Ouvre la séance de ${Sports.label(gpsSport).toLowerCase()} : le bouton d’import est sous les mesures.`} onPress={() => navigation.navigate("SessionForm", { sport: gpsSport })} testID="record-gpx" />
               <Way line icon="cloud" title="Depuis une montre ou un capteur" text="Garmin, Santé Connect : voir ce qui est connecté et ce qui arrive dans ton journal." onPress={() => navigation.navigate("Sources")} testID="record-sources" />
             </Card>
           </Section>

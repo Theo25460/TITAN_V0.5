@@ -26,6 +26,7 @@ export function SignupScreen({ navigation }: NativeStackScreenProps<RootParams, 
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
+  const nameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
@@ -38,7 +39,11 @@ export function SignupScreen({ navigation }: NativeStackScreenProps<RootParams, 
     if (password.length < 8) next.password = "Choisis un mot de passe d’au moins 8 caractères.";
     if (!terms) next.terms = "Accepte les conditions pour créer ton compte.";
     setErrors(next);
-    if (Object.keys(next).length) return;
+    if (Object.keys(next).length) {
+      const invalid = next.name ? nameRef : next.email ? emailRef : next.password ? passwordRef : null;
+      invalid?.current?.focus();
+      return;
+    }
     if (!online) return setErrors({ form: "La création du compte demande Internet." });
     setBusy(true);
     try {
@@ -83,7 +88,7 @@ export function SignupScreen({ navigation }: NativeStackScreenProps<RootParams, 
         <T variant="h1">Rejoins TITAN</T>
         <T tone="muted">{ADS_BUILD ? "Gratuit. Des publicités, jamais pendant une séance ; aucune avec TITAN+. Ton compte fonctionne aussi sur titan-app.fr." : "Gratuit, sans publicité. Ton compte fonctionne aussi sur titan-app.fr."}</T>
       </View>
-      <Field label="Nom affiché" value={name} onChangeText={setName} error={errors.name} maxLength={24} autoComplete="name" returnKeyType="next" onSubmitEditing={() => emailRef.current?.focus()} testID="signup-name" />
+      <Field ref={nameRef} label="Nom affiché" value={name} onChangeText={setName} error={errors.name} maxLength={24} autoComplete="name" returnKeyType="next" onSubmitEditing={() => emailRef.current?.focus()} testID="signup-name" />
       <Field ref={emailRef} label="E-mail" value={email} onChangeText={setEmail} error={errors.email} autoCapitalize="none" keyboardType="email-address" autoComplete="email" returnKeyType="next" onSubmitEditing={() => passwordRef.current?.focus()} testID="signup-email" />
       <Field ref={passwordRef} label="Mot de passe" value={password} onChangeText={setPassword} error={errors.password} hint="8 caractères minimum." secure autoComplete="new-password" testID="signup-password" />
       <Checkbox checked={terms} onChange={setTerms} accessibilityLabel="J’accepte les conditions d’utilisation et la politique de confidentialité" error={!!errors.terms}>
