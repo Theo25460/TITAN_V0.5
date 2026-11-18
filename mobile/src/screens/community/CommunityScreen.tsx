@@ -132,6 +132,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
             {invitation ? <InvitationCard owner={owner} token={invitation} online={online} onDone={() => setInvitation(null)} /> : null}
             <CircleDigestCard owner={owner} online={online} />
             <Button label="Ajouter ou inviter un ami" icon="userPlus" onPress={() => setPeopleSheet("invite")} testID="community-invite" />
+            <T variant="small" tone="muted">Tes Moments ne sont vus que par les amis que tu as acceptés. Retrouve tes réglages dans Profil puis Confidentialité.</T>
             {s.requests_in.length ? (
               <Section title="Demandes reçues">
                 {s.requests_in.map((r) => (
@@ -321,7 +322,6 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
               <Card style={{ gap: space.s3 }}>
                 <T variant="bodyStrong">Ton code ami : {s.me.friend_code}</T>
                 <T variant="small">{s.me.findable ? "Ton profil est trouvable : tes amis peuvent t’ajouter avec ce code." : `Ton code ne sert que si ton profil est trouvable.${linksOn ? " Le lien personnel ci-dessous marche toujours." : ""}`}</T>
-                <T variant="caption" tone="muted">Tes Moments ne sont vus que par les amis que tu as acceptés. Tes réglages : Profil, puis Confidentialité.</T>
                 <Button small kind="secondary" icon="share" label="Partager mon code" testID="share-friend-code" onPress={() => shareFriendCode(s.me)} />
               </Card>
               <Card style={{ gap: space.s3 }}>
