@@ -1203,26 +1203,40 @@ test("community pending actions: challenge failure restores the draft and the ne
   await context.close();
 });
 
-test("community hierarchy: section shortcuts explain their destinations and keyboard navigation keeps every action reachable", async () => {
+test("community hierarchy: the request is first, the scene's tabs say what waits there and keyboard navigation keeps every action reachable", async () => {
   for (const width of [360, 1280]) {
     const { page, context, errors } = await communityPage({ width, overview: {
       requests_in: [{ id: "zoe", name: "Zoé", avatar: "scout" }],
     } });
+    // Who knocks comes before everything else, with its two answers.
+    assert.match(await page.locator("#communaute > .cm-col-main > :first-child").textContent(), /Une demande d’ami[\s\S]*Zoé/);
+    assert.equal(await page.getByRole("button", { name: "Accepter Zoé", exact: true }).count(), 1);
+    assert.equal(await page.getByRole("button", { name: "Refuser Zoé", exact: true }).count(), 1);
+    // One scene is shown; the others are one tap away, each tab saying what waits there.
     const nav = page.getByRole("navigation", { name: "Dans la communauté" });
-    assert.deepEqual(await nav.locator("a").evaluateAll(links => links.map(a => a.getAttribute("href"))), ["#moments", "#amis", "#defis", "#guilde"]);
-    assert.match(await nav.locator('a[href="#amis"]').textContent(), /1 demande/);
-    assert.match(await nav.locator('a[href="#moments"]').textContent(), /2 Moments/);
-    for (const id of ["amis", "defis", "guilde", "moments"]) {
+    assert.deepEqual(await nav.locator("a").evaluateAll(links => links.map(a => a.getAttribute("href"))), ["#defis", "#guilde"]);
+    assert.equal(await page.locator("[data-live-panel]:not([hidden])").count(), 1);
+    for (const id of ["guilde", "defis", "guilde"]) {
       const link = nav.locator(`a[href="#${id}"]`);
       assert.equal(await link.evaluate(el => el.getBoundingClientRect().height >= 44), true);
       await link.focus();
       await page.keyboard.press("Enter");
       await page.waitForFunction(id => location.hash === "#" + id && document.activeElement.id === id, id);
+      assert.equal(await nav.locator('a[aria-current="true"]').getAttribute("href"), "#" + id);
+      const target = page.locator("#" + id);
+      assert.equal(await target.isVisible(), true);
+      assert.equal(await target.evaluate(el => el.getBoundingClientRect().top >= document.querySelector(".asc-topbar").getBoundingClientRect().bottom), true);
+      assert.equal(await page.locator("[data-live-panel]:not([hidden])").count(), 1);
+    }
+    // The blocks under the scene are reached by their address, like a link from the QG or from « Depuis ta dernière visite ».
+    for (const id of ["amis", "moments"]) {
+      await page.evaluate(id => { location.hash = "#" + id; }, id);
+      await page.waitForFunction(id => document.activeElement.id === id, id);
       const target = page.locator("#" + id);
       assert.equal(await target.isVisible(), true);
       assert.equal(await target.evaluate(el => el.getBoundingClientRect().top >= document.querySelector(".asc-topbar").getBoundingClientRect().bottom), true);
     }
-    assert.equal(await page.getByRole("button", { name: "Accepter", exact: true }).count(), 1);
+    assert.match(await page.locator("#amis").textContent(), /Ce que tes amis voient de toi/);
     await page.getByRole("textbox", { name: "Nom de la guilde", exact: true }).fill("Les grimpeurs");
     await page.getByRole("textbox", { name: "Code de guilde", exact: true }).fill("G-AB12");
     assert.equal(await page.locator("[data-new-challenge]").count(), 1);
@@ -1235,10 +1249,14 @@ test("community hierarchy: section shortcuts explain their destinations and keyb
 test("community hierarchy: empty sections offer a useful next step without invented social counts or rankings", async () => {
   const { page, context, errors } = await communityPage({ overview: { friends: [], moments: [], requests_in: [], requests_out: [], challenges: [] } });
   const nav = page.getByRole("navigation", { name: "Dans la communauté" });
-  assert.match(await nav.locator('a[href="#moments"]').textContent(), /Aucun Moment/);
-  assert.match(await nav.locator('a[href="#amis"]').textContent(), /Ajouter un ami/);
   assert.match(await nav.locator('a[href="#defis"]').textContent(), /Avec tes amis/);
   assert.match(await nav.locator('a[href="#guilde"]').textContent(), /Rejoindre une équipe/);
+  assert.equal(await page.locator(".cm-door").count(), 0, "nobody knocks: no empty door");
+  assert.match(await page.locator("#cm-circle").textContent(), /Des amis par consentement[\s\S]*Inviter/);
+  assert.match(await page.locator("#defis .sig-empty").textContent(), /Pas encore de défi/);
+  assert.match(await page.locator("#moments .sig-empty").textContent(), /Aucun Moment/);
+  assert.match(await page.locator("#amis .sig-empty").textContent(), /Ton cercle commence par une personne/);
+  assert.equal(await page.locator("#amis").textContent().then(t => /\d+ (actif|ami)s? aujourd/.test(t)), false);
   await page.locator('#moments a[href="/records"]').click();
   await page.waitForURL("**/records");
   assert.deepEqual(errors, []);
