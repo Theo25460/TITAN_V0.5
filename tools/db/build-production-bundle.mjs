@@ -129,6 +129,16 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v23 bundle (V1.5.2 Camp et conséquences).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.5.4 Quêtes entre les mondes (19 November 2026): two optional chains between worlds opened by clues read from the canonical
+  // state of the existing arcs, a notebook of clues. NOT applied in production; needs v21, v22, v23 and v24 first. Additive,
+  // rehearsed on a replica (sql/tests/300_adventure_quest_chains.sql, tools/db/test-quest-concurrency.py).
+  v25: {
+    out: "supabase/release-v25", after: "20261126090000", until: "20261127090000",
+    before: { private: [142, "0da9bf507878", "cc96ce5701e7"], public: [332, "4492e54bef34", "21b4c505589d"] },
+    expected: { private: [149, "f6e038349df6", "763ff67b97ce"], public: [334, "9967615341af", "745413b6c98d"] },
+    beforeNote: "This is the state production reaches at the end of the v24 bundle (V1.5.3 Quatre mondes, quatre mécaniques).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

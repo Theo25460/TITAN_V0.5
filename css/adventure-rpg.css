@@ -38,3 +38,17 @@
 .av-mech-options label:has(input:checked){border-color:var(--space,#3DD9E8);font-weight:700}.av-mech-options label.is-used{opacity:.6}.av-mech-options input{accent-color:var(--space,#3DD9E8)}
 .av-mech-board{margin:0;padding:var(--s3,12px);border:1px dashed var(--line,#334155);border-radius:.6rem;overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){.av-campaign-horizon{transition:none}}html[data-motion="reduced"] .av-campaign-horizon{transition:none}
+/* V1.5.4 — the notebook of clues (Carnet view) and its access from the map: each clue with its origin, state and destination,
+   each chain between worlds with its steps. The map button sits in the top corner opposite the world's name, clear of the beacons. */
+.av-indices{display:block;scroll-margin-top:5rem}.av-indices h2:focus,.av-quest:focus{outline:2px solid var(--space,#3DD9E8);outline-offset:2px}
+.av-indices-clues{list-style:none;margin:var(--s3,12px) 0;padding:0;display:grid;gap:var(--s3,12px);grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.av-indices-clues li{min-width:0;padding:var(--s3,12px);border:1px solid var(--line,#334155);border-left:3px solid var(--space,#3DD9E8);border-radius:.6rem}.av-indices-clues li[data-clue-state="used"]{border-left-color:var(--am,#f2b84b)}
+.av-indices-clues p{margin:.25rem 0 0;overflow-wrap:anywhere}.av-indices-clues button{white-space:normal;max-width:100%;margin-top:.4rem}
+.av-quest{display:block;margin:var(--s4,16px) 0;padding:var(--s3,12px) 0 0;border-top:1px solid var(--line,#334155);scroll-margin-top:5rem}.av-quest h3{margin:.2rem 0 .4rem;overflow-wrap:anywhere}
+.av-quest[data-quest-state="locked"]{opacity:.9}.av-quest-opens{margin:.25rem 0 0 1.1rem;padding:0}.av-quest-opens li{margin:.3rem 0;overflow-wrap:anywhere}
+.av-quest-clue,.av-quest-scene{margin:var(--s3,12px) 0;padding:var(--s3,12px);border:1px dashed var(--line,#334155);border-radius:.6rem}.av-quest-clue p,.av-quest-scene p{margin:.25rem 0 0}.av-quest-scene h4{margin:0}
+.av-quest-marks{list-style:none;margin:var(--s2,8px) 0;padding:0;display:grid;gap:var(--s2,8px)}.av-quest-marks li{padding:var(--s2,8px) var(--s3,12px);border:1px solid var(--line,#334155);border-radius:.6rem;min-width:0}.av-quest-marks li.is-chosen{border-style:dashed;border-color:var(--warn,#f2b84b)}.av-quest-marks p{margin:0 0 .4rem;overflow-wrap:anywhere}
+.av-quest button{white-space:normal;max-width:100%;margin:.4rem .5rem 0 0}.av-quest-encounter{margin-top:var(--s3,12px)}
+.av-map-quests{position:absolute;z-index:4;right:var(--s3,12px);top:var(--s3,12px);max-width:min(34%,260px)}
+.av-map-quest{display:grid;gap:2px;text-align:left;min-height:44px;padding:.4rem .75rem;border:1px solid rgba(243,227,181,.7);border-radius:.8rem;background:rgba(9,12,16,.78);color:var(--tx,#f1f3ef);font:inherit;cursor:pointer;max-width:100%}
+.av-map-quest strong{font-size:.82rem;line-height:1.2}.av-map-quest small{font-size:.72rem;color:var(--tx-2,#c9cfd6);overflow-wrap:anywhere}.av-map-quest:focus-visible{outline:2px solid var(--space,#3DD9E8);outline-offset:2px}

@@ -24,7 +24,8 @@
   const TRAIL = ["M12 78 Q17 62 28 68", "M28 68 Q39 74 41 81", "M41 81 Q43 55 54 61", "M54 61 Q65 67 72 70", "M72 70 Q94 63 86 47", "M86 47 Q78 31 68 35", "M68 35 Q29 36 43 26", "M43 26 Q57 16 57 13"];
   /* What sits under the scene and the mission: one view at a time, so the page reads in one screen. The address keeps the view. */
   const VIEWS = [["chapitre", "Chapitre"], ["quetes", "Quêtes"], ["sentiers", "Sentiers"], ["carnet", "Carnet"]];
-  const viewOf = (hash) => VIEWS.find(([id]) => `#${id}` === hash)?.[0] || null;
+  // V1.5.4: the notebook of clues (#indices) and a chain between worlds (#quete-…) live in the Carnet view.
+  const viewOf = (hash) => VIEWS.find(([id]) => `#${id}` === hash)?.[0] || (/^#(indices|quete-[a-z0-9-]+)$/.test(hash) ? "carnet" : null);
 
   let root = null;
   let selected = new URLSearchParams(location.search).get("world");
@@ -89,6 +90,7 @@
           return `<button type="button" class="av-node${earned ? " is-earned" : ""}${active ? " is-active" : ""}${ch.boss ? " is-boss" : ""}" data-chapter="${ch.index}" style="left:${NODES[i][0]}%;top:${NODES[i][1]}%" aria-label="Balise ${ch.index} : ${esc(ch.name)}. ${earned ? "Allumée" : active ? "Étape en cours" : "À découvrir"}">${ch.boss ? `<img src="/assets/renaissance/guardian-${world.id}-s.webp" alt="" width="256" height="256" decoding="async">${earned ? icon("check") : ""}` : earned ? icon("check") : `<span>${ch.index}</span>`}</button>`;
         })
         .join("")}
+      <div class="av-map-quests" data-quest-map></div>
       <div class="av-map-caption"><strong>${esc(world.name)}</strong><span>${p.chapter >= 10 ? "Les neuf balises brillent." : `${done(p)} balise${done(p) > 1 ? "s" : ""} sur 9`}</span></div>
     </section>`;
   }
@@ -341,6 +343,7 @@
           <section class="av-sentiers" data-journey-host aria-label="Sentiers et jalons de carrière"></section>
         </div>
         <div class="av-view av-view-carnet" data-av-view="carnet"${hide("carnet")}>
+          <section class="av-panel av-indices" id="indices" data-quest-host aria-label="Carnet d’indices"></section>
           ${carnetHtml(world, p)}
           ${questSouvenirsHtml(world, s)}
           <details class="asc-note av-rules"><summary>Les règles de l’aventure</summary>
@@ -362,6 +365,8 @@
     window.TitanRpgPanel?.mount(root.querySelector("[data-rpg-host]"), world.id);
     // V1.5.2: the access the Veilleur's outcome opened, reached from the Camp de base (/adventure?world=aube#retour).
     window.TitanConsequencePanel?.mount(root.querySelector("[data-consequence-host]"), world.id);
+    // V1.5.4: the notebook of clues and its access from the map (a chain that leaves or reaches this world).
+    window.TitanQuestPanel?.mount(root.querySelector("[data-quest-host]"), world.id, root.querySelector("[data-quest-map]"));
     const guide = root.querySelector("[data-rpg-departure]");
     if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;
     const quests = root.querySelector("[data-rpg-quests]");

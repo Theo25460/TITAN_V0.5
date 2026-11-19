@@ -132,6 +132,12 @@ fi
 [[ "$guard" == "Refused: consequence concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 echo "  · consequence non-test database refused before fixtures"
 python3 "$ROOT/tools/db/test-consequence-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Quest chain concurrency contract (V1.5.4, two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-quest-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: quest concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+python3 "$ROOT/tools/db/test-quest-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "Training rate concurrency contracts (two real connections)"
 if guard=$(python3 "$ROOT/tools/db/test-training-rate-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
   echo "training rate runner accepted a non-test database"; exit 1
