@@ -81,6 +81,14 @@ export const BUNDLES = {
     expected: { private: [119, "43c6cececcca", "6266862d9620"], public: [321, "32c8b51edcd3", "3992427182c7"] },
     beforeNote: "This is the state production reaches at the end of the v17 bundle.",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },  // OWNER DECISION (21 November 2026): a personal TITAN+ gives no coaching places any more (3, as Classique); only Coach (5) and
+  // Coach Ultra (15) do. Separate bundle so it can be applied, postponed or dropped on its own. NOT applied.
+  v19: {
+    out: "supabase/release-v19", after: "20261121130000", until: "20261121140000",
+    before: { private: [119, "43c6cececcca", "6266862d9620"], public: [321, "32c8b51edcd3", "3992427182c7"] },
+    expected: { private: [119, "43c6cececcca", "2d2da071a4de"], public: [321, "32c8b51edcd3", "3992427182c7"] },
+    beforeNote: "This is the state production reaches at the end of the v18 bundle.",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
 };
 const NAME = opt("--bundle", "v131");

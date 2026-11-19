@@ -90,7 +90,7 @@ Noms internes interdits dans tout texte : `elite`, `premium`, `Coach Pro`, `coac
 | Offre | Terme retenu | À ne pas écrire | Ce que le serveur accorde (source) |
 |---|---|---|---|
 | Sans abonnement | **Gratuit** (application Android, pastilles des mondes) ; le site écrit encore « Classique » : **un seul nom à choisir, voir la matrice (D-08)** ; proposition : « Gratuit » partout | Free, Basique, Standard, « Classique » et « Gratuit » dans une même page | 5 routines, 3 sportifs suivis ; tout le journal, la progression, les quatre campagnes |
-| Abonnement individuel | **TITAN+** | Titan+, TITAN Plus, Premium, Elite, Pass | Droit actif au registre → `is_elite` ; comparaisons, bilans détaillés, 10 vues (sur le site), 20 routines, accès temporaire à 4 pièces, aucune publicité sur Android ; **20 sportifs suivis** (règle héritée, `private.titan_coach_capacity`) |
+| Abonnement individuel | **TITAN+** | Titan+, TITAN Plus, Premium, Elite, Pass | Droit actif au registre → `is_elite` ; comparaisons, bilans détaillés, 10 vues (sur le site), 20 routines, accès temporaire à 4 pièces, aucune publicité sur Android ; aucune place de suivi coach (3, comme le Classique : décision `20261121140000`) |
 | Abonnement coach, 5 places | **Coach** | TITAN Coach, Coach Standard | TITAN+ pour le coach ; 5 sportifs suivis, chacun avec TITAN+ tant qu’il est rattaché (`private.titan_coach_plan`) |
 | Abonnement coach, 15 places | **Coach Ultra** | Coach Pro, Coach+, Coach Premium | Mêmes fonctions que Coach ; 15 places |
 | TITAN+ reçu d’un coach | **place** (« une place TITAN+ ») | siège, licence, seat | Active tant que le lien est accepté et que l’offre du coach est active ; ne compte pas pour la capacité du sportif |
