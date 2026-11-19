@@ -96,7 +96,7 @@ Préparation Play Console : déclarations conformes à ce build dans `mobile/doc
 | Social | VERT | confidentialité vérifiée (résultats, invitations, totaux de club), limites serveur, tests SQL |
 | Coaching | ORANGE | code et tests verts ; règle des places TITAN+ (20) / Coach (5) / Coach Ultra (15) à trancher (#155) |
 | Paiements (code) | VERT | chaîne testée (simulée), vente fermée tant que le serveur n'est pas à jour |
-| Paiements (réel Google Play) | ORANGE | aucun achat de licence constaté sur appareil ; dépend du propriétaire (§ H) |
+| Paiements (réel Google Play) | ORANGE | vente ouverte côté serveur le 19/11 ; aucun achat de licence encore constaté sur appareil (à faire avec le build 1400) |
 | Supabase | VERT | appliqué, postflights vrais, advisors sans erreur |
 | Web / cache / SEO | VERT | en production : SEO 38/38, 0 erreur sur 17 pages × 3 largeurs, empreintes de cache vérifiées, deux défauts visuels corrigés et republiés |
 | Incident `play-notifications` | VERT | 0 × 503 après publication, notifications gardées en base |
@@ -120,7 +120,7 @@ Préparation Play Console : déclarations conformes à ce build dans `mobile/doc
 ## H. Dette résiduelle et décisions du propriétaire
 
 1. **Builds Android V1.2.x (1301)** : ils ouvrent la feuille de paiement sans demander au serveur. Désactiver `titan01/02/03` ou retirer 1301 des pistes tant que la vente n'est pas ouverte ; vérifier le remboursement automatique de la commande 1301.
-2. **Ouverture de la vente** : `PLAY_BILLING_ENABLED=true` sur Netlify ouvre aussi la vente aux vrais clients. Préalables juridiques : identité de l'éditeur, responsable de traitement, médiateur de la consommation (mentions, confidentialité § 2, CGU § 13).
+2. **Vente ouverte** le 19/11/2026 (`PLAY_BILLING_ENABLED=true`, décision du propriétaire) : elle concerne aussi les vrais clients. Restent à publier : identité de l'éditeur, responsable de traitement, médiateur de la consommation (mentions, confidentialité § 2, CGU § 13). Interrupteur d'urgence sans redéploiement de code : `PLAY_CHECKOUT_ENABLED=false` (suspend les nouveaux achats, garde la restauration et les notifications), puis redéploiement.
 3. **Places coach** (#155) : TITAN+ seul donne 20 places, Coach 5, Coach Ultra 15 ; un passage de TITAN+ à Coach met des liens en pause.
 4. **Prix France** : 4,99 / 19,99 / 39,99 € visés ; 5,99 / 23,99 / 47,99 € observés dans Play Console.
 5. **Âge minimal** : 13 ans annoncés, aucune vérification à l'inscription.
@@ -142,7 +142,7 @@ Préparation Play Console : déclarations conformes à ce build dans `mobile/doc
 7. **Migrations appliquées ?** Oui : 141, dernière `20261122090000`, postflights vrais. v19 non appliquée (décision).
 8. **Site publié sur Netlify ?** Oui : `2bcd078`, déploiement `6afeab78f177d84c3561c584`, vérifié sur `titan-app.fr`.
 9. **Incident `play-notifications` résolu ?** Oui : 0 × 503 depuis la publication, notifications gardées.
-10. **Paiements prêts pour une ouverture commerciale ?** Pas encore. Le code est prêt et la vente reste fermée par sécurité (`PLAY_BILLING_ENABLED` absent). Il manque : l'identité légale de l'éditeur, un achat de licence constaté sur téléphone, la décision sur les places coach, et le retrait des builds 1301.
+10. **Paiements fonctionnels ?** Ouverts côté serveur le 19/11/2026 sur décision explicite du propriétaire (`PLAY_BILLING_ENABLED=true` sur Netlify, pris en compte au déploiement suivant). Chaque achat, réel ou de licence, reste vérifié auprès de Google avant tout droit ; la feuille de paiement ne s'ouvre que si le serveur répond 204 (configuration, catalogue, droit de lecture des achats, schéma V18 + V20). Non encore constaté : un achat de licence sur téléphone (à faire par le propriétaire avec le build 1400). Points juridiques et commerciaux encore ouverts : identité de l'éditeur, places coach (#155), prix France, retrait des builds 1301.
 11. **SEO en production ?** Oui : 38/38, sitemap 27 URL. Le classement dépend ensuite de Google.
 12. **AAB officiel généré et récupérable ?** Oui : remis en pièce jointe et disponible en artefact jusqu'au 18/12/2026.
 13. **Parcours fondamentaux fonctionnels ?** Oui pour ce qui est vérifiable sans compte réel : 1 093 parcours navigateur, parcours émulateur Android sur le schéma de production, recette de production publique. Non testés par l'agent : inscription réelle, achat réel, Garmin et Santé Connect sur appareil.
