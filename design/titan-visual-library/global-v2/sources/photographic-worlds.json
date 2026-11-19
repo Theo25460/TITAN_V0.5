@@ -1,0 +1,53 @@
+{
+  "license_policy": "Only photographs explicitly marked free to use on individual Unsplash pages, not Unsplash+; license reviewed 2026-11-13. Do not use as TITAN logos or imply photographer endorsement.",
+  "items": [
+    {
+      "id": "valley",
+      "label": "Vallée de l'Aube",
+      "src": "https://images.unsplash.com/photo-1756327805958-466d35d5b606",
+      "page": "https://unsplash.com/photos/mountain-valley-with-lake-at-sunrise-HKZYYiJXmJs",
+      "author": "Vasu Pendyala",
+      "scene": "Alpine valley and lake at sunrise",
+      "license": "https://unsplash.com/license",
+      "rights": "Unsplash free license; commercial modifications permitted. Photographer credited for traceability.",
+      "type": "photography",
+      "decision": "proposed_only"
+    },
+    {
+      "id": "archipelago",
+      "label": "Archipel des Marées",
+      "src": "https://images.unsplash.com/photo-1780833546253-7216b5f3986e",
+      "page": "https://unsplash.com/photos/white-lighthouse-on-a-rugged-cliff-by-the-ocean-QDEXHid5sAM",
+      "author": "Jean Carlo Emer",
+      "scene": "Real Icelandic coastal lighthouse and ocean",
+      "license": "https://unsplash.com/license",
+      "rights": "Unsplash free license; commercial modifications permitted. Photographer credited for traceability.",
+      "type": "photography",
+      "decision": "proposed_only"
+    },
+    {
+      "id": "forge",
+      "label": "Forges d'Obsidienne",
+      "src": "https://images.unsplash.com/photo-1769670366138-efbd2ab13c3a",
+      "page": "https://unsplash.com/photos/volcanic-landscape-with-dark-lava-fields-and-distant-mountains-17rvUGnEPCU",
+      "author": "Balázs Gábor",
+      "scene": "Basalt lava field and volcanic mountains; no impossible forge structures",
+      "license": "https://unsplash.com/license",
+      "rights": "Unsplash free license; commercial modifications permitted. Photographer credited for traceability.",
+      "type": "photography",
+      "decision": "proposed_only"
+    },
+    {
+      "id": "aurora",
+      "label": "Citadelle des Aurores",
+      "src": "https://images.unsplash.com/photo-1780678839895-5db70630e0ff",
+      "page": "https://unsplash.com/photos/northern-lights-illuminate-a-starry-sky-over-snowy-mountains-XXX2uavaR38",
+      "author": "Rafael Peier",
+      "scene": "Natural aurora borealis above snowy mountains",
+      "license": "https://unsplash.com/license",
+      "rights": "Unsplash free license; commercial modifications permitted. Photographer credited for traceability.",
+      "type": "photography",
+      "decision": "proposed_only"
+    }
+  ]
+}
