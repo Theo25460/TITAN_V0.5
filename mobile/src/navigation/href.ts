@@ -25,7 +25,7 @@ export function navigateHref(navigation: Nav, href: string) {
       return navigation.navigate("Tabs", { screen: "Progress" });
     case "/adventure":
       if (fragment === "sentiers") return navigation.navigate("Sentiers");
-      if (params.world) return navigation.navigate("World", { id: params.world });
+      if (params.world) return navigation.navigate("World", fragment === "retour" ? { id: params.world, focus: "retour" } : { id: params.world });
       return navigation.navigate("Tabs", { screen: "Adventure" });
     case "/profile":
       return navigation.navigate("Tabs", { screen: "Profile" });

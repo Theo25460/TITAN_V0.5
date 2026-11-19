@@ -4,6 +4,7 @@ import { Image, StyleSheet, useWindowDimensions, View } from "react-native";
 import { WorldPathMap } from "../../components/WorldPathMap";
 import { WorldStory } from "../../components/WorldStory";
 import { AdventureEncounters } from "../../components/AdventureEncounters";
+import { AdventureConsequence } from "../../components/AdventureConsequence";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -85,6 +86,8 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
 
   return (
     <Screen refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
+      {/* V1.5.2: arriving from the Camp de base, the access the Veilleur opened is the first thing on screen. */}
+      {owner && route.params.focus === "retour" ? <AdventureConsequence owner={owner} world={world.id as AdventureWorld} /> : null}
       <View style={styles.hero}>
         <Image source={worldImages[world.image]} style={styles.heroArt} resizeMode="cover" accessibilityIgnoresInvertColors />
         <View style={{ padding: space.s4, gap: 6 }}>
@@ -270,6 +273,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
           })}
         </View> : null}
       </View>
+      {owner && route.params.focus !== "retour" ? <AdventureConsequence owner={owner} world={world.id as AdventureWorld} /> : null}
       {owner && !locked && chapter > 0 ? <AdventureEncounters owner={owner} world={world.id as AdventureWorld} revision={q.dataUpdatedAt} /> : null}
       <RewardReveal content={reveal} onClose={() => setReveal(null)} />
     </Screen>

@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "ca55ff293c403096277966d582909018f87718f4",
+  "sha": "9d9ee6db860f9355942a9817eaf09d2c7de7aef0",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
@@ -21,6 +21,7 @@
     "adventure-rpg.js": "4cd62cf0bc586ede0e246a8a6904c023c974aa93923827c02d02c5594c20e684",
     "adventure-branches.js": "108f9b9a7c94fbef6fd308474615ffe3bb13d240bb85b84e84de24fa9c9a85ec",
     "adventure-guardian.js": "cec9b026295815c72b3b3dc0157ee6e716d166bb260a55e740051f9c0b80fd6a",
+    "adventure-consequence.js": "304421dfe730f06bab0653d49ec48727380318e8231391ebcd525e905978c887",
     "career.js": "67d3752bdbd6137f9e6cb53edb6ad38a5a9473dd449af506888a6daa6c7a253a",
     "journey.js": "7496b2b2ba1cad6e695d8e580ea5a5583b4d079c3b89f38b19a0552e2514b921",
     "adventure-access.js": "250396d1c363dc078a592fffe0c62d841e202b0f03c0fe9413a6277629671265",
