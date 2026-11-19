@@ -27,7 +27,9 @@ do $$begin
  assert not has_function_privilege('anon','public.titan_adventure_guardian_snapshot_v1(text)','execute'),'anon snapshot';
  assert not has_function_privilege('anon','public.titan_adventure_guardian_action_v1(text,text,integer,integer,text,text)','execute'),'anon action';
  assert not has_function_privilege('authenticated','private.titan_adventure_guardian_state(uuid,text,jsonb)','execute'),'state is private';
- assert (private.titan_adventure_guardian_current('aube')->>'id')='veilleur' and private.titan_adventure_guardian_current('marees') is null,'one guardian';
+ assert (private.titan_adventure_guardian_current('aube')->>'id')='veilleur','the Vallée keeps the Veilleur';
+ -- V1.5.3: the other worlds' guardians come from the common configuration (300_adventure_campaigns).
+ assert private.titan_adventure_guardian_current('marees')->>'id'='gardienne' and private.titan_adventure_guardian_current('marees')->'signs'='[]'::jsonb;
 end $$;
 set local role anon;
 do $$begin
@@ -227,7 +229,7 @@ do $$declare s jsonb;begin
  assert s->'adventureGuardians'->0->>'outcome'='passage_rouvert' and not (s->'adventureGuardians'->0 ? 'user_id');
 end $$;
 
--- Another world sees no guardian.
+-- Another world: no route confirmed there yet, so no guardian phase (and the Veilleur's signs do not exist there).
 set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.gd_a'),'role','authenticated')::text,true);
 do $$declare s jsonb;begin

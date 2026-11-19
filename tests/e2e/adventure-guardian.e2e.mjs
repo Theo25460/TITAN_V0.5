@@ -46,6 +46,8 @@ function snapshot(a){
   guardianContract:1,guardian:guardian(a,milestones)};
 }
 function serve(a,name,args){
+ // This fake is a server with V1.5.1 but without V1.5.3: the campaign RPCs do not exist and the client falls back.
+ if(name.startsWith('titan_adventure_campaign_'))return {data:null,error:{code:'PGRST202',message:'Could not find the function public.'+name}};
  a.calls.push([name,args]);
  if(a.failNext>0){a.failNext--;return {__network:true};}
  const fail=message=>({data:null,error:{message}});

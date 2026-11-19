@@ -28,7 +28,8 @@ do $$begin
  assert not has_function_privilege('anon','public.titan_adventure_branch_action_v1(text,text,integer,integer,text)','execute'),'anon action';
  assert not has_function_privilege('authenticated','private.titan_adventure_branch_state(uuid,text)','execute'),'state is private';
  assert (private.titan_adventure_branch_current('aube')->>'version')::integer=1;
- assert private.titan_adventure_branch_current('marees') is null,'single pilot arc';
+ -- V1.5.3: the three other worlds get their first arc from the common configuration (proven by 300_adventure_campaigns).
+ assert private.titan_adventure_branch_current('marees')->>'id'='marees-arc1','common configuration';
 end $$;
 set local role anon;
 do $$begin
@@ -207,14 +208,17 @@ do $$declare s jsonb; o record;begin
  assert s->'adventureBranches'->0->>'pilot'='aube-arc1' and not (s->'adventureBranches'->0 ? 'user_id');
 end $$;
 
--- Another world and another account see nothing of the pilot.
+-- Another world keeps its own arc and never sees the Vallée's route; another account sees nothing of the pilot.
 set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.br_a'),'role','authenticated')::text,true);
 do $$declare s jsonb;begin
  perform public.titan_adventure_branch_action_v1('marees','start');
- s:=public.titan_adventure_branch_snapshot_v1('marees'); assert s->'branch'->>'state'='none';
- begin perform public.titan_adventure_branch_action_v1('marees','enter'); raise exception 'non-pilot world entered';
- exception when raise_exception then assert sqlerrm='BRANCH_UNAVAILABLE',sqlerrm; end;
+ s:=public.titan_adventure_branch_snapshot_v1('marees');
+ assert s->'branch'->>'state'='available' and s->'branch'->>'pilot'='marees-arc1' and s->'branch'->>'route' is null,(s->'branch')::text;
+ begin perform public.titan_adventure_branch_action_v1('marees','confirm',null,null,'corniche'); raise exception 'Vallée route in another world';
+ exception when raise_exception then assert sqlerrm='BRANCH_NOT_ENTERED',sqlerrm; end;
+ begin perform public.titan_adventure_branch_action_v1('atlantide','enter'); raise exception 'unknown world entered';
+ exception when raise_exception then assert sqlerrm='INVALID_WORLD',sqlerrm; end;
 end $$;
 select set_config('request.jwt.claims',json_build_object('sub',current_setting('titan.br_d'),'role','authenticated')::text,true);
 do $$declare s jsonb;begin

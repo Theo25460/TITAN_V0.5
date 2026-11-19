@@ -119,6 +119,16 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v22 bundle (V1.5.1 Gardiens).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.5.3 Quatre mondes, quatre mécaniques (19 November 2026): the common campaign configuration gives the Marées, the Forge and
+  // the Aurores a first arc on the V1.5.0/V1.5.1 engine, each with its own mechanic. NOT applied in production; needs v21, v22 and
+  // v23 first. Additive, rehearsed on a replica (sql/tests/300_adventure_campaigns.sql, tools/db/test-campaign-concurrency.py).
+  v24: {
+    out: "supabase/release-v24", after: "20261125090000", until: "20261126090000",
+    before: { private: [135, "9417a75d67f2", "cf67364e872e"], public: [330, "0efd66f97b73", "0b22635807ac"] },
+    expected: { private: [142, "0da9bf507878", "cc96ce5701e7"], public: [332, "4492e54bef34", "21b4c505589d"] },
+    beforeNote: "This is the state production reaches at the end of the v23 bundle (V1.5.2 Camp et conséquences).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
