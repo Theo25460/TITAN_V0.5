@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "e48cf1d6ebc3b81bf9286053438600a11c6158fc",
+  "sha": "c9eed983c67e13f69459a6c14f64fad4407c7867",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
@@ -23,6 +23,7 @@
     "adventure-guardian.js": "cec9b026295815c72b3b3dc0157ee6e716d166bb260a55e740051f9c0b80fd6a",
     "adventure-campaigns.js": "61f7bc38cb051f3bf7e43aad0a45ab823d23ee927a64c90eec1ed2d722d83159",
     "adventure-consequence.js": "304421dfe730f06bab0653d49ec48727380318e8231391ebcd525e905978c887",
+    "adventure-quests.js": "d2ae9118bbaa7f60d7c71ae8320bff3a572e248ce62e93fb77f5242a916d52ea",
     "career.js": "67d3752bdbd6137f9e6cb53edb6ad38a5a9473dd449af506888a6daa6c7a253a",
     "journey.js": "7496b2b2ba1cad6e695d8e580ea5a5583b4d079c3b89f38b19a0552e2514b921",
     "adventure-access.js": "250396d1c363dc078a592fffe0c62d841e202b0f03c0fe9413a6277629671265",

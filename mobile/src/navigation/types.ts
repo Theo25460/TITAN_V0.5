@@ -34,7 +34,7 @@ export type RootParams = {
   Career: undefined;
   Goals: undefined;
   Plan: undefined;
-  World: { id: string; focus?: "retour" };
+  World: { id: string; focus?: "retour" | "indices" };
   Sentiers: undefined;
   Atelier: undefined;
   Community: { ami?: string; guilde?: string; invitation?: string } | undefined;
