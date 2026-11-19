@@ -163,6 +163,7 @@ const config: ExpoConfig = {
     "./plugins/with-release-signing",
     "./plugins/with-play-billing",
     "./plugins/with-app-shortcuts",
+    "./plugins/with-optional-screen-features",
   ],
   extra: {
     supabaseUrl: "https://oubmftfufwwzwpgvrcag.supabase.co",
