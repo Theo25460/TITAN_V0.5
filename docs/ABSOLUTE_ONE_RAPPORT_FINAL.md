@@ -1,6 +1,6 @@
 # TITAN — ABSOLUTE ONE — RAPPORT FINAL DE RELEASE
 
-Clôture des chantiers V1.3.1 → TITAN ONE · 18 novembre 2026 · PR https://github.com/Theo25460/TITAN_V0.5/pull/163
+Clôture des chantiers V1.3.1 → TITAN ONE · 18-19 novembre 2026 · PR #163 et #164 (Theo25460/TITAN_V0.5)
 
 Ce rapport distingue toujours : **implémenté** (dans le code), **validé** (tests, réplique), **fusionné** (sur `main`),
 **en production** (constaté sur `titan-app.fr`, sur la base `oubmftfufwwzwpgvrcag` ou dans l'artefact Android).
@@ -11,10 +11,10 @@ Ce rapport distingue toujours : **implémenté** (dans le code), **validé** (te
 
 | Livrable | État | Preuve |
 |---|---|---|
-| Web sur `titan-app.fr` | voir § D | déploiement Netlify, SHA servi, contrôles en production |
+| Web sur `titan-app.fr` | **EN PRODUCTION** | déploiement `6afeab78f177d84c3561c584`, commit `2bcd07888fa49fac6f2814768ca7e447db4f22da`, publié le 19/11/2026 07:56:07 UTC (release `24f7094` publiée le 18/11 à 20:06:14 UTC) |
 | Supabase | **EN PRODUCTION** | registre 141 migrations, dernière `20261122090000_play_notification_inbox` ; contrôles avant/après et postflights v11 (328), v13 (42), v131 (54) tous vrais |
-| AAB Android signé `upload` | voir § E | artefact GitHub Actions, signature, SHA-256 |
-| Incident `play-notifications` | cause trouvée, correctif en base, fonction publiée avec le Web (§ D) | logs Netlify avant/après |
+| AAB Android signé `upload` | **GÉNÉRÉ ET REMIS** | `titan-1.4.0-1400-upload.aab`, SHA-256 `7988fcc778df205b647df785dd9dc15134ff7fb9cff71cd6ac5f9ccbf161e99d`, certificat d'envoi `8E:35:9E:DE:…:20:5C` |
+| Incident `play-notifications` | **RÉSOLU** | 16 830 × 503 sur les 12,2 h précédant la publication → 0 × 503 sur les 11,8 h suivantes |
 
 ---
 
@@ -38,7 +38,7 @@ Ce rapport distingue toujours : **implémenté** (dans le code), **validé** (te
 
 ## B. État GitHub
 
-- Branche de release : `claude/eloquent-rubin-ar73ww` → PR #163. SHA final : voir § D.
+- Branche de release : `claude/eloquent-rubin-ar73ww` → PR #163 (release, `24f7094`) puis PR #164 (correctif de recette, `2bcd078`). `main` = `2bcd07888fa49fac6f2814768ca7e447db4f22da`.
 - **Intégré** (vérifié par ascendance et par contenu) : #150 (via #156), #151, #152, #153, #154 (y compris le correctif a7e5375), #156, #157, #158 (10 commits absents de #160 ajoutés), #160, #162 (3 conflits résolus, pages régénérées par leurs générateurs).
 - **Exclu volontairement** : #155 (décision commerciale non tranchée), #159 et #161 (previews, têtes identiques à #156/#160 : rien n'a fui), #147 (candidats : seuls les blasons Champion/Titan/Légende, déjà présents dans la branche, ont été activés après revue).
 - Déjà fusionnées avant la mission : #142, #148, #149.
@@ -53,15 +53,39 @@ Ce rapport distingue toujours : **implémenté** (dans le code), **validé** (te
 - Après : **141 migrations**, dernière `20261122090000`. Chaque `00-check-before` et `99-check-after` à `ok = true`. Postflights v11 (328), v13 (42), v131 (54) : tous vrais. Données : 17 séances, 24 profils, 24 comptes, inchangés.
 - Non appliqué : **v19** (PR #155) — décision commerciale.
 - Advisors : 0 ERROR. Restent : protection contre les mots de passe divulgués désactivée (réglage Auth du tableau de bord), avertissements attendus sur les fonctions `SECURITY DEFINER` exposées par conception.
-- Drapeaux : voir § D (ouverture après publication du Web).
+- Drapeaux : `screens.live`, `screens.friendlinks`, `screens.cordee`, `screens.digest` ouverts à 100 % le 18/11/2026 après publication du Web (détail § D).
 
 ## D. État Netlify
 
-_Complété après publication (voir la section « Publication » ajoutée en fin de mission)._
+- **Release** : `main` avancé (avance rapide, PR #163 fusionnée) jusqu'à `24f7094995085e6c608f4f5c24c6ce4b5e47d478` après un CI entièrement vert (782 tests, 1 093 parcours Playwright, réplique Postgres 17.6, 1 010 tests Jest, APK/AAB, parcours émulateur). Garde de publication respectée : `TITAN_APPROVED_RELEASE_SHA` posé sur ce SHA exact avant la poussée. Déploiement de production `6afe051ac2fe119736de6ebd`, publié le **18/11/2026 à 20:06:14 UTC**, 6 fonctions, scan de secrets : 0.
+- **Correctif de recette** (PR #164) : deux défauts visuels relevés en production (marqueur des FAQ publiques, sous-titre de `/seance-live` sous le drapeau à 390-414 px) ; CI verte ; déploiement `6afeab78f177d84c3561c584`, commit `2bcd07888fa49fac6f2814768ca7e447db4f22da`, publié le **19/11/2026 à 07:56:07 UTC** ; vérifié sur `titan-app.fr` (FAQ `::after` = « + » sans rotation sur `/`, `/titan-plus`, `/service` ; drapeau dégagé à 390 et 1 440 px).
+- **Recette de production** (trois vérifications indépendantes, lecture seule, sans compte) :
+  - SEO : `tools/check-seo-live.mjs https://titan-app.fr` **38/38** (29/38 avant) ; sitemap 27 URL toutes en 200, canonique unique, indexables ; 27 JSON-LD valides ; `robots.txt` identique au dépôt ; `/suivi-velo` et `/defis-sportifs` en 200 (404 avant) ; `/guide` et `/algorithme` toujours en 301.
+  - Interface : 17 pages × 320/390/1 440 px, 3 passages, 0 erreur de page, 0 erreur console, 0 réponse 4xx/5xx, 0 débordement horizontal ; chaque CSS/JS porte un `rev=` égal à l'empreinte des octets servis ; 164 entrées du service worker en 200 ; 7 blasons sculptés sur `/carriere`.
+  - Serveur : `play-notifications` non authentifié → **401** (503 avant) ; `GET play-billing` → 503 « unavailable » (vente fermée, `PLAY_BILLING_ENABLED` absent, voulu) ; Garmin 4xx ; contrôles bloquants de `probe-prod.yml` verts ; en-têtes de cache, CSP, HSTS conformes ; `config.js` servi = PKCE, identique au dépôt ; Google + e-mail présents.
+  - Textes juridiques servis : CGU **version 10**, confidentialité **version 14**, suppression **version 4**, datés du 18 novembre 2026 ; aucune page n'annonce de publicité actuelle dans l'application Android.
+- **Drapeaux** ouverts à 100 % le 18/11 (lecture confirmée par la fonction publique `titan_feature_flags_v1`) : `screens.live`, `screens.friendlinks`, `screens.cordee`, `screens.digest`. Restent fermés : `screens.garmin_dailies` (qualification Garmin Health absente), `auth.anonymous` (connexions anonymes désactivées).
+- **`play-notifications`** : 16 830 × 503 sur les 12,2 h précédant la publication, **0 × 503** ensuite (8 requêtes en 11,8 h, toutes issues de nos sondes : 6 × 401, 2 × 405). Les trois messages que Google renvoyait en boucle ont été acquittés (202) et gardés dans `private.titan_play_notification_inbox` : un seul jeton d'achat, notifications « remboursé » (voided), « révoqué » (12) et « expiré » (13), toutes authentifiées par Google. Ils ne seront traités qu'à l'ouverture de la facturation (et seront alors ignorés, ce jeton n'ayant jamais été rattaché à un compte).
+- **`play-reconcile`** : 12 exécutions horaires, toutes en 200 (les 4 réponses 403 sont des `POST` de sondes, refusés par Netlify sur une fonction planifiée).
+- **Consommation** : environ 33 000 invocations en erreur par jour supprimées sur `play-notifications`. Les crédits Netlify ne sont pas lisibles avec l'accès disponible ici ; le compteur d'invocations ci-dessus en est la cause principale.
 
 ## E. État Android
 
-_Complété après génération de l'AAB._
+| Élément | Valeur |
+|---|---|
+| Fichier | `titan-1.4.0-1400-upload.aab` (67 229 581 octets), remis en pièce jointe |
+| SHA-256 | `7988fcc778df205b647df785dd9dc15134ff7fb9cff71cd6ac5f9ccbf161e99d` |
+| Artefact | `titan-android-1400-upload` (id 14469786308, empreinte ZIP `sha256:fb09af57946ecfcad44ec99100ec616de2be7000fa5e1940fda3f5359e5dece4`, conservé jusqu'au 18/12/2026) — https://github.com/Theo25460/TITAN_V0.5/actions/runs/44387420970 |
+| Source | `main` à `24f7094995085e6c608f4f5c24c6ce4b5e47d478` (le correctif `2bcd078` ne touche que deux feuilles CSS du Web) |
+| Identifiant / version | `fr.titanapp.app`, versionCode **1400**, versionName **1.4.0** (au-dessus de 1301 distribué et de 1302/1303/1304 signés) |
+| SDK | cible 36, compilation 36 |
+| Signature | AAB et APK signés par `CN=TITAN, OU=Android upload key` — SHA-256 du certificat `8E:35:9E:DE:A7:2E:48:F0:76:0D:1B:7F:F6:64:94:43:9B:BA:4B:5F:73:85:DE:44:C7:CF:A5:92:9D:EC:20:5C` (vérifié par le CI puis indépendamment avec `keytool`) |
+| Options | `ads=off`, `billing=true`, `google_signin=true`, `partial_release=true`, `e2e=true` |
+| Permissions | localisation précise + service de premier plan « localisation », Santé Connect (`READ_STEPS`, `READ_EXERCISE`), `ACTIVITY_RECOGNITION`, `BILLING`, notifications ; **`AD_ID` absent** (build sans publicité) |
+| Contenu | adresse Supabase de production présente ; aucune adresse de test ; seul jeton embarqué : la clé publique `anon` |
+| Preuves CI | types et 1 010 tests Jest, compilation signée, contrôles du paquet, parcours réel sur émulateur Android 14 (réplique du schéma de production) et vérifications serveur : tous verts ; l'AAB n'est publié qu'après ce parcours |
+
+Préparation Play Console : déclarations conformes à ce build dans `mobile/docs/PUBLIER_PLAY_CONSOLE.md` § 4 et § 4 bis (annonces : non ; identifiant publicitaire : non ; achats intégrés : oui). Envoi recommandé : piste de test interne d'abord. Après l'envoi, porter `mobile/docs/last-version-code.txt` à 1400.
 
 ## F. Qualité
 
@@ -74,8 +98,9 @@ _Complété après génération de l'AAB._
 | Paiements (code) | VERT | chaîne testée (simulée), vente fermée tant que le serveur n'est pas à jour |
 | Paiements (réel Google Play) | ORANGE | aucun achat de licence constaté sur appareil ; dépend du propriétaire (§ H) |
 | Supabase | VERT | appliqué, postflights vrais, advisors sans erreur |
-| Web / cache / SEO | VERT | voir § D pour la production |
-| Android | voir § E | |
+| Web / cache / SEO | VERT | en production : SEO 38/38, 0 erreur sur 17 pages × 3 largeurs, empreintes de cache vérifiées, deux défauts visuels corrigés et republiés |
+| Incident `play-notifications` | VERT | 0 × 503 après publication, notifications gardées en base |
+| Android | VERT | AAB signé vérifié, parcours émulateur et 1 010 tests Jest ; achat réel et appareil physique non testés par l'agent |
 | Textes juridiques | ORANGE | publicité et versions corrigées ; identité de l'éditeur, médiateur et âge minimal à fournir par le propriétaire |
 | Illustrations | ORANGE | blasons intégrés après revue, approbation propriétaire en attente ; trois objets Atelier contiennent du texte peint |
 
@@ -83,12 +108,14 @@ _Complété après génération de l'AAB._
 
 | Sujet | Avant | Après |
 |---|---|---|
-| `play-notifications` | ~38 800 réponses 503 / 24 h (logs Netlify du 18/11), notifications perdues après la rétention Pub/Sub | voir § D |
+| `play-notifications` | ~38 800 réponses 503 / 24 h (logs Netlify du 18/11), notifications perdues après la rétention Pub/Sub | 0 × 503 ; notifications gardées et acquittées |
 | Base | 130 migrations | 141 migrations, V15-V18 + V20 |
-| Site public | build du 5 novembre (`761340d`, PR #140) | voir § D |
+| Site public | build du 5 novembre (`761340d`, PR #140) : ni V1.3, ni V1.3.1, ni TITAN ONE | `2bcd078` : V1.3 → TITAN ONE complet |
+| SEO servi | 29/38 contrôles conformes au dépôt | 38/38 |
 | Sitemap | 25 URL, `/suivi-velo` et `/defis-sportifs` en 404 | 27 URL, toutes en 200 (vérifié sur la preview) |
 | Blasons | 4 sculptés + 3 écus plats | 7 sculptés |
-| Fonctions cachées par drapeau | `screens.live`, `friendlinks`, `cordee`, `digest` absents (fermés) | voir § D |
+| Fonctions cachées par drapeau | `screens.live`, `friendlinks`, `cordee`, `digest` absents (fermés) | ouvertes à 100 % |
+| Android | 1.3.2 (1304) signé, non distribué | 1.4.0 (1400) signé, vérifié, sans `AD_ID` |
 
 ## H. Dette résiduelle et décisions du propriétaire
 
@@ -101,8 +128,23 @@ _Complété après génération de l'AAB._
 7. **Auth Supabase** : activer la protection contre les mots de passe divulgués.
 8. Recettes physiques impossibles à l'agent : achat de licence sur téléphone, Santé Connect réel, Garmin réel, UMP publicitaire (si `ads=live` un jour).
 9. Légende : le centre reprend le château de Gardien ; une variante peut être demandée. Objets Atelier (coffre, relique, sceau) : texte peint à faire retirer.
-10. Améliorations non bloquantes relevées par les audits : ciblage par compte des drapeaux, interrupteurs Android pour clubs/classement, réponses 404 mises en cache 7 jours, préchargement de 1,2 Mo sur les pages publiques, `_redirects` obsolète, CSP Paddle.
+10. À 320 px exactement, l'étiquette invité « Découverte » de l'en-tête du QG est tronquée de 3 px (« Découve… ») ; dès 330 px elle est entière.
+11. Améliorations non bloquantes relevées par les audits : ciblage par compte des drapeaux, interrupteurs Android pour clubs/classement, réponses 404 mises en cache 7 jours, préchargement de 1,2 Mo sur les pages publiques, `_redirects` obsolète, CSP Paddle.
 
 ## I. Verdict
 
-_Complété en fin de mission, après les preuves de production._
+1. **TITAN ONE est-il entièrement consolidé ?** Oui : une seule branche, fusionnée dans `main`, contient #150-#154, #156-#158, #160, #162 et le correctif a7e5375 de #154 ; aucune PR utile n'est restée à côté, sauf #155 (décision) et #147 (candidats, blasons retenus intégrés).
+2. **Les développements V1.3.1 sont-ils préservés ?** Oui, vérifié par un audit indépendant : protections de #142/#148 présentes et testées, aucune ligne perdue lors des fusions.
+3. **Sport, RPG, social et Android intégrés ?** Oui, avec les correctifs des audits (brouillon GPS, distances Strava, anti-triche au-delà du plafond, cordée, clubs, coaching en pause, règlement LIVE).
+4. **Retours en arrière respectés ?** Oui ; la seule régression trouvée (série hebdomadaire Android) a été retirée et le garde-fou couvre désormais l'Android.
+5. **Design cohérent ?** Oui, constaté en production sur 17 pages et 3 largeurs ; deux défauts trouvés en production ont été corrigés et republiés ; reste un détail de 3 px à 320 px.
+6. **Illustrations intégrées ?** Oui pour l'essentiel : 260 sports / 262 glyphes, couleur Android corrigée, 7 blasons sculptés. Non intégrés volontairement : le reste de #147 (qualité ou usage insuffisants). Approbation du propriétaire attendue pour les trois blasons ajoutés.
+7. **Migrations appliquées ?** Oui : 141, dernière `20261122090000`, postflights vrais. v19 non appliquée (décision).
+8. **Site publié sur Netlify ?** Oui : `2bcd078`, déploiement `6afeab78f177d84c3561c584`, vérifié sur `titan-app.fr`.
+9. **Incident `play-notifications` résolu ?** Oui : 0 × 503 depuis la publication, notifications gardées.
+10. **Paiements prêts pour une ouverture commerciale ?** Pas encore. Le code est prêt et la vente reste fermée par sécurité (`PLAY_BILLING_ENABLED` absent). Il manque : l'identité légale de l'éditeur, un achat de licence constaté sur téléphone, la décision sur les places coach, et le retrait des builds 1301.
+11. **SEO en production ?** Oui : 38/38, sitemap 27 URL. Le classement dépend ensuite de Google.
+12. **AAB officiel généré et récupérable ?** Oui : remis en pièce jointe et disponible en artefact jusqu'au 18/12/2026.
+13. **Parcours fondamentaux fonctionnels ?** Oui pour ce qui est vérifiable sans compte réel : 1 093 parcours navigateur, parcours émulateur Android sur le schéma de production, recette de production publique. Non testés par l'agent : inscription réelle, achat réel, Garmin et Santé Connect sur appareil.
+14. **Bug bloquant connu ?** Aucun bloquant pour l'usage gratuit. Pour la vente : les éléments du point 10.
+15. **Clôture de V1.3.1 / TITAN ONE ?** Oui sur le plan technique : tout le travail est fusionné, en production (Web et base) et l'AAB est prêt. L'ouverture commerciale reste une décision séparée, listée au § H.
