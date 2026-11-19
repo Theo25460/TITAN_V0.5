@@ -209,16 +209,20 @@ checks(check_name, blocking, ok, detail) as (
   select 'export:RPG conservé', true,
     (select body like '%adventureRpg%' and body like '%titan_export_extras_before_rpg_v1%'
      from (select case
-       -- V1.3 wraps the complete earlier export, and AUD-35 wraps V1.3 again (cadence claims). An archived body alone is insufficient:
-       -- each layer is followed only when the outer one really calls it.
-       when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_cadence_v1(p_uid)%'
+       -- V1.3 wraps the complete earlier export, and AUD-35 wraps V1.3 again (cadence claims). V1.5.0 wraps the result once more
+       -- (pilot branch entries). An archived body alone is insufficient: each layer is followed only when the outer one really calls it.
+       when top like '%private.titan_export_extras_before_cadence_v1(p_uid)%'
        then case
          when pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_cadence_v1(uuid)')) like '%private.titan_export_extras_before_journey_v1(p_uid)%'
          then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)'))
          else pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_cadence_v1(uuid)')) end
-       when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_journey_v1(p_uid)%'
+       when top like '%private.titan_export_extras_before_journey_v1(p_uid)%'
        then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)'))
-       else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end body) export_body),
+       else top end body
+      from (select case
+        when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_branches_v1(p_uid)%'
+        then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_branches_v1(uuid)'))
+        else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end top) outer_layer) export_body),
     'le journal RPG complète les sections précédentes sans les remplacer'
   union all
   select 'trigger:jetons Garmin effacés avec le lien', true,

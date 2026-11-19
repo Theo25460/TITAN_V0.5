@@ -104,6 +104,13 @@ fi
 [[ "$guard" == "Refused: adventure concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 echo "  · adventure non-test database refused before fixtures"
 python3 "$ROOT/tools/db/test-adventure-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Branch decision concurrency contract (V1.5.0, two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-branch-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "branch runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: branch concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · branch non-test database refused before fixtures"
+python3 "$ROOT/tools/db/test-branch-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "Training rate concurrency contracts (two real connections)"
 if guard=$(python3 "$ROOT/tools/db/test-training-rate-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
   echo "training rate runner accepted a non-test database"; exit 1

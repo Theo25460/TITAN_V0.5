@@ -92,6 +92,13 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v18 bundle (v19, the coach-places decision of PR #155, is not part of this chain).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  v21: {
+    out: "supabase/release-v21", after: "20261122090000", until: "20261123090000",
+    before: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [324, "39442f678587", "81ad6534245e"] },
+    expected: { private: [125, "0b105d34fc7e", "809e0bdfcde5"], public: [326, "9f567056c13c", "e0dde86d6cd9"] },
+    beforeNote: "This is the state production reached on 18 November 2026 (end of the v20 bundle).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

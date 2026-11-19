@@ -100,9 +100,14 @@ with expected_versions(version) as (values
       and layer like '%''journeyVerifiedDailyActivity''%'
       and to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)') is not null
     from (select case
-      when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_cadence_v1(p_uid)%'
+      when top like '%private.titan_export_extras_before_cadence_v1(p_uid)%'
       then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_cadence_v1(uuid)'))
-      else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end layer) l), false),
+      else top end layer
+     -- V1.5.0 wraps the chain once more (pilot branch entries): follow it only when the outer function really calls it.
+     from (select case
+      when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_branches_v1(p_uid)%'
+      then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_branches_v1(uuid)'))
+      else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end top) outer_layer) l), false),
     'journal ajouté à la chaîne d’export conservée'
 )
 select check_name as "check", blocking, ok, detail from checks order by blocking desc, ok, check_name;

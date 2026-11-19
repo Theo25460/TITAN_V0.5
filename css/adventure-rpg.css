@@ -9,3 +9,5 @@
   outline: 2px solid var(--space, #3DD9E8);
   outline-offset: -3px;
 }
+/* V1.5.0 pilot branch: two routes side by side, the followed one outlined, the other one kept visible and muted. */
+.av-branch{display:block;margin:var(--s4,16px) 0}.av-branch-routes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3,12px);margin:var(--s3,12px) 0}.av-branch-route{min-width:0;padding:var(--s3,12px);border:1px solid var(--line,#334155);border-radius:.6rem}.av-branch-route h4{margin:0 0 .35rem;overflow-wrap:anywhere}.av-branch-route.is-followed{border-color:var(--space,#3DD9E8)}.av-branch-route.is-closed{opacity:.72}.av-branch-route button,.av-branch-confirm button{white-space:normal;max-width:100%;margin:.4rem .5rem 0 0}.av-branch-confirm{margin-top:var(--s3,12px);padding:var(--s3,12px);border:1px solid var(--space,#3DD9E8);border-radius:.6rem}.av-branch-confirm h4{margin:0 0 .35rem}.av-branch-clue{display:block;margin-top:var(--s3,12px);padding:var(--s3,12px);border-left:3px solid var(--space,#3DD9E8)}@media(max-width:560px){.av-branch-routes{grid-template-columns:1fr}}
