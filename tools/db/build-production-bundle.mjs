@@ -109,6 +109,16 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v21 bundle (V1.5.0 Bifurcations).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.5.2 Camp et conséquences (19 November 2026): the Veilleur's canonical outcome becomes a lasting access in the Vallée, linked
+  // from the Camp de base. NOT applied in production; needs v21 and v22 first. Additive, rehearsed on a replica
+  // (sql/tests/300_adventure_consequence.sql, tools/db/test-consequence-concurrency.py).
+  v23: {
+    out: "supabase/release-v23", after: "20261124090000", until: "20261125090000",
+    before: { private: [130, "ebc46a7040a1", "7f53e75106be"], public: [328, "f44ab17c4f6a", "34d2553fef69"] },
+    expected: { private: [135, "9417a75d67f2", "cf67364e872e"], public: [330, "0efd66f97b73", "0b22635807ac"] },
+    beforeNote: "This is the state production reaches at the end of the v22 bundle (V1.5.1 Gardiens).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

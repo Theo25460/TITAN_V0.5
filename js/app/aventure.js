@@ -328,6 +328,7 @@
         ${isGuest() ? `<p class="asc-note">${icon("offline")}<span>Mode découverte : l’aventure se joue sur cet appareil. Avec un compte, elle est confirmée par le serveur.</span></p>` : ""}
         ${viewsHtml(p, questsHtml)}
         <div class="av-view av-view-chapitre" data-av-view="chapitre"${hide("chapitre")}>
+          <div data-consequence-host></div>
           ${guardianHtml(world, p, s)}
           ${valleyHtml(world, p, s)}
           ${window.titanAccountTransition?.active ? "" : window.TitanJourneyPanel?.worldStoryHtml?.(s, world, window.state?.user?.id) || ""}
@@ -359,6 +360,8 @@
     }
     if (focusedView) root.querySelector(`.av-views [data-av-view-btn="${focusedView}"]`)?.focus({ preventScroll: true });
     window.TitanRpgPanel?.mount(root.querySelector("[data-rpg-host]"), world.id);
+    // V1.5.2: the access the Veilleur's outcome opened, reached from the Camp de base (/adventure?world=aube#retour).
+    window.TitanConsequencePanel?.mount(root.querySelector("[data-consequence-host]"), world.id);
     const guide = root.querySelector("[data-rpg-departure]");
     if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;
     const quests = root.querySelector("[data-rpg-quests]");
