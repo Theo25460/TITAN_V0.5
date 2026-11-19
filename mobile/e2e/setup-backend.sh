@@ -12,6 +12,9 @@ PROD_HOTFIX="20261104085851"
 rm -rf "$WORK" && mkdir -p "$WORK" && cd "$WORK"
 $CLI init --force >/dev/null
 sed -i 's/^major_version = .*/major_version = 17/' supabase/config.toml
+# 54322 lies in the runner's ephemeral port range and can be occupied by an outbound connection.
+# The checks read DB_URL from the CLI, so only the replica's host port needs to move.
+sed -i '/^\[db\]$/,/^\[/{s/^port = 54322$/port = 15432/;}' supabase/config.toml
 $CLI start -x studio,imgproxy,storage-api,realtime,edge-runtime,logflare,vector,supavisor,postgres-meta,mailpit
 eval "$($CLI status -o env | sed 's/^/export /')"
 psql_() { psql "$DB_URL" -v ON_ERROR_STOP=1 -q -X "$@"; }

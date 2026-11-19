@@ -162,7 +162,21 @@ export function LiveSessionScreen({ navigation, route }: Props) {
   const world = useLiveWorld(!state || state.status === "ready");
   const stake = useMemo(() => LiveWorld.stake(sport, world.data ?? null), [sport, world.data]);
 
+  const starting = useRef(false);
+  const [isStarting, setIsStarting] = useState(false);
   async function start() {
+    if (starting.current) return;
+    starting.current = true;
+    setIsStarting(true);
+    try {
+      await startPreparedSession();
+    } finally {
+      starting.current = false;
+      setIsStarting(false);
+    }
+  }
+
+  async function startPreparedSession() {
     const s0 = prepState(uuid());
     if (config.data.gps) {
       const perm = await ensureLocationPermission(() => ask(PERMISSION_COPY.location.title, PERMISSION_COPY.location.message, { confirmLabel: PERMISSION_COPY.location.confirmLabel }));
@@ -259,7 +273,7 @@ export function LiveSessionScreen({ navigation, route }: Props) {
       ...(config.data.gps ? [{ value: "distance" as const, label: "Distance" }] : []), { value: "beats" as const, label: capital(config.beat.many) }];
     const immersions = (Object.keys(LiveVoies.IMMERSION) as Immersion[]).filter((k) => LiveVoies.IMMERSION[k].level <= config.maxImmersion);
     return (
-      <Screen footer={<Button label="Commencer" icon="play" onPress={() => void start()} testID="live-start" />}>
+      <Screen footer={<Button label="Commencer" loading={isStarting} icon="play" onPress={() => void start()} testID="live-start" />}>
         <View style={{ gap: 4 }}>
           <T variant="eyebrow" tone="accent">{config.voieName}</T>
           <T variant="h1">{config.label}</T>
@@ -398,9 +412,9 @@ export function LiveSessionScreen({ navigation, route }: Props) {
           {/* The last event of the Voie, unless the companion box below already shows it, or it carries a figure in a session without numbers. */}
           {v.lastEvent && ((cue && state.level >= 1 && cue.text === v.lastEvent.text) || (!v.numbers && /\d/.test(v.lastEvent.text))) ? null
             : v.lastEvent ? <T variant="small" tone="muted">{v.lastEvent.text}</T> : <T variant="small" tone="faint">{config.tagline}</T>}
-          <IntentBlock view={v} />
         </View>
       )}
+      <IntentBlock view={v} />
       {/* The calm line between two efforts: plain text, not a live region, so it is never announced nor spoken. */}
       {v.interlude ? <T variant="small" tone="muted" center testID="live-interlude">{v.interlude.text}</T> : null}
       {cue && state.level >= 1 ? (

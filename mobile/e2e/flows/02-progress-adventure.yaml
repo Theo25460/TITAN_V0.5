@@ -65,6 +65,12 @@ appId: fr.titanapp.app
 - inputText: "30"
 - tapOn:
     id: "session-save"
+# Both fixture runs are entered at the current time and can overlap.
+- runFlow:
+    when:
+        visible: "Cette séance semble déjà dans ton journal"
+    commands:
+      - tapOn: "Enregistrer quand même"
 - extendedWaitUntil:
     visible: ".*(TITAN a confirmé|Récompense en vérification).*"
     timeout: 30000

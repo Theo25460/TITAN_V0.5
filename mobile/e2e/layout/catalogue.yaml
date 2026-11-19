@@ -1,0 +1,29 @@
+# The main journey has signed in account B. No session is created in this check.
+appId: fr.titanapp.app
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-record"
+    timeout: 30000
+- tapOn:
+    id: "tab-record"
+- scrollUntilVisible:
+    element:
+      id: "record-choose-sport"
+    direction: UP
+- takeScreenshot: catalogue-entree
+- tapOn:
+    id: "record-choose-sport"
+- scrollUntilVisible:
+    element:
+      id: "sport-search"
+    direction: DOWN
+- tapOn:
+    id: "sport-search"
+- inputText: "padel"
+- tapOn:
+    id: "sport-result-padel"
+- assertVisible:
+    id: "session-save"
+- takeScreenshot: catalogue-padel

@@ -29,6 +29,17 @@ adb shell am force-stop fr.titanapp.app
 cd "$OUT"
 status=0
 "$HOME/.maestro/bin/maestro" test "$ROOT/mobile/e2e/flows" --format junit --output "$OUT/maestro-report.xml" --test-output-dir "$OUT/maestro" || status=$?
+# Exercise the same installed APK at 320 and 800 dp, including search with the keyboard open.
+if [ "$status" -eq 0 ]; then
+  for viewport in 640x1136 1600x2560; do
+    adb shell wm size "$viewport"
+    adb shell wm density 320
+    "$HOME/.maestro/bin/maestro" test "$ROOT/mobile/e2e/layout/catalogue.yaml" \
+      --test-output-dir "$OUT/layout-$viewport" || { status=$?; break; }
+  done
+  adb shell wm size reset
+  adb shell wm density reset
+fi
 adb shell dumpsys meminfo fr.titanapp.app > "$OUT/meminfo.txt" 2>&1 || true
 adb shell dumpsys gfxinfo fr.titanapp.app framestats > "$OUT/framestats.txt" 2>&1 || true
 # On failure, print what the device was showing and the app's errors, so the cause is readable in the job log itself.
