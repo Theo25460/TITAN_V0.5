@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
-import { adventureRpgAction, fetchAdventureRpg, type AdventureWorld, type RpgSnapshot } from "../data/adventureRpg";
+import { adventureBranchAction, adventureRpgAction, fetchAdventureRpg, type AdventureWorld, type RpgSnapshot } from "../data/adventureRpg";
+import { onReconnect, useOnline } from "../lib/network";
+import { AdventureBranch, type BranchView } from "./AdventureBranch";
 import { space } from "../theme/tokens";
 import { Card } from "./Card";
 import { Button } from "./Button";
@@ -10,10 +12,17 @@ import { T } from "./Text";
 
 type Narrative = { ordinal: number; arc: number; arcName: string; chapter: number; kind: string; name: string; story: string; choices: string[]; endings: string[] };
 const catalog = require("../core/web/adventure-rpg.js") as { path: (world: string) => Narrative[]; familyTitle: (family: string) => string };
+type Contract = { choiceOrdinal: number; steps: { ordinal: number }[] };
+const branches = require("../core/web/adventure-branches.js") as {
+  t: (key: string, vars?: Record<string, unknown>) => string; view: (s: RpgSnapshot) => BranchView | null; nodes: (path: Narrative[], s: RpgSnapshot) => Narrative[];
+  contract: (pilot?: string, version?: number) => Contract | null; conflict: (requested: string, s: RpgSnapshot) => string; offlineText: () => string;
+};
 const errorText = (error: unknown) => {
   const message = (error as Error)?.message;
   if (message === "CAMPAIGN_NOT_STARTED") return "Commence d’abord la campagne de ce monde.";
   if (message === "ENCOUNTER_INCOMPLETE") return "Les preuves confirmées ne suffisent pas encore. Reviens à ton rythme.";
+  if (message === "BRANCH_INCOMPATIBLE") return branches.t("pilot.legacy");
+  if (message === "RPG_OFFLINE") return branches.offlineText();
   return "La rencontre est indisponible. Tes acquis sont conservés.";
 };
 
@@ -24,29 +33,48 @@ export function AdventureEncounters({ owner, world, revision = 0 }: { owner: str
   const [snapshot, setSnapshot] = useState<RpgSnapshot | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
+  const online = useOnline();
   const generation = useRef(0);
   const actionInFlight = useRef(false);
   useEffect(() => {
     const epoch = ++generation.current;
-    setSnapshot(null); setError(""); setBusy(false); actionInFlight.current = false;
+    setSnapshot(null); setError(""); setBusy(false); setSelected(null); setNotice(""); actionInFlight.current = false;
     if (owner.startsWith("guest_")) return;
     fetchAdventureRpg(owner, world).then(data => { if (generation.current === epoch) setSnapshot(data); }).catch(e => { if (generation.current === epoch) setError(errorText(e)); });
     return () => { generation.current++; };
   }, [owner, world, revision]);
-  const act = async (action: "start" | "sync" | "claim", ordinal: number | null = null, choice: number | null = null) => {
+  // Back online: re-read the canonical server state (another device may have decided meanwhile). Nothing is replayed.
+  useEffect(() => { const stop = onReconnect(() => {
+    const epoch = generation.current;
+    if (owner.startsWith("guest_")) return;
+    fetchAdventureRpg(owner, world).then(data => { if (generation.current === epoch) { setSnapshot(data); setNotice(""); } }).catch(() => undefined);
+  }); return () => { stop(); }; }, [owner, world]);
+  const act = async (action: "start" | "sync" | "claim" | "enter" | "confirm", ordinal: number | null = null, choice: number | null = null, route: string | null = null) => {
     if (actionInFlight.current) return;
+    if ((action === "enter" || action === "confirm") && !online) { setNotice(branches.offlineText()); return; }
     actionInFlight.current = true;
-    const epoch = generation.current; setBusy(true); setError("");
-    try { const data = await adventureRpgAction(owner, world, action, ordinal, choice); if (epoch === generation.current) setSnapshot(data); }
+    const epoch = generation.current; setBusy(true); setError(""); setNotice("");
+    try {
+      const data = action === "enter" || action === "confirm" ? await adventureBranchAction(owner, world, action, route) : await adventureRpgAction(owner, world, action, ordinal, choice);
+      if (epoch === generation.current) { setSnapshot(data); if (action === "confirm" && route) { setNotice(branches.conflict(route, data)); setSelected(null); } }
+    }
     catch (e) { if (epoch === generation.current) setError(errorText(e)); }
     finally { if (epoch === generation.current) { actionInFlight.current = false; setBusy(false); } }
   };
   if (owner.startsWith("guest_")) return <Card><T>Les rencontres et le bestiaire sont confirmés avec un compte. La campagne découverte reste disponible.</T></Card>;
   // Hide data immediately on owner/world changes, even before the effect cleanup.
   const s = snapshot?.owner === owner && snapshot.world === world ? snapshot : null;
-  const nodes = catalog.path(world);
+  const nodes = s ? branches.nodes(catalog.path(world), s) : catalog.path(world);
   const current = s?.milestones.find(n => !n.earned);
   const scene = nodes.find(n => n.ordinal === current?.ordinal);
+  const branch = s?.active ? branches.view(s) : null;
+  const contract = branch?.pilot ? branches.contract(branch.pilot, branch.version) : null;
+  const branchOrdinals = contract ? [contract.choiceOrdinal, ...contract.steps.map(x => x.ordinal)] : [];
+  const inBranch = !!branch && ["available", "entered", "confirmed"].includes(branch.state) && !!current && branchOrdinals.includes(current.ordinal);
+  const showBranch = !!branch && (inBranch || ["confirmed", "legacy", "unknown"].includes(branch.state));
+  const beasts = nodes.filter(n => ["monster", "miniboss"].includes(n.kind)).length;
   const bestiary = s?.rewards.map(r => nodes.find(n => n.ordinal === r.ordinal)).filter((n): n is Narrative => !!n && ["monster", "miniboss"].includes(n.kind)) ?? [];
   const toggle = <Tap accessibilityRole="button" accessibilityState={{ expanded }} accessibilityLabel="Rencontres secondaires · 18 souvenirs facultatifs" onPress={() => setExpanded(value => !value)} style={{ minHeight: 48, flexDirection: "row", gap: space.s2, alignItems: "center" }}>
     <View style={{ flex: 1, gap: 4 }}><T variant="h3">Rencontres secondaires</T><T variant="caption">18 souvenirs facultatifs, liés aux 9 chapitres{s?.active ? ` · ${s.rewards.length}/18 acquis` : ""}</T></View>
@@ -70,18 +98,22 @@ export function AdventureEncounters({ owner, world, revision = 0 }: { owner: str
           return <View key={n.ordinal} style={{ marginLeft: [0, 22, 40, 24, 8, 28][(n.ordinal - 1) % 6], gap: 4 }}>
             <T variant="bodyStrong" tone={proof?.earned ? "accent" : n.ordinal === current?.ordinal ? "default" : "faint"}>{proof?.earned ? "✓ " : `${n.ordinal}. `}{n.name}</T>
             <T variant="caption">Chapitre {n.chapter} · {proof?.earned ? "acquis" : n.ordinal === current?.ordinal ? "en cours" : "à découvrir"}</T>
-            {reward?.choice != null ? <T variant="small">{n.endings[reward.choice]}</T> : null}
+            {reward?.choice != null && n.endings[reward.choice] ? <T variant="small">{n.endings[reward.choice]}</T> : null}
           </View>;
         })}
       </View>)}
       <Button label="Actualiser les preuves de ce monde" kind="secondary" onPress={() => act("sync")} loading={busy} />
-      {current && scene ? <View style={{ gap: space.s2 }}>
+      {notice ? <T accessibilityRole="alert" tone="warn">{notice}</T> : null}
+      {showBranch && branch ? <AdventureBranch view={branch} branches={branches} atChoice={current?.ordinal === contract?.choiceOrdinal} stepOrdinal={current?.ordinal ?? null}
+        selected={selected} onSelect={route => { setSelected(route); setNotice(""); }} onEnter={() => act("enter")} onConfirm={route => act("confirm", null, null, route)}
+        onClaim={ordinal => act("claim", ordinal)} busy={busy} online={online} /> : null}
+      {inBranch ? null : current && scene ? <View style={{ gap: space.s2 }}>
         <T variant="h3">{scene.name}</T><T>{scene.story}</T>
         {["monster", "miniboss"].includes(scene.kind) ? <View accessible accessibilityRole="progressbar" accessibilityLabel="Passage dégagé par l’effort confirmé" accessibilityValue={{ min: 0, max: s.target, now: Math.min(s.target, Math.max(0, s.effort - (scene.ordinal - 1) * s.target)) }}><T variant="small">{Math.min(s.target, Math.max(0, s.effort - (scene.ordinal - 1) * s.target))}/{s.target} points confirmés pour cette rencontre.</T></View> : null}
         <T variant="small">{current.ready ? "Les préparatifs sont prêts." : `${Math.max(0, current.effortTarget - s.effort)} points restant(s) · ${Math.min(s.days, current.daysTarget)}/${current.daysTarget} jours distincts · chapitre ${scene.chapter} à atteindre.`}</T>
         {scene.kind === "choice" ? scene.choices.map((choice, i) => <Button key={choice} label={choice} kind="secondary" disabled={!current.ready || busy} onPress={() => act("claim", scene.ordinal, i)} />) : <Button label={["monster", "miniboss"].includes(scene.kind) ? "Dégager le passage" : "Poursuivre le récit"} disabled={!current.ready} onPress={() => act("claim", scene.ordinal)} loading={busy} />}
       </View> : <T>Les dix-huit jalons rejoignent ton carnet.</T>}
-      <T variant="h3">Bestiaire · {bestiary.length}/6</T>
+      <T variant="h3">Bestiaire · {bestiary.length}/{beasts}</T>
       {bestiary.map(n => <View key={n.ordinal} style={{ gap: 4 }}><T variant="bodyStrong">{n.name} · arc {n.arc}</T><T variant="small">{n.story}</T></View>)}
       <T variant="h3">Exploits par familles</T><T variant="small">Trois jours distincts dans une famille débloquent un titre cosmétique, sans XP ni crédits.</T>
       {s.familyTitles.map(f => <T key={f.family}>{catalog.familyTitle(f.family)}</T>)}

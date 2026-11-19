@@ -30,6 +30,7 @@ export const MODULES = [
   "js/core/sport-navigation.js",
   "js/core/gpx.js",
   "js/core/adventure-rpg.js",
+  "js/core/adventure-branches.js",
   "js/core/career.js",
   "js/core/journey.js",
   "js/core/adventure-access.js",
