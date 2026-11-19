@@ -220,9 +220,14 @@ checks(check_name, blocking, ok, detail) as (
        then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)'))
        else top end body
       from (select case
-        when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_branches_v1(p_uid)%'
+        when g like '%private.titan_export_extras_before_branches_v1(p_uid)%'
         then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_branches_v1(uuid)'))
-        else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end top) outer_layer) export_body),
+        else g end top
+       -- V1.5.1 wraps the chain once more (guardian encounters): followed only when the outer function really calls it.
+       from (select case
+        when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_guardian_v1(p_uid)%'
+        then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_guardian_v1(uuid)'))
+        else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end g) guardian_layer) outer_layer) export_body),
     'le journal RPG complète les sections précédentes sans les remplacer'
   union all
   select 'trigger:jetons Garmin effacés avec le lien', true,

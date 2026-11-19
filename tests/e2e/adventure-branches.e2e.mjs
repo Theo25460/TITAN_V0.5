@@ -33,6 +33,8 @@ function snapshot(a){
    clue:a.earned.has(3)?{id:a.route==='corniche'?'prise':'serment',state:a.earned.has(4)?'usable':'found'}:null}:{state,pilot:'aube-arc1',version:1}};
 }
 function serve(a,name,args){
+ // This fake is a server with V1.5.0 but without V1.5.1: the guardian RPCs do not exist and the client falls back.
+ if(name.startsWith('titan_adventure_guardian_'))return {data:null,error:{code:'PGRST202',message:'Could not find the function public.'+name}};
  a.calls.push([name,args]);
  if(name==='titan_adventure_branch_action_v1'){
   if(args.p_action==='enter')a.entered=true;

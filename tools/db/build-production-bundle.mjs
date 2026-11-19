@@ -99,6 +99,16 @@ export const BUNDLES = {
     beforeNote: "This is the state production reached on 18 November 2026 (end of the v20 bundle).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.5.1 Gardiens (19 November 2026): the Veilleur de pierre observed, prepared and resolved at the end of the V1.5.0 pilot arc.
+  // NOT applied in production; needs v21 first. Additive, rehearsed on a replica (sql/tests/300_adventure_guardian.sql,
+  // tools/db/test-guardian-concurrency.py).
+  v22: {
+    out: "supabase/release-v22", after: "20261123090000", until: "20261124090000",
+    before: { private: [125, "0b105d34fc7e", "809e0bdfcde5"], public: [326, "9f567056c13c", "e0dde86d6cd9"] },
+    expected: { private: [130, "ebc46a7040a1", "7f53e75106be"], public: [328, "f44ab17c4f6a", "34d2553fef69"] },
+    beforeNote: "This is the state production reaches at the end of the v21 bundle (V1.5.0 Bifurcations).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

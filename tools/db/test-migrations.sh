@@ -111,6 +111,13 @@ fi
 [[ "$guard" == "Refused: branch concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 echo "  · branch non-test database refused before fixtures"
 python3 "$ROOT/tools/db/test-branch-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Guardian resolution concurrency contract (V1.5.1, two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-guardian-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "guardian runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: guardian concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · guardian non-test database refused before fixtures"
+python3 "$ROOT/tools/db/test-guardian-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "Training rate concurrency contracts (two real connections)"
 if guard=$(python3 "$ROOT/tools/db/test-training-rate-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
   echo "training rate runner accepted a non-test database"; exit 1
