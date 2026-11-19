@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
-import { adventureBranchAction, adventureGuardianAction, adventureRpgAction, fetchAdventureRpg, type AdventureWorld, type RpgSnapshot } from "../data/adventureRpg";
+import { adventureBranchAction, adventureCampaignSolve, adventureGuardianAction, adventureRpgAction, fetchAdventureRpg, type AdventureWorld, type RpgSnapshot } from "../data/adventureRpg";
 import { onReconnect, useOnline } from "../lib/network";
 import { AdventureBranch, type BranchView } from "./AdventureBranch";
 import { AdventureGuardian, type GuardianView } from "./AdventureGuardian";
@@ -18,11 +18,18 @@ const branches = require("../core/web/adventure-branches.js") as {
   t: (key: string, vars?: Record<string, unknown>) => string; view: (s: RpgSnapshot) => BranchView | null; nodes: (path: Narrative[], s: RpgSnapshot) => Narrative[];
   contract: (pilot?: string, version?: number) => Contract | null; conflict: (requested: string, s: RpgSnapshot) => string; offlineText: () => string;
 };
-const guardians = require("../core/web/adventure-guardian.js") as {
-  view: (s: RpgSnapshot) => GuardianView | null; nodes: (path: Narrative[], s: RpgSnapshot) => Narrative[]; errorText: (code?: string) => string;
+type Guardians = { view: (s: RpgSnapshot) => GuardianView | null; nodes: (path: Narrative[], s: RpgSnapshot) => Narrative[]; errorText: (code?: string) => string };
+const guardians = require("../core/web/adventure-guardian.js") as Guardians;
+// V1.5.3: the Vallée keeps its V1.5.0/V1.5.1 modules; the Marées, the Forge and the Aurores get the same API from the common
+// campaign configuration, so the same components render the four worlds.
+const campaigns = require("../core/web/adventure-campaigns.js") as {
+  forWorld: (world: string, modules: { branches: typeof branches; guardian: Guardians }) => { branches: typeof branches; guardian: Guardians; campaign: boolean };
+  errorText: (code?: string) => string;
 };
+const modulesFor = (world: string) => campaigns.forWorld(world, { branches, guardian: guardians });
 const errorText = (error: unknown) => {
   const message = (error as Error)?.message;
+  if (message === "INVALID_ANSWER") return campaigns.errorText(message);
   if (message === "ENCOUNTER_INCOMPLETE" || message?.startsWith("GUARDIAN_") || message === "INVALID_SIGN") return guardians.errorText(message);
   if (message === "CAMPAIGN_NOT_STARTED") return "Commence d’abord la campagne de ce monde.";
   if (message === "ENCOUNTER_INCOMPLETE") return "Les preuves confirmées ne suffisent pas encore. Reviens à ton rythme.";
@@ -56,17 +63,19 @@ export function AdventureEncounters({ owner, world, revision = 0 }: { owner: str
     if (owner.startsWith("guest_")) return;
     fetchAdventureRpg(owner, world).then(data => { if (generation.current === epoch) { setSnapshot(data); setNotice(""); } }).catch(() => undefined);
   }); return () => { stop(); }; }, [owner, world]);
-  const act = async (action: "start" | "sync" | "claim" | "enter" | "confirm" | "prepare" | "resolve", ordinal: number | null = null, choice: number | null = null, route: string | null = null, sign: string | null = null) => {
+  const { branches: worldBranches, guardian: worldGuardians } = modulesFor(world);
+  const act = async (action: "start" | "sync" | "claim" | "enter" | "confirm" | "prepare" | "resolve" | "solve", ordinal: number | null = null, choice: number | null = null, route: string | null = null, sign: string | null = null, answer: string[] | null = null) => {
     if (actionInFlight.current) return;
     if ((action === "enter" || action === "confirm") && !online) { setNotice(branches.offlineText()); return; }
-    if ((action === "prepare" || action === "resolve") && !online) { setNotice(guardians.errorText("RPG_OFFLINE")); return; }
+    if ((action === "prepare" || action === "resolve" || action === "solve") && !online) { setNotice(guardians.errorText("RPG_OFFLINE")); return; }
     actionInFlight.current = true;
     const epoch = generation.current; setBusy(true); setError(""); setNotice("");
     try {
       const data = action === "enter" || action === "confirm" ? await adventureBranchAction(owner, world, action, route)
+        : action === "solve" ? await adventureCampaignSolve(owner, world, answer ?? [])
         : action === "prepare" || action === "resolve" ? await adventureGuardianAction(owner, world, action, sign)
         : await adventureRpgAction(owner, world, action, ordinal, choice);
-      if (epoch === generation.current) { setSnapshot(data); if (action === "confirm" && route) { setNotice(branches.conflict(route, data)); setSelected(null); } }
+      if (epoch === generation.current) { setSnapshot(data); if (action === "confirm" && route) { setNotice(worldBranches.conflict(route, data)); setSelected(null); } }
     }
     catch (e) { if (epoch === generation.current) setError(errorText(e)); }
     finally { if (epoch === generation.current) { actionInFlight.current = false; setBusy(false); } }
@@ -74,15 +83,15 @@ export function AdventureEncounters({ owner, world, revision = 0 }: { owner: str
   if (owner.startsWith("guest_")) return <Card><T>Les rencontres et le bestiaire sont confirmés avec un compte. La campagne découverte reste disponible.</T></Card>;
   // Hide data immediately on owner/world changes, even before the effect cleanup.
   const s = snapshot?.owner === owner && snapshot.world === world ? snapshot : null;
-  const nodes = s ? guardians.nodes(branches.nodes(catalog.path(world), s), s) : catalog.path(world);
+  const nodes = s ? worldGuardians.nodes(worldBranches.nodes(catalog.path(world), s), s) : catalog.path(world);
   const current = s?.milestones.find(n => !n.earned);
   const scene = nodes.find(n => n.ordinal === current?.ordinal);
-  const branch = s?.active ? branches.view(s) : null;
-  const contract = branch?.pilot ? branches.contract(branch.pilot, branch.version) : null;
+  const branch = s?.active ? worldBranches.view(s) : null;
+  const contract = branch?.pilot ? worldBranches.contract(branch.pilot, branch.version) : null;
   const branchOrdinals = contract ? [contract.choiceOrdinal, ...contract.steps.map(x => x.ordinal)] : [];
   const inBranch = !!branch && ["available", "entered", "confirmed"].includes(branch.state) && !!current && branchOrdinals.includes(current.ordinal);
   const showBranch = !!branch && (inBranch || ["confirmed", "legacy", "unknown"].includes(branch.state));
-  const guardian = s?.active ? guardians.view(s) : null;
+  const guardian = s?.active ? worldGuardians.view(s) : null;
   const inGuardian = !!guardian?.ordinal && !!current && [guardian.observeOrdinal, guardian.ordinal].includes(current.ordinal) && ["observe", "prepare", "waiting", "ready"].includes(guardian.state);
   const showGuardian = !!guardian && (inGuardian || ["resolved", "legacy", "unknown"].includes(guardian.state));
   const beasts = nodes.filter(n => ["monster", "miniboss"].includes(n.kind)).length;
@@ -115,11 +124,12 @@ export function AdventureEncounters({ owner, world, revision = 0 }: { owner: str
       </View>)}
       <Button label="Actualiser les preuves de ce monde" kind="secondary" onPress={() => act("sync")} loading={busy} />
       {notice ? <T accessibilityRole="alert" tone="warn">{notice}</T> : null}
-      {showBranch && branch ? <AdventureBranch view={branch} branches={branches} atChoice={current?.ordinal === contract?.choiceOrdinal} stepOrdinal={current?.ordinal ?? null}
+      {showBranch && branch ? <AdventureBranch view={branch} branches={worldBranches} atChoice={current?.ordinal === contract?.choiceOrdinal} stepOrdinal={current?.ordinal ?? null}
         selected={selected} onSelect={route => { setSelected(route); setNotice(""); }} onEnter={() => act("enter")} onConfirm={route => act("confirm", null, null, route)}
         onClaim={ordinal => act("claim", ordinal)} busy={busy} online={online} /> : null}
       {showGuardian && guardian ? <AdventureGuardian view={guardian} busy={busy} onClaim={ordinal => act("claim", ordinal)}
-        onPrepare={sign => act("prepare", null, null, null, sign)} onResolve={() => act("resolve")} /> : null}
+        onPrepare={sign => act("prepare", null, null, null, sign)} onResolve={() => act("resolve")}
+        world={world} online={online} attempts={s?.mechanic?.attempts ?? 0} onSolve={answer => act("solve", null, null, null, null, answer)} /> : null}
       {inBranch || inGuardian ? null : current && scene ? <View style={{ gap: space.s2 }}>
         <T variant="h3">{scene.name}</T><T>{scene.story}</T>
         {["monster", "miniboss"].includes(scene.kind) ? <View accessible accessibilityRole="progressbar" accessibilityLabel="Passage dégagé par l’effort confirmé" accessibilityValue={{ min: 0, max: s.target, now: Math.min(s.target, Math.max(0, s.effort - (scene.ordinal - 1) * s.target)) }}><T variant="small">{Math.min(s.target, Math.max(0, s.effort - (scene.ordinal - 1) * s.target))}/{s.target} points confirmés pour cette rencontre.</T></View> : null}
