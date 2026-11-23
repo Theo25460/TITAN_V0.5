@@ -6,6 +6,7 @@ import { WorldStory } from "../../components/WorldStory";
 import { AdventureEncounters } from "../../components/AdventureEncounters";
 import { AdventureConsequence } from "../../components/AdventureConsequence";
 import { AdventureQuests, QuestMapButton } from "../../components/AdventureQuests";
+import { AdventureChronicles, ChronicleMapButton } from "../../components/AdventureChronicles";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Icon } from "../../components/Icon";
@@ -91,6 +92,8 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
       {owner && route.params.focus === "retour" ? <AdventureConsequence owner={owner} world={world.id as AdventureWorld} /> : null}
       {/* V1.5.4: opened from the map (or from a clue's destination), the notebook of clues is the first thing on screen. */}
       {owner && route.params.focus === "indices" ? <AdventureQuests owner={owner} onGo={(id) => navigation.push("World", { id, focus: "indices" })} /> : null}
+      {/* V1.5.5: opened from the map, the chronicle of this world's first arc is the first thing on screen. */}
+      {owner && route.params.focus === "chroniques" ? <AdventureChronicles owner={owner} world={world.id} /> : null}
       <View style={styles.hero}>
         <Image source={worldImages[world.image]} style={styles.heroArt} resizeMode="cover" accessibilityIgnoresInvertColors />
         <View style={{ padding: space.s4, gap: 6 }}>
@@ -241,6 +244,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
         <T variant="eyebrow">Parcours principal · 9 balises</T>
         <WorldPathMap chapter={chapter} earned={earned} color={world.color} worldName={world.name} finished={done} />
         {owner && route.params.focus !== "indices" ? <QuestMapButton owner={owner} world={world.id} onOpen={() => navigation.push("World", { id: world.id, focus: "indices" })} /> : null}
+        {owner && route.params.focus !== "chroniques" ? <ChronicleMapButton owner={owner} world={world.id} onOpen={() => navigation.push("World", { id: world.id, focus: "chroniques" })} /> : null}
         <Tap onPress={() => setShowChapters(value => !value)} accessibilityState={{ expanded: showChapters }} style={{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.s2 }}>
           <T variant="bodyStrong" style={{ flex: 1 }}>Détail des neuf chapitres</T><Icon name={showChapters ? "up" : "down"} />
         </Tap>
@@ -280,6 +284,7 @@ export function WorldScreen({ navigation, route }: NativeStackScreenProps<RootPa
       {owner && route.params.focus !== "retour" ? <AdventureConsequence owner={owner} world={world.id as AdventureWorld} /> : null}
       {owner && !locked && chapter > 0 ? <AdventureEncounters owner={owner} world={world.id as AdventureWorld} revision={q.dataUpdatedAt} /> : null}
       {owner && route.params.focus !== "indices" ? <AdventureQuests owner={owner} onGo={(id) => navigation.push("World", { id, focus: "indices" })} /> : null}
+      {owner && route.params.focus !== "chroniques" ? <AdventureChronicles owner={owner} world={world.id} /> : null}
       <RewardReveal content={reveal} onClose={() => setReveal(null)} />
     </Screen>
   );
