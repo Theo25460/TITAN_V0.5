@@ -752,6 +752,18 @@
     el.textContent = navigator.onLine ? "" : "Hors ligne : la séance sera gardée sur cet appareil et partira au retour du réseau.";
   }
 
+  /* V1.6.1 « Corriger et renvoyer »: the form holds the fields of a session the server refused. Saving replaces that refused entry. */
+  const replacedItem = () => (S?.replaces ? (window.TitanQueue?.list?.() || []).find((i) => i.key === S.replaces) : null) || null;
+  function correctionHtml() {
+    const item = replacedItem();
+    if (!item || !window.TitanSyncState?.replaceable(item)) return "";
+    return `<p class="asc-note err seance-correction" data-correction>${icon("alert")}<span><strong>Correction d’une séance refusée.</strong> ${esc(item.reason ? `Motif : ${item.reason}. ` : "")}L’enregistrer remplace la séance refusée, sans doublon.</span></p>`;
+  }
+  function correctionOf(log) {
+    const d = new Date(log.date);
+    if (Number.isNaN(d.getTime())) return {};
+    return { when: "other", date: F().dateKey(d), time: `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`, note: String(log.details?.note || "") };
+  }
   function formHtml() {
     const t = timer();
     const fam = S_().familyOf(S.sport);
@@ -763,6 +775,7 @@
         ${favoriteHtml()}
       </header>
       ${resumeHtml()}
+      ${correctionHtml()}
       ${lastHtml()}
       <div class="seance-chrono" data-running="${!!t.started}">
         <span class="asc-num seance-chrono-time" id="chrono" aria-live="off">00:00</span>
@@ -966,7 +979,9 @@
     const C = window.TitanSportContracts;
     if (!C?.findDuplicate || !b.data.performedAt) return null;
     const minutes = b.data.duration || (b.unit === "min" ? b.val : null);
-    return C.findDuplicate({ sport: S.sport, date: b.data.performedAt, minutes }, [...(window.state?.history || [])]);
+    // The refused session being corrected is not a twin of its own correction.
+    const replaced = replacedItem()?.payload?.details?.client_event_id;
+    return C.findDuplicate({ sport: S.sport, date: b.data.performedAt, minutes }, (window.state?.history || []).filter((l) => !replaced || X_id(l) !== replaced));
   }
 
   async function save(btn) {
@@ -1021,7 +1036,7 @@
     try {
       const sport = draft.sport;
       const t = timer();
-      const log = await window.logActivity(sport, b.data, { quiet: true });
+      const log = await window.logActivity(sport, b.data, { quiet: true, replaces: draft.replaces || null });
       if (log) clearSubmittedDraft(submittedKey, submissionId);
       if (!current()) return;
       if (!log) throw new Error("Séance non enregistrée.");
@@ -1488,7 +1503,9 @@
     const draft = window.TitanData.sessionDraft();
     if (duplicate?.ownerId === owner() && duplicate.log?.sport && window.SPORTS_CONFIG?.[duplicate.log.sport]) {
       S = fresh();
-      choose(duplicate.log.sport, prefillFromLog(duplicate.log), { step: false });
+      const prefill = prefillFromLog(duplicate.log);
+      if (duplicate.replaces) Object.assign(prefill, correctionOf(duplicate.log), { replaces: String(duplicate.replaces) });
+      choose(duplicate.log.sport, prefill, { step: false });
     } else if (params.get("sport") && window.SPORTS_CONFIG?.[params.get("sport")] && (!draft || draft.sport !== params.get("sport"))) {
       S = fresh();
       choose(params.get("sport"), null, { step: false });

@@ -141,9 +141,11 @@
   const archive = (log) => update(log, { archived: true });
   const restore = (log) => update(log, { archived: false });
 
-  function duplicate(log) {
+  /** « Refaire » opens the entry form prefilled. With { replaces }, it is « Corriger et renvoyer » of a refused session: the form keeps
+      its date, time and note, and saving it replaces that refused entry (js/main.js logActivity). */
+  function duplicate(log, { replaces = null } = {}) {
     try {
-      sessionStorage.setItem("titan_duplicate_session", JSON.stringify({ ownerId: window.state.user.id, log }));
+      sessionStorage.setItem("titan_duplicate_session", JSON.stringify({ ownerId: window.state.user.id, log, replaces }));
     } catch {}
     location.href = `/training?sport=${encodeURIComponent(log.sport)}`;
   }

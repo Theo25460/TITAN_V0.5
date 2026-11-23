@@ -228,8 +228,14 @@ window.flushPendingTrainingLogs = function(options = {}) {
     const refusalReason = (error, rateLimited) => {
         const m = String(error?.message || '');
         if (rateLimited) return 'Beaucoup de séances envoyées en peu de temps : envoi repris automatiquement dans un moment';
+        // V1.6.1: a lost connection reached the session sheet as « Failed to fetch »; it reads as on Android.
+        if (error instanceof TypeError || error?.name === 'TimeoutError' || error?.name === 'AbortError' || /Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Connexion indisponible';
         if (m.includes('TRAINING_REJECTED')) return 'une valeur sort des limites acceptées (distance, durée, vitesse ou date)';
         if (m.includes('TRAINING_DATE_OUT_OF_RANGE')) return 'la date est hors de la période acceptée';
+        // V1.6.1: the same reasons as the Android app (mobile/src/lib/errors.ts) for the refusals the server names.
+        if (m.includes('TRAINING_VALUE_OUT_OF_RANGE')) return 'la valeur saisie est hors des limites acceptées';
+        if (m.includes('TRAINING_DURATION_OUT_OF_RANGE')) return 'une séance dure au maximum 24 h';
+        if (m.includes('EVENT_CONTENT_CONFLICT')) return 'cette séance a déjà été envoyée avec un contenu différent';
         if (error?.code === '42501') return 'ce compte n’a pas le droit d’enregistrer cette séance';
         if (['22023', '22P02', '23514', '23505'].includes(error?.code)) return 'données refusées par le serveur';
         return m && !/^[A-Z_]+$/.test(m) ? m : 'Connexion indisponible';
@@ -256,7 +262,9 @@ window.flushPendingTrainingLogs = function(options = {}) {
                 const tooOld = String(error.message || '').includes('TRAINING_DATE_OUT_OF_RANGE')
                     && new Date(item.payload.date).getTime() < Date.now() - 30 * 86400000;
                 const status = permanent ? 'error' : 'pending';
+                // V1.6.1: the sheet shows when the last attempt happened and how many there were (js/core/sync-state.js).
                 await window.TitanQueue.put({ ...item, status, deferred: tooOld,
+                    attempts: (Number(item.attempts) || 0) + 1, lastAttemptAt: new Date().toISOString(),
                     code: String(error.message || error.code || '').slice(0, 80),
                     reason: tooOld ? 'Séance de plus de 30 jours : pas encore acceptée par le serveur' : refusalReason(error, rateLimited) });
                 if (!current()) break;
@@ -496,6 +504,15 @@ window.logActivity = async function(sportKey, dataInput, options = {}) {
     const log={...payload,id:details.client_event_id,client_event_id:details.client_event_id,cat:payload.category,xp:0,syncStatus:guest?'local':'pending',revision:1,created_at:new Date().toISOString()};
     if(guest)await window.TitanQueue.saveGuestSession(owner,log);
     else await queuePendingTrainingLog(payload);
+    // V1.6.1 « Corriger et renvoyer »: the corrected session (new client_event_id, so the server can never answer it with the refused
+    // content) is durable above; only then does the refused entry it replaces leave this device. A session that may be on its way
+    // (pending) is never replaced. Interrupted between the two writes, both stay listed: the refused one counts nowhere.
+    const replaced=!guest&&options.replaces?(window.TitanQueue.list()||[]).find(i=>i.key===options.replaces&&i.ownerId===owner):null;
+    if(replaced&&window.TitanSyncState?.replaceable(replaced)){
+        await window.TitanQueue.remove(replaced.key,owner);
+        const oldId=replaced.payload?.details?.client_event_id;
+        if(owner===window.state?.user?.id)window.state.history=(window.state.history||[]).filter(l=>(l.client_event_id||l.details?.client_event_id)!==oldId);
+    }
     if(owner!==window.state?.user?.id||client!==window.titanClient||epoch!==window.titanAccountTransition?.epoch||window.titanAccountTransition?.active)return log;
     window.state.history=window.state.history||[];
     if(!window.state.history.some(l=>l.client_event_id===log.client_event_id))window.state.history.push(log);

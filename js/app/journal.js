@@ -81,10 +81,29 @@
 
   // Self-explanatory values only: a bare "2" means nothing in a list.
   const LABELLED = { Exercices: (v) => `${v} exercice${v === "1" ? "" : "s"}`, Séries: (v) => `${v} série${v === "1" ? "" : "s"}`, Répétitions: (v) => `${v} rép.`, Réussites: (v) => `${v} réussies`, Meilleure: (v) => `max ${v}` };
+  /* V1.6.1: one vocabulary with Android (js/core/sync-state.js), read from what this device really holds: the queue item of the
+     session (status, attempts, last attempt, reason) and the confirmed server row. */
+  const queueItemOf = (l) => {
+    const id = X().idOf(l);
+    return (window.TitanQueue?.list?.() || []).find((i) => i.payload?.details?.client_event_id === id) || null;
+  };
+  const syncOf = (l) => window.TitanSyncState?.describe({ log: l, item: queueItemOf(l), guest: String(window.state?.user?.id || "").startsWith("guest_"), online: navigator.onLine }) || null;
   function syncBadge(l) {
-    if (l.syncStatus === "error") return `<span class="asc-chip jr-badge err" title="Envoi refusé">${icon("alert")}À vérifier</span>`;
-    if (l.syncStatus === "pending") return `<span class="asc-chip jr-badge" title="En attente de synchronisation">${icon("cloudUp")}En attente</span>`;
-    return "";
+    if (!l.syncStatus || l.syncStatus === "confirmed" || l.syncStatus === "local") return "";
+    const s = syncOf(l);
+    if (!s || s.state === "confirmed") return "";
+    return `<span class="asc-chip jr-badge${s.tone === "err" ? " err" : ""}" data-sync-badge="${esc(s.state)}" title="${esc(s.label)}">${icon(s.tone === "err" ? "alert" : "cloudUp")}${esc(s.short)}</span>`;
+  }
+  function syncHtml(l) {
+    const s = syncOf(l);
+    if (!s) return "";
+    const kind = { send: "asc-btn-secondary", correct: "asc-btn-primary", discard: "asc-btn-ghost", export: "asc-btn-ghost" };
+    const icons = { send: "cloudUp", correct: "edit", discard: "trash", export: "download" };
+    const buttons = s.actions.map((a) => `<button type="button" class="asc-btn ${kind[a.id]} asc-btn-sm" data-sync-action="${esc(a.id)}"${a.id === "send" && !navigator.onLine ? " disabled" : ""}>${icon(icons[a.id])} ${esc(a.label)}</button>`).join("");
+    return `<section class="jr-detail-block jr-sync" data-sync-state="${esc(s.state)}" aria-label="Synchronisation"><p class="asc-eyebrow">Synchronisation</p>
+      <p class="asc-row-flex"><strong class="${s.tone === "err" ? "asc-err" : ""}">${esc(s.label)}</strong></p><p class="asc-small">${esc(s.text)}</p>
+      ${s.facts.length ? `<dl class="jr-kv">${s.facts.map((f) => `<div><dt>${esc(f.label)}</dt><dd>${esc(f.value)}</dd></div>`).join("")}</dl>` : ""}
+      ${buttons ? `<div class="asc-row-flex">${buttons}</div>` : ""}</section>`;
   }
 
   /* ---------- Rendering ---------- */
@@ -372,6 +391,8 @@
       <dl class="moment-metrics">${c.items.slice(0, 6).map(line).join("")}</dl><p class="asc-small asc-faint">${esc(c.basis)} Seules les valeurs mesurées sont comparées.</p></section>`;
   }
 
+  // A session the server has not confirmed is corrected through « Synchronisation » (the server edit needs a confirmed row).
+  const unsent = (l) => l.syncStatus === "pending" || l.syncStatus === "error";
   function detailHtml(l) {
     const metrics = window.TitanMoment?.metrics(l) || [];
     const rw = rewardLine(l);
@@ -379,7 +400,8 @@
     return `<div class="jr-detail">
       <dl class="moment-metrics">${metrics.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
       ${recs.length ? `<p class="jr-record">${icon("star")}<span>${recs.length > 1 ? "Records actuels" : "Record actuel"} : ${esc(recs.map((r) => r.label).join(", "))}</span></p>` : ""}
-      <p class="jr-reward ${rw.cls}">${esc(rw.text)}${l.syncStatus === "pending" ? " En attente de synchronisation." : ""}${l.syncStatus === "error" ? (historical(l) ? " Le serveur ne l’a pas encore acceptée : elle reste ici et sera renvoyée automatiquement. Tu peux déjà l’exporter." : " Le serveur a refusé l’envoi : exporte cette séance puis enregistre-la de nouveau.") : ""}</p>
+      <p class="jr-reward ${rw.cls}">${esc(rw.text)}</p>
+      ${syncHtml(l)}
       ${comparisonHtml(l)}
       ${exercisesHtml(l)}
       ${extrasHtml(l)}
@@ -387,9 +409,9 @@
       <div data-route-slot></div>
       ${l.archived_at ? "" : compareHtml(l)}
       <div class="jr-actions">
-        ${l.archived_at ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-edit>${icon("edit")} Corriger</button>`}
+        ${l.archived_at || unsent(l) ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-edit>${icon("edit")} Corriger</button>`}
         ${l.archived_at ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-duplicate>${icon("copy")} Refaire</button>`}
-        <button type="button" class="asc-btn asc-btn-ghost" data-toggle-archive>${icon(l.archived_at ? "restore" : "archive")} ${l.archived_at ? "Restaurer" : "Archiver"}</button>
+        ${unsent(l) ? "" : `<button type="button" class="asc-btn asc-btn-ghost" data-toggle-archive>${icon(l.archived_at ? "restore" : "archive")} ${l.archived_at ? "Restaurer" : "Archiver"}</button>`}
       </div>
     </div>`;
   }
@@ -425,6 +447,8 @@
     body.addEventListener("click", async (e) => {
       if (!currentAccount(context)) return d.close();
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
+      const syncAction = e.target.closest("[data-sync-action]")?.getAttribute("data-sync-action");
+      if (syncAction) return runSyncAction(syncAction, l, d, context);
       if (e.target.closest("[data-edit]")) {
         d.close();
         return openEdit(l, context);
@@ -446,6 +470,37 @@
         await confirmation;
       }
     });
+  }
+
+  /* V1.6.1: each recovery action is the existing flow that matches the reason (js/core/sync-state.js). */
+  async function runSyncAction(action, l, d, context) {
+    const item = queueItemOf(l);
+    if (action === "export") return window.titanExportPending?.();
+    if (action === "send") {
+      d.close();
+      return window.flushPendingTrainingLogs?.({ retry: true })
+        .then((r) => { if (currentAccount(context)) window.titanShell.toast({ type: r?.remaining ? "warn" : "ok", title: r?.remaining ? "Envoi incomplet" : "Séance confirmée dans ton compte", message: r?.remaining ? "Elle reste enregistrée sur cet appareil et repartira automatiquement." : "Tu la retrouves sur tes autres appareils." }); })
+        .catch(() => { if (currentAccount(context)) window.titanShell.toast({ type: "warn", title: "Envoi impossible", message: "Ta séance reste enregistrée sur cet appareil." }); })
+        .finally(() => { if (currentAccount(context)) render(); });
+    }
+    if (action === "correct" && item && window.TitanSyncState?.replaceable(item)) return X().duplicate({ ...item.payload, id: X().idOf(l), client_event_id: X().idOf(l) }, { replaces: item.key });
+    if (action === "discard" && item) {
+      d.close();
+      return window.titanShell.confirm({
+        title: "Retirer cette séance de cet appareil ?",
+        message: item.status === "error" ? "Le serveur l’a refusée : elle n’est ni dans ton compte ni récompensée." : "Elle n’a pas encore été confirmée par ton compte.",
+        detail: "Exporte d’abord une copie si tu veux la ressaisir plus tard.",
+        confirmLabel: "Retirer",
+        danger: true,
+        action: async () => {
+          if (!currentAccount(context)) throw new Error("Le compte a changé.");
+          await window.TitanQueue.remove(item.key, context.owner);
+          window.state.history = (window.state.history || []).filter((h) => X().idOf(h) !== X().idOf(l));
+          await window.TitanQueue.saveHistory(context.owner, [...window.state.history, ...(window.state.archivedHistory || [])]).catch(() => {});
+          window.dispatchEvent(new CustomEvent("titan:history-updated"));
+        },
+      }).then(() => { if (currentAccount(context)) render(); });
+    }
   }
 
   /* ---------- Correction ---------- */
