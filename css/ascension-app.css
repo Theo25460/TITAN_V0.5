@@ -1869,6 +1869,34 @@
 .jr-compare li[data-trend="down"] strong {
   color: var(--tx-2);
 }
+/* V1.7.1: the selection behind a comparison (rule, sample, sources, limits). */
+.jr-comparables {
+  display: grid;
+  gap: var(--s2);
+  padding-top: var(--s2);
+  border-top: 1px solid var(--line);
+}
+.jr-comparables summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--tx);
+}
+.jr-criteria,
+.jr-limits,
+.jr-sources {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: var(--s4);
+}
+.jr-sources button.asc-link {
+  min-height: 32px;
+}
+.jr-limits {
+  color: var(--tx-2);
+}
 .jr-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;

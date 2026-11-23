@@ -422,10 +422,34 @@
   }
 
   /* Lot D: the session against the last comparable one (same sport, comparable size, same exercise or grade system), measured
-     figures only (js/core/progression.js). A change below its threshold reads « stable »; shared measures are never judged. */
+     figures only (js/core/progression.js). A change below its threshold reads « stable »; shared measures are never judged.
+     V1.7.1: the selection is shown — the rule applied, the sample, the sessions kept (each opens its sheet), the sessions set aside
+     and why, and the limit when a criterion depends on a value that was not recorded. The same module runs on Android. */
+  const shortDate = (iso) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+  function selectionHtml(s, P, limits = "") {
+    const n = s.sample;
+    const kept = s.retained.map((r) => `<li><button type="button" class="asc-link" data-open-source="${esc(r.id)}">${esc(shortDate(r.date))}</button> <span class="asc-faint">· ${esc(r.summary)}</span></li>`).join("");
+    const counts = Object.entries(s.counts).map(([k, v]) => `${v} ${P.REASONS[k] || k}`).join(", ");
+    const set = s.excluded.map((x) => `<li><button type="button" class="asc-link" data-open-source="${esc(x.id)}">${esc(shortDate(x.date))}</button> <span class="asc-faint">· ${esc(x.text)}</span></li>`).join("");
+    return `<details class="jr-comparables" data-comparables>
+      <summary>${n ? `Voir ${n > 1 ? `les ${n} séances comparées` : "la séance comparée"}` : "Voir la règle et les séances examinées"}</summary>
+      <p class="asc-small" data-rule="${esc(`${s.rule.id}@${s.rule.version}`)}"><strong>Règle appliquée</strong> · ${esc(s.rule.label)} <span class="asc-faint">(règles ${esc(s.rule.version)})</span></p>
+      ${s.rule.criteria.length ? `<ul class="asc-small jr-criteria">${s.rule.criteria.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
+      <p class="asc-small" data-sample="${n}"><strong>Échantillon</strong> · ${n} séance${n > 1 ? "s" : ""} retenue${n > 1 ? "s" : ""} sur ${s.considered} examinée${s.considered > 1 ? "s" : ""}${counts ? ` <span class="asc-faint">(écartées : ${esc(counts)})</span>` : ""}.</p>
+      ${kept ? `<p class="asc-eyebrow">Séances retenues</p><ol class="asc-small jr-sources" data-retained>${kept}</ol>` : ""}
+      ${set ? `<p class="asc-eyebrow">Séances écartées</p><ul class="asc-small jr-sources" data-excluded>${set}</ul>` : ""}
+      ${limits ? `<p class="asc-eyebrow">Limites</p>${limits}` : ""}
+    </details>`;
+  }
   function comparisonHtml(l) {
     const P = window.TitanProgression;
-    const c = P?.compare?.(l, window.state?.history || []);
+    const history = window.state?.history || [];
+    const s = P?.comparables?.(l, history);
+    if (!s) return "";
+    const limits = s.limits.length ? `<ul class="asc-small jr-limits" data-comparison-limit>${s.limits.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : "";
+    if (s.status === "insufficient")
+      return `<section class="jr-detail-block" data-comparison data-status="insufficient"><p class="asc-eyebrow">Comparaison · données insuffisantes</p>${limits}${selectionHtml(s, P)}</section>`;
+    const c = P.compare(l, history);
     if (!c || !c.items.length) return "";
     // Reuses the metrics list of the session sheet (moment-metrics): the word, not a colour, carries the direction.
     const line = (i) => {
@@ -434,8 +458,10 @@
       const before = i.currentReps !== undefined ? `${P.formatValue(i, "previous")} × ${i.previousReps}` : P.formatValue(i, "previous");
       return `<div><dt>${esc(i.label)}</dt><dd class="asc-num">${esc(now)} <small class="asc-faint">avant ${esc(before)}${word ? ` · ${esc(word)}` : ""}</small></dd></div>`;
     };
-    return `<section class="jr-detail-block" data-comparison><p class="asc-eyebrow">Par rapport à ta séance du ${esc(new Date(c.previous.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</p>
-      <dl class="moment-metrics">${c.items.slice(0, 6).map(line).join("")}</dl><p class="asc-small asc-faint">${esc(c.basis)} Seules les valeurs mesurées sont comparées.</p></section>`;
+    const ref = s.reference ? `<p class="asc-small" data-reference>${s.reference.kind === "best" ? "Meilleure réussite" : "Médiane"} de tes ${s.reference.sessions} séances retenues : <strong>${esc(s.reference.display)}</strong>.</p>` : "";
+    return `<section class="jr-detail-block" data-comparison data-status="${esc(s.status)}"><p class="asc-eyebrow">Par rapport à ta séance du ${esc(new Date(c.previous.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</p>
+      <dl class="moment-metrics">${c.items.slice(0, 6).map(line).join("")}</dl><p class="asc-small asc-faint">${esc(c.basis)} Seules les valeurs mesurées sont comparées.</p>
+      ${ref}${s.status === "limited" ? `<p class="asc-small"><strong>Comparaison élargie</strong> : un critère n’a pas pu être vérifié.</p>${limits}${selectionHtml(s, P)}` : selectionHtml(s, P, limits)}</section>`;
   }
 
   // A session the server has not confirmed is corrected through « Synchronisation » (the server edit needs a confirmed row).
@@ -513,6 +539,12 @@
     body.addEventListener("click", async (e) => {
       if (!currentAccount(context)) return d.close();
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
+      // V1.7.1: a source of the comparison opens its own sheet (the same journal entry, never a copy).
+      const source = e.target.closest("[data-open-source]");
+      if (source) {
+        d.close();
+        return openDetail(source.getAttribute("data-open-source"));
+      }
       const matchButton = e.target.closest("[data-match-action]");
       if (matchButton) {
         d.close();
