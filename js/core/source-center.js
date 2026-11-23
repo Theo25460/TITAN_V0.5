@@ -341,7 +341,9 @@
       if (!fix) continue;
       recovered++;
       delays.push((time(fix.finished_at) ?? time(fix.started_at)) - time(r.started_at));
-      const seen = activities.some((a) => a && a.visible !== false && time(a.started_at) !== null && (from === null || time(a.started_at) >= from) && (to === null || time(a.started_at) <= to));
+      // A denial read nothing and carries no window: what counts is what the resume that closed it brought back in its own window.
+      const lo = from ?? time(fix.window_from), hi = r.window_to ? to : time(fix.window_to);
+      const seen = activities.some((a) => a && a.visible !== false && time(a.started_at) !== null && (lo === null || time(a.started_at) >= lo) && (hi === null || time(a.started_at) <= hi));
       if (seen) visible++;
     }
     delays.sort((a, b) => a - b);
