@@ -9,6 +9,7 @@ import { Section, Stat, StatRow } from "../../components/Section";
 import { sessionHeadline } from "../../components/SessionRow";
 import { Icon } from "../../components/Icon";
 import { EmptyState } from "../../components/States";
+import { SyncCard, useSyncView } from "../../components/SyncCard";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { Format, Progress, Progression, Sports, Training } from "../../core";
@@ -19,13 +20,12 @@ import { useLogs, useUpdateSession } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
+import type { TrainingLog } from "../../core/types";
 import { colors, space } from "../../theme/tokens";
 
-export function SessionDetailScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionDetail">) {
+export function SessionDetailScreen(props: NativeStackScreenProps<RootParams, "SessionDetail">) {
+  const { navigation, route } = props;
   const { logs, archived } = useLogs();
-  const update = useUpdateSession();
-  const online = useOnline();
-  const toast = useToast();
   const log = [...logs, ...archived].find((l) => l.id === route.params.id || l.client_event_id === route.params.id);
   if (!log)
     return (
@@ -33,6 +33,14 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         <EmptyState icon="journal" title="Séance introuvable" text="Elle a peut-être été archivée sur un autre appareil." action="Ouvrir le journal" onAction={() => navigation.replace("Journal")} />
       </Screen>
     );
+  return <SessionSheet {...props} log={log} logs={logs} />;
+}
+
+function SessionSheet({ navigation, log, logs }: NativeStackScreenProps<RootParams, "SessionDetail"> & { log: TrainingLog; logs: TrainingLog[] }) {
+  const update = useUpdateSession();
+  const online = useOnline();
+  const toast = useToast();
+  const sync = useSyncView(log).view;
 
   const d = log.details || {};
   const effort = Progress.effortOf(log);
@@ -83,7 +91,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         </T>
         <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
           {log.archived_at ? <Chip label="Archivée" tone="warn" /> : null}
-          {!confirmed ? <Chip label={log.syncStatus === "error" ? "Refusée par le serveur" : "En attente d’envoi"} tone={log.syncStatus === "error" ? "err" : "warn"} icon="offline" /> : null}
+          {!confirmed ? <Chip label={sync.label} tone={sync.tone === "muted" ? "default" : sync.tone} icon={sync.state === "refused" ? "alert" : "offline"} /> : null}
           {d.historical ? <Chip label="Historique (sans XP)" /> : null}
         </View>
       </View>
@@ -214,6 +222,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         ) : null}
         {!confirmed ? <Button label="Voir les envois en attente" kind="ghost" onPress={() => navigation.navigate("Pending")} /> : null}
       </View>
+      <SyncCard log={log} onCorrect={(item) => navigation.navigate("SessionForm", { sport: log.sport, duplicateOf: item.payload.details.client_event_id!, replaces: item.key })} onRemoved={() => navigation.goBack()} />
       <T variant="caption" tone="faint" center style={{ color: colors.tx3 }}>
         Les corrections ne changent jamais les récompenses déjà attribuées.
       </T>

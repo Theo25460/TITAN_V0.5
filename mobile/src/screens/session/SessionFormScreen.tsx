@@ -24,6 +24,7 @@ import type { TrainingLog } from "../../core/types";
 import { useOwner } from "../../data/auth";
 import { discardDraft, draftCleanup, elapsedMs, saveDraft, setStopwatch, useDrafts } from "../../data/drafts";
 import { useLogs, useProfile, useRecordSession } from "../../data/hooks";
+import { useQueue } from "../../data/queue";
 import { shareTextFile } from "../../lib/exportFile";
 import { haptic } from "../../lib/haptics";
 import type { RootParams } from "../../navigation/types";
@@ -63,11 +64,19 @@ function prefillFrom(log: TrainingLog, base: SessionDraft): SessionDraft {
   return d;
 }
 
+function correctionOf(log: TrainingLog): Partial<SessionDraft> {
+  const d = new Date(log.date);
+  if (Number.isNaN(d.getTime())) return {};
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return { when: "other", date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`, time: `${pad(d.getHours())}:${pad(d.getMinutes())}`, note: String(log.details?.note || "") };
+}
+
 export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionForm">) {
   const owner = useOwner();
-  const { sport, duplicateOf, quickMinutes } = route.params;
+  const { sport, duplicateOf, quickMinutes, replaces } = route.params;
   const drafts = useDrafts();
   const { logs } = useLogs();
+  const queue = useQueue();
   const sportLogs = useMemo(() => logs.filter((log) => log.sport === sport), [logs, sport]);
   const suggestions = useMemo(() => {
     const names = new Set<string>();
@@ -112,6 +121,8 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     const source = duplicateOf ? logs.find((l) => l.id === duplicateOf || l.client_event_id === duplicateOf) : null;
     // H5: « Juste 10 minutes » opens the form with the duration already filled; the player only confirms.
     if (!source && quickMinutes && quickMinutes > 0 && quickMinutes <= 60) return { ...base, durM: String(Math.round(quickMinutes)) };
+    // « Corriger et renvoyer » (V1.6.1): the refused session's own day, time and note, and the key of the entry it replaces.
+    if (source && replaces) return { ...prefillFrom(source, base), ...correctionOf(source), replaces };
     return source ? prefillFrom(source, base) : base;
   });
   const draftRef = useRef(draft);
@@ -141,6 +152,7 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
   // A finished GPS recording this form did not open (another sport, a session to redo, a form typed before it was recorded) is
   // pinned: this form is not kept as the draft. A clean form of the same sport is not concerned: it adopts the recording above.
   const waiting = drafts.stored?.draft;
+  const correcting = draft.replaces ? queue.items.find((i) => i.key === draft.replaces && i.status === "error") ?? null : null;
   const pinnedRecording = waiting?.gpsRouteId && waiting.gpsRouteId !== editing.current && (waiting.sport !== sport || !!duplicateOf || dirty.current) ? waiting : null;
   const form = Sports.formOf(sport);
   const fam = Sports.familyOf(sport);
@@ -279,7 +291,9 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
     }
     // The same effort already in the journal (watch or Health Connect import, a session typed again): ask once, never merge.
     const details = b.details as { performedAt?: string; duration?: number };
-    const twin = details.performedAt ? SportContracts.findDuplicate({ sport, date: details.performedAt, minutes: details.duration ?? null }, logs) : null;
+    // The refused session this form corrects is not a twin of its own correction.
+    const replacedId = submitted.replaces ? queue.items.find((i) => i.key === submitted.replaces)?.payload.details.client_event_id : null;
+    const twin = details.performedAt ? SportContracts.findDuplicate({ sport, date: details.performedAt, minutes: details.duration ?? null }, replacedId ? logs.filter((l) => (l.client_event_id || l.id) !== replacedId) : logs) : null;
     const twinId = twin ? String(twin.client_event_id || twin.id) : null;
     if (twin && duplicateAccepted.current !== twinId) {
       const when = new Date(twin.date).toLocaleString("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" });
@@ -369,6 +383,12 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       </View>
 
       {/* A finished GPS recording opened by another form is kept on the phone until it is sent or given up: say so, never overwrite it. */}
+      {correcting ? (
+        <Card tone="flat" style={{ gap: 4 }} testID="correction-notice">
+          <T variant="bodyStrong" tone="err">Correction d’une séance refusée</T>
+          <T variant="small">{correcting.reason ? `Motif : ${correcting.reason}. ` : ""}L’enregistrer remplace la séance refusée, sans doublon.</T>
+        </Card>
+      ) : null}
       {pinnedRecording ? (
         <Card style={{ gap: 8 }} testID="pinned-recording">
           <T variant="small">Ta séance GPS de {Sports.label(pinnedRecording.sport).toLowerCase()} attend encore d’être enregistrée sur ce téléphone. Ce formulaire-ci ne sera pas gardé en brouillon tant qu’elle attend.</T>

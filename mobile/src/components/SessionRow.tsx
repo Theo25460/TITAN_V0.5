@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import { Format, Progress, Sports } from "../core";
+import { Format, Progress, Sports, SyncState } from "../core";
 import type { TrainingLog } from "../core/types";
 import { colors, familyColors, space } from "../theme/tokens";
 import { Icon } from "./Icon";
@@ -20,9 +20,11 @@ export function SessionRow({ log, onPress, record = false }: { log: TrainingLog;
   const fam = Sports.familyOf(log.sport);
   const m = Progress.minutesOf(log);
   const pending = log.syncStatus && log.syncStatus !== "confirmed";
-  const detail = [m.minutes ? `${Format.duration(m.minutes)}${m.estimated ? " est." : ""}` : null, log.syncStatus === "confirmed" && log.xp ? `+${log.xp} XP` : null].filter(Boolean).join(" · ");
+  // V1.6.1: the words of the website journal (src/core/web/sync-state.js), from what the provisional entry carries.
+  const sync = pending ? SyncState.describe({ log, item: { status: log.syncStatus === "error" ? "error" : "pending", attempts: log.syncAttempts, reason: log.syncReason, code: log.syncCode } }) : null;
+  const detail = [m.minutes ? `${Format.duration(m.minutes)}${m.estimated ? " est." : ""}` : null, log.syncStatus === "confirmed" && log.xp ? `+${log.xp} XP` : null, sync ? sync.short : null].filter(Boolean).join(" · ");
   return (
-    <Tap onPress={onPress} accessibilityLabel={`${Sports.label(log.sport)}, ${sessionHeadline(log)}, ${Format.relativeDay(log.date)}${record ? ", record actuel" : ""}${pending ? ", en attente d’envoi" : ""}`} style={styles.tap}>
+    <Tap onPress={onPress} accessibilityLabel={`${Sports.label(log.sport)}, ${sessionHeadline(log)}, ${Format.relativeDay(log.date)}${record ? ", record actuel" : ""}${sync ? `, ${sync.label.toLowerCase()}` : ""}`} style={styles.tap}>
       <View style={styles.row}>
         <View style={styles.icon}>
           <Icon name={Sports.iconOf(log.sport)} size={20} color={familyColors[fam]} />

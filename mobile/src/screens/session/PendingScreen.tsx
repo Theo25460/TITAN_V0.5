@@ -1,3 +1,5 @@
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQueryClient } from "@tanstack/react-query";
 import { View } from "react-native";
 import { Alert } from "../../components/Dialog";
@@ -8,11 +10,12 @@ import { Screen } from "../../components/Screen";
 import { EmptyState } from "../../components/States";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Format, Sports } from "../../core";
+import { Format, Sports, SyncState } from "../../core";
 import { useOwner } from "../../data/auth";
 import { syncNow } from "../../data/hooks";
 import { discard, retryItem, useQueue } from "../../data/queue";
 import { useOnline } from "../../lib/network";
+import type { RootParams } from "../../navigation/types";
 import { colors, space } from "../../theme/tokens";
 
 /** Sessions kept on this phone and not confirmed by the server yet. Nothing disappears silently. */
@@ -22,6 +25,7 @@ export function PendingScreen() {
   const queue = useQueue();
   const online = useOnline();
   const toast = useToast();
+  const navigation = useNavigation<NativeStackNavigationProp<RootParams>>();
   const items = queue.items;
 
   async function sendAll() {
@@ -39,8 +43,12 @@ export function PendingScreen() {
           <T tone="muted">Ces séances sont enregistrées sur ce téléphone. Elles partent automatiquement dès que la connexion le permet.</T>
           <Button label={queue.sending ? "Envoi en cours…" : "Envoyer maintenant"} icon="upload" loading={queue.sending} disabled={!online} onPress={sendAll} />
           {!online ? <T variant="caption" tone="warn">Hors ligne : l’envoi reprendra au retour du réseau.</T> : null}
-          {items.map((i) => (
-            <Card key={i.key} style={{ gap: space.s2 }}>
+          {items.map((i) => {
+            // V1.6.1: the state, the last attempt and the recovery in the words of the session sheet and of the website.
+            const view = SyncState.describe({ item: i, sending: queue.sending, online });
+            const canCorrect = view.actions.some((a) => a.id === "correct");
+            return (
+            <Card key={i.key} style={{ gap: space.s2 }} testID={`pending-${i.payload.details.client_event_id}`}>
               <View style={{ flexDirection: "row", gap: space.s3, alignItems: "center" }}>
                 <Icon name={i.status === "error" ? "alert" : "offline"} color={i.status === "error" ? colors.err : colors.warn} />
                 <View style={{ flex: 1 }}>
@@ -50,9 +58,11 @@ export function PendingScreen() {
                   </T>
                 </View>
               </View>
-              {i.reason ? <T variant="small" tone={i.status === "error" ? "err" : "muted"}>{i.reason}</T> : null}
+              <T variant="small" tone={view.tone}>{view.label}</T>
+              {view.facts.filter((f) => f.label !== "Référence").map((f) => <T key={f.label} variant="caption" tone={f.label.startsWith("Motif") && i.status === "error" ? "err" : "muted"}>{f.label} : {f.value}</T>)}
+              {canCorrect ? <Button small kind="primary" icon="edit" label="Corriger et renvoyer" onPress={() => navigation.navigate("SessionForm", { sport: i.payload.sport, duplicateOf: i.payload.details.client_event_id!, replaces: i.key })} testID="pending-correct" /> : null}
               <View style={{ flexDirection: "row", gap: space.s2 }}>
-                {i.status === "error" ? <Button small kind="secondary" label="Réessayer" style={{ flex: 1 }} onPress={() => retryItem(owner, i.key).then(() => syncNow(qc, owner))} /> : null}
+                {i.status === "error" && !canCorrect ? <Button small kind="secondary" label="Réessayer" style={{ flex: 1 }} onPress={() => retryItem(owner, i.key).then(() => syncNow(qc, owner))} /> : null}
                 <Button
                   small
                   kind="danger"
@@ -70,7 +80,8 @@ export function PendingScreen() {
                 />
               </View>
             </Card>
-          ))}
+            );
+          })}
         </>
       )}
     </Screen>

@@ -22,6 +22,7 @@ require("./web/sport-navigation.js");
 require("./web/gpx.js");
 require("./web/career.js");
 require("./web/periodic-quests.js");
+require("./web/sync-state.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,6 +68,18 @@ export const Format = g.TitanFormat as {
   addDays(date: Date | string, days: number): Date;
   recordValue(unit: string, value: number): string;
   clock(minutes: number): string;
+};
+
+/** V1.6.1: the sync state of a session, worded as on the website journal (src/core/web/sync-state.js). */
+export type SyncStateId = "local" | "stored" | "sending" | "pending" | "confirmed" | "refused";
+export type SyncActionId = "send" | "correct" | "discard" | "export";
+export type SyncView = { state: SyncStateId; label: string; short: string; tone: "ok" | "warn" | "err" | "muted"; text: string; kind: string; facts: { label: string; value: string }[]; actions: { id: SyncActionId; label: string }[] };
+type SyncQueueItem = { status: "pending" | "error"; reason?: string; code?: string; queuedAt?: string; attempts?: number; lastAttemptAt?: string; deferred?: boolean; payload?: { details?: { client_event_id?: string } } };
+export const SyncState = g.TitanSyncState as {
+  describe(input: { log?: Partial<TrainingLog> | null; item?: SyncQueueItem | null; sending?: boolean; guest?: boolean; online?: boolean; now?: number }): SyncView;
+  stateOf(input: { log?: Partial<TrainingLog> | null; item?: SyncQueueItem | null; sending?: boolean; guest?: boolean }): SyncStateId;
+  replaceable(item: SyncQueueItem | null | undefined): boolean;
+  reasonKind(code: string | null | undefined, refused?: boolean): string;
 };
 
 export type MeasureIssue = { code: string; field: string; message: string };

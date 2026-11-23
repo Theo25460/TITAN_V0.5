@@ -20,7 +20,8 @@ export type RootParams = {
   // Signed in
   Onboarding: undefined;
   Tabs: NavigatorScreenParams<TabParams> | undefined;
-  SessionForm: { sport: string; duplicateOf?: string; quickMinutes?: number } ;
+  /** `replaces`: queue key of a refused session this form corrects (« Corriger et renvoyer », V1.6.1). */
+  SessionForm: { sport: string; duplicateOf?: string; quickMinutes?: number; replaces?: string } ;
   GpsRecord: { sport: string };
   LiveSession: { sport: string };
   Camp: undefined;

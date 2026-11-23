@@ -157,7 +157,7 @@ export function useRecordSession() {
       if (build.errors.length) throw Object.assign(new Error(build.errors[0].message), { field: build.errors[0].field });
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
       const payload = toPayload(build, draft.sport, Crypto.randomUUID(), timezone, profile?.is_elite === true);
-      await enqueue(owner, payload, draft.gpsRouteId);
+      await enqueue(owner, payload, draft.gpsRouteId, draft.replaces);
       return payload;
     },
     onSuccess: () => {

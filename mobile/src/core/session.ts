@@ -34,6 +34,8 @@ export type SessionDraft = {
   gpx?: DraftGpx | null;
   gpxDurationEdited?: boolean;
   gpsRouteId?: string;
+  /** Queue key of a session the server refused, that this draft corrects (« Corriger et renvoyer », V1.6.1). Kept with the draft. */
+  replaces?: string;
   /** TITAN LIVE journal of the session, settled by the server after saving (cosmetic world progression only). */
   live?: LiveJournal | null;
 };

@@ -60,6 +60,9 @@ export type TrainingLog = {
   is_suspicious?: boolean;
   syncStatus?: SyncStatus;
   syncReason?: string;
+  /** Provisional entries only: attempts made by this phone and the code of the last failure (V1.6.1 sync wording). */
+  syncAttempts?: number;
+  syncCode?: string;
 };
 
 export type TrainingPayload = { sport: string; category: string; val: number; unit: string; date: string; details: SessionDetails };
