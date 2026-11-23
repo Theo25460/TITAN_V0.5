@@ -92,6 +92,16 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v18 bundle (v19, the coach-places decision of PR #155, is not part of this chain).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.6.2 — Rapprochement des séances (23 November 2026): a link keeps what the source said, the rule and why it is uncertain; the
+  // athlete's reversible decision (split / rejoin) is journaled on the import row; a replayed import keeps the decision. NOT APPLIED:
+  // owner's approval required. Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_session_match_review.sql).
+  v21: {
+    out: "supabase/release-v21", after: "20261122090000", until: "20261123090000",
+    before: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [324, "39442f678587", "81ad6534245e"] },
+    expected: { private: [125, "3ee797232f74", "4711201906bc"], public: [326, "cecf92935b00", "99408d5e7398"] },
+    beforeNote: "This is the state production reaches at the end of the v20 bundle (registry 141, head 20261122090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

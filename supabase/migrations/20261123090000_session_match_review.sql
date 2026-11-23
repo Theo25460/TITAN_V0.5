@@ -1,0 +1,344 @@
+-- TITAN V1.6.2 — Rapprochement des séances. Applies after 20261122090000. Additive: twelve columns on private.titan_imported_activities
+-- (nullable, or with a default), three private helpers, two RPCs for the account owner, and the body of private.titan_import_core
+-- replaced. No new table: the decision journal is a column of the import row, so « Exporter toutes mes données » (export_own_data,
+-- importedActivities = to_jsonb of each row) already carries it and the account deletion already erases it (on delete cascade). No existing row is deleted; no grant on a table is widened; reward and record rules unchanged.
+-- NOT APPLIED TO PRODUCTION by the session that wrote it: it needs the owner's release approval.
+--
+-- 1. V15 links an import to a journal session of the same group of neighbouring sport ids (private.titan_sport_dedupe_group) when they
+--    share half of the shorter effort, then FORGETS what the source said: the athlete could not see which source joined which session,
+--    nor undo it. The link row now keeps what the source sent (sport, start, duration, distance), the rule applied, the share of the
+--    shorter effort covered, and why the match is uncertain (private.titan_session_match_reasons, the thresholds of
+--    js/core/session-match.js THRESHOLDS: overlap below 0.8, duration gap above 0.25, distance gap above 0.15, several candidates).
+--    An uncertain match is still linked — no double count by default — and flagged needs_review until the athlete decides.
+-- 2. titan_resolve_session_match_v1(source, external_id, 'same' | 'distinct') is the athlete's reversible decision, journaled in
+--    the events column of the import row (who: engine or user, what, when, which sessions):
+--    - 'distinct' on a linked import creates its own session through titan_submit_training_session (the same creation path and reward
+--      rules as any import: daily caps, holds, records) — or restores the session an earlier split created, so splitting again never
+--      grants a second reward;
+--    - 'same' on a split import archives that session (archiving keeps rewards already granted and grants none, as in the journal) and
+--      links the import back to the athlete's session; on a linked import it only records the confirmation.
+--    The athlete's own session (values, note, corrections) is never modified by a decision.
+-- 3. Replaying the same import (same source and external id) returns the decision in force (status, log_id and decision): the
+--    idempotence key of V15 is unchanged and the row is updated in place by a decision, never deleted. A replay also fills the source
+--    values of a link made before this migration, so an old link becomes reviewable; it never touches a decision.
+-- Rollback: re-apply private.titan_import_core from 20261118090000_sport_excellence_imports.sql; drop function
+-- public.titan_resolve_session_match_v1(text,text,text), public.titan_session_matches_v1(uuid), private.titan_session_match_reasons(
+-- numeric,numeric,numeric,numeric,numeric,integer), private.titan_session_shared_minutes(public.training_logs,timestamptz,numeric),
+-- private.titan_session_match_row(private.titan_imported_activities), private.titan_session_match_event(text,text,uuid,uuid,text[]),
+-- private.titan_session_match_trim(jsonb);
+-- alter table private.titan_imported_activities drop column sport, started_at, duration_minutes, distance_km, match_rule,
+-- match_overlap, needs_review, review_reasons, decision, decided_at, linked_log_id, split_log_id, events.
+
+alter table private.titan_imported_activities
+  add column if not exists sport text,
+  add column if not exists started_at timestamptz,
+  add column if not exists duration_minutes numeric,
+  add column if not exists distance_km numeric,
+  add column if not exists match_rule text,
+  add column if not exists match_overlap numeric,
+  add column if not exists needs_review boolean not null default false,
+  add column if not exists review_reasons text[] not null default '{}',
+  add column if not exists decision text,
+  add column if not exists decided_at timestamptz,
+  add column if not exists linked_log_id uuid references public.training_logs(id) on delete set null,
+  add column if not exists split_log_id uuid references public.training_logs(id) on delete set null,
+  add column if not exists events jsonb not null default '[]'::jsonb;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'titan_imported_activities_decision_check' and conrelid = 'private.titan_imported_activities'::regclass) then
+    alter table private.titan_imported_activities add constraint titan_imported_activities_decision_check check (decision in ('same', 'distinct'));
+  end if;
+end $$;
+create index if not exists titan_imported_activities_linked_idx on private.titan_imported_activities (linked_log_id) where linked_log_id is not null;
+create index if not exists titan_imported_activities_split_idx on private.titan_imported_activities (split_log_id) where split_log_id is not null;
+
+-- One entry of the decision journal of a link (kept on the import row, at most the 50 latest).
+create or replace function private.titan_session_match_event(p_action text, p_actor text, p_log uuid, p_other uuid, p_reasons text[] default '{}')
+returns jsonb
+language sql
+stable
+set search_path = ''
+as $function$
+  select jsonb_build_object('action', p_action, 'actor', p_actor, 'at', now(), 'log_id', p_log, 'other_log_id', p_other, 'reasons', to_jsonb(coalesce(p_reasons, '{}'::text[])));
+$function$;
+revoke all on function private.titan_session_match_event(text, text, uuid, uuid, text[]) from public, anon, authenticated;
+-- The journal keeps the 49 latest entries before a new one is appended (a decision is limited to 30 an hour anyway).
+create or replace function private.titan_session_match_trim(p_events jsonb)
+returns jsonb
+language sql
+immutable
+set search_path = ''
+as $function$
+  select coalesce((select jsonb_agg(e order by n) from jsonb_array_elements(coalesce(p_events, '[]'::jsonb)) with ordinality t(e, n)
+                    where n > jsonb_array_length(coalesce(p_events, '[]'::jsonb)) - 49), '[]'::jsonb);
+$function$;
+revoke all on function private.titan_session_match_trim(jsonb) from public, anon, authenticated;
+
+-- Minutes an import (start, minutes) shares with a journal session: the V15 readings, unchanged (start of the session; and its end for
+-- a session typed by hand and saved « now », with no trace and not itself an import).
+create or replace function private.titan_session_shared_minutes(p_log public.training_logs, p_started_at timestamptz, p_minutes numeric)
+returns numeric
+language sql
+stable
+set search_path = ''
+as $function$
+  with d as (select coalesce(public.titan_numeric_from_json(p_log.details, 'duration'), case when p_log.unit = 'min' then p_log.val end, 30) as m),
+       w as (select p_started_at as s, p_started_at + (p_minutes * interval '1 minute') as e)
+  select greatest(0, greatest(
+           extract(epoch from least(w.e, p_log.date + (d.m * interval '1 minute')) - greatest(w.s, p_log.date)) / 60,
+           case when p_log.created_at - p_log.date between interval '-10 minutes' and interval '10 minutes'
+                 and coalesce(p_log.details ->> 'hasGpx', 'false') <> 'true'
+                 and not exists (select 1 from private.titan_imported_activities i where i.log_id = p_log.id and i.status = 'imported')
+                then extract(epoch from least(w.e, p_log.date) - greatest(w.s, p_log.date - (d.m * interval '1 minute'))) / 60
+           end))::numeric
+    from d, w;
+$function$;
+revoke all on function private.titan_session_shared_minutes(public.training_logs, timestamptz, numeric) from public, anon, authenticated;
+
+-- Why a V15 match is uncertain. Same thresholds as js/core/session-match.js THRESHOLDS (tests/session-match.test.mjs checks them).
+create or replace function private.titan_session_match_reasons(
+  p_shared numeric, p_import_minutes numeric, p_log_minutes numeric, p_import_km numeric, p_log_km numeric, p_candidates integer)
+returns text[]
+language sql
+immutable
+set search_path = ''
+as $function$
+  select array_remove(array[
+    case when p_shared < 0.8 * least(p_import_minutes, coalesce(p_log_minutes, 30)) then 'partial_overlap' end,
+    case when p_log_minutes > 0 and p_import_minutes > 0
+          and abs(p_import_minutes - p_log_minutes) / greatest(p_import_minutes, p_log_minutes) > 0.25 then 'duration_gap' end,
+    case when p_log_km > 0 and p_import_km > 0
+          and abs(p_import_km - p_log_km) / greatest(p_import_km, p_log_km) > 0.15 then 'distance_gap' end,
+    case when p_candidates > 1 then 'several_candidates' end
+  ], null);
+$function$;
+revoke all on function private.titan_session_match_reasons(numeric, numeric, numeric, numeric, numeric, integer) from public, anon, authenticated;
+
+create or replace function private.titan_import_core(
+  p_uid uuid, p_source text, p_external_id text, p_sport text, p_started_at timestamptz,
+  p_duration_minutes numeric, p_distance_km numeric)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_prev record;
+  v_dup record;
+  v_details jsonb;
+  v_event uuid;
+  v_res record;
+  v_end timestamptz;
+  v_n integer;
+  v_log_minutes numeric;
+  v_log_km numeric;
+  v_reasons text[];
+  v_claims text := current_setting('request.jwt.claims', true);
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_uid::text || ':' || p_source || ':' || p_external_id, 0));
+
+  select i.log_id, i.status, i.decision, i.started_at into v_prev from private.titan_imported_activities i
+   where i.user_id = p_uid and i.source = p_source and i.external_id = p_external_id;
+  if found then
+    -- A replay answers with the decision in force. A link made before V1.6.2 learns what the source says (nothing else changes).
+    if v_prev.started_at is null then
+      update private.titan_imported_activities i set sport = p_sport, started_at = p_started_at, duration_minutes = p_duration_minutes, distance_km = p_distance_km
+       where i.user_id = p_uid and i.source = p_source and i.external_id = p_external_id;
+    end if;
+    return jsonb_build_object('status', 'duplicate', 'log_id', v_prev.log_id, 'previous', v_prev.status, 'decision', v_prev.decision);
+  end if;
+
+  -- V15 rule, unchanged: same account, same group of neighbouring sport ids, not archived, at least half of the shorter effort shared.
+  v_end := p_started_at + (p_duration_minutes * interval '1 minute');
+  select l.id, l.unit, l.val, l.details, x.shared into v_dup
+    from public.training_logs l
+    cross join lateral (select coalesce(public.titan_numeric_from_json(l.details, 'duration'), case when l.unit = 'min' then l.val end, 30) as m) d
+    cross join lateral (select private.titan_session_shared_minutes(l, p_started_at, p_duration_minutes) as shared) x
+   where l.user_id = p_uid and l.archived_at is null
+     and private.titan_sport_dedupe_group(l.sport) = private.titan_sport_dedupe_group(p_sport)
+     and l.date < v_end + interval '24 hours' and l.date > p_started_at - interval '24 hours'
+     and x.shared >= 0.5 * least(p_duration_minutes, d.m)
+   order by l.date
+   limit 1
+   -- Deletion and moderation can hold the workout before trying to lock the profile.
+   -- Retry instead of waiting on that row while holding the profile lock.
+   for key share of l nowait;
+  if found then
+    select count(*) into v_n
+      from public.training_logs l
+     where l.user_id = p_uid and l.archived_at is null
+       and private.titan_sport_dedupe_group(l.sport) = private.titan_sport_dedupe_group(p_sport)
+       and l.date < v_end + interval '24 hours' and l.date > p_started_at - interval '24 hours'
+       and private.titan_session_shared_minutes(l, p_started_at, p_duration_minutes)
+           >= 0.5 * least(p_duration_minutes, coalesce(public.titan_numeric_from_json(l.details, 'duration'), case when l.unit = 'min' then l.val end, 30));
+    v_log_minutes := coalesce(public.titan_numeric_from_json(v_dup.details, 'duration'), public.titan_numeric_from_json(v_dup.details, 'val2'), case when v_dup.unit = 'min' then v_dup.val end);
+    v_log_km := case when coalesce(v_dup.details -> 'extras' ->> 'distance_unknown', 'false') = 'true' then null
+                     when v_dup.unit = 'km' then v_dup.val when v_dup.unit = 'm' then v_dup.val / 1000 when v_dup.unit = 'mi' then v_dup.val * 1.609344 end;
+    v_reasons := private.titan_session_match_reasons(v_dup.shared, p_duration_minutes, v_log_minutes, p_distance_km, v_log_km, v_n);
+    insert into private.titan_imported_activities(user_id, source, external_id, log_id, status, sport, started_at, duration_minutes, distance_km,
+        match_rule, match_overlap, needs_review, review_reasons, linked_log_id, events)
+      values (p_uid, p_source, p_external_id, v_dup.id, 'linked', p_sport, p_started_at, p_duration_minutes, p_distance_km,
+        'v15_group_overlap', round(least(1, v_dup.shared / nullif(least(p_duration_minutes, coalesce(v_log_minutes, 30)), 0)), 3),
+        cardinality(v_reasons) > 0, v_reasons, v_dup.id,
+        jsonb_build_array(private.titan_session_match_event(case when cardinality(v_reasons) > 0 then 'flagged' else 'linked' end, 'engine', v_dup.id, null, v_reasons)));
+    return jsonb_build_object('status', 'linked', 'log_id', v_dup.id, 'needs_review', cardinality(v_reasons) > 0, 'reasons', to_jsonb(v_reasons));
+  end if;
+
+  -- The session is created by the very same function as a manual one, for this account (identity set for this transaction only, then restored).
+  perform set_config('request.jwt.claims', json_build_object('sub', p_uid, 'role', 'authenticated')::text, true);
+  v_event := md5(p_uid::text || ':' || p_source || ':' || p_external_id)::uuid;
+  v_details := jsonb_build_object('duration', p_duration_minutes, 'client_event_id', v_event::text);
+  if p_distance_km is null then
+    select * into v_res from public.titan_submit_training_session(p_sport, (select s.category from public.sports s where s.id = p_sport), p_duration_minutes, 'min', v_details, p_started_at);
+  elsif (select s.unit from public.sports s where s.id = p_sport) = 'm' then
+    -- A sport measured in metres (swimming): a watch distance is stored in metres like a hand-typed swim, never as « 2 km ».
+    select * into v_res from public.titan_submit_training_session(p_sport, (select s.category from public.sports s where s.id = p_sport), round(p_distance_km * 1000), 'm', v_details, p_started_at);
+  else
+    select * into v_res from public.titan_submit_training_session(p_sport, (select s.category from public.sports s where s.id = p_sport), p_distance_km, 'km', v_details, p_started_at);
+  end if;
+  perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
+  insert into private.titan_imported_activities(user_id, source, external_id, log_id, status, sport, started_at, duration_minutes, distance_km)
+    values (p_uid, p_source, p_external_id, v_res.log_id::uuid, 'imported', p_sport, p_started_at, p_duration_minutes, p_distance_km);
+  return jsonb_build_object('status', 'imported', 'log_id', v_res.log_id, 'xp', v_res.xp, 'reward_held', v_res.reward_held);
+end;
+$function$;
+revoke all on function private.titan_import_core(uuid, text, text, text, timestamptz, numeric, numeric) from public, anon, authenticated;
+
+-- One link as the clients read it (js/core/session-match.js describe): what the source said, the decision and its journal.
+create or replace function private.titan_session_match_row(p_row private.titan_imported_activities)
+returns jsonb
+language sql
+stable
+set search_path = ''
+as $function$
+  select jsonb_build_object(
+    'source', p_row.source, 'external_id', p_row.external_id, 'status', p_row.status, 'log_id', p_row.log_id,
+    'linked_log_id', p_row.linked_log_id, 'split_log_id', p_row.split_log_id,
+    'sport', p_row.sport, 'started_at', p_row.started_at, 'duration_minutes', p_row.duration_minutes, 'distance_km', p_row.distance_km,
+    'imported_at', p_row.imported_at, 'match_rule', p_row.match_rule, 'match_overlap', p_row.match_overlap,
+    'needs_review', p_row.needs_review and p_row.decision is null, 'reasons', to_jsonb(p_row.review_reasons),
+    'decision', p_row.decision, 'decided_at', p_row.decided_at,
+    'events', coalesce(p_row.events, '[]'::jsonb));
+$function$;
+revoke all on function private.titan_session_match_row(private.titan_imported_activities) from public, anon, authenticated;
+
+-- The account's links: for one journal session (any role: the session an import joined, or the session a split created), or the
+-- 200 most recent links and splits when p_log_id is null (journal badges). Owner only.
+create or replace function public.titan_session_matches_v1(p_log_id uuid default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if p_log_id is not null then
+    return coalesce((select jsonb_agg(private.titan_session_match_row(i) order by i.imported_at desc)
+                       from private.titan_imported_activities i
+                      where i.user_id = v_uid and (i.log_id = p_log_id or i.linked_log_id = p_log_id or i.split_log_id = p_log_id)), '[]'::jsonb);
+  end if;
+  return coalesce((select jsonb_agg(private.titan_session_match_row(i) order by i.imported_at desc)
+                     from private.titan_imported_activities i
+                    where i.user_id = v_uid and (i.source, i.external_id) in (
+                          select j.source, j.external_id from private.titan_imported_activities j
+                           where j.user_id = v_uid and (j.status = 'linked' or j.linked_log_id is not null)
+                           order by j.imported_at desc limit 200)), '[]'::jsonb);
+end;
+$function$;
+revoke all on function public.titan_session_matches_v1(uuid) from public, anon;
+grant execute on function public.titan_session_matches_v1(uuid) to authenticated;
+
+create or replace function public.titan_resolve_session_match_v1(p_source text, p_external_id text, p_decision text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  r private.titan_imported_activities%rowtype;
+  v_log public.training_logs%rowtype;
+  v_res record;
+  v_new uuid;
+  v_unit text;
+  v_val numeric;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if p_decision is null or p_decision not in ('same', 'distinct') then raise exception 'DECISION_INVALID' using errcode = '22023'; end if;
+  if p_source is null or p_external_id is null then raise exception 'MATCH_UNKNOWN' using errcode = '22023'; end if;
+  -- The session writer's lock (as an import), then the import's own lock: a concurrent replay of this import waits for the decision.
+  perform 1 from public.profiles p where p.id = v_uid and not coalesce(p.is_suspended, false) for update;
+  if not found then raise exception 'PROFILE_UNAVAILABLE' using errcode = '42501'; end if;
+  perform pg_advisory_xact_lock(hashtextextended(v_uid::text || ':' || p_source || ':' || p_external_id, 0));
+  select * into r from private.titan_imported_activities i where i.user_id = v_uid and i.source = p_source and i.external_id = p_external_id for update;
+  if not found then raise exception 'MATCH_UNKNOWN' using errcode = '22023'; end if;
+
+  if p_decision = 'distinct' then
+    if r.status = 'imported' then
+      -- Already a session of its own (imported alone, or split earlier): record the decision only.
+      update private.titan_imported_activities i set decision = 'distinct', decided_at = coalesce(i.decided_at, now()), needs_review = false
+       where i.user_id = v_uid and i.source = p_source and i.external_id = p_external_id returning * into r;
+      return private.titan_session_match_row(r);
+    end if;
+    perform private.titan_rate_limit(v_uid, 'session_match', 30);
+    if r.split_log_id is not null then
+      select * into v_log from public.training_logs l where l.id = r.split_log_id and l.user_id = v_uid;
+    end if;
+    if r.split_log_id is not null and found then
+      -- Split again: the session the first split created comes back (restoring grants no reward, as in the journal).
+      if v_log.archived_at is not null then
+        perform private.titan_update_training_session(v_log.id, v_log.revision, jsonb_build_object('archived', false));
+      end if;
+      v_new := v_log.id;
+    else
+      if r.started_at is null or r.duration_minutes is null or r.sport is null then raise exception 'MATCH_SOURCE_UNKNOWN' using errcode = '22023'; end if;
+      -- The import's own session, created exactly as titan_import_core would have created it (same id, same reward rules).
+      select s.unit into v_unit from public.sports s where s.id = r.sport;
+      if r.distance_km is null then v_unit := 'min'; v_val := r.duration_minutes;
+      elsif v_unit = 'm' then v_val := round(r.distance_km * 1000);
+      else v_unit := 'km'; v_val := r.distance_km; end if;
+      select * into v_res from public.titan_submit_training_session(r.sport, (select s.category from public.sports s where s.id = r.sport), v_val, v_unit,
+        jsonb_build_object('duration', r.duration_minutes, 'client_event_id', md5(v_uid::text || ':' || p_source || ':' || p_external_id)::uuid::text,
+          'match', jsonb_build_object('distinct_from', jsonb_build_array(r.linked_log_id))),
+        r.started_at);
+      v_new := v_res.log_id::uuid;
+    end if;
+    update private.titan_imported_activities i
+       set status = 'imported', linked_log_id = coalesce(i.linked_log_id, i.log_id), log_id = v_new, split_log_id = v_new,
+           decision = 'distinct', decided_at = now(), needs_review = false,
+           events = private.titan_session_match_trim(i.events) || private.titan_session_match_event('split', 'user', v_new, coalesce(i.linked_log_id, i.log_id))
+     where i.user_id = v_uid and i.source = p_source and i.external_id = p_external_id returning * into r;
+    return private.titan_session_match_row(r);
+  end if;
+
+  -- p_decision = 'same'
+  if r.status = 'linked' then
+    if r.decision is distinct from 'same' then
+      update private.titan_imported_activities i set decision = 'same', decided_at = now(), needs_review = false,
+             events = private.titan_session_match_trim(i.events) || private.titan_session_match_event('confirmed', 'user', i.log_id, null)
+       where i.user_id = v_uid and i.source = p_source and i.external_id = p_external_id returning * into r;
+    end if;
+    return private.titan_session_match_row(r);
+  end if;
+  if r.linked_log_id is null then raise exception 'MATCH_NOTHING_TO_JOIN' using errcode = '22023'; end if;
+  select * into v_log from public.training_logs l where l.id = r.linked_log_id and l.user_id = v_uid;
+  if not found or v_log.archived_at is not null then raise exception 'MATCH_SESSION_GONE' using errcode = '22023'; end if;
+  perform private.titan_rate_limit(v_uid, 'session_match', 30);
+  -- Rejoin: the split session leaves the journal (archived: its reward stays, none is granted), the import joins the athlete's session.
+  select * into v_log from public.training_logs l where l.id = r.log_id and l.user_id = v_uid for update;
+  if found and v_log.archived_at is null then
+    perform private.titan_update_training_session(v_log.id, v_log.revision, jsonb_build_object('archived', true));
+  end if;
+  update private.titan_imported_activities i
+     set status = 'linked', log_id = i.linked_log_id, split_log_id = coalesce(i.split_log_id, i.log_id), decision = 'same', decided_at = now(), needs_review = false,
+         events = private.titan_session_match_trim(i.events) || private.titan_session_match_event('rejoined', 'user', i.linked_log_id, i.log_id)
+   where i.user_id = v_uid and i.source = p_source and i.external_id = p_external_id returning * into r;
+  return private.titan_session_match_row(r);
+end;
+$function$;
+revoke all on function public.titan_resolve_session_match_v1(text, text, text) from public, anon;
+grant execute on function public.titan_resolve_session_match_v1(text, text, text) to authenticated;

@@ -158,5 +158,5 @@
       .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
   }
 
-  window.TitanSessions = { idOf, find, resolve, update, archive, restore, duplicate, previousOf, applyLocally, humanize };
+  window.TitanSessions = { idOf, find, resolve, update, archive, restore, duplicate, previousOf, applyLocally, humanize, place };
 })();

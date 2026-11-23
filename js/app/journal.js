@@ -132,7 +132,7 @@
       <span class="jr-fig" data-col="Durée">${mins ? esc(F().duration(mins)) : ""}</span>
       <span class="jr-fig" data-col="Distance">${esc(dist)}</span>
       <span class="jr-fig" data-col="Ressenti">${rpe ? `${rpe}<small>/10</small>` : ""}</span>
-      <span class="jr-tags">${rec ? `<span class="asc-chip jr-badge am" title="${esc(rec.map((r) => r.label).join(", "))}">${icon("star")}Record</span>` : ""}${historical(l) ? '<span class="asc-chip jr-badge" title="Ajoutée plus de 30 jours après la séance : sans XP">Historique</span>' : ""}${syncBadge(l)}</span>
+      <span class="jr-tags">${rec ? `<span class="asc-chip jr-badge am" title="${esc(rec.map((r) => r.label).join(", "))}">${icon("star")}Record</span>` : ""}${historical(l) ? '<span class="asc-chip jr-badge" title="Ajoutée plus de 30 jours après la séance : sans XP">Historique</span>' : ""}${syncBadge(l)}${window.TitanMatches?.badge(l, matchRows) || ""}</span>
     </button>`;
   }
 
@@ -247,8 +247,24 @@
   }
 
   let pendingFragmentFocused = false;
+  /* V1.6.2: the account's recent links (js/app/matches.js), read once per history change; a row says « À vérifier » or « 2 sources ». */
+  let matchRows = [];
+  let matchKey = "";
+  function loadMatches() {
+    const key = `${window.state?.user?.id || ""}:${(window.state?.history || []).length}:${(window.state?.archivedHistory || []).length}`;
+    if (key === matchKey || !window.TitanMatches) return;
+    matchKey = key;
+    window.TitanMatches.recent().then((rows) => {
+      if (key !== matchKey || !rows.length || JSON.stringify(rows) === JSON.stringify(matchRows)) return;
+      matchRows = rows;
+      render();
+    });
+  }
+  window.addEventListener("titan:history-updated", () => { matchKey = ""; });
+
   function render() {
     if (!root) return;
+    loadMatches();
     const list = filtered();
     const fams = Object.keys(SP().FAMILY_LABEL);
     const archivedCount = (window.state?.archivedHistory || []).length;
@@ -402,6 +418,7 @@
       ${recs.length ? `<p class="jr-record">${icon("star")}<span>${recs.length > 1 ? "Records actuels" : "Record actuel"} : ${esc(recs.map((r) => r.label).join(", "))}</span></p>` : ""}
       <p class="jr-reward ${rw.cls}">${esc(rw.text)}</p>
       ${syncHtml(l)}
+      <div data-match-slot></div>
       ${comparisonHtml(l)}
       ${exercisesHtml(l)}
       ${extrasHtml(l)}
@@ -444,9 +461,15 @@
     const d = window.titanShell.sheet({ title: SP().label(l.sport), eyebrow: `${new Date(l.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · ${F().time(l.date)}`, body });
     guardDialog(d, context);
     window.TitanRoutes?.mountForSession?.(body.querySelector("[data-route-slot]"), l);
+    window.TitanMatches?.mount(body.querySelector("[data-match-slot]"), l, () => request === detailRequest && currentAccount(context) && d.open);
     body.addEventListener("click", async (e) => {
       if (!currentAccount(context)) return d.close();
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
+      const matchButton = e.target.closest("[data-match-action]");
+      if (matchButton) {
+        d.close();
+        return window.TitanMatches?.decide(matchButton.getAttribute("data-match-action"), matchButton.getAttribute("data-match-source"), matchButton.getAttribute("data-match-ref"), () => { if (currentAccount(context)) render(); });
+      }
       const syncAction = e.target.closest("[data-sync-action]")?.getAttribute("data-sync-action");
       if (syncAction) return runSyncAction(syncAction, l, d, context);
       if (e.target.closest("[data-edit]")) {

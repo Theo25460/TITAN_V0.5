@@ -234,6 +234,9 @@
       if (S.gpx) {
         data.hasGpx = true;
         const g = S.gpx;
+        // V1.6.2: the same file imported again is recognised as such (js/core/session-match.js), whatever was decided before.
+        const fingerprint = window.TitanSessionMatch?.gpxFingerprint?.(g);
+        if (fingerprint) data.gpxFingerprint = fingerprint;
         data.gpxStats = { distanceKm:g.distanceKm, movingMinutes:g.movingMinutes, elapsedMinutes:g.elapsedMinutes, pauseMinutes:g.pauseMinutes, ascent:g.ascent, descent:g.descent, points:g.points, cleanPoints:g.cleanPoints, ignoredPoints:g.ignoredPoints, kind:g.kind, altitudeSource:g.altitudeSource, analysisVersion:g.analysisVersion, terrainVersion:g.terrainVersion, primaryClimb:g.primaryClimb, pauses:g.pauses, source:"gpx_import", verified:false, profile:g.profile, splits:g.splits };
         // The server refuses session details above 50 kB (titan_validate_training_log): a very long track (≈ 600 km of splits) was
         // queued, then refused for good. The summary always fits; the profile and the splits are thinned until the whole fits.
@@ -972,32 +975,59 @@
   }
 
   /* The same effort already in the journal (a watch import, a GPX imported twice, a session typed again after an error): ask once,
-     never merge nor block. Shared rule with Android (js/core/sport-contracts.js). */
+     never merge nor block. Shared rules with Android: V15 groups and overlap (js/core/sport-contracts.js), V1.6.2 verdict, sources,
+     times and diverging fields (js/core/session-match.js). « Ce sont deux séances » is the athlete's decision: it travels with the new
+     session (details.match.distinct_from), so the same pair is never asked again and a replayed import keeps it. */
   let duplicateAccepted = null;
   const X_id = (l) => String(l?.client_event_id || l?.details?.client_event_id || l?.id || "");
   function duplicateOf(b) {
-    const C = window.TitanSportContracts;
-    if (!C?.findDuplicate || !b.data.performedAt) return null;
+    const C = window.TitanSportContracts, M = window.TitanSessionMatch;
+    if (!b.data.performedAt) return null;
     const minutes = b.data.duration || (b.unit === "min" ? b.val : null);
-    // The refused session being corrected is not a twin of its own correction.
+    // The refused session being corrected is not a twin of its own correction (V1.6.1).
     const replaced = replacedItem()?.payload?.details?.client_event_id;
-    return C.findDuplicate({ sport: S.sport, date: b.data.performedAt, minutes }, (window.state?.history || []).filter((l) => !replaced || X_id(l) !== replaced));
+    const history = (window.state?.history || []).filter((l) => !replaced || X_id(l) !== replaced);
+    if (M?.classify) {
+      const draft = { sport: S.sport, unit: b.unit, val: b.val, date: b.data.performedAt, details: { duration: minutes, hasGpx: b.data.hasGpx, gpxStats: b.data.gpxStats, gpxFingerprint: b.data.gpxFingerprint, extras: b.data.extras, live: b.data.live } };
+      const m = M.classify(draft, history);
+      return m?.b?.raw ? { log: m.b.raw, match: m } : null;
+    }
+    const twin = C?.findDuplicate?.({ sport: S.sport, date: b.data.performedAt, minutes }, history);
+    return twin ? { log: twin, match: null } : null;
+  }
+  function duplicateQuestion(twin, m) {
+    const M = window.TitanSessionMatch;
+    const when = new Date(twin.date).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+    if (!m || !M) return {
+      title: "Cette séance semble déjà dans ton journal",
+      message: `${S_().label(twin.sport)}, ${when}${twin.details?.import_source || twin.details?.source ? " (importée)" : ""} : elle couvre au moins la moitié de cet effort.`,
+      detail: "Enregistrer quand même crée une seconde séance. Si c’est le même effort, garde l’existante.",
+    };
+    const file = m.rule && m.rule.startsWith("Même fichier");
+    const journalSource = M.SOURCES[m.b.source] || "Saisie manuelle", newSource = M.SOURCES[m.a.source] || "Saisie manuelle";
+    const saved = m.b.savedAt ? `, enregistrée le ${new Date(m.b.savedAt).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : "";
+    const diffs = m.divergences.map((d) => `${d.label} : ${d.b} dans le journal, ${d.a} ici`).join(" · ");
+    return {
+      title: file ? "Ce fichier GPX est déjà dans ton journal" : m.verdict === "ambiguous" ? "Même séance ? À vérifier" : "Cette séance semble déjà dans ton journal",
+      message: `Dans ton journal : ${S_().label(twin.sport)}, ${when} (${journalSource}${saved}). Cette saisie : ${newSource}. ${file ? "Le même fichier a déjà été importé." : m.rule}${m.reasons.length ? ` ${m.reasons.map((r) => M.REASONS[r]).join(" ")}` : ""}`,
+      detail: `${diffs ? `${diffs}. ` : ""}Si c’est le même effort, garde l’existante : rien n’est ajouté. Si ce sont deux efforts, enregistre : ton choix est gardé avec la séance.`,
+    };
   }
 
   async function save(btn) {
     if (saving || btn.disabled) return;
     const b = build();
-    const twin = !b.errors.length ? duplicateOf(b) : null;
+    const found = !b.errors.length ? duplicateOf(b) : null;
+    const twin = found?.log || null;
     if (twin && duplicateAccepted !== X_id(twin)) {
-      const when = new Date(twin.date).toLocaleString("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" });
+      const q = duplicateQuestion(twin, found.match);
       return window.titanShell.confirm({
-        title: "Cette séance semble déjà dans ton journal",
-        message: `${S_().label(twin.sport)}, ${when}${twin.details?.import_source || twin.details?.source ? " (importée)" : ""} : elle couvre au moins la moitié de cet effort.`,
-        detail: "Enregistrer quand même crée une seconde séance. Si c’est le même effort, garde l’existante.",
-        confirmLabel: "Enregistrer quand même",
+        ...q,
+        confirmLabel: "Ce sont deux séances",
         action: () => { duplicateAccepted = X_id(twin); },
       }).then(() => { if (duplicateAccepted === X_id(twin)) save(btn); });
     }
+    if (twin && duplicateAccepted === X_id(twin)) b.data.match = { distinct_from: [...new Set([X_id(twin), twin.id].filter(Boolean).map(String))], decided_at: new Date().toISOString() };
     if (b.errors.length) {
       // The message sits next to the save button; the faulty field is marked and focused.
       status(b.errors[0], "err");
