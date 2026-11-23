@@ -223,9 +223,33 @@ export type ProgressionItem = { id: string; label: string; unit: string; current
 export type ProgressionTrend = { label: string; unit: string; enough: boolean; sessions?: number; before?: number; after?: number; beforeDisplay?: string; afterDisplay?: string; beforeSessions?: number; afterSessions?: number; direction?: ProgressionItem["direction"] };
 export type PeriodSlice = { sessions: number; activeDays: number; minutes: number; unmeasuredSessions: number; estimatedMinutes: number };
 export type PeriodSport = { sport: string; label: string; family: Family; sessions: number; minutes: number; distanceKm: number };
+/** V1.7.1: the selection behind a comparison — versioned rule, sample, sources, exclusions with their reason, limits. */
+export type ComparableSource = { log: TrainingLog; id: string; ref: string; date: string; summary: string };
+export type ComparableExclusion = { log: TrainingLog; id: string; ref: string; date: string; reason: string; text: string };
+export type Comparables = {
+  version: string;
+  sport: string;
+  rule: { id: string; version: string; label: string; criteria: string[]; pilot: boolean };
+  status: "ok" | "limited" | "insufficient";
+  sample: number;
+  considered: number;
+  truncated: boolean;
+  retained: ComparableSource[];
+  excluded: ComparableExclusion[];
+  counts: Record<string, number>;
+  limits: string[];
+  estimates: { id: string; ref: string; date: string; minutes: number }[];
+  previous: TrainingLog | null;
+  reference: { kind: "median" | "best"; value: number; unit: string; display: string; sessions: number } | null;
+  signature: string;
+};
 /** Personal progression from measured values only (js/core/progression.js, shared with the website). */
 export const Progression = g.TitanProgression as {
-  compare(log: TrainingLog, logs: TrainingLog[]): { previous: TrainingLog; items: ProgressionItem[]; basis: string } | null;
+  RULES_VERSION: string;
+  REASONS: Record<string, string>;
+  comparables(log: TrainingLog, logs: TrainingLog[]): Comparables | null;
+  snapshot(selection: Comparables | null): Record<string, unknown> | null;
+  compare(log: TrainingLog, logs: TrainingLog[]): { previous: TrainingLog; items: ProgressionItem[]; basis: string; selection: Comparables } | null;
   disciplines(logs: TrainingLog[], opts?: { now?: Date; weeks?: number; min?: number }): { sport: string; label: string; family: Family; sessions: number; minutes: number; measuredSessions: number; trend: ProgressionTrend | null }[];
   periods(logs: TrainingLog[], opts?: { now?: Date; days?: number }): { days: number; current: PeriodSlice; previous: PeriodSlice & { partial: boolean }; delta: { sessions: number; activeDays: number; minutes: number } | null; sports: { sport: string; label: string; family: Family; current: PeriodSport | null; previous: PeriodSport | null }[] };
   formatValue(item: Partial<ProgressionItem> & { unit: string }, which?: "current" | "previous"): string;
