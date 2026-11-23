@@ -89,7 +89,7 @@
     const V = window.TitanProgramView;
     const active = P().activeLogs(logs());
     const grid = V && window.TitanProgram && active.length
-      ? V.week(active, { now: new Date(), start: r.from, plan: offset === 0 && D().plan ? D().plan().map((p) => p.sport) : null }) : null;
+      ? V.week(active, { now: new Date(), start: r.from, plan: offset === 0 && D().weekPlanSports ? D().weekPlanSports() : null }) : null;
     return `<section class="wk-hero" aria-labelledby="wk-title">
       <div class="wk-hero-copy">
       <div class="wk-nav"><button type="button" class="asc-btn asc-btn-ghost asc-btn-icon" id="wk-previous" data-week="${offset + 1}" aria-label="Semaine précédente" ${offset >= Math.max(max, 1) ? "disabled" : ""}>${icon("chevronLeft")}</button>
@@ -365,6 +365,15 @@
     return card("Combien de semaines ai-je tenues ?", `<strong>${c.held} sur ${c.window}</strong> ces 8 dernières semaines, ${c.lifetimeHeld} depuis le début.`, `<div class="asc-notches" aria-hidden="true">${notches}</div>`, `Une semaine est tenue avec ${s.target} jour${s.target > 1 ? "s" : ""} actif${s.target > 1 ? "s" : ""}. Les semaines en pause ne comptent pas.`);
   }
 
+  /* V1.7.2 — the week chosen above as planned on its Monday, the changes and the result (js/app/week-plan-view.js). Decisions stay
+     possible on the weeks kept (26), so a question left open can still be answered on the bilan. */
+  const planView = () => (D().weekPlan ? D().weekPlan(recapFor(offset).from) : null);
+  function planHtml() {
+    const v = planView();
+    if (!v || !window.TitanWeekPlanView || v.week < window.TitanWeekPlan.addDays(window.TitanWeekPlan.weekOf(F().dateKey(new Date())), -7 * (window.TitanWeekPlan.MAX_WEEKS - 1))) return "";
+    return window.TitanWeekPlanView.html(v, { title: offset === 0 ? "Prévu et réalisé" : "Prévu et réalisé cette semaine-là" });
+  }
+
   function render() {
     if (!root) return;
     const active = document.activeElement;
@@ -375,6 +384,7 @@
     fieldFigures();
     // The week and its programme, then the practice over the period, then the answers side by side, then the month and the year.
     root.innerHTML = `${heroHtml(r)}
+      ${planHtml(r)}
       ${programHtml()}
       <div class="wk-cols">${weekHtml()}${highlightsHtml(r)}</div>
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty sig-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}
@@ -404,6 +414,7 @@
       booted = true;
       SP().ensure();
       window.TitanPeriodicQuests?.refresh();
+      window.TitanWeekPlanView?.bind(root, planView);
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-week-card]")) return weekCard();
         if (e.target.closest("[data-month-card]")) return monthCard();

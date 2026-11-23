@@ -122,18 +122,61 @@
       return { key, index: i, sport, minutes: sport ? minutes : null, note: sport ? String(d.note || "").slice(0, 80) : "" };
     });
   }
+  const WP = () => window.TitanWeekPlan;
+  const deviceZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch { return null; } };
+  const todayKey = (now = new Date()) => window.TitanFormat.dateKey(now);
+
+  /* ---------- V1.7.2 — Planifié et réalisé (js/core/week-plan.js) ----------
+     The week as planned on its Monday, the athlete's decisions (move, replace, skip, tie a session) and the sessions really done. */
+  function weekPlan(day, now = new Date()) {
+    if (!WP()) return null;
+    return WP().week(window.state?.user?.schedule || {}, logs(), { week: day ? window.TitanFormat.dateKey(day) : undefined, today: todayKey(now), zone: deviceZone(), pauses: cadenceSettings().pauses });
+  }
+  /** The sport of each day of this week once moves and replacements are applied (the programme grid and the QG read it). */
+  function weekPlanSports(now = new Date()) {
+    const v = weekPlan(null, now);
+    if (!v) return plan().map((p) => p.sport);
+    const out = [null, null, null, null, null, null, null];
+    for (const o of v.occurrences) {
+      if (o.status === "skipped") continue;
+      const i = WP().dayIndex(o.effective.day);
+      if (!out[i]) out[i] = o.effective.sport;
+    }
+    return out;
+  }
+  function decideOccurrence(id, decision) {
+    if (!window.state?.user || !WP()) throw new Error("WEEK_PLAN_UNAVAILABLE");
+    const schedule = WP().decide(window.state.user.schedule || {}, id, decision, { today: todayKey() });
+    saveSettings({ schedule });
+  }
+
   function planToday(now = new Date()) {
+    if (WP()) {
+      const v = weekPlan(null, now);
+      const o = v?.occurrences.find((x) => x.effective.day === todayKey(now) && (x.status === "today" || x.status === "ask"));
+      if (!o) return null;
+      const p = plan()[o.index];
+      return { ...p, sport: o.effective.sport, minutes: o.effective.sport === p.sport ? p.minutes : null, note: o.effective.sport === p.sport ? p.note : "", occurrence: o.id, moved: o.decision?.kind === "move" || o.decision?.kind === "replace" };
+    }
     const p = plan()[(new Date(now).getDay() + 6) % 7];
     return p.sport ? p : null;
   }
+  /** Edit the typical week. V1.7.2: an edit during a week applies from the next Monday (this week keeps its start); a first plan in a
+      week with nothing planned applies at once. Returns the Monday the change applies from. */
   function setPlanDay(key, value) {
-    if (!window.state?.user || !DAY_KEYS.includes(key)) return;
+    if (!window.state?.user || !DAY_KEYS.includes(key)) return null;
+    if (WP()) {
+      const r = WP().editType(window.state.user.schedule || {}, key, value, { today: todayKey() });
+      saveSettings({ schedule: r.schedule });
+      return r.appliesFrom;
+    }
     const schedule = { ...(window.state.user.schedule || {}) };
     const old = schedule[key] || {};
     schedule[key] = value?.sport
       ? { ...old, sport: value.sport, minutes: Number(value.minutes) > 0 ? Math.min(600, Math.round(Number(value.minutes))) : null, note: String(value.note || "").trim().slice(0, 80) }
       : { ...old, sport: null, minutes: null, note: "" };
     saveSettings({ schedule });
+    return null;
   }
 
   /** True when XP follows the effort rules (1 min ≈ 10 XP): discovery estimates, or an account whose server
@@ -229,5 +272,5 @@
     return list.length;
   }
 
-  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, progression, rulesV300, guestCandidates, importGuestSessions };
+  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, weekPlan, weekPlanSports, decideOccurrence, progression, rulesV300, guestCandidates, importGuestSessions };
 })();

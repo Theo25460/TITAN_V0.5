@@ -1,0 +1,497 @@
+{
+  "version": 1,
+  "about": "V1.7.2 — Planifié et réalisé. Shared test set of the website (tests/week-plan.test.mjs) and of the Android copy (mobile/__tests__/weekPlan.test.tsx). Synthetic sessions, no account. Week of Monday 16 November 2026; « today » is Saturday 21 November unless a case says otherwise. Expected output: week-plan-v172.expected.json (tools/week-plan/write-expected.mjs).",
+  "zone": "Europe/Paris",
+  "today": "2026-11-21",
+  "type": {
+    "tuesday": {
+      "sport": "running",
+      "minutes": 45,
+      "note": "Footing"
+    },
+    "thursday": {
+      "sport": "muscu_gym",
+      "minutes": 60
+    },
+    "saturday": {
+      "sport": "cycling",
+      "minutes": 90,
+      "note": "Sortie longue"
+    }
+  },
+  "logs": [
+    {
+      "id": "run-thu",
+      "client_event_id": "run-thu",
+      "sport": "running",
+      "date": "2026-11-19T17:30:00.000Z",
+      "val": 8.2,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 46,
+        "client_event_id": "run-thu"
+      }
+    },
+    {
+      "id": "ride-thu",
+      "client_event_id": "ride-thu",
+      "sport": "cycling",
+      "date": "2026-11-19T07:00:00.000Z",
+      "val": 31.4,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 72,
+        "elevation": 210,
+        "client_event_id": "ride-thu"
+      }
+    },
+    {
+      "id": "gym-thu",
+      "client_event_id": "gym-thu",
+      "sport": "muscu_gym",
+      "date": "2026-11-19T18:45:00.000Z",
+      "val": 4200,
+      "unit": "kg",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 55,
+        "client_event_id": "gym-thu"
+      }
+    },
+    {
+      "id": "run-tue-am",
+      "client_event_id": "run-tue-am",
+      "sport": "running",
+      "date": "2026-11-17T06:30:00.000Z",
+      "val": 5.1,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 28,
+        "client_event_id": "run-tue-am"
+      }
+    },
+    {
+      "id": "run-tue-pm",
+      "client_event_id": "run-tue-pm",
+      "sport": "running",
+      "date": "2026-11-17T18:00:00.000Z",
+      "val": 10.3,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 54,
+        "client_event_id": "run-tue-pm"
+      }
+    },
+    {
+      "id": "run-tue-late",
+      "client_event_id": "run-tue-late",
+      "sport": "running",
+      "date": "2026-11-17T22:40:00.000Z",
+      "val": 6,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 33,
+        "client_event_id": "run-tue-late"
+      }
+    },
+    {
+      "id": "ride-sun-late",
+      "client_event_id": "ride-sun-late",
+      "sport": "cycling",
+      "date": "2026-11-22T22:50:00.000Z",
+      "val": 12,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 35,
+        "client_event_id": "ride-sun-late"
+      }
+    },
+    {
+      "id": "run-pending",
+      "client_event_id": "run-pending",
+      "sport": "running",
+      "date": "2026-11-17T18:00:00.000Z",
+      "val": 9,
+      "unit": "km",
+      "syncStatus": "pending",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 47,
+        "client_event_id": "run-pending"
+      }
+    },
+    {
+      "id": "run-review",
+      "client_event_id": "run-review",
+      "sport": "running",
+      "date": "2026-11-17T18:00:00.000Z",
+      "val": 9,
+      "unit": "km",
+      "is_suspicious": true,
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 47,
+        "client_event_id": "run-review"
+      }
+    },
+    {
+      "id": "run-prev",
+      "client_event_id": "run-prev",
+      "sport": "running",
+      "date": "2026-11-10T17:00:00.000Z",
+      "val": 7,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 38,
+        "client_event_id": "run-prev"
+      }
+    },
+    {
+      "id": "swim-prev",
+      "client_event_id": "swim-prev",
+      "sport": "swimming",
+      "date": "2026-11-13T12:00:00.000Z",
+      "val": 1.5,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 40,
+        "client_event_id": "swim-prev"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "1a — run planned Tuesday, ridden Thursday, nothing recorded: Tuesday is missed (one gap) and the ride is a question on Thursday, where weights were planned",
+      "journal": [
+        "ride-thu"
+      ],
+      "ops": []
+    },
+    {
+      "name": "1b — scenario of the brief: the athlete ties the Thursday ride to the Tuesday run; it counts once, as replaced, and keeps its measures",
+      "journal": [
+        "ride-thu"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "ride-thu"
+          },
+          "at": "2026-11-19T20:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "name": "2 — move: Tuesday run moved to Thursday, then run on Thursday; tied automatically, counted once (moved), no session outside the plan",
+      "journal": [
+        "run-thu",
+        "gym-thu"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-19"
+          },
+          "at": "2026-11-17T07:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "name": "3a — two eligible sessions on Tuesday: TITAN asks, nothing is tied, no gap is counted yet",
+      "journal": [
+        "run-tue-am",
+        "run-tue-pm"
+      ],
+      "ops": []
+    },
+    {
+      "name": "3b — two eligible sessions: the athlete chooses the evening run; the morning one stays outside the plan",
+      "journal": [
+        "run-tue-am",
+        "run-tue-pm"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-tue-pm"
+          },
+          "at": "2026-11-18T08:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "name": "4a — change of week: the typical week is edited on Wednesday; this week keeps its start, the change applies next Monday",
+      "journal": [
+        "gym-thu"
+      ],
+      "ops": [
+        {
+          "op": "edit",
+          "day": "tuesday",
+          "value": {
+            "sport": "swimming",
+            "minutes": 40
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T09:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "name": "4b — change of week: the following week starts from the edited typical week",
+      "journal": [],
+      "ops": [
+        {
+          "op": "edit",
+          "day": "tuesday",
+          "value": {
+            "sport": "swimming",
+            "minutes": 40
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T09:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-23",
+        "today": "2026-11-23"
+      }
+    },
+    {
+      "name": "4c — past week before tracking: its reference is reconstituted from the plan known when tracking started, and survives the edit",
+      "journal": [
+        "run-prev",
+        "swim-prev"
+      ],
+      "ops": [
+        {
+          "op": "edit",
+          "day": "tuesday",
+          "value": {
+            "sport": "swimming",
+            "minutes": 40
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T09:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-09"
+      }
+    },
+    {
+      "name": "5a — time zone: a run at 23:40 in Paris on Tuesday (22:40 UTC) read from New York stays on Tuesday and is tied",
+      "journal": [
+        "run-tue-late"
+      ],
+      "ops": [],
+      "read": {
+        "zone": "America/New_York"
+      }
+    },
+    {
+      "name": "5b — time zone: a ride at 23:50 in Paris on Sunday 22 November (22:50 UTC) belongs to this week, read from Tokyo where it is already Monday",
+      "journal": [
+        "ride-sun-late"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/5",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-22"
+          },
+          "at": "2026-11-21T09:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-16",
+        "zone": "Asia/Tokyo",
+        "today": "2026-11-23"
+      }
+    },
+    {
+      "name": "6a — remote modification: the phone skips Saturday while the website moves Tuesday; both decisions are kept",
+      "journal": [
+        "run-thu"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-19"
+          },
+          "at": "2026-11-18T10:00:00.000Z"
+        }
+      ],
+      "remote": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/5",
+          "decision": {
+            "kind": "skip"
+          },
+          "at": "2026-11-20T10:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "name": "6b — remote modification of the same occurrence: the most recent decision wins on both devices",
+      "journal": [
+        "ride-thu"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "skip"
+          },
+          "at": "2026-11-19T21:00:00.000Z"
+        }
+      ],
+      "remote": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "ride-thu"
+          },
+          "at": "2026-11-19T20:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "name": "6c — remote edit of a tied session: the ride is moved to the next week on another device; the tie is said broken, the occurrence is open again",
+      "journal": [
+        "ride-thu"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "ride-thu"
+          },
+          "at": "2026-11-19T20:00:00.000Z"
+        }
+      ],
+      "edits": [
+        {
+          "id": "ride-thu",
+          "patch": {
+            "date": "2026-11-24T07:00:00.000Z"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6d — remote edit of a tied session inside the week: the ride becomes a run; the tie is kept and the occurrence is now as planned but moved",
+      "journal": [
+        "ride-thu"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "ride-thu"
+          },
+          "at": "2026-11-19T20:00:00.000Z"
+        }
+      ],
+      "edits": [
+        {
+          "id": "ride-thu",
+          "patch": {
+            "sport": "running"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7 — paused week: nothing done is not a gap; the session done is still tied",
+      "journal": [
+        "gym-thu"
+      ],
+      "ops": [],
+      "read": {
+        "pauses": [
+          "2026-11-16"
+        ]
+      }
+    },
+    {
+      "name": "8 — another sport on the planned day: a question, not an automatic replacement",
+      "journal": [
+        "ride-thu"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-19"
+          },
+          "at": "2026-11-17T07:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "name": "9 — sessions waiting to be sent count, sessions under review do not: the pending run is tied, the reviewed one is ignored",
+      "journal": [
+        "run-pending",
+        "run-review"
+      ],
+      "ops": []
+    },
+    {
+      "name": "10 — skip, then the athlete says « none of these » on Thursday: one skipped, one missed, the gym session stays outside the plan",
+      "journal": [
+        "gym-thu"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "skip"
+          },
+          "at": "2026-11-17T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/3",
+          "decision": {
+            "kind": "none"
+          },
+          "at": "2026-11-20T07:00:00.000Z"
+        }
+      ]
+    }
+  ]
+}

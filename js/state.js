@@ -453,6 +453,7 @@ function titanProfileCanonical(value) {
     return JSON.stringify(stable(value));
 }
 function titanProfileSignature(value) { return titanProfileCanonical(titanProfilePreferences(value)); }
+function titanPlainObject(v) { return !!v && typeof v==='object' && !Array.isArray(v); }
 function titanMergeProfilePreferences(base, local, cloud) {
     if(base===undefined || base===null) return JSON.parse(JSON.stringify(local));
     if(titanProfileCanonical(base)===titanProfileCanonical(local)) return cloud;
@@ -461,7 +462,8 @@ function titanMergeProfilePreferences(base, local, cloud) {
         for(const key of new Set([...Object.keys(base),...Object.keys(local)])) {
             if(titanProfileCanonical(base[key])===titanProfileCanonical(local[key])) continue;
             if(local[key]===undefined) delete merged[key];
-            else merged[key]=titanMergeProfilePreferences(base[key],local[key],cloud[key]);
+            // V1.7.2: a key both devices created since the base (schedule.weeks of a new week) is merged key by key, not replaced.
+            else merged[key]=titanMergeProfilePreferences(base[key]===undefined && titanPlainObject(local[key]) && titanPlainObject(cloud[key]) ? {} : base[key],local[key],cloud[key]);
         }
         return merged;
     }

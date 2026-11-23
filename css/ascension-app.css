@@ -2630,6 +2630,46 @@
   margin-top: var(--s4);
 }
 
+/* ---------- V1.7.2 — Planifié et réalisé (js/app/week-plan-view.js) ---------- */
+.wp-week .wp-bilan {
+  display: grid;
+  gap: var(--s1);
+  margin-bottom: var(--s3);
+}
+.wp-week .wp-bilan p {
+  margin: 0;
+}
+.wp-occ[data-status="ask"] {
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+.wp-occ[data-status="skipped"] .asc-row-title,
+.wp-occ[data-status="paused"] .asc-row-title {
+  color: var(--tx-2);
+}
+.wp-occ .asc-row-title,
+.wp-occ .asc-row-sub {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+.wp-occ .asc-row-sub a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.wp-notice {
+  color: var(--warn);
+}
+.wp-extra-title {
+  margin: var(--s3) 0 var(--s1);
+}
+.wp-extra {
+  margin: 0 0 var(--s3);
+  padding-left: var(--s4);
+  display: grid;
+  gap: var(--s1);
+}
+
 /* ---------- Auth ---------- */
 .auth-page {
   min-height: 100dvh;
