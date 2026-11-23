@@ -415,6 +415,11 @@ export async function importDailySteps(owner: string, day: string, steps: number
   if (result?.day !== day || result.steps !== steps) throw new Error("STEPS_IMPORT_UNCONFIRMED");
   return result;
 }
+/* V1.6.2: the server links of one session (or the account's recent links) and the athlete's reversible decision. */
+export const sessionMatches = (owner: string, logId?: string, current?: () => boolean) =>
+  ownerRpc<import("../core").SessionMatchRow[]>(owner, "titan_session_matches_v1", logId ? { p_log_id: logId } : {}, current);
+export const resolveSessionMatch = (owner: string, source: string, ref: string, decision: import("../core").MatchDecision, current?: () => boolean) =>
+  ownerRpc<import("../core").SessionMatchRow>(owner, "titan_resolve_session_match_v1", { p_source: source, p_external_id: ref, p_decision: decision }, current);
 export const archiveImported = (owner: string, source: "health_connect" | "garmin", current?: () => boolean) =>
   ownerRpc<number>(owner, "titan_archive_imported_v1", { p_source: source }, current);
 

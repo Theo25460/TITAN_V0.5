@@ -1,7 +1,7 @@
 /* Session form → server payload. Port of js/app/seance.js build() and titanSanitizeSessionDetails() from the website,
    so a session recorded on Android has exactly the same shape as one recorded on titan-app.fr: same units, same
    val/val1/val2/duration fields, same exercise rows, same bounds. The server recomputes effort and rewards. */
-import { Insights, Sports, Training, type GpxResult, type SportForm } from "./index";
+import { Insights, SessionMatch, Sports, Training, type GpxResult, type SportForm } from "./index";
 import type { Exercise, SessionDetails, TrainingLog, TrainingPayload } from "./types";
 import { metricFields, metricValue, metricVisible, sanitizeMetrics } from "./sportMetrics";
 import { sanitizeLiveJournal, type LiveJournal } from "./liveJournal";
@@ -38,6 +38,8 @@ export type SessionDraft = {
   replaces?: string;
   /** TITAN LIVE journal of the session, settled by the server after saving (cosmetic world progression only). */
   live?: LiveJournal | null;
+  /** V1.6.2: journal entries the athlete said are OTHER efforts (« Ce sont deux séances »); saved with the session. */
+  distinctFrom?: string[];
 };
 
 export const GRADE_SYSTEMS = { Bloc: ["Fontainebleau bloc", "V-scale bloc"], Voie: ["Français voie"] } as const;
@@ -263,6 +265,10 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
       if (!(movingMinutes !== null && movingMinutes > 0)) fail("Ce GPX ne fournit pas de durée sportive exploitable. Repars en saisie manuelle pour déclarer ton activité.", "duration");
       data.hasGpx = true;
       data.gpxStats = { movingMinutes, elapsedMinutes, ascent, descent, points };
+      // V1.6.2: the same file imported again is recognised as such (shared with the website, src/core/web/session-match.js).
+      const analysed = d.gpx as DraftGpx & { distanceKm?: number | null };
+      const fingerprint = SessionMatch.gpxFingerprint({ start: analysed.start ?? null, distanceKm: analysed.distanceKm ?? num(d.distance), points });
+      if (fingerprint) data.gpxFingerprint = fingerprint;
     }
   } else if (form === "swim") {
     const m = num(d.meters);
@@ -335,6 +341,7 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
   data.extras = extras;
   const live = sanitizeLiveJournal(d.live);
   if (live) data.live = live;
+  if (d.distinctFrom?.length) data.match = { distinct_from: [...new Set(d.distinctFrom.map(String))].slice(0, 4), decided_at: now.toISOString() };
   unit = data.unitOverride || unit;
   let val = Number(data.val1) || 0;
   if (!val && data.exercises?.length) {

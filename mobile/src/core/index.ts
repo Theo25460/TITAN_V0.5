@@ -23,6 +23,7 @@ require("./web/gpx.js");
 require("./web/career.js");
 require("./web/periodic-quests.js");
 require("./web/sync-state.js");
+require("./web/session-match.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,6 +81,36 @@ export const SyncState = g.TitanSyncState as {
   stateOf(input: { log?: Partial<TrainingLog> | null; item?: SyncQueueItem | null; sending?: boolean; guest?: boolean }): SyncStateId;
   replaceable(item: SyncQueueItem | null | undefined): boolean;
   reasonKind(code: string | null | undefined, refused?: boolean): string;
+};
+
+/** V1.6.2: one link between a journal session and an import, as the server keeps it (titan_session_matches_v1). */
+export type SessionMatchRow = {
+  source: string; external_id: string; status: "imported" | "linked"; log_id: string; linked_log_id?: string | null; split_log_id?: string | null;
+  sport?: string | null; started_at?: string | null; duration_minutes?: number | null; distance_km?: number | null; imported_at?: string | null;
+  match_rule?: string | null; match_overlap?: number | null; needs_review?: boolean; reasons?: string[]; decision?: "same" | "distinct" | null; decided_at?: string | null;
+  events?: { action: string; actor: "engine" | "user"; at: string }[];
+};
+export type MatchDecision = "same" | "distinct";
+export type MatchVerdict = "same" | "ambiguous" | "distinct";
+export type MatchFacts = { kind: "log" | "import"; id: string; source: string; sport: string; start: number; minutes: number | null; km: number | null; savedAt: number | null; note: string; raw?: TrainingLog };
+export type MatchResult = { verdict: MatchVerdict; rule: string | null; reasons: string[]; sharedMinutes: number; overlap: number; divergences: { field: string; label: string; a: string; b: string; missing?: boolean }[]; a: MatchFacts; b: MatchFacts };
+export type MatchView = {
+  state: "review" | "linked" | "split" | "imported" | "unknown"; tone?: "ok" | "warn"; title: string; text: string; rule?: string; overlap?: number; source?: string; ref?: string;
+  sources: { role: "journal" | "import"; label: string; at: string; saved: string; duration: string; distance: string; note: string }[];
+  rows: { field: string; label: string; value: string; from: "counted" | "other"; other: string; shownOnly: boolean }[];
+  divergences: MatchResult["divergences"]; reasons: string[]; events: { text: string; by: string; at: string }[]; actions: { id: MatchDecision; label: string }[];
+};
+/** V1.6.2 — Rapprochement des séances, the same rules and words as the website (src/core/web/session-match.js). */
+export const SessionMatch = g.TitanSessionMatch as {
+  THRESHOLDS: Record<string, number>;
+  SOURCES: Record<string, string>;
+  REASONS: Record<string, string>;
+  RULE: string;
+  classify(candidate: Partial<TrainingLog> & { sport: string; date: string }, logs: TrainingLog[]): MatchResult | null;
+  compare(a: unknown, b: unknown): MatchResult;
+  describe(row: SessionMatchRow, log: TrainingLog | null, logs: TrainingLog[]): MatchView;
+  gpxFingerprint(g: { start?: string | null; distanceKm?: number | null; points?: number | null } | null | undefined): string | null;
+  toKm(val: unknown, unit: unknown): number | null;
 };
 
 export type MeasureIssue = { code: string; field: string; message: string };

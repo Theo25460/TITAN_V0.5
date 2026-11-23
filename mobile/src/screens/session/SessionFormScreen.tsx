@@ -18,7 +18,7 @@ import { Section } from "../../components/Section";
 import { Segmented } from "../../components/Segmented";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { EffortRules, Format, Gpx, SportContracts, Sports } from "../../core";
+import { EffortRules, Format, Gpx, SessionMatch, Sports } from "../../core";
 import { applyGpxImport, BELAYS, buildSession, draftDuration, freshDraft, GRADE_LADDER, GRADE_SYSTEMS, lastPerformance, noteLimit, num, removeGpxImport, RPE_TEXT, type SessionDraft } from "../../core/session";
 import type { TrainingLog } from "../../core/types";
 import { useOwner } from "../../data/auth";
@@ -289,18 +289,40 @@ export function SessionFormScreen({ navigation, route }: NativeStackScreenProps<
       scroll.current?.scrollTo({ y: 0, animated: true });
       return;
     }
-    // The same effort already in the journal (watch or Health Connect import, a session typed again): ask once, never merge.
-    const details = b.details as { performedAt?: string; duration?: number };
+    // The same effort already in the journal (watch or Health Connect import, a GPX imported again, a session typed again): ask once,
+    // never merge. Same rules and words as the website (src/core/web/session-match.js): both sources, their times, the diverging fields.
+    // « Ce sont deux séances » is the athlete's decision: it is saved with the session (details.match.distinct_from).
+    const details = b.details as { performedAt?: string; duration?: number; hasGpx?: boolean; gpxStats?: unknown; gpxFingerprint?: string; extras?: Record<string, unknown> };
     // The refused session this form corrects is not a twin of its own correction.
     const replacedId = submitted.replaces ? queue.items.find((i) => i.key === submitted.replaces)?.payload.details.client_event_id : null;
-    const twin = details.performedAt ? SportContracts.findDuplicate({ sport, date: details.performedAt, minutes: details.duration ?? null }, replacedId ? logs.filter((l) => (l.client_event_id || l.id) !== replacedId) : logs) : null;
+    const pool = replacedId ? logs.filter((l) => (l.client_event_id || l.id) !== replacedId) : logs;
+    const match = details.performedAt
+      ? SessionMatch.classify({ sport, unit: b.unit, val: b.val, date: details.performedAt, details: { duration: details.duration, hasGpx: details.hasGpx, gpxStats: details.gpxStats, gpxFingerprint: details.gpxFingerprint, extras: details.extras } } as never, pool)
+      : null;
+    const twin = (match?.b.raw as TrainingLog | undefined) ?? null;
     const twinId = twin ? String(twin.client_event_id || twin.id) : null;
-    if (twin && duplicateAccepted.current !== twinId) {
-      const when = new Date(twin.date).toLocaleString("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" });
-      Alert.alert("Cette séance semble déjà dans ton journal", `${Sports.label(twin.sport)}, ${when} : elle couvre au moins la moitié de cet effort. Enregistrer quand même crée une seconde séance.`, [
-        { text: "Garder l’existante", style: "cancel" },
-        { text: "Enregistrer quand même", onPress: () => { duplicateAccepted.current = twinId; void save(); } },
-      ]);
+    if (twin && match && duplicateAccepted.current !== twinId) {
+      const when = new Date(twin.date).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+      const file = !!match.rule?.startsWith("Même fichier");
+      const title = file ? "Ce fichier GPX est déjà dans ton journal" : match.verdict === "ambiguous" ? "Même séance ? À vérifier" : "Cette séance semble déjà dans ton journal";
+      const diffs = match.divergences.map((d) => `${d.label} : ${d.b} dans le journal, ${d.a} ici`).join("\n");
+      const reasons = match.reasons.map((r) => SessionMatch.REASONS[r]).join(" ");
+      Alert.alert(
+        title,
+        `Dans ton journal : ${Sports.label(twin.sport)}, ${when} (${SessionMatch.SOURCES[match.b.source] || "Saisie manuelle"}). Cette saisie : ${SessionMatch.SOURCES[match.a.source] || "Saisie manuelle"}.\n${file ? "Le même fichier a déjà été importé." : match.rule}${reasons ? `\n${reasons}` : ""}${diffs ? `\n${diffs}` : ""}\nSi c’est le même effort, garde l’existante : rien n’est ajouté.`,
+        [
+          { text: "Garder l’existante", style: "cancel" },
+          {
+            text: "Ce sont deux séances",
+            onPress: () => {
+              duplicateAccepted.current = twinId;
+              const ids = [twinId!, twin.id].filter(Boolean).map(String);
+              draftRef.current = { ...draftRef.current, distinctFrom: [...new Set([...(draftRef.current.distinctFrom || []), ...ids])] };
+              void save();
+            },
+          },
+        ],
+      );
       return;
     }
     const clearSubmitted = draftCleanup(owner, submitted);
