@@ -29,6 +29,7 @@ require("./web/history-migration.js");
 require("./web/history-window.js");
 require("./web/week-plan.js");
 require("./web/week-review.js");
+require("./web/training-block.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -389,7 +390,7 @@ export type WeekOccurrence = {
 };
 export type WeekPlanView = {
   version: number; week: string; to: string; current: boolean; past: boolean; paused: boolean;
-  reference: { source: "week" | "revision" | "type" | "reconstructed"; at: string | null; days: PlanDay[] };
+  reference: { source: "week" | "revision" | "type" | "reconstructed" | "block"; at: string | null; days: PlanDay[]; block?: { id: string; index: number; from: string; kind: string | null; label: string | null } };
   occurrences: WeekOccurrence[]; extra: { id: string; day: string; sport: string; ask: boolean }[];
   summary: { planned: number; done: number; asPlanned: number; moved: number; replaced: number; skipped: number; missed: number; toDecide: number; upcoming: number; extra: number; gaps: number };
   signature: string;
@@ -411,6 +412,61 @@ export const WeekPlan = g.TitanWeekPlan as {
   snapshot(view: WeekPlanView): unknown;
   describe(o: WeekOccurrence, opts?: { label?: (sport: string) => string }): { plan: string; status: string; notice: string | null; gap: string | null };
   summarize(view: WeekPlanView): { start: string; changes: string; result: string };
+};
+
+/** V1.7.4 — Objectifs et blocs d’entraînement: multi-week blocks on the planning (each week of a block is the programme of that week),
+    models by type of project, milestones measured by a real session or declared, the revision of one week, the copy of a week, the
+    shift with its preview, the duplication and the removal of a block, the same rules and words as the website
+    (src/core/web/training-block.js). Stored in schedule.blocks. */
+export type BlockWeekPlan = { days: (PlanDay | null)[]; kind?: "plan" | "report" | "copy"; n?: number; of?: number; light?: boolean; milestones?: string[] };
+export type BlockMeasure = { kind: "measure" | "declared"; sport?: string | null; metric?: "distance" | "duration" | "elevation" | "sessions" | null; target?: number | null };
+export type BlockMilestoneState = BlockMeasure & { id: string; title: string; week: string; index: number | null; closed: boolean; state: "reached" | "late" | "missed" | "pending"; session: string | null; day: string | null; declared: { at: string } | null; how?: "session" | "declared"; before?: boolean; best?: number };
+export type BlockGoalState = BlockMeasure & { title: string; date: string | null; state: "reached" | "passed" | "pending"; session: string | null; day: string | null; how?: string; daysLeft?: number; best?: number };
+export type BlockWeek = { index: number; week: string; label: string; kind: string; light: boolean; days: (string | null)[]; minutes: (number | null)[]; plan: (string | null)[]; applied: boolean; before: boolean; state: "closed" | "current" | "upcoming"; paused: boolean; milestones: string[]; summary?: { planned: number; done: number; asPlanned: number; gaps: number; extra: number; source: string } };
+export type BlockLogEntry = { at: string; kind: string; from: string; origin: string; effect: { weeks?: { week: string; before: string | null; after: string | null }[]; milestones?: { id: string; title: string; before: string | null; after: string | null }[]; exceptions?: { week: string; occurrence: string; state: string }[]; pauses?: string[]; detail?: Record<string, unknown> } | null };
+export type BlockView = {
+  version: number; id: string; title: string; intent: string; template: string | null; sports: string[]; created: string; copyOf: string | null;
+  start: string; end: string; activation: string | null; removed: string | null; state: "active" | "upcoming" | "finished" | "removed"; currentIndex: number;
+  weeks: BlockWeek[]; milestones: BlockMilestoneState[]; goal: BlockGoalState | null; log: BlockLogEntry[]; open: string; conflict: boolean; signature: string;
+};
+export type BlockPreview = {
+  kind: string; from: string; detail?: Record<string, unknown>;
+  weeks: { week: string; state: string; changed: boolean; before: { days: (string | null)[]; source: string; label: string | null }; after: { days: (string | null)[]; source: string; label: string | null }; paused: boolean }[];
+  milestones: { id: string; title: string; before: string | null; after: string | null }[];
+  goal: { title: string; date: string | null; kept: boolean; endsAfter: boolean; late: string[] } | null;
+  pauses: string[]; exceptions: { week: string; occurrence: string; kind: string; origin: string | null; before: string | null; after: string | null; state: string }[]; closed: number; current: boolean;
+};
+export type BlockChange = { at: string; kind: string; from: string; origin: string; here: { week: string; before: string | null; after: string | null } | null; milestones: { id: string; title: string; before: string | null; after: string | null }[]; exceptions: { week: string; occurrence: string; state: string }[]; detail: Record<string, unknown> | null };
+export type BlockContext = { id: string; title: string; state: BlockView["state"]; goal: BlockGoalState | null; week: string; index: number | null; count: number; label: string | null; applied: boolean; before: boolean; changes: BlockChange[]; milestones: BlockMilestoneState[]; removed: string | null; signature: string };
+export type BlockInput = { id?: string; title: string; intent?: string; template?: string; sports?: string[]; start: string; weeks: BlockWeekPlan[]; goal?: (BlockMeasure & { title: string; date?: string | null }) | null; milestones?: (BlockMeasure & { id?: string; title: string; week: number })[] };
+type BlockOpts = { today: string; zone?: string | null; pauses?: string[]; at?: string; logs?: Partial<TrainingLog>[] };
+type BlockResult = { schedule: Schedule; block: Schedule; from: string; preview: BlockPreview };
+export const TrainingBlock = g.TitanTrainingBlock as {
+  VERSION: number; MIN_WEEKS: number; MAX_WEEKS: number; MAX_SHIFT: number; RULES: Record<"event" | "start" | "journal" | "preview", string>;
+  TEMPLATES: { id: string; title: string; weeks: number; text: string }[];
+  draft(template: string, opts: { type?: (PlanDay | null)[]; sport?: string; weeks?: number; peak?: number; longDay?: number; midDay?: number }): BlockWeekPlan[];
+  suggest(template: string, opts: { weeks?: number; sport?: string; goal?: BlockInput["goal"]; type?: (PlanDay | null)[] }): NonNullable<BlockInput["milestones"]>;
+  firstOpen(schedule: Schedule, today: string): string;
+  weekLabel(week: BlockWeekPlan | undefined, index: number): string;
+  create(schedule: Schedule, input: BlockInput, opts: BlockOpts): BlockResult;
+  editWeek(schedule: Schedule, id: string, args: { index: number; days: (PlanDay | null)[] }, opts: BlockOpts): BlockResult;
+  duplicateWeek(schedule: Schedule, id: string, args: { from: number; to: number }, opts: BlockOpts): BlockResult;
+  shift(schedule: Schedule, id: string, args: { from: number; weeks?: number }, opts: BlockOpts): BlockResult;
+  setMilestone(schedule: Schedule, id: string, args: Record<string, unknown>, opts: BlockOpts): BlockResult;
+  declare(schedule: Schedule, id: string, args: { milestone?: string; goal?: boolean; done?: boolean }, opts: BlockOpts): { schedule: Schedule; block: Schedule };
+  remove(schedule: Schedule, id: string, opts: BlockOpts): BlockResult;
+  duplicate(schedule: Schedule, id: string, args: { start: string; title?: string; newId?: string }, opts: BlockOpts): BlockResult;
+  view(schedule: Schedule, logs: Partial<TrainingLog>[], id: string, opts: BlockOpts): BlockView | null;
+  list(schedule: Schedule, logs: Partial<TrainingLog>[], opts: BlockOpts): BlockView[];
+  weekContext(schedule: Schedule, logs: Partial<TrainingLog>[], opts: BlockOpts & { week?: string }): BlockContext | null;
+  measure(schedule: Schedule, logs: Partial<TrainingLog>[], opts: BlockOpts): { blocks: number; activated: number; milestones: number; linked: number; declared: number; interrupted: number; kept: number };
+  snapshot(view: BlockView | null): unknown;
+  unitText(metric: string, target: number): string;
+  describeMeasure(m: BlockMeasure, opts?: Words): string;
+  describeMilestone(m: BlockMilestoneState, opts?: Words): { title: string; what: string; when: string; state: string };
+  describeGoal(g: BlockGoalState | null, opts?: Words): { title: string; what: string; date: string; state: string } | null;
+  describePreview(p: BlockPreview, opts?: Words): { lines: string[]; notes: string[]; where: string };
+  describeChange(c: BlockChange, opts?: Words): { source: string; effect: string };
 };
 
 /** V1.7.3 — Bilan et ajustements: one observation of the followed weeks with its source sessions, the actions on the week after

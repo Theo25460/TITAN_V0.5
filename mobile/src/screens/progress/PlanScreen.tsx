@@ -12,10 +12,11 @@ import { Sheet } from "../../components/Sheet";
 import { SportGrid, SportSearch } from "../../components/SportPicker";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Format, Sports, WeekPlan, WeekReview, type ReviewAction, type Schedule, type WeekDecision } from "../../core";
+import { Format, Sports, TrainingBlock, WeekPlan, WeekReview, type ReviewAction, type Schedule, type WeekDecision } from "../../core";
 import { useLogs, usePrefs, useSavePrefs, type Prefs } from "../../data/hooks";
 import { WeekPlanCard } from "../../components/WeekPlanCard";
 import { AdjustmentsCard, WeekReviewCard, dayLong } from "../../components/WeekReviewCard";
+import { TrainingBlockCard } from "../../components/TrainingBlockCard";
 import { deviceZone, todayKey, useWeekPlan, useWeekReview } from "../../lib/weekPlan";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
@@ -34,7 +35,9 @@ const DAYS: [string, string][] = [
 /** Weekly rhythm (cadence target, paused weeks) and planned week — the same preferences as the website QG/Prévoir.
     V1.7.2: the week as planned on its Monday, tied to the sessions really done, with the athlete's decisions (WeekPlanCard).
     V1.7.3: the bilan of the week shown and its adjustment for the week after (WeekReviewCard), and the adjustments acting on this
-    week and the next one, with their origin and their undo (AdjustmentsCard). */
+    week and the next one, with their origin and their undo (AdjustmentsCard).
+    V1.7.4: the training block of the week shown, its milestones and the changes that reach that week, and the block actions through a
+    preview (TrainingBlockCard) — the same schedule.blocks as Séance › Prévoir on the website. */
 export function PlanScreen() {
   const navigation = useNavigation();
   const prefs = usePrefs();
@@ -95,6 +98,11 @@ export function PlanScreen() {
     }
     return persist({ schedule: r.schedule as Prefs["schedule"], cadencePauses: r.pauses }, "Choix annulé", r.kept.length ? "Une modification faite ensuite à la main a été gardée." : "Le programme a repris sa forme d’avant.");
   };
+  // V1.7.4: a block change is a patch of the schedule (schedule.blocks); the sessions are never changed.
+  const blockOpts = { today: todayKey(), zone: deviceZone(), pauses: prefs.cadencePauses };
+  const blocks = TrainingBlock.list((prefs.schedule ?? {}) as Schedule, logs, blockOpts);
+  const blockContext = TrainingBlock.weekContext((prefs.schedule ?? {}) as Schedule, logs, { ...blockOpts, week: shownWeek });
+  const saveBlock = (schedule: Schedule, ok: string, message?: string) => persist({ schedule: schedule as Prefs["schedule"] }, ok, message);
   const thisMonday = WeekPlan.weekOf(todayKey());
   const nextMonday = WeekPlan.addDays(thisMonday, 7);
   const adjustNow = WeekReview.adjustments((prefs.schedule ?? {}) as Schedule, { week: thisMonday, today: todayKey() });
@@ -137,6 +145,19 @@ export function PlanScreen() {
         title={weekBack === 0 ? "Bilan de la semaine et ajustement" : "Bilan et ajustement"}
         onApply={applyReview}
         onUndo={undoReview}
+        onOpen={(l) => navigation.navigate("SessionDetail", { id: l.id })}
+      />
+      <TrainingBlockCard
+        blocks={blocks}
+        context={blockContext}
+        schedule={(prefs.schedule ?? {}) as Schedule}
+        logs={logs}
+        today={todayKey()}
+        zone={deviceZone()}
+        pauses={prefs.cadencePauses}
+        shownWeek={shownWeek}
+        busy={!online || save.isPending}
+        onSave={saveBlock}
         onOpen={(l) => navigation.navigate("SessionDetail", { id: l.id })}
       />
       {weekBack === 0 ? <AdjustmentsCard list={adjustNow} title="Ajustement de cette semaine" today={todayKey()} busy={!online || save.isPending} onUndo={undoReview} /> : null}

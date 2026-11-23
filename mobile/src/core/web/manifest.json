@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "118fce851ff63dd6d138b1741965977a82aba7f5",
+  "sha": "5ee050fe3e2c05aa957d87a90381959d9f5e2aca",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "0d089fdb88f819fae61b77f0e47ae7259efc2e9a70cf10d27602254d8425ccc5",
@@ -36,7 +36,8 @@
     "history-ledger.js": "16803afbfe6c3b5d7c769ca1194097670d2ef4ca35e3b8697db850b8c407b898",
     "history-migration.js": "cb006cefa05a720427091c8cbe8762f4262933b4143d73f9ce11fe2232e8655d",
     "history-window.js": "515d55701a101c48f344a167493cf4dce50adc4a8c3715fdb285490760eac019",
-    "week-plan.js": "b7dc0b729b5670d763d112803d0b854d3c63edca06d862df05b476bb562f9595",
-    "week-review.js": "20037c60c01eeba792e188b70dc8bf608e2d3441fb37db3fee3ae2905d567f76"
+    "week-plan.js": "85f447f43f8fd2c9e91e796dfb8ed8299513705c7cc479edfdea551f9f07e4b5",
+    "week-review.js": "20037c60c01eeba792e188b70dc8bf608e2d3441fb37db3fee3ae2905d567f76",
+    "training-block.js": "aa429fa60f6dacb77de95890325e1d49275c740a90d46189852702e55a5ccb4a"
   }
 }

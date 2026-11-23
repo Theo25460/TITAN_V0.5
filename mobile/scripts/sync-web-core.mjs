@@ -49,6 +49,7 @@ export const MODULES = [
   "js/core/history-window.js",
   "js/core/week-plan.js",
   "js/core/week-review.js",
+  "js/core/training-block.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };
