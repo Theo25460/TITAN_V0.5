@@ -40,7 +40,7 @@ export function RecordsScreen() {
   const navigation = useNavigation();
   const { active } = useLogs();
   const [sport, setSport] = useState<string | null>(null);
-  const records = useMemo(() => Insights.records(active.filter((l) => l.syncStatus === "confirmed" || !l.syncStatus), "all", Date.now()), [active]);
+  const records = useMemo(() => Insights.records(active, "all", Date.now()), [active]);
   const sports = useMemo(() => [...new Set(records.map((r) => r.sport))], [records]);
   const history = useMemo(() => recordHistory(active), [active]);
   const [opened, setOpened] = useState<string | null>(null);

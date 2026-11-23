@@ -22,18 +22,18 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
   const [showArchived, setShowArchived] = useState(false);
   const source = showArchived ? q.archived : q.logs;
   const weekStart = route.params?.weekStart;
-  // Use the same confirmed, eligible sessions as the weekly recap, even while another upload is pending.
+  // The same counted sessions as the weekly recap (V1.6.3 matrix, shared with the website).
   const periodLogs = useMemo(() => {
     if (weekStart == null) return source;
-    return Progress.weekLogs(q.confirmed.filter((log) => !log.archived_at && !log.is_suspicious), new Date(weekStart));
-  }, [weekStart, source, q.confirmed]);
+    return Progress.weekLogs(q.active, new Date(weekStart));
+  }, [weekStart, source, q.active]);
   const sports = useMemo(() => {
     const count = new Map<string, number>();
     for (const l of periodLogs) count.set(l.sport, (count.get(l.sport) || 0) + 1);
     return [...count.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => s);
   }, [periodLogs]);
-  // A record badge belongs to a session the server confirmed: a pending or refused one must not take it from the real holder.
-  const holders = useMemo(() => recordHolders(q.confirmed.filter((l) => !l.archived_at)), [q.confirmed]);
+  // A record badge follows the records view: counted sessions only, never a refused or archived one (V1.6.3 matrix).
+  const holders = useMemo(() => recordHolders(q.active), [q.active]);
   const sections = useMemo(() => {
     const list = periodLogs.filter((l) => !sport || l.sport === sport).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const month = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });

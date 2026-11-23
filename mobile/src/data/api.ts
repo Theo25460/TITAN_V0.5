@@ -416,6 +416,9 @@ export async function importDailySteps(owner: string, day: string, steps: number
   return result;
 }
 /* V1.6.2: the server links of one session (or the account's recent links) and the athlete's reversible decision. */
+/** V1.6.3: what corrections, archives and restores changed on one session (titan_session_changes_v1, owner only, bundle v22). */
+export const sessionChanges = (owner: string, logId: string, current?: () => boolean) =>
+  ownerRpc<import("../core").SessionChangeEntry[]>(owner, "titan_session_changes_v1", { p_log_id: logId }, current);
 export const sessionMatches = (owner: string, logId?: string, current?: () => boolean) =>
   ownerRpc<import("../core").SessionMatchRow[]>(owner, "titan_session_matches_v1", logId ? { p_log_id: logId } : {}, current);
 export const resolveSessionMatch = (owner: string, source: string, ref: string, decision: import("../core").MatchDecision, current?: () => boolean) =>

@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "0e962d08d52b61a63346068bf1b42ad24c2ebd1b",
+  "sha": "2793457a4146edf63b7a5d7d0ec2fcfd33862ae7",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
@@ -32,6 +32,7 @@
     "cordee.js": "8f542b0a923c5168d18b74a7345e4e0f7370250dd980a68108b58caac5af1737",
     "social-digest.js": "4e56fee2d6fb6d7bfad261761ab0028955137b4d1001304cebe0c9f18c2eca1f",
     "sync-state.js": "65ce3c28f3fdf8c621c154d2d8a088b5edfdbb558bc313224a28caba2b0c5b03",
-    "session-match.js": "13b98abfe0a7ba1b0143043770d84c3cda2a33c22b5df0b4685e62dcef4b0749"
+    "session-match.js": "13b98abfe0a7ba1b0143043770d84c3cda2a33c22b5df0b4685e62dcef4b0749",
+    "history-ledger.js": "1fc59c7dd40f01e452ba28dfb05c3b876f3562dff3c536f9becb16a6d9abc7b5"
   }
 }

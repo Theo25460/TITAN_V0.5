@@ -2,13 +2,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Crypto from "expo-crypto";
 import { useMemo } from "react";
-import { Progress } from "../core";
 import { buildSession, toPayload, type SessionDraft } from "../core/session";
 import type { Goal, Profile, TrainingLog } from "../core/types";
 import { isOnline } from "../lib/network";
 import { flushRoutes } from "../lib/routeSync";
 import * as api from "./api";
 import { useOwner } from "./auth";
+import { historyViews } from "./history";
 import { saveLogsCache } from "./logsCache";
 import { enqueue, flushQueue, provisionalLogs, useQueue } from "./queue";
 import { protectPreferences } from "./profileCopies";
@@ -97,11 +97,10 @@ export function useLogs() {
     const confirmed = q.data ?? [];
     const ids = new Set(confirmed.map((l) => l.client_event_id || l.details?.client_event_id || l.id));
     const pending = queue.owner === owner ? provisionalLogs(queue.items, ids) : [];
-    const all = [...confirmed.filter((l) => !l.archived_at), ...pending].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const archived = confirmed.filter((l) => l.archived_at);
     // Statistics never count a session the server refused (« error » in the queue): it stays listed in the journal with its
-    // reason, but it is not a measure. A session still waiting to be sent does count, shown as pending.
-    return { logs: all, active: Progress.activeLogs(all.filter((l) => (l as { syncStatus?: string }).syncStatus !== "error")), archived, pending, confirmed };
+    // reason, but it is not a measure. A session still waiting to be sent does count, shown as pending (V1.6.3 matrix).
+    const { logs, active, archived } = historyViews(confirmed, pending);
+    return { logs, active, archived, pending, confirmed };
   }, [q.data, queue, owner]);
   return { ...q, ...value };
 }
@@ -192,6 +191,7 @@ export function useUpdateSession() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: keys.logs(owner) });
       qc.invalidateQueries({ queryKey: keys.adventure(owner) });
+      qc.invalidateQueries({ queryKey: ["session-changes", owner] });
     },
   });
 }

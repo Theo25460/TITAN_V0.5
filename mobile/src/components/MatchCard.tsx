@@ -4,7 +4,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { View } from "react-native";
-import { SessionMatch, type MatchDecision, type MatchView, type SessionMatchRow } from "../core";
+import { Ledger, SessionMatch, type MatchDecision, type MatchView, type SessionMatchRow } from "../core";
 import type { TrainingLog } from "../core/types";
 import * as api from "../data/api";
 import { useOwner } from "../data/auth";
@@ -67,13 +67,13 @@ export function MatchCard({ log, logs }: { log: TrainingLog; logs: TrainingLog[]
   return (
     <View style={{ gap: space.s3 }}>
       {rows.map((row) => (
-        <MatchView key={`${row.source}:${row.external_id}`} view={SessionMatch.describe(row, log, logs)} busy={busy} online={online} onDecide={(d) => decide(row, d)} />
+        <MatchView key={`${row.source}:${row.external_id}`} view={SessionMatch.describe(row, log, logs)} limit={Ledger.sourceLimit(row.source)} busy={busy} online={online} onDecide={(d) => decide(row, d)} />
       ))}
     </View>
   );
 }
 
-function MatchView({ view, busy, online, onDecide }: { view: MatchView; busy: boolean; online: boolean; onDecide: (d: MatchDecision) => void }) {
+function MatchView({ view, limit, busy, online, onDecide }: { view: MatchView; limit: string | null; busy: boolean; online: boolean; onDecide: (d: MatchDecision) => void }) {
   const diverging = new Set(view.divergences.map((d) => d.field));
   const line = (label: string, field: string, pick: (s: MatchView["sources"][number]) => string) => (
     <View key={field} style={{ flexDirection: "row", gap: space.s2 }} testID={`match-row-${field}`}>
@@ -140,6 +140,12 @@ function MatchView({ view, busy, online, onDecide }: { view: MatchView; busy: bo
           {e.at} : {e.text} par {e.by}
         </T>
       ))}
+      {/* V1.6.3: a source whose later edits never come back says so; the athlete corrects the session here. */}
+      {limit ? (
+        <T variant="caption" tone="muted" testID="match-source-limit">
+          {limit}
+        </T>
+      ) : null}
       {view.actions.length ? (
         <View style={{ gap: space.s2 }}>
           {view.actions.map((a, i) => (

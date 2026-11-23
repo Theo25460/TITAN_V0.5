@@ -25,6 +25,7 @@ const MESSAGES: Record<string, string> = {
   TRAINING_DURATION_OUT_OF_RANGE: "Une séance dure au maximum 24 h.",
   EVENT_CONTENT_CONFLICT: "Cette séance a déjà été envoyée avec un contenu différent.",
   REVISION_CONFLICT: "Cette séance a été modifiée ailleurs. Actualise puis réessaie.",
+  SESSION_MATCH_JOINED: "Cette séance a été réunie avec une autre : la restaurer la compterait deux fois. Ouvre « Sources » et choisis « Séparer en deux séances ».",
   SESSION_VERSION_CONFLICT: "Cette séance a changé sur un autre appareil. Actualise le journal puis recommence.",
   EXERCISE_VOLUME_READ_ONLY: "Le volume d’une séance d’exercices se corrige série par série.",
   EXERCISES_INVALID: "Garde entre 1 et 30 exercices.",

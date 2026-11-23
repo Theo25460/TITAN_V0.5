@@ -24,6 +24,7 @@ require("./web/career.js");
 require("./web/periodic-quests.js");
 require("./web/sync-state.js");
 require("./web/session-match.js");
+require("./web/history-ledger.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,6 +112,30 @@ export const SessionMatch = g.TitanSessionMatch as {
   describe(row: SessionMatchRow, log: TrainingLog | null, logs: TrainingLog[]): MatchView;
   gpxFingerprint(g: { start?: string | null; distanceKm?: number | null; points?: number | null } | null | undefined): string | null;
   toKm(val: unknown, unit: unknown): number | null;
+};
+
+/** V1.6.3 — Contrôle et réconciliation: the state matrix and its controls, the same as the website (src/core/web/history-ledger.js). */
+export type LedgerState = "confirmed" | "local" | "stored" | "sending" | "pending" | "refused" | "held" | "archived";
+export type LedgerChange = { field: "val" | "unit" | "date" | "duration" | "note" | "archived"; before: unknown; after: unknown; unit?: string };
+export type LedgerControls = {
+  journal: number; archives: number; period: { sessions: number; minutes: number; km: number };
+  records: { id: string; value: number; ref: string }[]; csv: { journal: number; archives: number }; json: { trainingLogs: number; archived: number };
+};
+export type SessionChangeEntry = { revision: number; at: string; changes: LedgerChange[] };
+export const Ledger = g.TitanLedger as {
+  STATES: Record<LedgerState, string>;
+  MATRIX: Record<LedgerState, { journal: "journal" | "archives"; totals: boolean; records: boolean; csv: "journal" | "archives" | null; json: boolean | "device" }>;
+  CSV_HEAD: string[];
+  canonicalId(log: Partial<TrainingLog>): string;
+  reference(log: Partial<TrainingLog>): string;
+  stateOf(log: Partial<TrainingLog>, opts?: { guest?: boolean }): LedgerState;
+  split<L extends Partial<TrainingLog>>(confirmed: L[], provisional: L[]): { logs: L[]; archived: L[] };
+  csvRows(logs: Partial<TrainingLog>[], scope?: "journal" | "archives" | "all", opts?: { guest?: boolean; label?: (sport: string) => string }): unknown[][];
+  controls(logs: Partial<TrainingLog>[], opts?: { now?: number; from?: number; to?: number; guest?: boolean; serverRows?: Partial<TrainingLog>[] | null }): LedgerControls;
+  gaps(expected: unknown, actual: unknown): string[];
+  changes(before: Partial<TrainingLog>, after: Partial<TrainingLog>): LedgerChange[];
+  changeText(change: LedgerChange): string;
+  sourceLimit(source: string | null | undefined): string | null;
 };
 
 export type MeasureIssue = { code: string; field: string; message: string };

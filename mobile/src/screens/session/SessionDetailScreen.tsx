@@ -9,6 +9,7 @@ import { Section, Stat, StatRow } from "../../components/Section";
 import { sessionHeadline } from "../../components/SessionRow";
 import { Icon } from "../../components/Icon";
 import { EmptyState } from "../../components/States";
+import { ChangesCard } from "../../components/ChangesCard";
 import { MatchCard } from "../../components/MatchCard";
 import { SyncCard, useSyncView } from "../../components/SyncCard";
 import { T } from "../../components/Text";
@@ -225,6 +226,7 @@ function SessionSheet({ navigation, log, logs }: NativeStackScreenProps<RootPara
       </View>
       <SyncCard log={log} onCorrect={(item) => navigation.navigate("SessionForm", { sport: log.sport, duplicateOf: item.payload.details.client_event_id!, replaces: item.key })} onRemoved={() => navigation.goBack()} />
       <MatchCard log={log} logs={logs} />
+      <ChangesCard log={log} />
       <T variant="caption" tone="faint" center style={{ color: colors.tx3 }}>
         Les corrections ne changent jamais les récompenses déjà attribuées.
       </T>
