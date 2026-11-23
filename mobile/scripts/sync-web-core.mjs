@@ -35,6 +35,7 @@ export const MODULES = [
   "js/core/adventure-campaigns.js",
   "js/core/adventure-consequence.js",
   "js/core/adventure-quests.js",
+  "js/core/adventure-chronicles.js",
   "js/core/career.js",
   "js/core/journey.js",
   "js/core/adventure-access.js",

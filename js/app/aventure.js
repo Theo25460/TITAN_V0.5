@@ -25,7 +25,8 @@
   /* What sits under the scene and the mission: one view at a time, so the page reads in one screen. The address keeps the view. */
   const VIEWS = [["chapitre", "Chapitre"], ["quetes", "Quêtes"], ["sentiers", "Sentiers"], ["carnet", "Carnet"]];
   // V1.5.4: the notebook of clues (#indices) and a chain between worlds (#quete-…) live in the Carnet view.
-  const viewOf = (hash) => VIEWS.find(([id]) => `#${id}` === hash)?.[0] || (/^#(indices|quete-[a-z0-9-]+)$/.test(hash) ? "carnet" : null);
+  // V1.5.5: so do the chronicle of the world (#chroniques) and each of its runs (#partie-<world>-<run>).
+  const viewOf = (hash) => VIEWS.find(([id]) => `#${id}` === hash)?.[0] || (/^#(indices|quete-[a-z0-9-]+|chroniques|partie-[a-z]+-\d+)$/.test(hash) ? "carnet" : null);
 
   let root = null;
   let selected = new URLSearchParams(location.search).get("world");
@@ -343,6 +344,7 @@
           <section class="av-sentiers" data-journey-host aria-label="Sentiers et jalons de carrière"></section>
         </div>
         <div class="av-view av-view-carnet" data-av-view="carnet"${hide("carnet")}>
+          <section class="av-panel av-chroniques" id="chroniques" data-chronicle-host aria-label="Chroniques" hidden></section>
           <section class="av-panel av-indices" id="indices" data-quest-host aria-label="Carnet d’indices"></section>
           ${carnetHtml(world, p)}
           ${questSouvenirsHtml(world, s)}
@@ -367,6 +369,8 @@
     window.TitanConsequencePanel?.mount(root.querySelector("[data-consequence-host]"), world.id);
     // V1.5.4: the notebook of clues and its access from the map (a chain that leaves or reaches this world).
     window.TitanQuestPanel?.mount(root.querySelector("[data-quest-host]"), world.id, root.querySelector("[data-quest-map]"));
+    // V1.5.5: the chronicle of this world's first arc and the new run of an arc already achieved.
+    window.TitanChroniclePanel?.mount(root.querySelector("[data-chronicle-host]"), world.id);
     const guide = root.querySelector("[data-rpg-departure]");
     if (guide && guide.dataset.rpgDeparture === openDeparture) guide.open = true;
     const quests = root.querySelector("[data-rpg-quests]");

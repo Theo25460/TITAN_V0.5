@@ -120,9 +120,14 @@ with expected_versions(version) as (values
        else q end c
        -- V1.5.4 wraps the chain once more (quest chains): followed only when the outer function really calls it.
        from (select case
-       when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_quests_v1(p_uid)%'
+       when ch like '%private.titan_export_extras_before_quests_v1(p_uid)%'
        then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_quests_v1(uuid)'))
-       else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end q) quests_layer) consequence_layer) guardian_layer) outer_layer) l), false),
+       else ch end q
+       -- V1.5.5 wraps the chain once more (arc runs and chronicle events): followed only when the outer function really calls it.
+       from (select case
+       when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_chronicles_v1(p_uid)%'
+       then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_chronicles_v1(uuid)'))
+       else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end ch) chronicles_layer) quests_layer) consequence_layer) guardian_layer) outer_layer) l), false),
     'journal ajouté à la chaîne d’export conservée'
 )
 select check_name as "check", blocking, ok, detail from checks order by blocking desc, ok, check_name;

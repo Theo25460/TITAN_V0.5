@@ -139,6 +139,17 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v24 bundle (V1.5.3 Quatre mondes, quatre mécaniques).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.5.5 Chroniques et aventures rejouables (23 November 2026): the chronicle of each world's first arc (run 1 read from the facts
+  // of the arcs, nothing copied) and new runs of an arc already achieved, one active per arc, earning nothing. NOT applied in
+  // production; needs v21 to v25 first. Additive, rehearsed on a replica (sql/tests/300_adventure_chronicles.sql,
+  // tools/db/test-chronicle-concurrency.py).
+  v26: {
+    out: "supabase/release-v26", after: "20261127090000", until: "20261128090000",
+    before: { private: [149, "f6e038349df6", "763ff67b97ce"], public: [334, "9967615341af", "745413b6c98d"] },
+    expected: { private: [159, "f73ae58eb9fe", "a39db14014cf"], public: [336, "1d25464d70fe", "4e16f98236e8"] },
+    beforeNote: "This is the state production reaches at the end of the v25 bundle (V1.5.4 Quêtes entre les mondes).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
