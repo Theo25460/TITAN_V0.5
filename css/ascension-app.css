@@ -5430,3 +5430,25 @@ button.asc-link {
   text-decoration: underline;
   cursor: pointer;
 }
+/* V1.6.5 — Centre des sources: state chip and the facts of each source. */
+.pf-source-chip {
+  margin-left: var(--s1);
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
+.pf-source-chip[data-tone="ok"] { color: var(--ok); }
+.pf-source-chip[data-tone="warn"] { color: var(--warn); }
+.pf-source-chip[data-tone="err"] { color: var(--err); }
+.pf-source-facts {
+  list-style: none;
+  margin: 0 0 var(--s2);
+  padding: 0 0 0 calc(var(--s4) + var(--s2));
+  display: grid;
+  gap: 2px;
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+.pf-source-facts span {
+  color: var(--tx-2);
+  margin-right: var(--s1);
+}

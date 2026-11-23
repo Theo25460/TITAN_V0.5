@@ -123,6 +123,17 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v22 bundle (head 20261123120000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.6.5 — Centre des sources connectées (24 November 2026): who withdrew a consent (athlete or provider), one row per
+  // synchronisation run (Santé Connect reported by the phone, Garmin push kept per day with its ignored reasons), a read after
+  // withdrawal refused, and the center read by its owner. NOT APPLIED: owner's approval required. Requires v23. Additive, rehearsed
+  // on a replica (tools/db/test-migrations.sh, sql/tests/300_source_center.sql).
+  v24: {
+    out: "supabase/release-v24", after: "20261123150000", until: "20261124090000",
+    before: { private: [129, "8534c00d26df", "23f008c37b34"], public: [332, "fb59f2b689b9", "e20872688661"] },
+    expected: { private: [134, "a169f5d6f104", "cab0356b841d"], public: [334, "17bc75638e34", "b7cb2e7aff2e"] },
+    beforeNote: "This is the state production reaches at the end of the v23 bundle (head 20261123150000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

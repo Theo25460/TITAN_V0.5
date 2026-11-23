@@ -299,6 +299,7 @@ test("privacy: every per-player table added since 17 November 2026 is erased wit
     titan_live_collection: ["trouvailles", "trouvailles"],
     titan_cordee_titles: ["cordées de la Grande Cordée et titres de route obtenus", "tes cordées et tes titres de route"],
     titan_import_batches: ["Imports d’historique : le nom et l’empreinte du fichier importé", "tes imports d’historique et leurs rapports"],
+    titan_source_runs: ["Pour Santé Connect et Garmin : la date de chaque lecture ou de chaque envoi reçu", "le suivi de leurs synchronisations"],
   };
   const privacy = page("legal_privacy.html"), deletion = page("supprimer-mon-compte.html");
   const found = [];
@@ -329,8 +330,11 @@ test("privacy: the limits and the device-side features the policy quotes are the
   assert.ok(privacy.includes(`le titre que tu donnes à une période (${title} caractères au plus)`));
   assert.match(sql("20261117160000_life_chapters.sql"), /create or replace function public\.titan_chapter_delete_v1\(/, "a chapter can be deleted one by one, as the policy says");
   // History import from a Strava export: the file is read on the phone, five fields per session are sent.
-  assert.match(read("mobile/src/screens/settings/HistoryImportScreen.tsx"), /parseStravaActivities\(await FileSystem\.readAsStringAsync\(file\.uri\)\)/);
-  assert.match(read("mobile/src/data/api.ts"), /importHistory = \(owner: string, items: \{ id: string; sport: string; startedAt: string; minutes: number; km: number \| null \}\[\]\)/);
+  // Since V1.6.4 the phone reads the file with the shared reader and sends its rows in batches (titan_import_batch_rows_v1).
+  const historyScreen = read("mobile/src/screens/settings/HistoryImportScreen.tsx");
+  assert.match(historyScreen, /await FileSystem\.readAsStringAsync\(asset\.uri\)/);
+  assert.match(historyScreen, /Migration\.parse\(file\.text/);
+  assert.match(read("mobile/src/data/api.ts"), /importBatchRows = \(owner: string, batch: string, items: Record<string, unknown>\[\]\)/);
   assert.ok(privacy.includes("fichier activities.csv d’un export Strava") && privacy.includes("la date, le sport, la durée, la distance et l’identifiant de l’activité") && privacy.includes("le fichier est lu sur ton téléphone et n’est pas envoyé"));
   // Voice announcements and the session picture stay on the phone; the microphone is never requested.
   assert.match(read("mobile/src/lib/voiceCoach.ts"), /import \* as Speech from "expo-speech";/);

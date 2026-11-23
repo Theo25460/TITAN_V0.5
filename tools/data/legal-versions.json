@@ -8,13 +8,15 @@
   ],
   "legal_privacy": [
     { "ref": "Version 14", "updated": "18 novembre 2026", "sha256": "a963800ef6606d99166b181d474aacb047956bc1e86317dea1c579f7901c6f72" },
-    { "ref": "Version 15", "updated": "23 novembre 2026", "sha256": "6a7a955a316923746ba313fca5cfc2ef42b39a52441d990fecf6ad86c9a2061b" }
+    { "ref": "Version 15", "updated": "23 novembre 2026", "sha256": "6a7a955a316923746ba313fca5cfc2ef42b39a52441d990fecf6ad86c9a2061b" },
+    { "ref": "Version 16", "updated": "24 novembre 2026", "sha256": "f74d5e8092200b4e89f643bd2630f213367ba3a39f1a76ef1d3222fc99fd578d" }
   ],
   "regles-communaute": [
     { "ref": "Version 2", "updated": "14 novembre 2026", "sha256": "87a2365ba4965f443a81b71514726a3415a0b314137b89992ea5309f9e091d8f" }
   ],
   "supprimer-mon-compte": [
     { "ref": "Version 4", "updated": "18 novembre 2026", "sha256": "88716a6ec27933f3507f98f5e39eb3a99b690e60466e0010891a4140127910b1" },
-    { "ref": "Version 5", "updated": "23 novembre 2026", "sha256": "6a508676759023c251967a0b09064a697a31bbeea521e748cb2f16dd815a2ef0" }
+    { "ref": "Version 5", "updated": "23 novembre 2026", "sha256": "6a508676759023c251967a0b09064a697a31bbeea521e748cb2f16dd815a2ef0" },
+    { "ref": "Version 6", "updated": "24 novembre 2026", "sha256": "bdfcb058478b0b9291f2d86324807523a0ad1b8e87794169964db421c57d2f6f" }
   ]
 }

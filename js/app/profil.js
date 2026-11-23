@@ -40,6 +40,7 @@
   let garminLinked = null; // true/false once titan_garmin_status_v1 answered (an authorised source is not necessarily linked); null = unknown
   let garminDailiesAuthorized = false;
   let sources = null; // connected activity sources [{source,granted,imported,...}] (server, V11-30); null until read
+  let center = null; // V1.6.5: titan_source_center_v1 (consent, runs, coverage, batch); null on a server without bundle v24
   let sourcesTask = null;
   let pioneer = null; // Pionnier badge {granted, cohort} (server, V11-60); null until read
   const guest = () => D().isGuest();
@@ -248,6 +249,11 @@
       const fresh = await context.client.rpc("titan_sources_v1").setHeader("Authorization", `Bearer ${session.access_token}`);
       if (sourcesTask !== job || !bitsCurrent(job)) return false;
       if (!fresh.error && Array.isArray(fresh.data)) sources = fresh.data.filter((x) => x && typeof x.source === "string");
+      if (center) {
+        const again = await context.client.rpc("titan_source_center_v1").setHeader("Authorization", `Bearer ${session.access_token}`);
+        if (sourcesTask !== job || !bitsCurrent(job)) return false;
+        if (!again.error && again.data && Array.isArray(again.data.sources)) center = again.data;
+      }
       if (kind === "revoke" && source === "garmin") {
         garminLinked = false;
         garminDailiesAuthorized = false;
@@ -322,7 +328,50 @@
       ${garminDailiesAuthorized ? '<p class="asc-small">Pas Garmin autorisés</p>' : `<button type="button" class="asc-btn asc-btn-secondary" data-garmin-connect="dailies"${busy}>${activityConnect ? "Connecter Garmin et autoriser les pas" : "Autoriser les pas Garmin"}</button>`}` : ""}</section>`;
   }
 
+  /* V1.6.5 — Centre des sources: one row per source with what it really provides, where it stopped and what to do
+     (js/core/source-center.js, the same diagnosis as the Android app). The website cannot read Santé Connect: it shows the state the
+     phone reported and sends the athlete to the app to resume. « Connecté » only for an access that works. */
+  function centerHtml() {
+    const TS = window.TitanSources;
+    const known = center.sources.map((x) => x.source);
+    const order = [...["health_connect", "garmin"].filter((x) => known.includes(x)), ...(center.batch ? ["archive"] : [])];
+    if (!order.length) return "";
+    const busy = sourcesTask ? " disabled" : "";
+    const label = (id) => window.TitanSports?.label?.(id) || id;
+    const rows = TS.center(center, { now: Date.now(), here: false, order }).map((d) => {
+      const entry = center.sources.find((x) => x.source === d.source) || null;
+      const got = d.coverage.fields.filter((f) => f.covered).map((f) => f.label);
+      const missing = d.coverage.fields.filter((f) => !f.covered && f.note).map((f) => `${f.label} (${f.note.replace(/\.$/, "")})`);
+      const facts = [
+        d.lastSuccessText ? `<li><span>Dernière réussite</span> ${esc(d.lastSuccessText)}</li>` : d.kind !== "file_batch" ? "<li><span>Dernière réussite</span> aucune</li>" : "",
+        d.lastAttemptText && d.lastAttemptText !== d.lastSuccessText ? `<li><span>Dernière tentative</span> ${esc(d.lastAttemptText)}</li>` : "",
+        d.kind !== "file_batch" ? `<li><span>Reçu</span> ${esc(got.join(", "))}</li>` : "",
+        missing.length ? `<li><span>Non transmis</span> ${esc(missing.join(" ; "))}</li>` : "",
+        d.coverage.sports.length ? `<li><span>Sports reçus</span> ${esc(d.coverage.sports.map((x) => `${label(x.sport)} (${x.n})`).join(", "))}</li>` : "",
+        d.exclusions.length ? `<li data-source-exclusions><span>Exclues à la dernière lecture</span> ${esc(d.exclusions.map((x) => `${x.n} ${x.label}`).join(", "))}</li>` : "",
+        d.kind === "device_read" ? `<li><span>Reprise</span> ${esc(d.replayNote)} Elle se fait dans l’application Android : Sources et capteurs › Santé Connect.</li>` : d.kind === "push" ? `<li><span>Reprise</span> ${esc(d.replayNote)}</li>` : "",
+      ].join("");
+      const actions = [
+        ...d.actions.filter((a) => a.id === "review").map((a) => `<a class="asc-btn asc-btn-secondary asc-btn-sm" href="/journal" data-source-review="${esc(d.source)}">${esc(a.label)} (${a.n})</a>`),
+        ...d.actions.filter((a) => a.id === "resume_batch" || a.id === "open_import").map((a) => `<a class="asc-btn asc-btn-secondary asc-btn-sm" href="/journal" data-source-import>${esc(a.label)}</a>`),
+        entry?.consent?.granted ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-source-revoke="${esc(d.source)}"${busy}>Retirer l’accès</button>` : "",
+        d.counts.imported > 0 ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-source-archive="${esc(d.source)}"${busy}>Archiver ce que ${esc(d.name)} a apporté</button>` : "",
+      ].join("");
+      const garminHint = d.actions.some((a) => a.id === "connect_garmin" || a.id === "finish_garmin") && garminOn() ? "<p class=\"asc-small\">Utilise « Connecter Garmin » ci-dessus.</p>" : "";
+      return `<div class="asc-row pf-source" data-source="${esc(d.source)}" data-source-state="${esc(d.state)}"><span class="asc-row-icon">${icon(d.kind === "file_batch" ? "upload" : "cloudUp")}</span><span class="asc-row-main">
+          <span class="asc-row-title">${esc(d.name)} <span class="asc-chip pf-source-chip" data-tone="${esc(d.tone)}">${esc(d.label)}</span></span>
+          <span class="asc-row-sub">${esc(d.detail)}</span></span></div>
+        <ul class="pf-source-facts">${facts}</ul>${garminHint}<div class="asc-row-flex">${actions}</div>`;
+    }).join("");
+    return `<section id="sources-connectees" class="asc-section" data-sources-block data-source-center aria-labelledby="pf-sources"><div class="asc-section-head"><h2 id="pf-sources">Centre des sources</h2></div>
+      ${garminWithdrawal !== undefined ? `<p class="asc-note${garminWithdrawal === "withdrawn" ? "" : " warn"}" role="status" data-garmin-withdrawal="${esc(garminWithdrawal || "unconfirmed")}">${icon(garminWithdrawal === "withdrawn" ? "check" : "info")}<span>${esc(garminWithdrawalMessage(garminWithdrawal))}</span></p>` : ""}
+      <p class="asc-small asc-muted">Ce que chaque source fournit vraiment, où elle s’est arrêtée et comment reprendre. « Connecté » n’est dit que pour un accès qui fonctionne.</p>
+      <div class="asc-list">${rows}</div>
+      <p class="asc-small asc-faint">Une séance déjà dans ton journal n’est jamais modifiée par une source : tes corrections restent. Retirer l’accès arrête la collecte ; archiver retire seulement les séances reçues du journal.</p></section>`;
+  }
+
   function sourcesBlockHtml() {
+    if (!guest() && center && window.TitanSources) return centerHtml();
     if (guest() || !sources || !sources.length) return "";
     return `<section id="sources-connectees" class="asc-section" data-sources-block aria-labelledby="pf-sources"><div class="asc-section-head"><h2 id="pf-sources">Sources connectées</h2></div>
       ${garminWithdrawal !== undefined ? `<p class="asc-note${garminWithdrawal === "withdrawn" ? "" : " warn"}" role="status" data-garmin-withdrawal="${esc(garminWithdrawal || "unconfirmed")}">${icon(garminWithdrawal === "withdrawn" ? "check" : "info")}<span>${esc(garminWithdrawalMessage(garminWithdrawal))}</span></p>` : ""}
@@ -584,6 +633,7 @@
     showcase = null;
     showcaseTask = null;
     sources = null;
+    center = null;
     garminLinked = null;
     garminDailiesAuthorized = false;
     pioneer = null;
@@ -655,6 +705,13 @@
         if (!bitsCurrent(job)) return;
         await readBitsSession(job);
         if (bitsCurrent(job) && !v.error && Array.isArray(v.data)) sources = v.data.filter((x) => x && typeof x.source === "string");
+      } catch {}
+      // V1.6.5: the center (runs, coverage, who withdrew) once bundle v24 is applied; without it, the list above is shown as before.
+      try {
+        const v = await within(job.context.client.rpc("titan_source_center_v1").setHeader("Authorization", `Bearer ${session.access_token}`));
+        if (!bitsCurrent(job)) return;
+        await readBitsSession(job);
+        if (bitsCurrent(job)) center = !v.error && v.data && Array.isArray(v.data.sources) ? v.data : null;
       } catch {}
       // The consent is given BEFORE the Garmin screen: when the player leaves that screen without finishing, the source is authorised but not
       // linked. The real link state decides whether "Connecter Garmin" stays offered.
@@ -1126,7 +1183,13 @@
     const sourceKind = b.dataset.sourceRevoke !== undefined ? "revoke" : b.dataset.sourceArchive !== undefined ? "archive" : null;
     if (sourceKind) {
       const source = sourceKind === "revoke" ? b.dataset.sourceRevoke : b.dataset.sourceArchive;
-      return sourceAction(sourceKind, source)
+      // V1.6.5: a withdrawal says what stops, what stays and how to archive before it happens (same words as the Android app).
+      const entry = (center?.sources || []).find((x) => x.source === source) || (sources || []).find((x) => x.source === source) || null;
+      const lines = sourceKind === "revoke" ? window.TitanSources?.withdrawText?.(source, entry ? { counts: entry.counts || { imported: entry.imported } } : null) || [] : [];
+      const asked = sourceKind === "revoke" && lines.length
+        ? window.titanShell.confirm({ title: `Retirer ${SOURCE_NAMES[source] || source} ?`, message: lines[0], detail: lines.slice(1).join(" "), confirmLabel: "Retirer l’accès", danger: true })
+        : Promise.resolve(true);
+      return asked.then((yes) => (yes ? sourceAction(sourceKind, source) : false))
         .then((done) => {
           if (!done) return done;
           const garmin = sourceKind === "revoke" && source === "garmin";
