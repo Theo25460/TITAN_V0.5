@@ -55,7 +55,25 @@ installables pour tester, refusés par Play Console.
 8. Tester sur un téléphone via le lien de test interne, puis promouvoir en test fermé (exigence Google pour les comptes
    personnels : 12 testeurs pendant 14 jours), puis production. **Aucune publication automatique.**
 
-## 4. Liens d'application (facultatif)
+## 4. Liens d'application (App Links)
 
-L'application n'intercepte pas les liens `https://titan-app.fr` (le site reste le site). Les liens `titan://` ouvrent
-les écrans de l'application (rappels).
+Les liens `titan://` ouvrent les écrans de l'application (rappels). Depuis AUD-12, l'application revendique aussi
+**`https://titan-app.fr/social`** (et lui seul : `autoVerify`, `pathPrefix=/social`, voir `app.config.ts`) pour ouvrir les
+invitations `?ami=…` / `?guilde=…` dans l'écran Communauté. Android ne l'accepte que si
+`https://titan-app.fr/.well-known/assetlinks.json` liste l'empreinte SHA-256 du certificat **qui a signé l'APK installé** :
+
+| Installation | Certificat qui signe l'APK | Empreinte |
+| --- | --- | --- |
+| Depuis Google Play (test interne, fermé, production) | clé de signature Play App Signing (gardée par Google) | Play Console › Intégrité de l'application › Signature d'application › « Certificat de la clé de signature d'application » |
+| APK du CI installé à la main (`signing = upload`) | clé d'envoi | `8E:35:9E:DE:A7:2E:48:F0:76:0D:1B:7F:F6:64:94:43:9B:BA:4B:5F:73:85:DE:44:C7:CF:A5:92:9D:EC:20:5C` |
+
+Le fichier est écrit par `tools/build-public.mjs` à partir de la variable Netlify `TWA_SHA256_FINGERPRINTS`
+(empreintes séparées par une virgule, format `AA:BB:…`). Ajouter ou corriger une empreinte : modifier la variable, puis
+redéployer la production (Netlify › Deploys › *Trigger deploy* › *Deploy project* : reconstruit le commit approuvé, sans
+changer de code ni d'AAB). Contrôles : `https://titan-app.fr/.well-known/assetlinks.json` (200, `application/json`, sans
+redirection), l'API Google
+`https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://titan-app.fr&relation=delegate_permission/common.handle_all_urls`,
+la sonde « Sonde production » (bloquante sur ces points), puis Play Console › Liens profonds. Sur un téléphone :
+`adb shell pm verify-app-links --re-verify fr.titanapp.app` puis `adb shell pm get-app-links fr.titanapp.app`
+(`titan-app.fr: verified`). Tant que le lien n'est pas vérifié, Android ouvre le site, qui pré-remplit le même code :
+rien ne casse.

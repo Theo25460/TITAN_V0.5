@@ -216,7 +216,12 @@ writeFileSync(swPath, readFileSync(swPath, 'utf8')
 
 // Android (Trusted Web Activity): Digital Asset Links, only when the real signing fingerprints are provided
 // (Netlify environment TWA_SHA256_FINGERPRINTS, comma separated: upload key and Play App Signing key).
-const twaFingerprints = String(process.env.TWA_SHA256_FINGERPRINTS || '').split(',').map((f) => f.trim().toUpperCase()).filter((f) => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f));
+const twaCandidates = String(process.env.TWA_SHA256_FINGERPRINTS || '').split(',').map((f) => f.trim().toUpperCase()).filter(Boolean);
+const twaFingerprints = twaCandidates.filter((f) => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f));
+// Warnings only (the build output is unchanged): a missing or mistyped fingerprint used to fail silently, and Android then
+// refused to verify https://titan-app.fr/social (Play Console, version 1401: assetlinks.json answered 404).
+if (twaCandidates.length !== twaFingerprints.length) console.warn(`TWA_SHA256_FINGERPRINTS : ${twaCandidates.length - twaFingerprints.length} empreinte(s) ignorée(s), format attendu AA:BB:… (32 octets)`);
+if (!twaFingerprints.length && process.env.CONTEXT === 'production') console.warn('TWA_SHA256_FINGERPRINTS absent : /.well-known/assetlinks.json ne sera pas publié, les liens https://titan-app.fr/social ne seront pas vérifiés par Android');
 if (twaFingerprints.length) {
   mkdirSync(join(dist, '.well-known'), { recursive: true });
   writeFileSync(join(dist, '.well-known', 'assetlinks.json'), JSON.stringify([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: process.env.TWA_PACKAGE_ID || 'fr.titanapp.app', sha256_cert_fingerprints: twaFingerprints } }], null, 2));

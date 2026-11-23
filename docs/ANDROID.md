@@ -7,7 +7,7 @@ TITAN est publié sur Android comme **Trusted Web Activity** : une coque Android
 ## Ce qui est prêt dans le dépôt
 
 - `android/twa-manifest.json` : identifiant `fr.titanapp.app` (décision du 19/10/2026 : c'est le paquet déjà créé dans Play Console, il ne change plus), couleurs Ascension, icônes 512 px (maskable), raccourcis Séance et Semaine, version 300.
-- `tools/build-public.mjs` : écrit `/.well-known/assetlinks.json` quand la variable `TWA_SHA256_FINGERPRINTS` est définie (sinon rien : aucune empreinte inventée).
+- `tools/build-public.mjs` : écrit `/.well-known/assetlinks.json` quand la variable `TWA_SHA256_FINGERPRINTS` est définie (sinon rien : aucune empreinte inventée ; depuis le 23/11/2026 le build l'annonce par un avertissement). L'application native s'en sert aussi pour ses App Links `/social` : procédure à jour dans `mobile/docs/RELEASE.md` § 4.
 - `.github/workflows/android-twa.yml` : workflow manuel qui construit et signe l'App Bundle (`.aab`) et un APK de test, en artefacts.
 
 ## Essai sans aucun secret (AND03)
