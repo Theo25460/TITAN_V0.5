@@ -26,6 +26,7 @@ require("./web/sync-state.js");
 require("./web/session-match.js");
 require("./web/history-ledger.js");
 require("./web/history-migration.js");
+require("./web/source-center.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -167,6 +168,44 @@ export const Migration = g.TitanMigration as {
   chunks(parsed: MigrationParsed, nextRow?: number, size?: number): Record<string, unknown>[][];
   measure(batch: Partial<ImportBatch>): { total: number; explained: number; rate: number; duplicates: number; review: number; seconds: number | null };
   withdrawText(effects: Record<string, number> | null | undefined): string[];
+};
+
+/** V1.6.5 — Centre des sources connectées: the same diagnosis as the website (src/core/web/source-center.js). */
+export type SourceId = "health_connect" | "garmin" | "gpx" | "archive";
+export type SourceRunOutcome = "running" | "ok" | "empty" | "partial" | "failed" | "denied";
+export type SourceRunCounts = { read?: number; imported?: number; linked?: number; duplicate?: number; excluded?: number; failed?: number; review?: number };
+export type SourceRun = { id: string; source?: string; kind: "read" | "replay" | "push"; started_at: string; finished_at: string | null; window_from: string | null; window_to: string | null; outcome: SourceRunOutcome; error_code?: string | null; counts: SourceRunCounts; excluded: Record<string, number> };
+export type SourceEntry = {
+  source: string;
+  consent: { granted: boolean; granted_at: string | null; revoked_at: string | null; revoked_by: "user" | "provider" | null } | null;
+  counts: { imported: number; linked: number; archived: number; review: number };
+  last_import_at?: string | null; sports?: { sport: string; n: number }[]; fields?: { total: number; distance: number; duration?: number };
+  link?: { linked: boolean; linked_at?: string | null; last_event_at?: string | null; ended_at?: string | null } | null;
+  runs: SourceRun[];
+};
+export type SourceCenterData = { now?: string; sources: SourceEntry[]; batch: Record<string, unknown> | null };
+export type ReplayWindow = { from: string; to: string; days: number; clamped: boolean; unavailableBefore: string | null; requestedFrom: string };
+export type SourceAction = { id: string; label: string; window?: ReplayWindow; n?: number; batch?: string };
+export type SourceDiagnosis = {
+  source: SourceId; name: string; kind: "device_read" | "push" | "file" | "file_batch"; pilot: boolean; validated: boolean; collect: string; replayNote: string;
+  state: "off" | "withdrawn" | "provider_withdrawn" | "expired" | "failed" | "interrupted" | "gap" | "empty" | "ok" | "unavailable" | "update" | "file";
+  label: string; tone: "ok" | "warn" | "err" | "default"; connected: boolean; detail: string;
+  lastSuccess: string | null; lastAttempt: string | null; lastSuccessText: string | null; lastAttemptText: string | null;
+  counts: { imported: number; linked: number; archived: number; review: number };
+  coverage: { fields: { field: string; label: string; covered: boolean; note: string | null }[]; sports: { sport: string; n: number }[]; received: number; withDistance: number; rule: string };
+  exclusions: { reason: string; n: number; label: string }[]; conflicts: number; replay: ReplayWindow | null; actions: SourceAction[]; withdraw: string | null;
+};
+export type SourceDevice = { availability: "unsupported" | "unavailable" | "update_required" | "ready"; access: { steps: boolean; exercise: boolean } };
+export const Sources = g.TitanSources as {
+  CONTRACTS: Record<SourceId, { name: string; kind: string; replay: { supported: boolean; maxDays?: number; defaultDays?: number; file?: boolean } }>;
+  EXCLUSIONS: Record<string, string>;
+  ERRORS: Record<string, string>;
+  replayWindow(source: SourceId, o?: { now?: number; lastWindowTo?: string | null; grantedAt?: string | null; from?: string | number | null }): ReplayWindow | null;
+  summarizeRun(r: { read?: number; results?: (string | { status: string; needs_review?: boolean })[]; excluded?: Record<string, number>; error?: string | null }): { outcome: SourceRunOutcome; counts: Required<SourceRunCounts>; error_code: string | null };
+  diagnose(source: SourceId, entry: Partial<SourceEntry> | { batch: unknown } | null, o?: { now?: number; device?: SourceDevice | null; here?: boolean; tz?: string }): SourceDiagnosis;
+  center(data: Partial<SourceCenterData> | null, o?: { now?: number; device?: SourceDevice | null; here?: boolean; order?: SourceId[] }): SourceDiagnosis[];
+  withdrawText(source: SourceId, entry: { counts?: { imported?: number } } | null): string[];
+  measure(runs: Partial<SourceRun>[], activities?: { started_at: string; visible?: boolean }[], o?: { now?: number }): { interrupted: number; recovered: number; visible: number; recoveredRate: number | null; visibleRate: number | null; medianDelayMinutes: number | null; maxDelayMinutes: number | null };
 };
 
 export type MeasureIssue = { code: string; field: string; message: string };

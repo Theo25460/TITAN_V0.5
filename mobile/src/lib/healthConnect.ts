@@ -68,15 +68,25 @@ export function windowOf(now: Date, days = READ_DAYS): { from: Date; to: Date; d
   return { from, to: now, days: list };
 }
 
-export function toCandidate(r: HcExercise): SessionCandidate | null {
+/** V1.6.5: why a Health Connect record is not offered, with the reasons of the source center (never silently dropped). */
+export type Exclusion = "unmapped_type" | "invalid_id" | "invalid_date" | "too_short" | "too_long";
+export function classify(r: HcExercise): { candidate: SessionCandidate } | { excluded: Exclusion } {
   const sport = sportOf(r.exerciseType);
   const start = Date.parse(r.startTime), end = Date.parse(r.endTime);
   const id = r.metadata?.id;
-  if (!sport || !id || !/^[A-Za-z0-9_.:-]{1,128}$/.test(id) || !Number.isFinite(start) || !Number.isFinite(end)) return null;
+  if (!id || !/^[A-Za-z0-9_.:-]{1,128}$/.test(id)) return { excluded: "invalid_id" };
+  if (!sport) return { excluded: "unmapped_type" };
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return { excluded: "invalid_date" };
   const minutes = Math.round((end - start) / 60000);
-  if (minutes < 1 || minutes > MAX_SESSION_MINUTES) return null;
-  return { externalId: id, sport, startedAt: new Date(start).toISOString(), minutes, title: r.title?.trim() ? r.title.trim().slice(0, 80) : null };
+  if (minutes < 1) return { excluded: "too_short" };
+  if (minutes > MAX_SESSION_MINUTES) return { excluded: "too_long" };
+  return { candidate: { externalId: id, sport, startedAt: new Date(start).toISOString(), minutes, title: r.title?.trim() ? r.title.trim().slice(0, 80) : null } };
 }
+export function toCandidate(r: HcExercise): SessionCandidate | null {
+  const c = classify(r);
+  return "candidate" in c ? c.candidate : null;
+}
+export type WindowRead = { candidates: SessionCandidate[]; excluded: Partial<Record<Exclusion, number>>; complete: boolean };
 
 export function availabilityOf(status: number): Availability {
   return status === SDK_AVAILABLE ? "ready" : status === SDK_UPDATE_REQUIRED ? "update_required" : "unavailable";
@@ -119,21 +129,33 @@ export function createHealthConnect(lib: HcLib | null) {
     }
     return w.days.filter((d) => byDay.has(d)).map((day) => ({ day, steps: byDay.get(day) as number }));
   }
+  /** V1.6.5: one bounded window, every record either offered or excluded with its reason. `complete` is false when more than
+      1 000 records would have to be read (the resume then says the window was not read to its end). */
+  async function readWindow(from: Date, to: Date): Promise<WindowRead> {
+    if (!lib) return { candidates: [], excluded: {}, complete: true };
+    await lib.initialize();
+    const out: SessionCandidate[] = [];
+    const excluded: Partial<Record<Exclusion, number>> = {};
+    let pageToken: string | undefined;
+    let complete = false;
+    for (let page = 0; page < 10; page++) {
+      const res = await lib.readRecords("ExerciseSession", { timeRangeFilter: { operator: "between", startTime: from.toISOString(), endTime: to.toISOString() }, pageSize: 100, pageToken });
+      for (const r of res.records) {
+        const c = classify(r);
+        if ("candidate" in c) out.push(c.candidate);
+        else excluded[c.excluded] = (excluded[c.excluded] ?? 0) + 1;
+      }
+      pageToken = res.pageToken;
+      if (!pageToken) { complete = true; break; }
+    }
+    return { candidates: out.sort((a, b) => b.startedAt.localeCompare(a.startedAt)), excluded, complete };
+  }
   async function readSessions(now = new Date()): Promise<SessionCandidate[]> {
     if (!lib) return [];
     const w = windowOf(now);
-    await lib.initialize();
-    const out: SessionCandidate[] = [];
-    let pageToken: string | undefined;
-    for (let page = 0; page < 10; page++) {
-      const res = await lib.readRecords("ExerciseSession", { timeRangeFilter: { operator: "between", startTime: w.from.toISOString(), endTime: w.to.toISOString() }, pageSize: 100, pageToken });
-      for (const r of res.records) { const c = toCandidate(r); if (c) out.push(c); }
-      pageToken = res.pageToken;
-      if (!pageToken) break;
-    }
-    return out.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+    return (await readWindow(w.from, w.to)).candidates;
   }
-  return { availability, granted, request, readSteps, readSessions, openSettings: () => lib?.openHealthConnectSettings(), revoke: async () => { if (lib) await lib.revokeAllPermissions(); } };
+  return { availability, granted, request, readSteps, readSessions, readWindow, openSettings: () => lib?.openHealthConnectSettings(), revoke: async () => { if (lib) await lib.revokeAllPermissions(); } };
 }
 
 /** The real library, loaded only on Android and only when first used (a missing native module is "unsupported", never a crash). */
