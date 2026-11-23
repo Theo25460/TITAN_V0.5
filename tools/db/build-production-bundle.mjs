@@ -102,6 +102,17 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v20 bundle (registry 141, head 20261122090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.6.3 — Contrôle et réconciliation (23 November 2026): the owner reads what a correction, an archive or a restore changed
+  // (titan_session_changes_v1, from training_revisions); the journal restore of a session a V1.6.2 rejoin archived is refused
+  // (« Séparer » restores it), so the same effort never counts twice. NOT APPLIED: owner's approval required. Requires v21.
+  // Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_history_reconcile.sql).
+  v22: {
+    out: "supabase/release-v22", after: "20261123090000", until: "20261123120000",
+    before: { private: [125, "3ee797232f74", "4711201906bc"], public: [326, "cecf92935b00", "99408d5e7398"] },
+    expected: { private: [126, "1a34100c4a43", "30801c0daf70"], public: [327, "37814c491e87", "bbf3b0c5b47f"] },
+    beforeNote: "This is the state production reaches at the end of the v21 bundle (head 20261123090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

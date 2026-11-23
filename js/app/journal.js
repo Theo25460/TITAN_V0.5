@@ -419,6 +419,7 @@
       <p class="jr-reward ${rw.cls}">${esc(rw.text)}</p>
       ${syncHtml(l)}
       <div data-match-slot></div>
+      <div data-changes-slot></div>
       ${comparisonHtml(l)}
       ${exercisesHtml(l)}
       ${extrasHtml(l)}
@@ -444,6 +445,21 @@
     d.addEventListener("close", () => events.forEach(ev => window.removeEventListener(ev, guard)), { once: true });
     guard();
   }
+  /* V1.6.3: what corrections, archives and restores changed on this session, read from the server (titan_session_changes_v1,
+     owner only), worded by js/core/history-ledger.js like on Android. Without the function (bundle v22 not applied) nothing shows. */
+  async function mountChanges(slot, l, isCurrent) {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!slot || !uuid.test(String(l?.id || "")) || !(Number(l.revision) > 1) || (l.syncStatus && l.syncStatus !== "confirmed")) return;
+    if (!window.titanClient?.rpc || !navigator.onLine || String(window.state?.user?.id || "").startsWith("guest_")) return;
+    let data = null;
+    try { ({ data } = await window.titanClient.rpc("titan_session_changes_v1", { p_log_id: l.id })); } catch { return; }
+    if (!isCurrent() || !Array.isArray(data) || !data.length) return;
+    const L = window.TitanLedger;
+    const when = (iso) => new Date(iso).toLocaleString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    slot.innerHTML = `<section class="jr-detail-block" data-changes aria-label="Modifications de la séance"><p class="asc-eyebrow">Modifications</p>
+      <ul class="asc-small jr-changes">${data.map((e) => `<li><span class="asc-faint">${esc(when(e.at))}</span> · ${esc((e.changes || []).map(L.changeText).join(" · "))}</li>`).join("")}</ul>
+      <p class="asc-small asc-faint">Référence ${esc(L.reference(l))}, la même sur tes autres appareils. Les récompenses restent celles de la séance initiale.</p></section>`;
+  }
   async function openDetail(id) {
     const request = ++detailRequest;
     const context = accountContext();
@@ -462,6 +478,7 @@
     guardDialog(d, context);
     window.TitanRoutes?.mountForSession?.(body.querySelector("[data-route-slot]"), l);
     window.TitanMatches?.mount(body.querySelector("[data-match-slot]"), l, () => request === detailRequest && currentAccount(context) && d.open);
+    mountChanges(body.querySelector("[data-changes-slot]"), l, () => request === detailRequest && currentAccount(context) && d.open);
     body.addEventListener("click", async (e) => {
       if (!currentAccount(context)) return d.close();
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
@@ -710,13 +727,24 @@
         if (value !== previousExtras[f.id]) metricPatch[f.id] = value;
       }
       if (Object.keys(metricPatch).length) patch.extras = { ...(patch.extras || {}), ...metricPatch };
+      // V1.6.3: only what changed is sent, so the session keeps its date (the form has no seconds), unit and reference, and its
+      // « Modifications » list shows the real correction (same rule as the Android edit screen).
+      if (Math.floor(new Date(l.date).getTime() / 60000) === Math.floor(date.getTime() / 60000)) delete patch.date;
+      if (patch.note === String(l.details?.note || "")) delete patch.note;
+      if ("duration" in patch) {
+        const was = minutes(l);
+        if (patch.duration === null ? was === null || was === undefined : Number(patch.duration) === Number(was)) delete patch.duration;
+      }
+      if ("val" in patch && Number(patch.val) === Number(l.val)) delete patch.val;
+      if (!Object.keys(patch).length) return (err.textContent = "Rien n’a changé : modifie une valeur ou annule.");
       const submit = body.querySelector("[type=submit]");
       submit.disabled = true;
       try {
         const updated = await X().update(l, patch);
         if (!updated || !currentAccount(context)) return;
         d.close();
-        window.titanShell.toast({ type: "ok", title: "Séance corrigée", message: "Statistiques et records sont à jour." });
+        const what = (window.TitanLedger?.changes(l, updated) || []).map(window.TitanLedger.changeText).join(" · ");
+        window.titanShell.toast({ type: "ok", title: "Séance corrigée", message: `${what ? `${what}. ` : ""}Statistiques et records sont à jour.` });
       } catch (error) {
         if (!currentAccount(context)) return;
         err.textContent = error.message;

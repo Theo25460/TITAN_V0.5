@@ -299,6 +299,7 @@ test('failed durable storage rejects the save and keeps the legacy backup',async
 });
 test('CSV neutralizes spreadsheet formulas and preserves quotes, accents and multiline notes',()=>{
  const e=environment(),module={exports:{}};
+ for(const f of ['../js/core/sync-state.js','../js/core/history-ledger.js'])vm.runInNewContext(readFileSync(new URL(f,import.meta.url),'utf8'),{window:e.window,module:{exports:{}}});
  vm.runInNewContext(readFileSync(new URL('../js/session-export.js',import.meta.url),'utf8'),{window:e.window,module,document:{getElementById(){return null}}});
  const {csv,escapeCell}=module.exports;
  assert.equal(escapeCell('=1+1'),'"\'=1+1"');assert.equal(escapeCell('  =1+1'),'"\'  =1+1"');

@@ -1106,7 +1106,8 @@
       }).finally(() => { if (cardConfirmation === confirmation) cardConfirmation = null; });
     }
     if (b.hasAttribute("data-export-json")) return exportJson();
-    if (b.hasAttribute("data-export-csv")) return window.titanExportSessionsCSV?.(logs());
+    // V1.6.3: « Tout ton journal » — the journal and its archives, each row with its state (js/core/history-ledger.js).
+    if (b.hasAttribute("data-export-csv")) return window.titanExportSessionsCSV?.([...logs(), ...(window.state?.archivedHistory || [])]);
     if (b.hasAttribute("data-clear-cache")) return clearCache();
     if (b.hasAttribute("data-signout"))
       return window.titanShell.confirm({

@@ -57,6 +57,8 @@
     const table = a && b ? `<table class="jr-match-table"><thead><tr><th scope="col"><span class="sr-only">Valeur</span></th>${head}</tr></thead><tbody>
       ${line("Début", "start", (s) => s.at)}${line("Durée", "duration", (s) => s.duration)}${line("Distance", "distance", (s) => s.distance)}</tbody></table>` : "";
     const kept = v.rows.filter((r) => r.shownOnly).map((r) => `${r.label} affichée depuis ${v.sources[1]?.label || "la source"}, hors totaux`);
+    // V1.6.3: a source whose later edits never come back says so; the athlete corrects the session here (js/core/history-ledger.js).
+    const limit = window.TitanLedger?.sourceLimit?.(v.source) || null;
     const buttons = v.actions.map((x, i) => `<button type="button" class="asc-btn ${i === 0 && v.state === "review" ? "asc-btn-primary" : "asc-btn-secondary"} asc-btn-sm" data-match-action="${esc(x.id)}" data-match-source="${esc(v.source)}" data-match-ref="${esc(v.ref)}">${esc(x.label)}</button>`).join("");
     return `<section class="jr-detail-block jr-match" data-match-state="${esc(v.state)}" aria-label="Sources de la séance"><p class="asc-eyebrow">Sources</p>
       <p><strong class="${v.tone === "warn" ? "asc-warn" : ""}">${esc(v.title)}</strong></p><p class="asc-small">${esc(v.text)}</p>
@@ -65,6 +67,7 @@
       ${kept.length ? `<p class="asc-small">${esc(kept.join(" · "))}.</p>` : ""}
       ${v.sources.length > 1 ? `<p class="asc-small jr-match-rule">Règle : ${esc(v.rule)}${v.overlap ? ` Recouvrement : ${v.overlap} % de l’effort le plus court.` : ""}</p>` : ""}
       ${v.events.length ? `<details class="jr-match-log"><summary class="asc-small">Historique des décisions (${v.events.length})</summary><ul class="asc-small">${v.events.map((e) => `<li>${esc(e.at)} : ${esc(e.text)} par ${esc(e.by)}</li>`).join("")}</ul></details>` : ""}
+      ${limit ? `<p class="asc-small jr-match-limit" data-source-limit>${esc(limit)}</p>` : ""}
       ${buttons ? `<div class="asc-row-flex">${buttons}</div>` : ""}</section>`;
   }
 

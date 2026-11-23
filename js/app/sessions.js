@@ -94,6 +94,7 @@
     DURATION_INVALID: "La durée va de 1 minute à 24 heures.",
     EXTRAS_INVALID: "Une mesure du sport n’est pas valide.",
     RATE_LIMITED: "Beaucoup de modifications en peu de temps. Réessaie dans un moment.",
+    SESSION_MATCH_JOINED: "Cette séance a été réunie avec une autre : la restaurer la compterait deux fois. Ouvre « Sources » et choisis « Séparer en deux séances ».",
     TRAINING_RATE_LIMIT: "Beaucoup de séances ou de modifications en peu de temps. Réessaie dans un moment.",
   };
   function humanize(error) {

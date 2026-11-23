@@ -5,32 +5,16 @@
     if (/^(?:\s*[=+@\-]|[\t\r\n])/.test(text)) text = "'" + text;
     return '"' + text.replaceAll('"', '""') + '"';
   };
+  const guest = () => String(window.state?.user?.id || "").startsWith("guest_");
+  const label = (sport) => window.SPORTS_CONFIG?.[sport]?.label || sport;
+  /* V1.6.3: the rows of the view shown (journal or archives, filters applied), each with its state and its canonical reference, the
+     same columns as the Android export (js/core/history-ledger.js). A refused entry is never exported here: it has its own copy
+     (« Exporter une copie », V1.6.1). */
   function csv(logs) {
-    const head = [
-      "Date",
-      "Sport",
-      "Valeur",
-      "Unité",
-      "Durée (min)",
-      "Ressenti (1–10)",
-      "Note",
-      "État",
-    ];
+    const L = window.TitanLedger;
     return (
-      "\ufeff" +
-      [
-        head,
-        ...logs.map((l) => [
-          l.date,
-          window.SPORTS_CONFIG?.[l.sport]?.label || l.sport,
-          l.val,
-          l.unit,
-          window.TitanTraining.duration(l) ?? "",
-          l.details?.bio?.rpe ?? "",
-          l.details?.note || "",
-          l.syncStatus === "confirmed" ? "Synchronisée" : "Sur cet appareil",
-        ]),
-      ]
+      "﻿" +
+      [L.CSV_HEAD, ...L.csvRows(logs, "all", { guest: guest(), label })]
         .map((row) => row.map(escapeCell).join(";"))
         .join("\r\n")
     );
