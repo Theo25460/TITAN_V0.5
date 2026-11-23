@@ -7,7 +7,7 @@ const tick=()=>new Promise(r=>setImmediate(r));
 function store(){const m=new Map();return{get length(){return m.size;},key:i=>[...m.keys()][i],getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k)};}
 function harness({storage=store(),send,status}={}){
  let now=100000,next=0,reads=0;const timers=new Map(),calls=[],events=new Map();
- const w={console:{warn(){},error(){}},Promise,Map,Set,Math,JSON,Date:class extends Date{static now(){return now;}},localStorage:storage,navigator:{onLine:true},document:{getElementById:()=>null},STATE_KEY:'state',CustomEvent:class{constructor(type){this.type=type;}},addEventListener:(name,fn)=>events.set(name,[...(events.get(name)||[]),fn]),dispatchEvent(){},setTimeout:(fn,ms)=>{timers.set(++next,{fn,at:now+ms});return next;},clearTimeout:id=>timers.delete(id),withTitanTimeout:p=>p,titanSetSyncStatus:(...a)=>status?.(w,...a),state:{user:{id:'a',name:'Local',weeklyGoalSessions:3,xp:7,credits:2},meta:{profileVersion:1},history:[]},TitanQueue:{list:()=>[],refresh:async()=>[],migrate:async()=>{},saveHistory:async()=>{}},TitanTraining:{paginate:async()=>({logs:[],total:0})}};
+ const w={console:{warn(){},error(){}},Promise,Map,Set,Math,JSON,Date:class extends Date{static now(){return now;}},localStorage:storage,navigator:{onLine:true},document:{getElementById:()=>null},STATE_KEY:'state',CustomEvent:class{constructor(type){this.type=type;}},addEventListener:(name,fn)=>events.set(name,[...(events.get(name)||[]),fn]),dispatchEvent(){},setTimeout:(fn,ms)=>{timers.set(++next,{fn,at:now+ms});return next;},clearTimeout:id=>timers.delete(id),withTitanTimeout:p=>p,titanSetSyncStatus:(...a)=>status?.(w,...a),state:{user:{id:'a',name:'Local',weeklyGoalSessions:3,xp:7,credits:2},meta:{profileVersion:1},history:[]},TitanQueue:{list:()=>[],refresh:async()=>[],migrate:async()=>{},saveHistory:async()=>{}},TitanTraining:{},TitanHistoryWindow:{refresh:async()=>({rows:[],removed:[],coverage:{complete:true,count:0,total:0,oldest:null,newest:null,checkedAt:null,mode:'pages'},stats:{mode:'pages'}}),reconcile:(now,rows)=>rows}};
  w.window=w;w.titanClient={auth:{getSession:async()=>({data:{session:{user:{id:w.state.user.id},access_token:`token-${w.state.user.id}`}},error:null})},rpc(name,params){if(name!=='titan_save_profile_state')return Promise.resolve({error:{code:'PGRST202'}});const call={name,params,token:null};calls.push(call);const q={setHeader(k,v){call.token=v;return q;},then(resolve,reject){return Promise.resolve().then(()=>send?send(call,calls.length):{data:{id:params.p_state.user.id,state_version:params.p_state.meta.profileVersion+1,xp:7},error:null}).then(resolve,reject);}};return q;},from(){return{select(){return this;},eq(){return this;},setHeader(){return this;},maybeSingle:async()=>{reads++;return{data:{id:w.state.user.id,username:'Cloud',state_version:5,game_state:{user:{id:w.state.user.id,name:'Cloud',weeklyGoalSessions:4},history:[]}},error:null};}};}};
  vm.createContext(w);vm.runInContext(source,w);w.ensureStateIntegrity=()=>{};w.titanSyncAppearance=async()=>false;
  return{w,calls,storage,fire:name=>(events.get(name)||[]).forEach(fn=>fn()),reads:()=>reads,advance:async ms=>{now+=ms;for(const[id,t]of[...timers])if(t.at<=now){timers.delete(id);t.fn();}await tick();}};
@@ -41,15 +41,15 @@ test('a missing version requires a cloud read and never bypasses optimistic conc
 
 test('an edit during the history phase of a profile read is not falsely acknowledged',async()=>{
  const h=harness();await h.w.syncWithSupabase();let release;
- h.w.TitanTraining.paginate=()=>new Promise(r=>release=r);
+ h.w.TitanHistoryWindow.refresh=()=>new Promise(r=>release=r); // V1.6.6: the history phase
  const reading=h.w.syncWithSupabase();await tick();
  h.w.state.user.weeklyGoalSessions=6;h.w.saveState();
- release({logs:[],total:0});await reading;
+ release({rows:[],removed:[],coverage:{complete:true,count:0,total:0,oldest:null,newest:null,checkedAt:null,mode:'pages'},stats:{mode:'pages'}});await reading;
  const control=JSON.parse(h.storage.getItem('titan_profile_control_v2_a'));
  assert.equal(JSON.parse(control.accepted).user.weeklyGoalSessions,4);
  const copy=h.w.titanGetProfileRecovery().find(r=>r.preferences.user.weeklyGoalSessions===6);
  assert(copy);assert.equal(copy.baseline.user.weeklyGoalSessions,4);
- h.w.TitanTraining.paginate=async()=>({logs:[],total:0});h.w.confirm=()=>true;
+ h.w.TitanHistoryWindow.refresh=async()=>({rows:[],removed:[],coverage:{complete:true,count:0,total:0,oldest:null,newest:null,checkedAt:null,mode:'pages'},stats:{mode:'pages'}});h.w.confirm=()=>true;
  await h.w.titanRestoreProfileRecovery(copy.key);
  assert.equal(h.calls.length,1);assert.equal(h.calls[0].params.p_state.user.weeklyGoalSessions,6);
 });

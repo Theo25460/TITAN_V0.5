@@ -1,0 +1,412 @@
+{
+  "date": "2026-11-23T13:28:31.033Z",
+  "sessions": 10000,
+  "oldId": "00000000-0000-4000-8166-166600007006",
+  "steps": [
+    {
+      "step": "S0 premier chargement",
+      "device": "A (Web)",
+      "rows": 10000,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9800,
+        "minutes": 1053888,
+        "km": 220815.8
+      },
+      "refAll": {
+        "sessions": 9800,
+        "minutes": 1053888,
+        "km": 220815.8
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "pages",
+        "requests": 20,
+        "read": 10000,
+        "removed": 0,
+        "kept": 0
+      }
+    },
+    {
+      "step": "S0 premier chargement",
+      "device": "B (Android)",
+      "rows": 10000,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9800,
+        "minutes": 1053888,
+        "km": 220815.8
+      },
+      "refAll": {
+        "sessions": 9800,
+        "minutes": 1053888,
+        "km": 220815.8
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "pages",
+        "requests": 20,
+        "read": 10000,
+        "removed": 0,
+        "kept": 0
+      }
+    },
+    {
+      "step": "S1 correction de la vieille sortie (A)",
+      "device": "A (Web)",
+      "rows": 10000,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9800,
+        "minutes": 1053883,
+        "km": 220815.8
+      },
+      "refAll": {
+        "sessions": 9800,
+        "minutes": 1053883,
+        "km": 220815.8
+      },
+      "notes": "dénivelé 1450 → 1650 m, durée −5 min",
+      "refresh": {
+        "mode": "pages",
+        "requests": 20,
+        "read": 10000,
+        "removed": 0,
+        "kept": 0
+      }
+    },
+    {
+      "step": "S1 rafraîchissement par manifeste",
+      "device": "B (Android)",
+      "rows": 10000,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9800,
+        "minutes": 1053883,
+        "km": 220815.8
+      },
+      "refAll": {
+        "sessions": 9800,
+        "minutes": 1053883,
+        "km": 220815.8
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "manifest",
+        "requests": 11,
+        "read": 1,
+        "removed": 0,
+        "kept": 9999
+      }
+    },
+    {
+      "step": "S2 archivage ×3 puis restauration (A)",
+      "device": "A (Web)",
+      "rows": 10000,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9798,
+        "minutes": 1053296,
+        "km": 220506.2
+      },
+      "refAll": {
+        "sessions": 9798,
+        "minutes": 1053296,
+        "km": 220506.2
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "pages",
+        "requests": 20,
+        "read": 10000,
+        "removed": 0,
+        "kept": 0
+      }
+    },
+    {
+      "step": "S2 rafraîchissement",
+      "device": "B (Android)",
+      "rows": 10000,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9798,
+        "minutes": 1053296,
+        "km": 220506.2
+      },
+      "refAll": {
+        "sessions": 9798,
+        "minutes": 1053296,
+        "km": 220506.2
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "manifest",
+        "requests": 11,
+        "read": 3,
+        "removed": 0,
+        "kept": 9997
+      }
+    },
+    {
+      "step": "S3 corrections simultanées (A)",
+      "device": "A (Web)",
+      "rows": 10000,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9798,
+        "minutes": 1053205,
+        "km": 220506.2
+      },
+      "refAll": {
+        "sessions": 9798,
+        "minutes": 1053205,
+        "km": 220506.2
+      },
+      "notes": "conflit sur la même séance : SESSION_VERSION_CONFLICT, B relit puis corrige",
+      "refresh": {
+        "mode": "manifest",
+        "requests": 11,
+        "read": 2,
+        "removed": 0,
+        "kept": 9998
+      }
+    },
+    {
+      "step": "S3 corrections simultanées (B)",
+      "device": "B (Android)",
+      "rows": 10000,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9798,
+        "minutes": 1053205,
+        "km": 220506.2
+      },
+      "refAll": {
+        "sessions": 9798,
+        "minutes": 1053205,
+        "km": 220506.2
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "manifest",
+        "requests": 10,
+        "read": 0,
+        "removed": 0,
+        "kept": 10000
+      }
+    },
+    {
+      "step": "S4 changements faits ailleurs (A)",
+      "device": "A (Web)",
+      "rows": 9975,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9732,
+        "minutes": 1045894,
+        "km": 219130.7
+      },
+      "refAll": {
+        "sessions": 9732,
+        "minutes": 1045894,
+        "km": 219130.7
+      },
+      "notes": "40 archivées en masse, 1 en vérification, 25 retirées",
+      "refresh": {
+        "mode": "manifest",
+        "requests": 11,
+        "read": 41,
+        "removed": 25,
+        "kept": 9934
+      }
+    },
+    {
+      "step": "S4 changements faits ailleurs (B)",
+      "device": "B (Android)",
+      "rows": 9975,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9732,
+        "minutes": 1045894,
+        "km": 219130.7
+      },
+      "refAll": {
+        "sessions": 9732,
+        "minutes": 1045894,
+        "km": 219130.7
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "manifest",
+        "requests": 11,
+        "read": 41,
+        "removed": 25,
+        "kept": 9934
+      }
+    },
+    {
+      "step": "S5 cache effacé, lecture coupée après 1 page",
+      "device": "B (Android)",
+      "rows": 500,
+      "complete": false,
+      "partialYears": 7,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "partial": true
+      },
+      "refAll": {
+        "sessions": 9732,
+        "minutes": 1045894,
+        "km": 219130.7
+      },
+      "notes": "réseau coupé après la première page",
+      "refresh": null
+    },
+    {
+      "step": "S6 reprise après effacement du cache",
+      "device": "B (Android)",
+      "rows": 9975,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9732,
+        "minutes": 1045894,
+        "km": 219130.7
+      },
+      "refAll": {
+        "sessions": 9732,
+        "minutes": 1045894,
+        "km": 219130.7
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "pages",
+        "requests": 20,
+        "read": 9975,
+        "removed": 0,
+        "kept": 0
+      }
+    },
+    {
+      "step": "S6 contrôle final",
+      "device": "A (Web)",
+      "rows": 9975,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9732,
+        "minutes": 1045894,
+        "km": 219130.7
+      },
+      "refAll": {
+        "sessions": 9732,
+        "minutes": 1045894,
+        "km": 219130.7
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "manifest",
+        "requests": 10,
+        "read": 0,
+        "removed": 0,
+        "kept": 9975
+      }
+    },
+    {
+      "step": "Contrôle final après la correction ancienne (A)",
+      "device": "A (Web)",
+      "rows": 9975,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9732,
+        "minutes": 1045984,
+        "km": 219130.7
+      },
+      "refAll": {
+        "sessions": 9732,
+        "minutes": 1045984,
+        "km": 219130.7
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "manifest",
+        "requests": 11,
+        "read": 1,
+        "removed": 0,
+        "kept": 9974
+      }
+    },
+    {
+      "step": "Contrôle final après la correction ancienne (B)",
+      "device": "B (Android)",
+      "rows": 9975,
+      "complete": true,
+      "partialYears": 0,
+      "gaps": 0,
+      "details": [],
+      "all": {
+        "sessions": 9732,
+        "minutes": 1045984,
+        "km": 219130.7
+      },
+      "refAll": {
+        "sessions": 9732,
+        "minutes": 1045984,
+        "km": 219130.7
+      },
+      "notes": "",
+      "refresh": {
+        "mode": "manifest",
+        "requests": 11,
+        "read": 1,
+        "removed": 0,
+        "kept": 9974
+      }
+    }
+  ],
+  "gaps": 0,
+  "negativeControl": {
+    "gaps": 2,
+    "details": [
+      "2022.minutes: 212788 au lieu de 212878",
+      "all.minutes: 1045894 au lieu de 1045984"
+    ]
+  }
+}

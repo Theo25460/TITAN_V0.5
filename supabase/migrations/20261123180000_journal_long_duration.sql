@@ -1,0 +1,133 @@
+-- V1.6.6 — Journal longue durée (23 November 2026). NOT APPLIED: owner's approval required (bundle supabase/release-v24, after v23).
+-- 1. The positive elevation of a session (details.elevation, metres, the field of the entry forms on the website and Android) can be
+--    corrected like its other measures: titan_update_training_session accepts « elevation » in its patch, a number from 0 to 12 000
+--    or null to clear it, for a session measured in km. One correction is one revision with one snapshot in training_revisions, whether
+--    the patch holds the elevation alone or with other fields; the rewards never change (as for every correction).
+-- 2. public.titan_session_changes_v1 also lists « elevation » ({ field, before, after, unit: 'm' }), worded by js/core/history-ledger.js.
+-- The journal of a long history reads its rows by key and refreshes by manifest (id, revision, archived_at, status, is_suspicious):
+-- no schema change is needed for that, every server change of a session already moves one of those columns.
+-- Rollback: re-apply public.titan_update_training_session and public.titan_session_changes_v1 from
+-- 20261123120000_history_reconcile.sql, then drop function private.titan_update_session_elevation_v1(uuid, integer, jsonb).
+
+create or replace function private.titan_update_session_elevation_v1(p_id uuid, p_revision integer, p_patch jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+set statement_timeout = '5s'
+as $function$
+declare
+  u uuid := auth.uid();
+  l public.training_logs%rowtype;
+  v public.training_logs%rowtype;
+  e jsonb := p_patch -> 'elevation';
+  rest jsonb := p_patch - 'elevation';
+begin
+  if u is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if jsonb_typeof(e) is distinct from 'null' and (jsonb_typeof(e) is distinct from 'number' or (e #>> '{}')::numeric < 0 or (e #>> '{}')::numeric > 12000) then
+    raise exception 'ELEVATION_INVALID' using errcode = '22023';
+  end if;
+  select * into l from public.training_logs where id = p_id and user_id = u;
+  if not found then raise exception 'SESSION_NOT_FOUND' using errcode = '42501'; end if;
+  if l.unit is distinct from 'km' then raise exception 'ELEVATION_INVALID' using errcode = '22023'; end if;
+  if rest <> '{}'::jsonb then
+    -- The other fields go through the usual correction (checks, snapshot, revision + 1); the elevation joins that same revision.
+    perform private.titan_update_training_session(p_id, p_revision, rest);
+    update public.training_logs
+       set details = case when jsonb_typeof(e) = 'null' then details - 'elevation' else jsonb_set(details, '{elevation}', to_jsonb(round((e #>> '{}')::numeric))) end - 'summary'
+     where id = p_id and user_id = u
+     returning * into v;
+    return to_jsonb(v);
+  end if;
+  -- The elevation alone: the same guards as private.titan_update_training_session, one snapshot, revision + 1.
+  perform 1 from public.profiles where id = u and not coalesce(is_suspended, false) for update;
+  if not found then raise exception 'PROFILE_UNAVAILABLE' using errcode = '42501'; end if;
+  select * into l from public.training_logs where id = p_id and user_id = u for update;
+  if p_revision is null or l.revision <> p_revision then raise exception 'SESSION_VERSION_CONFLICT' using errcode = 'PT409'; end if; -- PT409: one HTTP 409, never a retried serialization failure
+  if (case when jsonb_typeof(e) = 'null' then l.details -> 'elevation' is null else (l.details ->> 'elevation') is not distinct from (round((e #>> '{}')::numeric))::text end) then
+    raise exception 'PATCH_INVALID' using errcode = '22023';
+  end if;
+  insert into public.training_revisions(user_id, log_id, snapshot) values (u, l.id, to_jsonb(l));
+  update public.training_logs
+     set details = case when jsonb_typeof(e) = 'null' then details - 'elevation' else jsonb_set(details, '{elevation}', to_jsonb(round((e #>> '{}')::numeric))) end - 'summary',
+         revision = l.revision + 1
+   where id = l.id
+   returning * into v;
+  if v.revision <> l.revision + 1 then raise exception 'SESSION_REJECTED' using errcode = '23514'; end if;
+  return to_jsonb(v);
+end;
+$function$;
+revoke all on function private.titan_update_session_elevation_v1(uuid, integer, jsonb) from public, anon;
+grant execute on function private.titan_update_session_elevation_v1(uuid, integer, jsonb) to authenticated;
+
+create or replace function public.titan_update_training_session(p_id uuid, p_revision integer, p_patch jsonb)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $function$
+begin
+  if p_patch ? 'archived' and jsonb_typeof(p_patch -> 'archived') = 'boolean' and not (p_patch ->> 'archived')::boolean
+     and private.titan_session_rejoined_v1(p_id) then
+    raise exception 'SESSION_MATCH_JOINED' using errcode = '22023';
+  end if;
+  if jsonb_typeof(p_patch) = 'object' and p_patch ? 'elevation' then
+    return private.titan_update_session_elevation_v1(p_id, p_revision, p_patch);
+  end if;
+  return private.titan_update_training_session(p_id, p_revision, p_patch);
+end;
+$function$;
+revoke all on function public.titan_update_training_session(uuid, integer, jsonb) from public, anon;
+grant execute on function public.titan_update_training_session(uuid, integer, jsonb) to authenticated;
+
+create or replace function public.titan_session_changes_v1(p_log_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  v_cur public.training_logs%rowtype;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  select * into v_cur from public.training_logs l where l.id = p_log_id and l.user_id = v_uid;
+  if not found then return '[]'::jsonb; end if;
+  return coalesce((
+    with s as (
+      select r.id, r.created_at, r.snapshot as b,
+             coalesce(lead(r.snapshot) over (order by r.id), to_jsonb(v_cur)) as a
+        from public.training_revisions r
+       where r.log_id = p_log_id and r.user_id = v_uid
+    ), d as (
+      select s.id, s.created_at, (s.a ->> 'revision')::integer as revision,
+        array_remove(array[
+          case when (s.b ->> 'val')::numeric is distinct from (s.a ->> 'val')::numeric
+               then jsonb_build_object('field', 'val', 'before', s.b -> 'val', 'after', s.a -> 'val', 'unit', s.a ->> 'unit') end,
+          case when (s.b ->> 'unit') is distinct from (s.a ->> 'unit')
+               then jsonb_build_object('field', 'unit', 'before', s.b -> 'unit', 'after', s.a -> 'unit', 'unit', '') end,
+          case when date_trunc('minute', (s.b ->> 'date')::timestamptz) is distinct from date_trunc('minute', (s.a ->> 'date')::timestamptz)
+               then jsonb_build_object('field', 'date', 'before', s.b -> 'date', 'after', s.a -> 'date', 'unit', '') end,
+          case when public.titan_numeric_from_json(s.b -> 'details', 'duration') is distinct from public.titan_numeric_from_json(s.a -> 'details', 'duration')
+               then jsonb_build_object('field', 'duration', 'before', public.titan_numeric_from_json(s.b -> 'details', 'duration'),
+                                       'after', public.titan_numeric_from_json(s.a -> 'details', 'duration'), 'unit', 'min') end,
+          case when public.titan_numeric_from_json(s.b -> 'details', 'elevation') is distinct from public.titan_numeric_from_json(s.a -> 'details', 'elevation')
+               then jsonb_build_object('field', 'elevation', 'before', public.titan_numeric_from_json(s.b -> 'details', 'elevation'),
+                                       'after', public.titan_numeric_from_json(s.a -> 'details', 'elevation'), 'unit', 'm') end,
+          case when coalesce(s.b -> 'details' ->> 'note', '') is distinct from coalesce(s.a -> 'details' ->> 'note', '')
+               then jsonb_build_object('field', 'note', 'before', coalesce(s.b -> 'details' ->> 'note', ''), 'after', coalesce(s.a -> 'details' ->> 'note', ''), 'unit', '') end,
+          case when ((s.b ->> 'archived_at') is null) is distinct from ((s.a ->> 'archived_at') is null)
+               then jsonb_build_object('field', 'archived', 'before', (s.b ->> 'archived_at') is not null, 'after', (s.a ->> 'archived_at') is not null, 'unit', '') end
+        ], null) as changes
+        from s
+    ), latest as (
+      select * from d where cardinality(d.changes) > 0 order by d.id desc limit 50
+    )
+    select jsonb_agg(jsonb_build_object('revision', l.revision, 'at', l.created_at, 'changes', to_jsonb(l.changes)) order by l.id desc)
+      from latest l
+  ), '[]'::jsonb);
+end;
+$function$;
+revoke all on function public.titan_session_changes_v1(uuid) from public, anon;
+grant execute on function public.titan_session_changes_v1(uuid) to authenticated;

@@ -62,6 +62,10 @@
       row.details.performedAt = patch.date;
     }
     if ("note" in patch) row.details.note = patch.note;
+    if ("elevation" in patch) {
+      if (patch.elevation === null) delete row.details.elevation;
+      else row.details.elevation = patch.elevation;
+    }
     if ("exercises" in patch) {
       row.details.exercises = summarizeExercises(patch.exercises);
       const volume = row.details.exercises.reduce((n, ex) => n + ex.volume, 0);
@@ -93,6 +97,8 @@
     RIR_INVALID: "Le RIR va de 0 à 10, ou reste vide.",
     DURATION_INVALID: "La durée va de 1 minute à 24 heures.",
     EXTRAS_INVALID: "Une mesure du sport n’est pas valide.",
+    ELEVATION_INVALID: "Le dénivelé va de 0 à 12 000 m, pour une séance mesurée en km.",
+    PATCH_INVALID: "Le serveur n’accepte pas encore cette correction. Réessaie après sa prochaine mise à jour.",
     RATE_LIMITED: "Beaucoup de modifications en peu de temps. Réessaie dans un moment.",
     SESSION_MATCH_JOINED: "Cette séance a été réunie avec une autre : la restaurer la compterait deux fois. Ouvre « Sources » et choisis « Séparer en deux séances ».",
     TRAINING_RATE_LIMIT: "Beaucoup de séances ou de modifications en peu de temps. Réessaie dans un moment.",

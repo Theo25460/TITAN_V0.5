@@ -123,6 +123,17 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v22 bundle (head 20261123120000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.6.6 — Journal longue durée (23 November 2026): the elevation of a session can be corrected (one revision, one snapshot) and the
+  // change list names it. The long journal itself (paged reading by key, refresh by manifest, coverage) needs no schema change.
+  // NOT APPLIED: owner's approval required. Requires v23. Rehearsed on a replica (tools/db/test-migrations.sh,
+  // sql/tests/300_journal_long_duration.sql).
+  v24: {
+    out: "supabase/release-v24", after: "20261123150000", until: "20261123180000",
+    before: { private: [129, "8534c00d26df", "23f008c37b34"], public: [332, "fb59f2b689b9", "e20872688661"] },
+    expected: { private: [130, "6588576b84de", "263683b3f84f"], public: [332, "fb59f2b689b9", "dca2a744f579"] },
+    beforeNote: "This is the state production reaches at the end of the v23 bundle (head 20261123150000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

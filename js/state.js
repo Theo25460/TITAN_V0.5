@@ -173,8 +173,11 @@ function compactLocalTrainingLog(log = {}) {
     };
 }
 
+/* V1.6.6: both snapshots drop the training history (the cloud profile keeps none, the local one its 50 latest rows), so it is not
+   deep-copied first: on 10 000 sessions that copy cost 80 ms of every correction and every saved preference. */
+const withoutHistory = state => state && typeof state === 'object' ? Object.assign({}, state, { history: [], archivedHistory: [] }) : state;
 function cloneProfileStateForCloud(state) {
-    const snapshot = cloneStateForCloud(state);
+    const snapshot = cloneStateForCloud(withoutHistory(state));
     if (!snapshot || typeof snapshot !== 'object') return snapshot;
     snapshot.history = [];
     snapshot.archivedHistory = [];
@@ -184,15 +187,16 @@ function cloneProfileStateForCloud(state) {
 }
 
 function cloneStateForLocalStorage(state) {
-    const snapshot = cloneStateForCloud(state);
+    const isConnected = !!(state?.user?.id && !String(state.user.id).startsWith('guest_'));
+    // A discovery session keeps its whole (short) history in the snapshot, as before.
+    const snapshot = cloneStateForCloud(isConnected ? withoutHistory(state) : state);
     if (!snapshot || typeof snapshot !== 'object') return snapshot;
     snapshot.archivedHistory = [];
-    const isConnected = !!(snapshot.user?.id && !String(snapshot.user.id).startsWith('guest_'));
     if (!isConnected) return snapshot;
 
-    snapshot.history = (Array.isArray(snapshot.history) ? snapshot.history : [])
-        .sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,50)
-        .map(compactLocalTrainingLog);
+    const latest = (Array.isArray(state.history) ? state.history : [])
+        .map(l => [Date.parse(l?.date), l]).sort((a,b)=>(b[0]||0)-(a[0]||0)).slice(0,50).map(e=>e[1]);
+    snapshot.history = cloneStateForCloud(latest).map(compactLocalTrainingLog);
     if (snapshot.user && Array.isArray(snapshot.user.purchase_history)) snapshot.user.purchase_history = [];
     snapshot.meta = Object.assign({}, snapshot.meta || {}, {
         historyAuthority: 'training_logs',
@@ -1606,21 +1610,53 @@ async function titanReadCloudProfile() {
         await window.titanSyncAppearance();
         if (!current()) return;
 
-        const historyResult = await window.TitanTraining.paginate(client,session.user.id);
+        /* V1.6.6 — Journal longue durée (js/core/history-window.js): with a complete copy on this device only the manifest and the
+           changed rows travel; otherwise the rows come page by page by key and the first page is shown at once, marked partial. */
+        const W=window.TitanHistoryWindow,owner=session.user.id;
+        const serverRow=l=>l&&l.id&&(!l.syncStatus||l.syncStatus==='confirmed')&&(!l.user_id||l.user_id===owner);
+        const shownRows=()=>[...(window.state.history||[]),...(window.state.archivedHistory||[])].filter(serverRow);
+        const entry=await window.TitanQueue.readHistoryEntry?.(owner).catch(()=>null);
         if (!current()) return;
-        await window.TitanQueue.migrate();
+        const cached=entry?.coverage?.complete?{rows:entry.logs.filter(serverRow),coverage:entry.coverage}:null;
+        const startedFrom=shownRows();
+        const withQueue=async confirmedRows=>{
+            await window.TitanQueue.migrate();
+            if (!current()) return [];
+            const pending=await window.TitanQueue.refresh();
+            const ids=new Set(confirmedRows.map(l=>l.client_event_id));
+            return pending.filter(i=>i.ownerId===owner&&!ids.has(i.payload.details.client_event_id)).map(i=>({...i.payload,id:i.payload.details.client_event_id,client_event_id:i.payload.details.client_event_id,cat:i.payload.category,xp:0,syncStatus:i.status}));
+        };
+        const show=async(rows,coverage)=>{
+            const confirmed=rows.map(l=>({...l,cat:l.category||l.cat,syncStatus:'confirmed'}));
+            const provisional=await withQueue(confirmed);
+            if (!current()) return null;
+            window.titanSetHistoryCoverage?.(owner,coverage);
+            window.state.archivedHistory=confirmed.filter(l=>l.archived_at);
+            window.state.history=[...confirmed.filter(l=>!l.archived_at),...provisional];
+            return confirmed;
+        };
+        let partialShown=0;
+        // While true the journal says « La suite se charge » under a partial copy; a failed read ends it (titan:history-error).
+        window.titanHistoryLoading=true;
+        const historyResult = await W.refresh(client,owner,cached,{onPage:async(rows,coverage)=>{
+            // Nothing complete on screen yet: the first page is shown at once, marked partial, and the journal is usable while the
+            // rest arrives (each later page redrawn would cost more than it shows).
+            if (!current()||partialShown||window.titanHistoryCoverageOf?.(owner)?.complete) return;
+            partialShown=rows.length;
+            const shown=await show(W.reconcile(shownRows(),rows,[],startedFrom),coverage);
+            if (!shown) return;
+            window.TitanQueue.saveHistory(owner,shown,coverage).catch(()=>{});
+            window.dispatchEvent(new CustomEvent('titan:history-updated'));
+        }}).finally(()=>{window.titanHistoryLoading=false;});
         if (!current()) return;
-        const pending=await window.TitanQueue.refresh();
-        if (!current()) return;
-        const confirmed=historyResult.logs.map(l=>({...l,cat:l.category,syncStatus:'confirmed'}));
-        const ids=new Set(confirmed.map(l=>l.client_event_id));
-        const provisional=pending.filter(i=>i.ownerId===session.user.id&&!ids.has(i.payload.details.client_event_id)).map(i=>({...i.payload,id:i.payload.details.client_event_id,client_event_id:i.payload.details.client_event_id,cat:i.payload.category,xp:0,syncStatus:i.status}));
-        await window.TitanQueue.saveHistory(session.user.id,confirmed);
+        // A correction confirmed while the refresh was reading keeps its newer revision.
+        const confirmed=await show(W.reconcile(shownRows(),historyResult.rows,historyResult.removed,startedFrom),historyResult.coverage);
+        if (!confirmed||!current()) return;
+        await window.TitanQueue.saveHistory(owner,confirmed,historyResult.coverage);
         if (!current()) return;
         window.titanCloudHistoryLoadedAt=Date.now();
-        window.state.archivedHistory=confirmed.filter(l=>l.archived_at);
-        window.state.history=[...confirmed.filter(l=>!l.archived_at),...provisional];
-        window.state.meta=Object.assign({},window.state.meta,{profileVersion:profile.state_version,historyTotal:historyResult.total});
+        window.titanHistoryRefreshStats=historyResult.stats;
+        window.state.meta=Object.assign({},window.state.meta,{profileVersion:profile.state_version,historyTotal:historyResult.coverage.total});
         profileControl.accepted=confirmedProfileSignature;
         profileControl.blocked=titanProfileCopies(expectedOwner).length>0;
         profileControl.failures=0;profileControl.retryAt=0;

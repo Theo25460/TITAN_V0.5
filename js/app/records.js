@@ -127,7 +127,10 @@
     const groups = B().entries([...bySport].map(([sport, records]) => ({ sport, records, last: lastActivity.get(sport), sortLast: records.reduce((last, r) => new Date(r.log.date) > new Date(last || 0) ? r.log.date : last, null) })));
     const result = navigation.select(groups);
     const u = navigation.settings;
+    // V1.6.6: records of a partial copy are those of the sessions this device holds; say so, as the journal does.
+    const coverage = window.TitanHistoryWindow?.describe(window.titanHistoryCoverageOf?.(window.state?.user?.id), { online: navigator.onLine, loading: window.titanHistoryLoading === true });
     B().preserveFocus(() => { root.innerHTML = `
+      ${coverage ? `<p class="asc-note${coverage.tone === "warn" ? " warn" : ""}" data-coverage="${esc(coverage.state)}" role="status">${icon(navigator.onLine ? "cloud" : "offline")}<span>${esc(coverage.text)}</span></p>` : ""}
       ${u.sport === "all" && !u.query && u.scope === "all" && u.family === "all" && result.page === 1 ? vaultHtml(list, recent) : ""}
       ${navigation.controls()}
       <div class="rc-sports">${result.items

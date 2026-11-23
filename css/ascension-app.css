@@ -1604,6 +1604,17 @@
 }
 .jr-more {
   margin-top: var(--s4);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s3);
+}
+/* V1.6.6: what the device holds, and totals that are partial. */
+.jr-coverage {
+  margin-bottom: var(--s3);
+}
+.jr-partial {
+  margin: 0 0 var(--s2);
 }
 .jr-foot {
   display: flex;

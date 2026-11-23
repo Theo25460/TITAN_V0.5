@@ -2332,7 +2332,8 @@ test("comparisons: real profile sync clears the prior account before history pag
     window.compareAccess = "free";
     window.titanMaybeSubmitCacheReconciliation = undefined;
     window.titanSyncAppearance = async () => {};
-    window.TitanTraining.paginate = () => new Promise(resolve => { window.finishHistory = () => resolve({ logs: [], total: 0 }); });
+    // V1.6.6: the history is read through TitanHistoryWindow.refresh (js/core/history-window.js).
+    window.TitanHistoryWindow.refresh = () => new Promise(resolve => { window.finishHistory = () => resolve({ rows: [], removed: [], coverage: { complete: true, count: 0, total: 0, oldest: null, newest: null, checkedAt: null, mode: "pages" }, stats: { mode: "pages" } }); });
     window.TitanQueue.migrate = async () => {};
     window.TitanQueue.refresh = async () => [];
     window.TitanQueue.saveHistory = async () => {};
@@ -4793,11 +4794,12 @@ async function bootstrapPage(gate = null, fromGuest = false, emptyHistory = fals
         return Promise.resolve({ error: { code: "PGRST202" } });
       },
     };
-    window.TitanTraining.paginate = (_client, owner) => {
+    // V1.6.6: the history is read through TitanHistoryWindow.refresh (js/core/history-window.js), at the same step.
+    window.TitanHistoryWindow.refresh = (_client, owner) => {
       // RLS would return no A rows after authentication has moved to B. A request
       // begun before that switch may still complete later with A's own rows.
       const logs = !emptyHistory && owner === f.actor ? [{ id: "A-session", user_id: a, client_event_id: "A-event", sport: "running", category: "endurance", unit: "min", val: 30, date: new Date().toISOString(), details: { duration: 30 }, xp: 0 }] : [];
-      return step("history", { logs, total: logs.length });
+      return step("history", { rows: logs, removed: [], coverage: { complete: true, count: logs.length, total: logs.length, oldest: null, newest: null, checkedAt: null, mode: "pages" }, stats: { mode: "pages" } });
     };
     Object.assign(window.TitanQueue, {
       migrate: () => step("migrate"), refresh: () => step("refresh", []),

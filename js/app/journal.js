@@ -18,7 +18,9 @@
   const PREFS = "titan_journal_prefs_v3";
 
   let root = null;
-  let ui = { q: "", family: "all", period: "all", view: "list", archived: false, month: null, day: null };
+  /* V1.6.6: the list shows PAGE rows, then « Afficher plus » adds PAGE more; any change of filter starts again from the first page. */
+  const PAGE = 100;
+  let ui = { q: "", family: "all", period: "all", view: "list", archived: false, month: null, day: null, shown: PAGE };
   try {
     const saved = JSON.parse(localStorage.getItem(PREFS) || "null");
     if (saved) ui = { ...ui, family: saved.family || "all", period: saved.period || "all", view: saved.view === "calendar" ? "calendar" : "list" };
@@ -42,21 +44,25 @@
     return (ui.archived ? window.state?.archivedHistory : window.state?.history) || [];
   }
 
-  function filtered(ignoreDay = false) {
-    const q = norm(ui.q).trim();
-    const since = ui.period === "all" ? -Infinity : Date.now() - Number(ui.period) * DAY;
-    return source()
-      .filter((l) => {
-        const t = new Date(l.date).getTime();
-        if (!Number.isFinite(t) || t < since) return false;
-        if (ui.family !== "all" && SP().familyOf(l.sport) !== ui.family) return false;
-        if (!ignoreDay && ui.day && F().dateKey(l.date) !== ui.day) return false;
-        if (!q) return true;
-        const hay = norm([SP().label(l.sport), l.details?.note, ...(l.details?.exercises || []).map((e) => `${e.name} ${e.variant || ""}`), l.details?.extras?.max_done, l.details?.extras?.location].join(" "));
-        return q.split(/\s+/).every((w) => hay.includes(w));
-      })
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  /* V1.6.6: the rows are sorted and keyed once per history change (js/core/history-window.js buildIndex), so a filter is one pass
+     over the index instead of a sort of the whole history on every chip and keystroke (201 ms at p95 on 10 000 sessions before). */
+  const W = () => window.TitanHistoryWindow;
+  const searchText = (l) => [SP().label(l.sport), l.details?.note, ...(l.details?.exercises || []).map((e) => `${e.name} ${e.variant || ""}`), l.details?.extras?.max_done, l.details?.extras?.location].join(" ");
+  let historyVersion = 0;
+  window.addEventListener("titan:history-updated", () => { historyVersion++; });
+  const indexes = new WeakMap();
+  function indexOf(list) {
+    const known = indexes.get(list);
+    if (known && known.version === historyVersion && known.size === list.length) return known.index;
+    const index = W().buildIndex(list, { familyOf: (s) => SP().familyOf(s), textOf: searchText });
+    indexes.set(list, { index, version: historyVersion, size: list.length });
+    return index;
   }
+  const sinceOf = () => (ui.period === "all" ? -Infinity : Date.now() - Number(ui.period) * DAY);
+  function filtered(ignoreDay = false) {
+    return W().select(indexOf(source()), { since: sinceOf(), family: ui.family, day: ignoreDay ? null : ui.day, q: ui.q });
+  }
+  const coverage = () => (ui.archived ? null : window.titanHistoryCoverageOf?.(window.state?.user?.id) || null);
 
   /* Records of the whole history are computed once per change of the history, not on every render, keystroke and calendar row
      (141 ms for 2 000 sessions each time). The key is cheap and changes on add, edit (revision), archive and confirmation. */
@@ -136,31 +142,38 @@
     </button>`;
   }
 
+  /* V1.6.6: one page of rows at a time (PAGE, then « Afficher plus »), every row reachable; a month header keeps the count and the
+     time of the whole month in the filtered list, even when its rows are split across two pages. */
   function listHtml(list) {
     if (!list.length) return emptyHtml();
     const recs = recordIds();
-    const groups = new Map();
+    const monthOf = (l) => { const d = new Date(l.date); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; };
+    const visible = list.slice(0, Math.max(PAGE, ui.shown));
+    const months = new Map();
+    for (const l of visible) {
+      const key = monthOf(l);
+      if (!months.has(key)) months.set(key, []);
+      months.get(key).push(l);
+    }
+    // Month totals over the whole filtered list, only for the months on screen.
+    const totals = new Map([...months.keys()].map((k) => [k, { n: 0, mins: 0 }]));
     for (const l of list) {
-      const d = new Date(l.date);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(l);
+      const t = totals.get(monthOf(l));
+      if (!t) { if (totals.size && monthOf(l) < [...totals.keys()].at(-1)) break; continue; }
+      t.n++;
+      t.mins += minutes(l) || 0;
     }
     let out = "";
-    let shown = 0;
-    for (const [key, logs] of groups) {
-      if (shown > 400) {
-        out += `<p class="asc-small asc-faint jr-more">${F().number(list.length - shown)} séances plus anciennes : affine la recherche ou la période pour les voir.</p>`;
-        break;
-      }
+    for (const [key, logs] of months) {
       const [y, m] = key.split("-").map(Number);
-      const mins = logs.reduce((n, l) => n + (minutes(l) || 0), 0);
+      const { n, mins } = totals.get(key);
       out += `<section class="jr-month" aria-label="${esc(new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}">
-        <header class="jr-month-head"><h2>${esc(new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: y === new Date().getFullYear() ? undefined : "numeric" }))}</h2><span class="asc-small asc-muted">${logs.length} séance${logs.length > 1 ? "s" : ""}${mins ? ` · ${esc(F().duration(mins))}` : ""}</span></header>
+        <header class="jr-month-head"><h2>${esc(new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: y === new Date().getFullYear() ? undefined : "numeric" }))}</h2><span class="asc-small asc-muted">${n} séance${n > 1 ? "s" : ""}${mins ? ` · ${esc(F().duration(mins))}` : ""}</span></header>
         <div class="jr-cols" aria-hidden="true"><span></span><span></span><span>Séance</span><span>Durée</span><span>Distance</span><span>Ressenti</span><span></span></div>
         <div class="jr-rows">${logs.map((l) => rowHtml(l, recs)).join("")}</div></section>`;
-      shown += logs.length;
     }
+    const rest = list.length - visible.length;
+    if (rest > 0) out += `<div class="jr-more"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-more>${icon("chevronDown")} Afficher ${F().number(Math.min(PAGE, rest))} séance${Math.min(PAGE, rest) > 1 ? "s" : ""} de plus</button><span class="asc-small asc-faint">${F().number(visible.length)} sur ${F().number(list.length)}</span></div>`;
     return out;
   }
 
@@ -226,12 +239,28 @@
       <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-retry ${navigator.onLine ? "" : "disabled"}>${icon("cloudUp")} Réessayer</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-export-pending>${icon("download")} Exporter une copie</button>${errors.some((i) => !i.deferred) ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-discard-refused>${icon("trash")} Retirer les séances refusées</button>` : ""}</div></div></section>`;
   }
 
+  /* V1.6.6: what this device holds, when it is offline or while the history is still arriving (js/core/history-window.js). */
+  function coverageHtml() {
+    const cov = coverage();
+    const d = cov && W().describe(cov, { online: navigator.onLine, loading: window.titanHistoryLoading === true });
+    if (!d) return "";
+    return `<p class="asc-note${d.tone === "warn" ? " warn" : ""} jr-coverage" data-coverage="${esc(d.state)}" role="status">${icon(navigator.onLine ? "cloud" : "offline")}<span>${esc(d.text)}</span></p>`;
+  }
+
   function summaryHtml(list) {
     if (!list.length) return "";
-    const mins = list.reduce((n, l) => n + (minutes(l) || 0), 0);
-    const km = list.filter((l) => l.unit === "km").reduce((n, l) => n + (Number(l.val) || 0), 0);
-    const days = new Set(list.map((l) => F().dateKey(l.date))).size;
-    return `<dl class="jr-summary">
+    let mins = 0, km = 0;
+    const dayKeys = new Set();
+    for (const l of list) {
+      mins += minutes(l) || 0;
+      if (l.unit === "km") km += Number(l.val) || 0;
+      dayKeys.add(F().dateKey(l.date));
+    }
+    const days = dayKeys.size;
+    // V1.6.6: a partial copy (first pages, or offline before the whole history arrived) never reads as a complete total.
+    const cov = coverage();
+    const partial = cov && !W().covers(cov, sinceOf());
+    return `${partial ? `<p class="asc-small asc-faint jr-partial" data-coverage-partial>Totaux partiels : cet appareil n’a pas encore les séances d’avant le ${esc(new Date(cov.oldest || Date.now()).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))}.</p>` : ""}<dl class="jr-summary"${partial ? ' data-partial="true"' : ""}>
       <div><dt>Séances</dt><dd class="asc-num">${F().number(list.length)}</dd></div>
       <div><dt>Jours actifs</dt><dd class="asc-num">${F().number(days)}</dd></div>
       ${mins ? `<div><dt>Temps</dt><dd class="asc-num">${esc(F().duration(mins))}</dd></div>` : ""}
@@ -278,6 +307,7 @@
         return `<div class="jr-add">${hub ? `<a class="asc-btn asc-btn-secondary asc-btn-sm" href="/training?mode=manual" data-journal-manual>${icon("plus")} Ajouter</a><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/training?mode=import" data-journal-import>${icon("upload")} Importer</a>` : ""}${routes ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-routes-open aria-label="Mes parcours">${icon("route")} Parcours</button>` : ""}</div>`;
       })()}
       ${pendingHtml()}
+      ${coverageHtml()}
       <div class="jr-tools">
         <div class="jr-bar">
           <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>
@@ -578,6 +608,8 @@
       return `<label class="asc-field" data-metric="${esc(f.id)}"><span>${label}</span>${control}</label>`;
     };
     const timeUnit = ["min", "h"].includes(l.unit);
+    // V1.6.6: the positive elevation of a ride, a run or a hike (details.elevation), corrected like its other measures.
+    const elevated = l.unit === "km" && SP().hasElevation?.(l.sport) === true;
     const body = document.createElement("form");
     body.className = "asc-stack jr-edit";
     body.noValidate = true;
@@ -604,6 +636,7 @@
       }
       ${exercises.length && !editableSets ? `<p class="asc-note">${icon("info")}<span>Les maintiens chronométrés se corrigent en dupliquant la séance puis en archivant celle-ci.</span></p>` : ""}
       <label class="asc-field"><span>Durée (min)${timeUnit ? "" : ' <small class="asc-faint">facultatif</small>'}</span><input class="asc-input" type="number" inputmode="decimal" name="duration" min="1" max="1440" step="any" value="${esc(minutes(l) || "")}" ${timeUnit ? "required" : ""}></label>
+      ${elevated ? `<label class="asc-field"><span>Dénivelé positif (m) <small class="asc-faint">facultatif</small></span><input class="asc-input" type="number" inputmode="numeric" name="elevation" min="0" max="12000" step="1" value="${esc(l.details?.elevation ?? "")}"></label>` : ""}
       ${
         climbing
           ? `<div class="asc-form-grid"><label class="asc-field"><span>Meilleure réussie</span><input class="asc-input" name="max_done" value="${esc(l.details?.extras?.max_done || "")}"></label>
@@ -728,6 +761,13 @@
         if (value !== previousExtras[f.id]) metricPatch[f.id] = value;
       }
       if (Object.keys(metricPatch).length) patch.extras = { ...(patch.extras || {}), ...metricPatch };
+      if (elevated) {
+        const raw = String(fd.get("elevation") ?? "").trim().replace(",", ".");
+        const next = raw === "" ? null : Number(raw);
+        if (next !== null && !(Number.isFinite(next) && next >= 0 && next <= 12000)) return (err.textContent = "Le dénivelé va de 0 à 12 000 m.");
+        const was = l.details?.elevation === undefined || l.details?.elevation === null || l.details?.elevation === "" ? null : Number(l.details.elevation);
+        if ((next === null ? null : Math.round(next)) !== was) patch.elevation = next === null ? null : Math.round(next);
+      }
       // V1.6.3: only what changed is sent, so the session keeps its date (the form has no seconds), unit and reference, and its
       // « Modifications » list shows the real correction (same rule as the Android edit screen).
       if (Math.floor(new Date(l.date).getTime() / 60000) === Math.floor(date.getTime() / 60000)) delete patch.date;
@@ -761,6 +801,11 @@
     if (!t || !root.contains(t)) return;
     if (t.closest?.("[data-routes-open]")) return window.TitanRoutes?.openLibrary?.();
     if (t.dataset.open) return openDetail(t.dataset.open);
+    if (t.hasAttribute("data-more")) {
+      ui.shown += PAGE;
+      renderResults();
+      return;
+    }
     if (t.dataset.view) {
       ui.view = t.dataset.view;
       ui.day = null;
@@ -769,6 +814,7 @@
     }
     if (t.dataset.family) {
       ui.family = t.dataset.family;
+      ui.shown = PAGE;
       savePrefs();
       return render();
     }
@@ -788,12 +834,13 @@
       return render();
     }
     if (t.hasAttribute("data-reset")) {
-      ui = { ...ui, q: "", family: "all", period: "all", day: null };
+      ui = { ...ui, q: "", family: "all", period: "all", day: null, shown: PAGE };
       savePrefs();
       return render();
     }
     if (t.hasAttribute("data-archived")) {
       ui.archived = !ui.archived;
+      ui.shown = PAGE;
       ui.day = null;
       return render();
     }
@@ -835,6 +882,7 @@
   function onInput(e) {
     if (e.target.id === "jr-q") {
       ui.q = e.target.value;
+      ui.shown = PAGE;
       clearTimeout(inputTimer);
       inputTimer = setTimeout(renderResults, 120);
     }
@@ -842,6 +890,7 @@
   function onChange(e) {
     if (e.target.id === "jr-period") {
       ui.period = e.target.value;
+      ui.shown = PAGE;
       savePrefs();
       render();
     }
@@ -877,7 +926,7 @@
       start();
     });
   };
-  ["titan:history-updated", "titan:pending-changed", "titan:flags-updated", "online", "offline"].forEach((ev) => window.addEventListener(ev, queue));
+  ["titan:history-updated", "titan:history-error", "titan:pending-changed", "titan:flags-updated", "online", "offline"].forEach((ev) => window.addEventListener(ev, queue));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();
