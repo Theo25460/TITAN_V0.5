@@ -47,6 +47,7 @@ export const MODULES = [
   "js/core/history-ledger.js",
   "js/core/history-migration.js",
   "js/core/history-window.js",
+  "js/core/week-plan.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

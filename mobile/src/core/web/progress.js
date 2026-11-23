@@ -465,7 +465,7 @@
           eyebrow: "Prévu aujourd’hui",
           title: label,
           text: plan.minutes ? `${f.duration(plan.minutes)} prévues${plan.note ? ` · ${plan.note}` : ""}.` : plan.note || "Enregistre-la quand c’est fait, même plus courte que prévu.",
-          why: `Ta semaine type prévoit ${label.toLowerCase()} le ${dayName}. Tu peux la modifier dans Séance › Prévoir.`,
+          why: plan.moved ? `Tu as placé ${label.toLowerCase()} ce ${dayName} dans ta semaine. Tu peux changer ce choix dans Séance › Prévoir.` : `Ta semaine type prévoit ${label.toLowerCase()} le ${dayName}. Tu peux la modifier dans Séance › Prévoir.`,
           cta: { label: "Enregistrer cette séance", href: `/training?sport=${encodeURIComponent(plan.sport)}` },
         });
       }

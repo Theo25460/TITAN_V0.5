@@ -27,6 +27,7 @@ require("./web/session-match.js");
 require("./web/history-ledger.js");
 require("./web/history-migration.js");
 require("./web/history-window.js");
+require("./web/week-plan.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -367,4 +368,46 @@ export const HistoryWindow = g.TitanHistoryWindow as {
   covers(coverage: HistoryCoverage | null | undefined, since?: number): boolean;
   describe(coverage: HistoryCoverage | null | undefined, opts?: { online?: boolean; loading?: boolean }): { state: "complete" | "partial" | "none"; tone: "info" | "warn"; short: string; text: string } | null;
   refresh(client: unknown, owner: string, cached: { rows: TrainingLog[]; coverage: HistoryCoverage } | null, opts?: { onPage?: (rows: TrainingLog[], coverage: HistoryCoverage) => unknown; timeout?: <T>(p: PromiseLike<T>) => Promise<T>; now?: () => number }): Promise<HistoryRefresh>;
+};
+
+/** V1.7.2 — Planifié et réalisé: occurrences of the typical week tied to the sessions really done, the same rules and words as the
+    website (src/core/web/week-plan.js). The schedule is game_state.user.schedule (monday … sunday, revisions, weeks). */
+export type PlanDay = { sport: string; minutes: number | null; note: string } | null;
+export type WeekDecisionKind = "move" | "replace" | "skip" | "link" | "none" | "reset";
+export type WeekDecision = { kind: WeekDecisionKind; day?: string; sport?: string; session?: string };
+export type WeekOccurrence = {
+  id: string; index: number;
+  planned: { day: string; sport: string; minutes: number | null; note: string };
+  decision: { kind: WeekDecisionKind; at: string | null; day?: string; sport?: string; session?: string } | null;
+  effective: { day: string; sport: string };
+  status: "done" | "skipped" | "ask" | "paused" | "missed" | "today" | "planned";
+  gap: "moved" | "replaced" | "skipped" | "missed" | null;
+  link: { session: string; how: "auto" | "manual" } | null;
+  candidates: string[]; otherSport?: boolean; notice: "removed" | "not-counted" | "other-week" | "taken" | null; declined?: boolean;
+  actual?: { day: string; sport: string };
+};
+export type WeekPlanView = {
+  version: number; week: string; to: string; current: boolean; past: boolean; paused: boolean;
+  reference: { source: "week" | "revision" | "type" | "reconstructed"; at: string | null; days: PlanDay[] };
+  occurrences: WeekOccurrence[]; extra: { id: string; day: string; sport: string; ask: boolean }[];
+  summary: { planned: number; done: number; asPlanned: number; moved: number; replaced: number; skipped: number; missed: number; toDecide: number; upcoming: number; extra: number; gaps: number };
+  signature: string;
+};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Schedule = Record<string, any>;
+export const WeekPlan = g.TitanWeekPlan as {
+  VERSION: number; MAX_WEEKS: number; DAY_KEYS: string[]; DAY_NAMES: string[]; RULES: Record<"reference" | "link" | "gap" | "pause", string>;
+  addDays(key: string, n: number): string; weekOf(key: string): string; dayIndex(key: string): number;
+  localKey(instant: string | number | Date, zone?: string | null): string | null;
+  sessionDay(log: Partial<TrainingLog>, zone?: string | null): string | null; sessionId(log: Partial<TrainingLog>): string;
+  typeDays(schedule: Schedule): PlanDay[];
+  revisions(schedule: Schedule): { from: string | null; days: PlanDay[]; at: string | null }[];
+  reference(schedule: Schedule, week: string, opts?: { current?: string }): WeekPlanView["reference"];
+  editType(schedule: Schedule, dayKey: string, value: { sport: string | null; minutes?: number | string | null; note?: string } | null, opts: { today: string; at?: string }): { schedule: Schedule; appliesFrom: string };
+  decide(schedule: Schedule, occurrenceId: string, decision: WeekDecision, opts: { today: string; at?: string }): Schedule;
+  merge(local: Schedule, remote: Schedule): Schedule;
+  week(schedule: Schedule, logs: Partial<TrainingLog>[], opts: { week?: string; today: string; zone?: string | null; pauses?: string[] }): WeekPlanView;
+  snapshot(view: WeekPlanView): unknown;
+  describe(o: WeekOccurrence, opts?: { label?: (sport: string) => string }): { plan: string; status: string; notice: string | null; gap: string | null };
+  summarize(view: WeekPlanView): { start: string; changes: string; result: string };
 };
