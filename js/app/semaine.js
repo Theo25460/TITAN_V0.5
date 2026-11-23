@@ -407,6 +407,7 @@
       ${programHtml()}
       <div class="wk-cols">${weekHtml()}${highlightsHtml(r)}</div>
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty sig-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}
+      ${any ? window.TitanDisciplineAnalysisView?.html?.() || "" : ""}
       <div class="wk-cols wk-periods">${periodHtml("month")}${periodHtml("year")}</div>
       ${window.TitanStepsCard?.monthHtml?.() || ""}`;
     root.setAttribute("aria-busy", "false");
@@ -435,6 +436,8 @@
       window.TitanPeriodicQuests?.refresh();
       window.TitanWeekPlanView?.bind(root, planView);
       window.TitanWeekReviewView?.bind(root, reviewView, () => render());
+      // V1.7.5 — Analyse avancée par discipline (js/app/discipline-analysis-view.js).
+      window.TitanDisciplineAnalysisView?.bind(root, () => render());
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-week-card]")) return weekCard();
         if (e.target.closest("[data-month-card]")) return monthCard();

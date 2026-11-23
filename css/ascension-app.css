@@ -2184,6 +2184,57 @@
 .wk-values {
   font-variant-numeric: tabular-nums;
 }
+/* V1.7.5 — Analyse avancée par discipline (js/app/discipline-analysis-view.js) */
+.da {
+  display: grid;
+  gap: var(--s3);
+}
+.da-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--s2) var(--s3);
+}
+.da-field select {
+  width: 100%;
+  min-width: 0;
+}
+.da-table td small,
+.da-table th small,
+.da-rule small {
+  display: block;
+}
+.da-table tr[data-status="absent"] td[data-side="absent"] strong {
+  color: var(--tx-3);
+}
+.da-rule summary,
+.da-criteria summary {
+  font-size: 12px;
+  color: var(--tx-3);
+  cursor: pointer;
+}
+.da-status,
+.da-note {
+  color: var(--tx-2);
+}
+.da-series .wk-col:not(.is-ref) .wk-col-bar {
+  background: var(--space);
+}
+.da-series .wk-col.is-ref .wk-col-bar {
+  background: var(--line-2);
+}
+.da-series .wk-col.is-gap .wk-col-bar {
+  background: transparent;
+  border: 1px dashed var(--line-2);
+  height: 25%;
+}
+.da-reading h4 {
+  font-size: 15px;
+}
+.da-reading ul {
+  display: grid;
+  gap: 4px;
+  padding-left: 1.1em;
+}
 .wk-stack {
   display: flex;
   height: 14px;

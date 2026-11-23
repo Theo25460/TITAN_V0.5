@@ -1,0 +1,3822 @@
+{
+ "version": "2026.11-a1",
+ "cases": [
+  {
+   "name": "Endurance — long gravel outings on « Chemin roulant », the last 6 weeks against the 6 before",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "endurance",
+    "label": "Endurance",
+    "sport": "gravel",
+    "group": {
+     "id": "endurance:g-c3",
+     "discipline": "endurance",
+     "sport": "gravel",
+     "label": "Gravel · ≈ 78 km · Chemin roulant",
+     "sessions": 7,
+     "criteria": [
+      "Même sport : Gravel",
+      "Distance à 25 % près de la sortie repère du 14 nov. (78 km) : de 58,5 à 104 km",
+      "Même parcours (Terrain) : Chemin roulant",
+      "Dénivelé à 20 m/km près quand il est connu des deux côtés"
+     ],
+     "limits": [],
+     "anchor": "g-c3"
+    },
+    "groups": 4,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "g-c1",
+      "g-c2",
+      "g-c4",
+      "g-c3"
+     ]
+    },
+    "reference": {
+     "kind": "period",
+     "label": "6 semaines d’avant (28 août – 9 oct.)",
+     "sessions": [
+      "g-r1",
+      "g-r2",
+      "g-r3"
+     ],
+     "status": "ok"
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Sorties comparables",
+      "rule": "Sorties du groupe dans la période.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 4,
+       "display": "4 séances",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": {
+       "value": 3,
+       "display": "3 séances",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "g-r1",
+        "g-r2",
+        "g-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "distance",
+      "label": "Distance (médiane)",
+      "rule": "Médiane des distances mesurées.",
+      "provenance": "Distance saisie ou importée",
+      "current": {
+       "value": 75.5,
+       "display": "75,5 km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": {
+       "value": 70,
+       "display": "70 km",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "g-r1",
+        "g-r2",
+        "g-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "speed",
+      "label": "Vitesse moyenne (médiane)",
+      "rule": "Distance ÷ durée de chaque sortie, puis la médiane. Une durée estimée pour l’XP n’est jamais utilisée.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 20.9174,
+       "display": "20,9 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": {
+       "value": 19.6364,
+       "display": "19,6 km/h",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "g-r1",
+        "g-r2",
+        "g-r3"
+       ]
+      },
+      "direction": "better",
+      "significant": true,
+      "change": 0.0652,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "best_speed",
+      "label": "Meilleure vitesse moyenne",
+      "rule": "La meilleure sortie du groupe dans la période. Montrée sans verdict : elle dépend du nombre de sorties.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 21.0811,
+       "display": "21,1 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "from": "g-c3",
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": {
+       "value": 19.8113,
+       "display": "19,8 km/h",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "g-r1",
+        "g-r2",
+        "g-r3"
+       ],
+       "from": "g-r3"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "hold",
+      "label": "Tenue de l’effort",
+      "rule": "Vitesse moyenne des kilomètres de la seconde moitié ÷ celle de la première moitié (au moins 4 kilomètres complets). 100 % : effort tenu ; moins de 100 % : fin plus lente.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 97.7906,
+       "display": "97,8 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": {
+       "value": 93.7962,
+       "display": "93,8 %",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "g-r1",
+        "g-r2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 1 séance"
+      },
+      "direction": "better",
+      "significant": true,
+      "change": 0.0426,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "regularity",
+      "label": "Écart entre kilomètres",
+      "rule": "Écart-type des vitesses au kilomètre ÷ leur moyenne (au moins 4 kilomètres complets). Plus bas : plus régulier.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 1.9638,
+       "display": "2 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": {
+       "value": 3.6166,
+       "display": "3,6 %",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "g-r1",
+        "g-r2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 1 séance"
+      },
+      "direction": "better",
+      "significant": true,
+      "change": -0.457,
+      "better": "lower",
+      "status": "partial"
+     },
+     {
+      "id": "elevation",
+      "label": "Dénivelé positif par km (médiane)",
+      "rule": "Dénivelé positif ÷ distance. Repère de contexte, sans verdict.",
+      "provenance": "Dénivelé saisi ou mesuré par la trace",
+      "current": {
+       "value": 8.8231,
+       "display": "9 m/km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": {
+       "value": 8.8571,
+       "display": "9 m/km",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "g-r1",
+        "g-r2",
+        "g-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "avg_hr",
+      "label": "Fréquence cardiaque moyenne (médiane)",
+      "rule": "Médiane des FC moyennes saisies ou importées. Repère de contexte, sans verdict.",
+      "provenance": "Champ facultatif « Fréquence cardiaque moyenne »",
+      "current": {
+       "value": 145,
+       "display": "145 bpm",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c3"
+       ],
+       "missing": "FC non renseignée sur 2 séances"
+      },
+      "reference": {
+       "value": 143.5,
+       "display": "144 bpm",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "g-r1",
+        "g-r2"
+       ],
+       "missing": "FC non renseignée sur 1 séance"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "g-r1",
+      "date": "2026-09-05T08:00:00Z",
+      "side": "reference",
+      "value": 19.4286,
+      "display": "19,4 km/h"
+     },
+     {
+      "id": "g-r2",
+      "date": "2026-09-19T08:00:00Z",
+      "side": "reference",
+      "value": 19.6364,
+      "display": "19,6 km/h"
+     },
+     {
+      "id": "g-r3",
+      "date": "2026-10-03T08:00:00Z",
+      "side": "reference",
+      "value": 19.8113,
+      "display": "19,8 km/h"
+     },
+     {
+      "id": "g-c1",
+      "date": "2026-10-17T08:00:00Z",
+      "side": "current",
+      "value": 20.6512,
+      "display": "20,7 km/h"
+     },
+     {
+      "id": "g-c2",
+      "date": "2026-10-31T08:00:00Z",
+      "side": "current",
+      "value": 20.9174,
+      "display": "20,9 km/h"
+     },
+     {
+      "id": "g-c4",
+      "date": "2026-11-07T08:00:00Z",
+      "side": "current",
+      "value": null,
+      "display": "non mesurée"
+     },
+     {
+      "id": "g-c3",
+      "date": "2026-11-14T08:00:00Z",
+      "side": "current",
+      "value": 21.0811,
+      "display": "21,1 km/h"
+     }
+    ],
+    "limits": [
+     "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+     "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+     "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1,
+     "unsent": 1
+    },
+    "signature": "endurance:g-c3@2026.11-a1:g-c1,g-c2,g-c4,g-c3|g-r1,g-r2,g-r3",
+    "seriesMetric": "speed"
+   },
+   "reading": [
+    "Gravel · ≈ 78 km · Chemin roulant. 6 dernières semaines (9 oct. – 20 nov.) : 4 séances ; 6 semaines d’avant (28 août – 9 oct.) : 3 séances.",
+    "Distance : 75,5 km contre 70 km, 4/4 séances mesurées.",
+    "Vitesse moyenne : 20,9 km/h contre 19,6 km/h (en progrès), 3/4 séances mesurées.",
+    "Meilleure vitesse moyenne : 21,1 km/h contre 19,8 km/h, 3/4 séances mesurées.",
+    "Tenue de l’effort : 97,8 % contre 93,8 % (en progrès), 2/4 séances mesurées.",
+    "Écart entre kilomètres : 2 % contre 3,6 % (en progrès), 2/4 séances mesurées.",
+    "Dénivelé positif par km : 9 m/km contre 9 m/km, 4/4 séances mesurées.",
+    "Fréquence cardiaque moyenne : 145 bpm contre 144 bpm, 2/4 séances mesurées.",
+    "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+    "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+    "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Endurance — the same group against the training block « Base aérobie »",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "endurance",
+    "label": "Endurance",
+    "sport": "gravel",
+    "group": {
+     "id": "endurance:g-c3",
+     "discipline": "endurance",
+     "sport": "gravel",
+     "label": "Gravel · ≈ 78 km · Chemin roulant",
+     "sessions": 7,
+     "criteria": [
+      "Même sport : Gravel",
+      "Distance à 25 % près de la sortie repère du 14 nov. (78 km) : de 58,5 à 104 km",
+      "Même parcours (Terrain) : Chemin roulant",
+      "Dénivelé à 20 m/km près quand il est connu des deux côtés"
+     ],
+     "limits": [],
+     "anchor": "g-c3"
+    },
+    "groups": 4,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "g-c1",
+      "g-c2",
+      "g-c4",
+      "g-c3"
+     ]
+    },
+    "reference": {
+     "kind": "block",
+     "label": "Bloc « Base aérobie » (14 sept. – 11 oct.)",
+     "sessions": [
+      "g-r2",
+      "g-r3"
+     ],
+     "status": "ok",
+     "id": "blk-base"
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Sorties comparables",
+      "rule": "Sorties du groupe dans la période.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 4,
+       "display": "4 séances",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": {
+       "value": 2,
+       "display": "2 séances",
+       "measured": 2,
+       "total": 2,
+       "sessions": [
+        "g-r2",
+        "g-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "distance",
+      "label": "Distance (médiane)",
+      "rule": "Médiane des distances mesurées.",
+      "provenance": "Distance saisie ou importée",
+      "current": {
+       "value": 75.5,
+       "display": "75,5 km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": {
+       "value": 71,
+       "display": "71 km",
+       "measured": 2,
+       "total": 2,
+       "sessions": [
+        "g-r2",
+        "g-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "speed",
+      "label": "Vitesse moyenne (médiane)",
+      "rule": "Distance ÷ durée de chaque sortie, puis la médiane. Une durée estimée pour l’XP n’est jamais utilisée.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 20.9174,
+       "display": "20,9 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": {
+       "value": 19.7238,
+       "display": "19,7 km/h",
+       "measured": 2,
+       "total": 2,
+       "sessions": [
+        "g-r2",
+        "g-r3"
+       ]
+      },
+      "direction": "better",
+      "significant": true,
+      "change": 0.0605,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "best_speed",
+      "label": "Meilleure vitesse moyenne",
+      "rule": "La meilleure sortie du groupe dans la période. Montrée sans verdict : elle dépend du nombre de sorties.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 21.0811,
+       "display": "21,1 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "from": "g-c3",
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": {
+       "value": 19.8113,
+       "display": "19,8 km/h",
+       "measured": 2,
+       "total": 2,
+       "sessions": [
+        "g-r2",
+        "g-r3"
+       ],
+       "from": "g-r3"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "hold",
+      "label": "Tenue de l’effort",
+      "rule": "Vitesse moyenne des kilomètres de la seconde moitié ÷ celle de la première moitié (au moins 4 kilomètres complets). 100 % : effort tenu ; moins de 100 % : fin plus lente.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 97.7906,
+       "display": "97,8 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": {
+       "value": 94.0591,
+       "display": "94,1 %",
+       "measured": 1,
+       "total": 2,
+       "sessions": [
+        "g-r2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 1 séance"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "reason": "short",
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "regularity",
+      "label": "Écart entre kilomètres",
+      "rule": "Écart-type des vitesses au kilomètre ÷ leur moyenne (au moins 4 kilomètres complets). Plus bas : plus régulier.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 1.9638,
+       "display": "2 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": {
+       "value": 3.4823,
+       "display": "3,5 %",
+       "measured": 1,
+       "total": 2,
+       "sessions": [
+        "g-r2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 1 séance"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "reason": "short",
+      "better": "lower",
+      "status": "partial"
+     },
+     {
+      "id": "elevation",
+      "label": "Dénivelé positif par km (médiane)",
+      "rule": "Dénivelé positif ÷ distance. Repère de contexte, sans verdict.",
+      "provenance": "Dénivelé saisi ou mesuré par la trace",
+      "current": {
+       "value": 8.8231,
+       "display": "9 m/km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": {
+       "value": 8.9425,
+       "display": "9 m/km",
+       "measured": 2,
+       "total": 2,
+       "sessions": [
+        "g-r2",
+        "g-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "avg_hr",
+      "label": "Fréquence cardiaque moyenne (médiane)",
+      "rule": "Médiane des FC moyennes saisies ou importées. Repère de contexte, sans verdict.",
+      "provenance": "Champ facultatif « Fréquence cardiaque moyenne »",
+      "current": {
+       "value": 145,
+       "display": "145 bpm",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c3"
+       ],
+       "missing": "FC non renseignée sur 2 séances"
+      },
+      "reference": {
+       "value": 145,
+       "display": "145 bpm",
+       "measured": 1,
+       "total": 2,
+       "sessions": [
+        "g-r2"
+       ],
+       "missing": "FC non renseignée sur 1 séance"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "g-r2",
+      "date": "2026-09-19T08:00:00Z",
+      "side": "reference",
+      "value": 19.6364,
+      "display": "19,6 km/h"
+     },
+     {
+      "id": "g-r3",
+      "date": "2026-10-03T08:00:00Z",
+      "side": "reference",
+      "value": 19.8113,
+      "display": "19,8 km/h"
+     },
+     {
+      "id": "g-c1",
+      "date": "2026-10-17T08:00:00Z",
+      "side": "current",
+      "value": 20.6512,
+      "display": "20,7 km/h"
+     },
+     {
+      "id": "g-c2",
+      "date": "2026-10-31T08:00:00Z",
+      "side": "current",
+      "value": 20.9174,
+      "display": "20,9 km/h"
+     },
+     {
+      "id": "g-c4",
+      "date": "2026-11-07T08:00:00Z",
+      "side": "current",
+      "value": null,
+      "display": "non mesurée"
+     },
+     {
+      "id": "g-c3",
+      "date": "2026-11-14T08:00:00Z",
+      "side": "current",
+      "value": 21.0811,
+      "display": "21,1 km/h"
+     }
+    ],
+    "limits": [
+     "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+     "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+     "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1,
+     "unsent": 1
+    },
+    "signature": "endurance:g-c3@2026.11-a1:g-c1,g-c2,g-c4,g-c3|g-r2,g-r3",
+    "seriesMetric": "speed"
+   },
+   "reading": [
+    "Gravel · ≈ 78 km · Chemin roulant. 6 dernières semaines (9 oct. – 20 nov.) : 4 séances ; Bloc « Base aérobie » (14 sept. – 11 oct.) : 2 séances.",
+    "Distance : 75,5 km contre 71 km, 4/4 séances mesurées.",
+    "Vitesse moyenne : 20,9 km/h contre 19,7 km/h (en progrès), 3/4 séances mesurées.",
+    "Meilleure vitesse moyenne : 21,1 km/h contre 19,8 km/h, 3/4 séances mesurées.",
+    "Tenue de l’effort : 97,8 % contre 94,1 % (sans verdict : trop peu de séances), 2/4 séances mesurées.",
+    "Écart entre kilomètres : 2 % contre 3,5 % (sans verdict : trop peu de séances), 2/4 séances mesurées.",
+    "Dénivelé positif par km : 9 m/km contre 9 m/km, 4/4 séances mesurées.",
+    "Fréquence cardiaque moyenne : 145 bpm contre 145 bpm, 2/4 séances mesurées.",
+    "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+    "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+    "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Endurance — against one reference outing (19 September)",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "endurance",
+    "label": "Endurance",
+    "sport": "gravel",
+    "group": {
+     "id": "endurance:g-c3",
+     "discipline": "endurance",
+     "sport": "gravel",
+     "label": "Gravel · ≈ 78 km · Chemin roulant",
+     "sessions": 7,
+     "criteria": [
+      "Même sport : Gravel",
+      "Distance à 25 % près de la sortie repère du 14 nov. (78 km) : de 58,5 à 104 km",
+      "Même parcours (Terrain) : Chemin roulant",
+      "Dénivelé à 20 m/km près quand il est connu des deux côtés"
+     ],
+     "limits": [],
+     "anchor": "g-c3"
+    },
+    "groups": 4,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "g-c1",
+      "g-c2",
+      "g-c4",
+      "g-c3"
+     ]
+    },
+    "reference": {
+     "kind": "session",
+     "label": "Séance du 19 sept.",
+     "sessions": [
+      "g-r2"
+     ],
+     "status": "ok"
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Sorties comparables",
+      "rule": "Sorties du groupe dans la période.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 4,
+       "display": "4 séances",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": {
+       "value": 1,
+       "display": "1 séance",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "g-r2"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "distance",
+      "label": "Distance (médiane)",
+      "rule": "Médiane des distances mesurées.",
+      "provenance": "Distance saisie ou importée",
+      "current": {
+       "value": 75.5,
+       "display": "75,5 km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": {
+       "value": 72,
+       "display": "72 km",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "g-r2"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "speed",
+      "label": "Vitesse moyenne (médiane)",
+      "rule": "Distance ÷ durée de chaque sortie, puis la médiane. Une durée estimée pour l’XP n’est jamais utilisée.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 20.9174,
+       "display": "20,9 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": {
+       "value": 19.6364,
+       "display": "19,6 km/h",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "g-r2"
+       ]
+      },
+      "direction": "better",
+      "significant": true,
+      "change": 0.0652,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "best_speed",
+      "label": "Meilleure vitesse moyenne",
+      "rule": "La meilleure sortie du groupe dans la période. Montrée sans verdict : elle dépend du nombre de sorties.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 21.0811,
+       "display": "21,1 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "from": "g-c3",
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": {
+       "value": 19.6364,
+       "display": "19,6 km/h",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "g-r2"
+       ],
+       "from": "g-r2"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "hold",
+      "label": "Tenue de l’effort",
+      "rule": "Vitesse moyenne des kilomètres de la seconde moitié ÷ celle de la première moitié (au moins 4 kilomètres complets). 100 % : effort tenu ; moins de 100 % : fin plus lente.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 97.7906,
+       "display": "97,8 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": {
+       "value": 94.0591,
+       "display": "94,1 %",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "g-r2"
+       ]
+      },
+      "direction": "better",
+      "significant": true,
+      "change": 0.0397,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "regularity",
+      "label": "Écart entre kilomètres",
+      "rule": "Écart-type des vitesses au kilomètre ÷ leur moyenne (au moins 4 kilomètres complets). Plus bas : plus régulier.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 1.9638,
+       "display": "2 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": {
+       "value": 3.4823,
+       "display": "3,5 %",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "g-r2"
+       ]
+      },
+      "direction": "better",
+      "significant": true,
+      "change": -0.4361,
+      "better": "lower",
+      "status": "partial"
+     },
+     {
+      "id": "elevation",
+      "label": "Dénivelé positif par km (médiane)",
+      "rule": "Dénivelé positif ÷ distance. Repère de contexte, sans verdict.",
+      "provenance": "Dénivelé saisi ou mesuré par la trace",
+      "current": {
+       "value": 8.8231,
+       "display": "9 m/km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": {
+       "value": 9.0278,
+       "display": "9 m/km",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "g-r2"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "avg_hr",
+      "label": "Fréquence cardiaque moyenne (médiane)",
+      "rule": "Médiane des FC moyennes saisies ou importées. Repère de contexte, sans verdict.",
+      "provenance": "Champ facultatif « Fréquence cardiaque moyenne »",
+      "current": {
+       "value": 145,
+       "display": "145 bpm",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c3"
+       ],
+       "missing": "FC non renseignée sur 2 séances"
+      },
+      "reference": {
+       "value": 145,
+       "display": "145 bpm",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "g-r2"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "g-r2",
+      "date": "2026-09-19T08:00:00Z",
+      "side": "reference",
+      "value": 19.6364,
+      "display": "19,6 km/h"
+     },
+     {
+      "id": "g-c1",
+      "date": "2026-10-17T08:00:00Z",
+      "side": "current",
+      "value": 20.6512,
+      "display": "20,7 km/h"
+     },
+     {
+      "id": "g-c2",
+      "date": "2026-10-31T08:00:00Z",
+      "side": "current",
+      "value": 20.9174,
+      "display": "20,9 km/h"
+     },
+     {
+      "id": "g-c4",
+      "date": "2026-11-07T08:00:00Z",
+      "side": "current",
+      "value": null,
+      "display": "non mesurée"
+     },
+     {
+      "id": "g-c3",
+      "date": "2026-11-14T08:00:00Z",
+      "side": "current",
+      "value": 21.0811,
+      "display": "21,1 km/h"
+     }
+    ],
+    "limits": [
+     "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+     "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+     "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1,
+     "unsent": 1
+    },
+    "signature": "endurance:g-c3@2026.11-a1:g-c1,g-c2,g-c4,g-c3|g-r2",
+    "seriesMetric": "speed"
+   },
+   "reading": [
+    "Gravel · ≈ 78 km · Chemin roulant. 6 dernières semaines (9 oct. – 20 nov.) : 4 séances ; Séance du 19 sept. : 1 séance.",
+    "Distance : 75,5 km contre 72 km, 4/4 séances mesurées.",
+    "Vitesse moyenne : 20,9 km/h contre 19,6 km/h (en progrès), 3/4 séances mesurées.",
+    "Meilleure vitesse moyenne : 21,1 km/h contre 19,6 km/h, 3/4 séances mesurées.",
+    "Tenue de l’effort : 97,8 % contre 94,1 % (en progrès), 2/4 séances mesurées.",
+    "Écart entre kilomètres : 2 % contre 3,5 % (en progrès), 2/4 séances mesurées.",
+    "Dénivelé positif par km : 9 m/km contre 9 m/km, 4/4 séances mesurées.",
+    "Fréquence cardiaque moyenne : 145 bpm contre 145 bpm, 2/4 séances mesurées.",
+    "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+    "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+    "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Endurance — a road outing as reference is not comparable to the « Chemin roulant » group",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "endurance",
+    "label": "Endurance",
+    "sport": "gravel",
+    "group": {
+     "id": "endurance:g-c3",
+     "discipline": "endurance",
+     "sport": "gravel",
+     "label": "Gravel · ≈ 78 km · Chemin roulant",
+     "sessions": 7,
+     "criteria": [
+      "Même sport : Gravel",
+      "Distance à 25 % près de la sortie repère du 14 nov. (78 km) : de 58,5 à 104 km",
+      "Même parcours (Terrain) : Chemin roulant",
+      "Dénivelé à 20 m/km près quand il est connu des deux côtés"
+     ],
+     "limits": [],
+     "anchor": "g-c3"
+    },
+    "groups": 4,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "g-c1",
+      "g-c2",
+      "g-c4",
+      "g-c3"
+     ]
+    },
+    "reference": {
+     "kind": "session",
+     "label": "Séance du 10 nov.",
+     "sessions": [],
+     "status": "incomparable",
+     "note": "La sortie du 10 nov. est sur un autre parcours (Route) : elle n’est pas comparable à ce groupe."
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Sorties comparables",
+      "rule": "Sorties du groupe dans la période.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 4,
+       "display": "4 séances",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "distance",
+      "label": "Distance (médiane)",
+      "rule": "Médiane des distances mesurées.",
+      "provenance": "Distance saisie ou importée",
+      "current": {
+       "value": 75.5,
+       "display": "75,5 km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "speed",
+      "label": "Vitesse moyenne (médiane)",
+      "rule": "Distance ÷ durée de chaque sortie, puis la médiane. Une durée estimée pour l’XP n’est jamais utilisée.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 20.9174,
+       "display": "20,9 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "best_speed",
+      "label": "Meilleure vitesse moyenne",
+      "rule": "La meilleure sortie du groupe dans la période. Montrée sans verdict : elle dépend du nombre de sorties.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 21.0811,
+       "display": "21,1 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "from": "g-c3",
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "hold",
+      "label": "Tenue de l’effort",
+      "rule": "Vitesse moyenne des kilomètres de la seconde moitié ÷ celle de la première moitié (au moins 4 kilomètres complets). 100 % : effort tenu ; moins de 100 % : fin plus lente.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 97.7906,
+       "display": "97,8 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "regularity",
+      "label": "Écart entre kilomètres",
+      "rule": "Écart-type des vitesses au kilomètre ÷ leur moyenne (au moins 4 kilomètres complets). Plus bas : plus régulier.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 1.9638,
+       "display": "2 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "lower",
+      "status": "partial"
+     },
+     {
+      "id": "elevation",
+      "label": "Dénivelé positif par km (médiane)",
+      "rule": "Dénivelé positif ÷ distance. Repère de contexte, sans verdict.",
+      "provenance": "Dénivelé saisi ou mesuré par la trace",
+      "current": {
+       "value": 8.8231,
+       "display": "9 m/km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "avg_hr",
+      "label": "Fréquence cardiaque moyenne (médiane)",
+      "rule": "Médiane des FC moyennes saisies ou importées. Repère de contexte, sans verdict.",
+      "provenance": "Champ facultatif « Fréquence cardiaque moyenne »",
+      "current": {
+       "value": 145,
+       "display": "145 bpm",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c3"
+       ],
+       "missing": "FC non renseignée sur 2 séances"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "g-c1",
+      "date": "2026-10-17T08:00:00Z",
+      "side": "current",
+      "value": 20.6512,
+      "display": "20,7 km/h"
+     },
+     {
+      "id": "g-c2",
+      "date": "2026-10-31T08:00:00Z",
+      "side": "current",
+      "value": 20.9174,
+      "display": "20,9 km/h"
+     },
+     {
+      "id": "g-c4",
+      "date": "2026-11-07T08:00:00Z",
+      "side": "current",
+      "value": null,
+      "display": "non mesurée"
+     },
+     {
+      "id": "g-c3",
+      "date": "2026-11-14T08:00:00Z",
+      "side": "current",
+      "value": 21.0811,
+      "display": "21,1 km/h"
+     }
+    ],
+    "limits": [
+     "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+     "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+     "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1,
+     "unsent": 1
+    },
+    "signature": "endurance:g-c3@2026.11-a1:g-c1,g-c2,g-c4,g-c3|",
+    "seriesMetric": "speed"
+   },
+   "reading": [
+    "Gravel · ≈ 78 km · Chemin roulant. 6 dernières semaines (9 oct. – 20 nov.) : 4 séances ; référence : Séance du 10 nov., écartée.",
+    "La sortie du 10 nov. est sur un autre parcours (Route) : elle n’est pas comparable à ce groupe.",
+    "Distance : 75,5 km, 4/4 séances mesurées.",
+    "Vitesse moyenne : 20,9 km/h, 3/4 séances mesurées.",
+    "Meilleure vitesse moyenne : 21,1 km/h, 3/4 séances mesurées.",
+    "Tenue de l’effort : 97,8 %, 2/4 séances mesurées.",
+    "Écart entre kilomètres : 2 %, 2/4 séances mesurées.",
+    "Dénivelé positif par km : 9 m/km, 4/4 séances mesurées.",
+    "Fréquence cardiaque moyenne : 145 bpm, 2/4 séances mesurées.",
+    "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+    "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+    "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Endurance — an archived outing as reference is refused",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "endurance",
+    "label": "Endurance",
+    "sport": "gravel",
+    "group": {
+     "id": "endurance:g-c3",
+     "discipline": "endurance",
+     "sport": "gravel",
+     "label": "Gravel · ≈ 78 km · Chemin roulant",
+     "sessions": 7,
+     "criteria": [
+      "Même sport : Gravel",
+      "Distance à 25 % près de la sortie repère du 14 nov. (78 km) : de 58,5 à 104 km",
+      "Même parcours (Terrain) : Chemin roulant",
+      "Dénivelé à 20 m/km près quand il est connu des deux côtés"
+     ],
+     "limits": [],
+     "anchor": "g-c3"
+    },
+    "groups": 4,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "g-c1",
+      "g-c2",
+      "g-c4",
+      "g-c3"
+     ]
+    },
+    "reference": {
+     "kind": "session",
+     "label": "Séance du 1 nov.",
+     "sessions": [],
+     "status": "excluded",
+     "note": "Cette séance est archivée : elle ne sert pas de référence."
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Sorties comparables",
+      "rule": "Sorties du groupe dans la période.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 4,
+       "display": "4 séances",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "distance",
+      "label": "Distance (médiane)",
+      "rule": "Médiane des distances mesurées.",
+      "provenance": "Distance saisie ou importée",
+      "current": {
+       "value": 75.5,
+       "display": "75,5 km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "speed",
+      "label": "Vitesse moyenne (médiane)",
+      "rule": "Distance ÷ durée de chaque sortie, puis la médiane. Une durée estimée pour l’XP n’est jamais utilisée.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 20.9174,
+       "display": "20,9 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "best_speed",
+      "label": "Meilleure vitesse moyenne",
+      "rule": "La meilleure sortie du groupe dans la période. Montrée sans verdict : elle dépend du nombre de sorties.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 21.0811,
+       "display": "21,1 km/h",
+       "measured": 3,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c3"
+       ],
+       "from": "g-c3",
+       "missing": "durée non saisie sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "hold",
+      "label": "Tenue de l’effort",
+      "rule": "Vitesse moyenne des kilomètres de la seconde moitié ÷ celle de la première moitié (au moins 4 kilomètres complets). 100 % : effort tenu ; moins de 100 % : fin plus lente.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 97.7906,
+       "display": "97,8 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "regularity",
+      "label": "Écart entre kilomètres",
+      "rule": "Écart-type des vitesses au kilomètre ÷ leur moyenne (au moins 4 kilomètres complets). Plus bas : plus régulier.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": 1.9638,
+       "display": "2 %",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2"
+       ],
+       "missing": "pas de trace GPS découpée au kilomètre sur 2 séances"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "lower",
+      "status": "partial"
+     },
+     {
+      "id": "elevation",
+      "label": "Dénivelé positif par km (médiane)",
+      "rule": "Dénivelé positif ÷ distance. Repère de contexte, sans verdict.",
+      "provenance": "Dénivelé saisi ou mesuré par la trace",
+      "current": {
+       "value": 8.8231,
+       "display": "9 m/km",
+       "measured": 4,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c2",
+        "g-c4",
+        "g-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "avg_hr",
+      "label": "Fréquence cardiaque moyenne (médiane)",
+      "rule": "Médiane des FC moyennes saisies ou importées. Repère de contexte, sans verdict.",
+      "provenance": "Champ facultatif « Fréquence cardiaque moyenne »",
+      "current": {
+       "value": 145,
+       "display": "145 bpm",
+       "measured": 2,
+       "total": 4,
+       "sessions": [
+        "g-c1",
+        "g-c3"
+       ],
+       "missing": "FC non renseignée sur 2 séances"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "g-c1",
+      "date": "2026-10-17T08:00:00Z",
+      "side": "current",
+      "value": 20.6512,
+      "display": "20,7 km/h"
+     },
+     {
+      "id": "g-c2",
+      "date": "2026-10-31T08:00:00Z",
+      "side": "current",
+      "value": 20.9174,
+      "display": "20,9 km/h"
+     },
+     {
+      "id": "g-c4",
+      "date": "2026-11-07T08:00:00Z",
+      "side": "current",
+      "value": null,
+      "display": "non mesurée"
+     },
+     {
+      "id": "g-c3",
+      "date": "2026-11-14T08:00:00Z",
+      "side": "current",
+      "value": 21.0811,
+      "display": "21,1 km/h"
+     }
+    ],
+    "limits": [
+     "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+     "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+     "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+     "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+     "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1,
+     "unsent": 1
+    },
+    "signature": "endurance:g-c3@2026.11-a1:g-c1,g-c2,g-c4,g-c3|",
+    "seriesMetric": "speed"
+   },
+   "reading": [
+    "Gravel · ≈ 78 km · Chemin roulant. 6 dernières semaines (9 oct. – 20 nov.) : 4 séances ; référence : Séance du 1 nov., écartée.",
+    "Cette séance est archivée : elle ne sert pas de référence.",
+    "Distance : 75,5 km, 4/4 séances mesurées.",
+    "Vitesse moyenne : 20,9 km/h, 3/4 séances mesurées.",
+    "Meilleure vitesse moyenne : 21,1 km/h, 3/4 séances mesurées.",
+    "Tenue de l’effort : 97,8 %, 2/4 séances mesurées.",
+    "Écart entre kilomètres : 2 %, 2/4 séances mesurées.",
+    "Dénivelé positif par km : 9 m/km, 4/4 séances mesurées.",
+    "Fréquence cardiaque moyenne : 145 bpm, 2/4 séances mesurées.",
+    "Vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Meilleure vitesse moyenne : établi sur 3 des 4 séances (durée non saisie sur 1 séance).",
+    "Tenue de l’effort : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Écart entre kilomètres : établi sur 2 des 4 séances (pas de trace GPS découpée au kilomètre sur 2 séances).",
+    "Fréquence cardiaque moyenne : établi sur 2 des 4 séances (FC non renseignée sur 2 séances).",
+    "1 sortie sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’entre jamais dans une vitesse.",
+    "Hors calcul : 1 archivée, 1 en attente d’envoi. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Endurance — history too short (one run)",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "endurance",
+    "label": "Endurance",
+    "sport": "running",
+    "group": {
+     "id": "endurance:run-1",
+     "discipline": "endurance",
+     "sport": "running",
+     "label": "Course à pied · ≈ 10 km · Route",
+     "sessions": 1,
+     "criteria": [
+      "Même sport : Course à pied",
+      "Distance à 25 % près de la sortie repère du 15 nov. (10 km) : de 7,5 à 13,3 km",
+      "Même parcours (Surface) : Route",
+      "Dénivelé à 20 m/km près quand il est connu des deux côtés"
+     ],
+     "limits": [],
+     "anchor": "run-1"
+    },
+    "groups": 1,
+    "status": "insufficient",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "run-1"
+     ]
+    },
+    "reference": {
+     "kind": "period",
+     "label": "6 semaines d’avant (28 août – 9 oct.)",
+     "sessions": [],
+     "status": "empty",
+     "note": "Aucune séance du groupe dans cette référence : rien à mettre en face."
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Sorties comparables",
+      "rule": "Sorties du groupe dans la période.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 1,
+       "display": "1 séance",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "run-1"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "distance",
+      "label": "Distance (médiane)",
+      "rule": "Médiane des distances mesurées.",
+      "provenance": "Distance saisie ou importée",
+      "current": {
+       "value": 10,
+       "display": "10 km",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "run-1"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "pace",
+      "label": "Allure (médiane)",
+      "rule": "Durée ÷ distance de chaque sortie, puis la médiane. Une durée estimée pour l’XP n’est jamais utilisée.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 5.2,
+       "display": "5:12 /km",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "run-1"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "lower",
+      "status": "measured"
+     },
+     {
+      "id": "best_pace",
+      "label": "Meilleure allure",
+      "rule": "La meilleure sortie du groupe dans la période. Montrée sans verdict : elle dépend du nombre de sorties.",
+      "provenance": "Distance et durée déclarée",
+      "current": {
+       "value": 5.2,
+       "display": "5:12 /km",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "run-1"
+       ],
+       "from": "run-1"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "hold",
+      "label": "Tenue de l’effort",
+      "rule": "Vitesse moyenne des kilomètres de la seconde moitié ÷ celle de la première moitié (au moins 4 kilomètres complets). 100 % : effort tenu ; moins de 100 % : fin plus lente.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": null,
+       "display": "—",
+       "measured": 0,
+       "total": 1,
+       "sessions": [],
+       "missing": "pas de trace GPS découpée au kilomètre sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "absent"
+     },
+     {
+      "id": "regularity",
+      "label": "Écart entre kilomètres",
+      "rule": "Écart-type des vitesses au kilomètre ÷ leur moyenne (au moins 4 kilomètres complets). Plus bas : plus régulier.",
+      "provenance": "Découpage au kilomètre de la trace GPS",
+      "current": {
+       "value": null,
+       "display": "—",
+       "measured": 0,
+       "total": 1,
+       "sessions": [],
+       "missing": "pas de trace GPS découpée au kilomètre sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "lower",
+      "status": "absent"
+     },
+     {
+      "id": "elevation",
+      "label": "Dénivelé positif par km (médiane)",
+      "rule": "Dénivelé positif ÷ distance. Repère de contexte, sans verdict.",
+      "provenance": "Dénivelé saisi ou mesuré par la trace",
+      "current": {
+       "value": null,
+       "display": "—",
+       "measured": 0,
+       "total": 1,
+       "sessions": [],
+       "missing": "dénivelé non renseigné sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "absent"
+     },
+     {
+      "id": "avg_hr",
+      "label": "Fréquence cardiaque moyenne (médiane)",
+      "rule": "Médiane des FC moyennes saisies ou importées. Repère de contexte, sans verdict.",
+      "provenance": "Champ facultatif « Fréquence cardiaque moyenne »",
+      "current": {
+       "value": null,
+       "display": "—",
+       "measured": 0,
+       "total": 1,
+       "sessions": [],
+       "missing": "FC non renseignée sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "absent"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "run-1",
+      "date": "2026-11-15T07:00:00Z",
+      "side": "current",
+      "value": 5.2,
+      "display": "5:12 /km"
+     }
+    ],
+    "limits": [
+     "Historique trop court : 1 séance du groupe dans la période, il en faut 2 pour une tendance. Les mesures de cette séance sont présentées sans verdict.",
+     "Non mesuré sur la période : tenue de l’effort, écart entre kilomètres, dénivelé positif par km, fréquence cardiaque moyenne. Aucune valeur n’est estimée."
+    ],
+    "states": {},
+    "signature": "endurance:run-1@2026.11-a1:run-1|",
+    "seriesMetric": "pace"
+   },
+   "reading": [
+    "Course à pied · ≈ 10 km · Route. 6 dernières semaines (9 oct. – 20 nov.) : 1 séance ; 6 semaines d’avant (28 août – 9 oct.) : 0 séance.",
+    "Aucune séance du groupe dans cette référence : rien à mettre en face.",
+    "Distance : 10 km, 1/1 séance mesurée.",
+    "Allure : 5:12 /km, 1/1 séance mesurée.",
+    "Meilleure allure : 5:12 /km, 1/1 séance mesurée.",
+    "Historique trop court : 1 séance du groupe dans la période, il en faut 2 pour une tendance. Les mesures de cette séance sont présentées sans verdict.",
+    "Non mesuré sur la période : tenue de l’effort, écart entre kilomètres, dénivelé positif par km, fréquence cardiaque moyenne. Aucune valeur n’est estimée."
+   ]
+  },
+  {
+   "name": "Force — Squat (Barre), the last 6 weeks against the 6 before",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "strength",
+    "label": "Force",
+    "sport": "muscu_gym",
+    "group": {
+     "id": "strength:muscu_gym|squat|barre|",
+     "discipline": "strength",
+     "sport": "muscu_gym",
+     "label": "Squat (Barre) · Musculation en salle",
+     "sessions": 6,
+     "criteria": [
+      "Même sport : Musculation en salle",
+      "Même exercice, même variante et même matériel : Squat (Barre)",
+      "Séries mesurées (charge et répétitions) : aucun 1RM estimé"
+     ],
+     "limits": [
+      "Même nom, autre variante : sans variante, Front sont analysées à part. Deux variantes ne sont jamais fusionnées."
+     ],
+     "exercise": "squat|barre|"
+    },
+    "groups": 5,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "s-c1",
+      "s-c2",
+      "s-c3"
+     ]
+    },
+    "reference": {
+     "kind": "period",
+     "label": "6 semaines d’avant (28 août – 9 oct.)",
+     "sessions": [
+      "s-r1",
+      "s-r2",
+      "s-r3"
+     ],
+     "status": "ok"
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Séances avec cet exercice",
+      "rule": "Séances du journal où l’exercice a au moins une série mesurée.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 3,
+       "display": "3 séances",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": {
+       "value": 3,
+       "display": "3 séances",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-r1",
+        "s-r2",
+        "s-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "reference_set",
+      "label": "Série de référence",
+      "rule": "La série la plus lourde de la période ; à charge égale, celle qui a le plus de répétitions. Aucun 1RM estimé.",
+      "provenance": "Charge et répétitions de chaque série",
+      "current": {
+       "value": 102505,
+       "display": "102,5 kg × 5",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ],
+       "from": "s-c3"
+      },
+      "reference": {
+       "value": 95005,
+       "display": "95 kg × 5",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-r1",
+        "s-r2",
+        "s-r3"
+       ],
+       "from": "s-r3"
+      },
+      "direction": "better",
+      "significant": true,
+      "change": 0.0789,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "top_set",
+      "label": "Meilleure série par séance (médiane)",
+      "rule": "Charge de la meilleure série de chaque séance, puis la médiane.",
+      "provenance": "Charge et répétitions de chaque série",
+      "current": {
+       "value": 102.5,
+       "display": "102,5 kg",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": {
+       "value": 92.5,
+       "display": "92,5 kg",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-r1",
+        "s-r2",
+        "s-r3"
+       ]
+      },
+      "direction": "better",
+      "significant": true,
+      "change": 0.1081,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "volume",
+      "label": "Volume par séance (médiane)",
+      "rule": "Somme charge × répétitions des séries de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Charge et répétitions de chaque série",
+      "current": {
+       "value": 1807.5,
+       "display": "1 808 kg",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": {
+       "value": 1350,
+       "display": "1 350 kg",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-r1",
+        "s-r2",
+        "s-r3"
+       ]
+      },
+      "direction": "better",
+      "significant": true,
+      "change": 0.3389,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "sets",
+      "label": "Séries par séance (médiane)",
+      "rule": "Nombre de séries mesurées de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Séries saisies",
+      "current": {
+       "value": 4,
+       "display": "4",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": {
+       "value": 3,
+       "display": "3",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-r1",
+        "s-r2",
+        "s-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "reps",
+      "label": "Répétitions par séance (médiane)",
+      "rule": "Somme des répétitions de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Répétitions de chaque série",
+      "current": {
+       "value": 18,
+       "display": "18 rép.",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": {
+       "value": 15,
+       "display": "15 rép.",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-r1",
+        "s-r2",
+        "s-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "rir",
+      "label": "RIR (médiane)",
+      "rule": "Répétitions en réserve saisies sur les séries, médiane par séance puis sur la période. Repère sans verdict.",
+      "provenance": "Champ facultatif RIR de chaque série",
+      "current": {
+       "value": 1.5,
+       "display": "1,5",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2"
+       ],
+       "missing": "RIR non saisi sur 1 séance"
+      },
+      "reference": {
+       "value": 2,
+       "display": "2",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "s-r1",
+        "s-r2"
+       ],
+       "missing": "RIR non saisi sur 1 séance"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "s-r1",
+      "date": "2026-09-08T18:00:00Z",
+      "side": "reference",
+      "value": 90,
+      "display": "90 kg"
+     },
+     {
+      "id": "s-r2",
+      "date": "2026-09-22T18:00:00Z",
+      "side": "reference",
+      "value": 92.5,
+      "display": "92,5 kg"
+     },
+     {
+      "id": "s-r3",
+      "date": "2026-10-06T18:00:00Z",
+      "side": "reference",
+      "value": 95,
+      "display": "95 kg"
+     },
+     {
+      "id": "s-c1",
+      "date": "2026-10-13T18:00:00Z",
+      "side": "current",
+      "value": 95,
+      "display": "95 kg"
+     },
+     {
+      "id": "s-c2",
+      "date": "2026-10-27T18:00:00Z",
+      "side": "current",
+      "value": 102.5,
+      "display": "102,5 kg"
+     },
+     {
+      "id": "s-c3",
+      "date": "2026-11-10T18:00:00Z",
+      "side": "current",
+      "value": 102.5,
+      "display": "102,5 kg"
+     }
+    ],
+    "limits": [
+     "Même nom, autre variante : sans variante, Front sont analysées à part. Deux variantes ne sont jamais fusionnées.",
+     "RIR : établi sur 2 des 3 séances (RIR non saisi sur 1 séance).",
+     "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1
+    },
+    "signature": "strength:muscu_gym|squat|barre|@2026.11-a1:s-c1,s-c2,s-c3|s-r1,s-r2,s-r3",
+    "seriesMetric": "top_set"
+   },
+   "reading": [
+    "Squat (Barre) · Musculation en salle. 6 dernières semaines (9 oct. – 20 nov.) : 3 séances ; 6 semaines d’avant (28 août – 9 oct.) : 3 séances.",
+    "Série de référence : 102,5 kg × 5 contre 95 kg × 5 (en progrès), 3/3 séances mesurées.",
+    "Meilleure série par séance : 102,5 kg contre 92,5 kg (en progrès), 3/3 séances mesurées.",
+    "Volume par séance : 1 808 kg contre 1 350 kg (en progrès), 3/3 séances mesurées.",
+    "Séries par séance : 4 contre 3, 3/3 séances mesurées.",
+    "Répétitions par séance : 18 rép. contre 15 rép., 3/3 séances mesurées.",
+    "RIR : 1,5 contre 2, 2/3 séances mesurées.",
+    "Même nom, autre variante : sans variante, Front sont analysées à part. Deux variantes ne sont jamais fusionnées.",
+    "RIR : établi sur 2 des 3 séances (RIR non saisi sur 1 séance).",
+    "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Force — a Squat (Front) session as reference is not merged with Squat (Barre)",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "strength",
+    "label": "Force",
+    "sport": "muscu_gym",
+    "group": {
+     "id": "strength:muscu_gym|squat|barre|",
+     "discipline": "strength",
+     "sport": "muscu_gym",
+     "label": "Squat (Barre) · Musculation en salle",
+     "sessions": 6,
+     "criteria": [
+      "Même sport : Musculation en salle",
+      "Même exercice, même variante et même matériel : Squat (Barre)",
+      "Séries mesurées (charge et répétitions) : aucun 1RM estimé"
+     ],
+     "limits": [
+      "Même nom, autre variante : sans variante, Front sont analysées à part. Deux variantes ne sont jamais fusionnées."
+     ],
+     "exercise": "squat|barre|"
+    },
+    "groups": 5,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "s-c1",
+      "s-c2",
+      "s-c3"
+     ]
+    },
+    "reference": {
+     "kind": "session",
+     "label": "Séance du 3 nov.",
+     "sessions": [],
+     "status": "incomparable",
+     "note": "La séance du 3 nov. a Squat (Front), pas Squat (Barre) : deux variantes ne sont jamais fusionnées."
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Séances avec cet exercice",
+      "rule": "Séances du journal où l’exercice a au moins une série mesurée.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 3,
+       "display": "3 séances",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "reference_set",
+      "label": "Série de référence",
+      "rule": "La série la plus lourde de la période ; à charge égale, celle qui a le plus de répétitions. Aucun 1RM estimé.",
+      "provenance": "Charge et répétitions de chaque série",
+      "current": {
+       "value": 102505,
+       "display": "102,5 kg × 5",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ],
+       "from": "s-c3"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "top_set",
+      "label": "Meilleure série par séance (médiane)",
+      "rule": "Charge de la meilleure série de chaque séance, puis la médiane.",
+      "provenance": "Charge et répétitions de chaque série",
+      "current": {
+       "value": 102.5,
+       "display": "102,5 kg",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "volume",
+      "label": "Volume par séance (médiane)",
+      "rule": "Somme charge × répétitions des séries de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Charge et répétitions de chaque série",
+      "current": {
+       "value": 1807.5,
+       "display": "1 808 kg",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "sets",
+      "label": "Séries par séance (médiane)",
+      "rule": "Nombre de séries mesurées de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Séries saisies",
+      "current": {
+       "value": 4,
+       "display": "4",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "reps",
+      "label": "Répétitions par séance (médiane)",
+      "rule": "Somme des répétitions de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Répétitions de chaque série",
+      "current": {
+       "value": 18,
+       "display": "18 rép.",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2",
+        "s-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "rir",
+      "label": "RIR (médiane)",
+      "rule": "Répétitions en réserve saisies sur les séries, médiane par séance puis sur la période. Repère sans verdict.",
+      "provenance": "Champ facultatif RIR de chaque série",
+      "current": {
+       "value": 1.5,
+       "display": "1,5",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "s-c1",
+        "s-c2"
+       ],
+       "missing": "RIR non saisi sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "s-c1",
+      "date": "2026-10-13T18:00:00Z",
+      "side": "current",
+      "value": 95,
+      "display": "95 kg"
+     },
+     {
+      "id": "s-c2",
+      "date": "2026-10-27T18:00:00Z",
+      "side": "current",
+      "value": 102.5,
+      "display": "102,5 kg"
+     },
+     {
+      "id": "s-c3",
+      "date": "2026-11-10T18:00:00Z",
+      "side": "current",
+      "value": 102.5,
+      "display": "102,5 kg"
+     }
+    ],
+    "limits": [
+     "Même nom, autre variante : sans variante, Front sont analysées à part. Deux variantes ne sont jamais fusionnées.",
+     "RIR : établi sur 2 des 3 séances (RIR non saisi sur 1 séance).",
+     "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1
+    },
+    "signature": "strength:muscu_gym|squat|barre|@2026.11-a1:s-c1,s-c2,s-c3|",
+    "seriesMetric": "top_set"
+   },
+   "reading": [
+    "Squat (Barre) · Musculation en salle. 6 dernières semaines (9 oct. – 20 nov.) : 3 séances ; référence : Séance du 3 nov., écartée.",
+    "La séance du 3 nov. a Squat (Front), pas Squat (Barre) : deux variantes ne sont jamais fusionnées.",
+    "Série de référence : 102,5 kg × 5, 3/3 séances mesurées.",
+    "Meilleure série par séance : 102,5 kg, 3/3 séances mesurées.",
+    "Volume par séance : 1 808 kg, 3/3 séances mesurées.",
+    "Séries par séance : 4, 3/3 séances mesurées.",
+    "Répétitions par séance : 18 rép., 3/3 séances mesurées.",
+    "RIR : 1,5, 2/3 séances mesurées.",
+    "Même nom, autre variante : sans variante, Front sont analysées à part. Deux variantes ne sont jamais fusionnées.",
+    "RIR : établi sur 2 des 3 séances (RIR non saisi sur 1 séance).",
+    "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Force — Squat without variant, one session: values without a trend",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "strength",
+    "label": "Force",
+    "sport": "muscu_gym",
+    "group": {
+     "id": "strength:muscu_gym|squat||",
+     "discipline": "strength",
+     "sport": "muscu_gym",
+     "label": "squat (sans variante) · Musculation en salle",
+     "sessions": 1,
+     "criteria": [
+      "Même sport : Musculation en salle",
+      "Même exercice, même variante et même matériel : squat, sans variante renseignée",
+      "Séries mesurées (charge et répétitions) : aucun 1RM estimé"
+     ],
+     "limits": [
+      "Même nom, autre variante : Barre, Front sont analysées à part. Deux variantes ne sont jamais fusionnées."
+     ],
+     "exercise": "squat||"
+    },
+    "groups": 5,
+    "status": "insufficient",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "s-novar"
+     ]
+    },
+    "reference": {
+     "kind": "period",
+     "label": "6 semaines d’avant (28 août – 9 oct.)",
+     "sessions": [],
+     "status": "empty",
+     "note": "Aucune séance du groupe dans cette référence : rien à mettre en face."
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Séances avec cet exercice",
+      "rule": "Séances du journal où l’exercice a au moins une série mesurée.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 1,
+       "display": "1 séance",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "s-novar"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "reference_set",
+      "label": "Série de référence",
+      "rule": "La série la plus lourde de la période ; à charge égale, celle qui a le plus de répétitions. Aucun 1RM estimé.",
+      "provenance": "Charge et répétitions de chaque série",
+      "current": {
+       "value": 60008,
+       "display": "60 kg × 8",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "s-novar"
+       ],
+       "from": "s-novar"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "top_set",
+      "label": "Meilleure série par séance (médiane)",
+      "rule": "Charge de la meilleure série de chaque séance, puis la médiane.",
+      "provenance": "Charge et répétitions de chaque série",
+      "current": {
+       "value": 60,
+       "display": "60 kg",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "s-novar"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "volume",
+      "label": "Volume par séance (médiane)",
+      "rule": "Somme charge × répétitions des séries de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Charge et répétitions de chaque série",
+      "current": {
+       "value": 960,
+       "display": "960 kg",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "s-novar"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "sets",
+      "label": "Séries par séance (médiane)",
+      "rule": "Nombre de séries mesurées de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Séries saisies",
+      "current": {
+       "value": 2,
+       "display": "2",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "s-novar"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "reps",
+      "label": "Répétitions par séance (médiane)",
+      "rule": "Somme des répétitions de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Répétitions de chaque série",
+      "current": {
+       "value": 16,
+       "display": "16 rép.",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "s-novar"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "rir",
+      "label": "RIR (médiane)",
+      "rule": "Répétitions en réserve saisies sur les séries, médiane par séance puis sur la période. Repère sans verdict.",
+      "provenance": "Champ facultatif RIR de chaque série",
+      "current": {
+       "value": null,
+       "display": "—",
+       "measured": 0,
+       "total": 1,
+       "sessions": [],
+       "missing": "RIR non saisi sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "absent"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "s-novar",
+      "date": "2026-11-05T18:00:00Z",
+      "side": "current",
+      "value": 60,
+      "display": "60 kg"
+     }
+    ],
+    "limits": [
+     "Historique trop court : 1 séance du groupe dans la période, il en faut 2 pour une tendance. Les mesures de cette séance sont présentées sans verdict.",
+     "Même nom, autre variante : Barre, Front sont analysées à part. Deux variantes ne sont jamais fusionnées.",
+     "Non mesuré sur la période : RIR. Aucune valeur n’est estimée.",
+     "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1
+    },
+    "signature": "strength:muscu_gym|squat||@2026.11-a1:s-novar|",
+    "seriesMetric": "top_set"
+   },
+   "reading": [
+    "squat (sans variante) · Musculation en salle. 6 dernières semaines (9 oct. – 20 nov.) : 1 séance ; 6 semaines d’avant (28 août – 9 oct.) : 0 séance.",
+    "Aucune séance du groupe dans cette référence : rien à mettre en face.",
+    "Série de référence : 60 kg × 8, 1/1 séance mesurée.",
+    "Meilleure série par séance : 60 kg, 1/1 séance mesurée.",
+    "Volume par séance : 960 kg, 1/1 séance mesurée.",
+    "Séries par séance : 2, 1/1 séance mesurée.",
+    "Répétitions par séance : 16 rép., 1/1 séance mesurée.",
+    "Historique trop court : 1 séance du groupe dans la période, il en faut 2 pour une tendance. Les mesures de cette séance sont présentées sans verdict.",
+    "Même nom, autre variante : Barre, Front sont analysées à part. Deux variantes ne sont jamais fusionnées.",
+    "Non mesuré sur la période : RIR. Aucune valeur n’est estimée.",
+    "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Force — Tractions without load: repetitions, reference period empty",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "strength",
+    "label": "Force",
+    "sport": "muscu_gym",
+    "group": {
+     "id": "strength:muscu_gym|tractions||",
+     "discipline": "strength",
+     "sport": "muscu_gym",
+     "label": "Tractions (sans variante) · Musculation en salle",
+     "sessions": 2,
+     "criteria": [
+      "Même sport : Musculation en salle",
+      "Même exercice, même variante et même matériel : Tractions, sans variante renseignée",
+      "Séries mesurées (charge et répétitions) : aucun 1RM estimé"
+     ],
+     "limits": [],
+     "exercise": "tractions||"
+    },
+    "groups": 5,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "s-c1",
+      "s-c2"
+     ]
+    },
+    "reference": {
+     "kind": "period",
+     "label": "6 semaines d’avant (28 août – 9 oct.)",
+     "sessions": [],
+     "status": "empty",
+     "note": "Aucune séance du groupe dans cette référence : rien à mettre en face."
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Séances avec cet exercice",
+      "rule": "Séances du journal où l’exercice a au moins une série mesurée.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 2,
+       "display": "2 séances",
+       "measured": 2,
+       "total": 2,
+       "sessions": [
+        "s-c1",
+        "s-c2"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "best_set_reps",
+      "label": "Meilleure série (répétitions)",
+      "rule": "Le plus de répétitions en une série dans la période.",
+      "provenance": "Répétitions de chaque série",
+      "current": {
+       "value": 9,
+       "display": "9 rép.",
+       "measured": 2,
+       "total": 2,
+       "sessions": [
+        "s-c1",
+        "s-c2"
+       ],
+       "from": "s-c2"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "sets",
+      "label": "Séries par séance (médiane)",
+      "rule": "Nombre de séries mesurées de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Séries saisies",
+      "current": {
+       "value": 3,
+       "display": "3",
+       "measured": 2,
+       "total": 2,
+       "sessions": [
+        "s-c1",
+        "s-c2"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "reps",
+      "label": "Répétitions par séance (médiane)",
+      "rule": "Somme des répétitions de l’exercice dans la séance, puis la médiane.",
+      "provenance": "Répétitions de chaque série",
+      "current": {
+       "value": 22.5,
+       "display": "23 rép.",
+       "measured": 2,
+       "total": 2,
+       "sessions": [
+        "s-c1",
+        "s-c2"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "rir",
+      "label": "RIR (médiane)",
+      "rule": "Répétitions en réserve saisies sur les séries, médiane par séance puis sur la période. Repère sans verdict.",
+      "provenance": "Champ facultatif RIR de chaque série",
+      "current": {
+       "value": null,
+       "display": "—",
+       "measured": 0,
+       "total": 2,
+       "sessions": [],
+       "missing": "RIR non saisi sur 2 séances"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "absent"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "s-c1",
+      "date": "2026-10-13T18:00:00Z",
+      "side": "current",
+      "value": 8,
+      "display": "8 rép."
+     },
+     {
+      "id": "s-c2",
+      "date": "2026-10-27T18:00:00Z",
+      "side": "current",
+      "value": 9,
+      "display": "9 rép."
+     }
+    ],
+    "limits": [
+     "Non mesuré sur la période : RIR. Aucune valeur n’est estimée.",
+     "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1
+    },
+    "signature": "strength:muscu_gym|tractions||@2026.11-a1:s-c1,s-c2|",
+    "seriesMetric": "best_set_reps"
+   },
+   "reading": [
+    "Tractions (sans variante) · Musculation en salle. 6 dernières semaines (9 oct. – 20 nov.) : 2 séances ; 6 semaines d’avant (28 août – 9 oct.) : 0 séance.",
+    "Aucune séance du groupe dans cette référence : rien à mettre en face.",
+    "Meilleure série (répétitions) : 9 rép., 2/2 séances mesurées.",
+    "Séries par séance : 3, 2/2 séances mesurées.",
+    "Répétitions par séance : 23 rép., 2/2 séances mesurées.",
+    "Non mesuré sur la période : RIR. Aucune valeur n’est estimée.",
+    "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Escalade — Fontainebleau bloc, attempts, successes and levels, the last 6 weeks against the 6 before",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "climbing",
+    "label": "Escalade",
+    "sport": "bouldering",
+    "group": {
+     "id": "climbing:bouldering|Fontainebleau bloc|bloc",
+     "discipline": "climbing",
+     "sport": "bouldering",
+     "label": "Fontainebleau bloc · Bloc · Escalade bloc",
+     "sessions": 6,
+     "criteria": [
+      "Même sport : Escalade bloc",
+      "Échelle : Fontainebleau bloc, sans conversion vers une autre échelle",
+      "Discipline : Bloc",
+      "Une cotation seulement tentée n’est jamais comptée comme réussite"
+     ],
+     "limits": [
+      "V-scale bloc, YDS : d’autres échelles, analysées à part. TITAN ne convertit pas les cotations."
+     ],
+     "scale": "Fontainebleau bloc",
+     "ordered": true
+    },
+    "groups": 3,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "c-c1",
+      "c-c2",
+      "c-c3"
+     ]
+    },
+    "reference": {
+     "kind": "period",
+     "label": "6 semaines d’avant (28 août – 9 oct.)",
+     "sessions": [
+      "c-r1",
+      "c-r2",
+      "c-r3"
+     ],
+     "status": "ok"
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Séances",
+      "rule": "Séances du sport dans cette échelle et cette discipline.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 3,
+       "display": "3 séances",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2",
+        "c-c3"
+       ]
+      },
+      "reference": {
+       "value": 3,
+       "display": "3 séances",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "c-r1",
+        "c-r2",
+        "c-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "attempts",
+      "label": "Essais",
+      "rule": "Somme des essais saisis.",
+      "provenance": "Champ « Essais »",
+      "current": {
+       "value": 44,
+       "display": "44",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2"
+       ],
+       "missing": "essais non saisis sur 1 séance"
+      },
+      "reference": {
+       "value": 60,
+       "display": "60",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "c-r1",
+        "c-r2",
+        "c-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "successes",
+      "label": "Réussites",
+      "rule": "Somme des voies ou blocs réussis saisis.",
+      "provenance": "Champ « Réussites »",
+      "current": {
+       "value": 27,
+       "display": "27",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2"
+       ],
+       "missing": "réussites non saisies sur 1 séance"
+      },
+      "reference": {
+       "value": 31,
+       "display": "31",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "c-r1",
+        "c-r2",
+        "c-r3"
+       ]
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "success_rate",
+      "label": "Taux de réussite",
+      "rule": "Réussites ÷ essais, sur les seules séances qui ont les deux.",
+      "provenance": "Champs « Essais » et « Réussites »",
+      "current": {
+       "value": 0.6136,
+       "display": "61 % (27/44)",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2"
+       ],
+       "missing": "essais ou réussites non saisis sur 1 séance"
+      },
+      "reference": {
+       "value": 0.5167,
+       "display": "52 % (31/60)",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "c-r1",
+        "c-r2",
+        "c-r3"
+       ]
+      },
+      "direction": "better",
+      "significant": true,
+      "change": 0.1875,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "flashes",
+      "label": "Flashs",
+      "rule": "Somme des flashs saisis.",
+      "provenance": "Champ facultatif « Réussites au premier essai »",
+      "current": {
+       "value": 6,
+       "display": "6",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2"
+       ],
+       "missing": "flashs non saisis sur 1 séance"
+      },
+      "reference": {
+       "value": 5,
+       "display": "5",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-r1",
+        "c-r3"
+       ],
+       "missing": "flashs non saisis sur 1 séance"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "best_done",
+      "label": "Meilleure réussite",
+      "rule": "La plus haute cotation réussie de la période, dans l’échelle Fontainebleau bloc.",
+      "provenance": "Champ « Meilleure réussie »",
+      "current": {
+       "value": 66,
+       "display": "6C",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2",
+        "c-c3"
+       ],
+       "from": "c-c3"
+      },
+      "reference": {
+       "value": 63,
+       "display": "6B",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "c-r1",
+        "c-r2",
+        "c-r3"
+       ],
+       "from": "c-r3"
+      },
+      "direction": "better",
+      "significant": true,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "best_tried",
+      "label": "Meilleure tentative",
+      "rule": "La plus haute cotation tentée de la période. Jamais comptée comme réussite.",
+      "provenance": "Champ « Meilleure tentée »",
+      "current": {
+       "value": 70,
+       "display": "7A",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c3"
+       ],
+       "from": "c-c3",
+       "missing": "aucune tentative cotée sur 1 séance"
+      },
+      "reference": {
+       "value": 63,
+       "display": "6B",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-r1",
+        "c-r2"
+       ],
+       "from": "c-r1",
+       "missing": "aucune tentative cotée sur 1 séance"
+      },
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     }
+    ],
+    "levels": {
+     "current": [
+      {
+       "grade": "7A",
+       "score": 70,
+       "done": 0,
+       "tried": 1,
+       "attempts": 0,
+       "successes": 0,
+       "measured": 0,
+       "sessions": [
+        "c-c3"
+       ]
+      },
+      {
+       "grade": "6C",
+       "score": 66,
+       "done": 1,
+       "tried": 1,
+       "attempts": 0,
+       "successes": 0,
+       "measured": 0,
+       "sessions": [
+        "c-c1",
+        "c-c3"
+       ]
+      },
+      {
+       "grade": "6B+",
+       "score": 64,
+       "done": 1,
+       "tried": 0,
+       "attempts": 24,
+       "successes": 15,
+       "measured": 1,
+       "sessions": [
+        "c-c2"
+       ]
+      },
+      {
+       "grade": "6B",
+       "score": 63,
+       "done": 1,
+       "tried": 0,
+       "attempts": 20,
+       "successes": 12,
+       "measured": 1,
+       "sessions": [
+        "c-c1"
+       ]
+      }
+     ],
+     "reference": [
+      {
+       "grade": "6B",
+       "score": 63,
+       "done": 1,
+       "tried": 2,
+       "attempts": 22,
+       "successes": 12,
+       "measured": 1,
+       "sessions": [
+        "c-r1",
+        "c-r2",
+        "c-r3"
+       ]
+      },
+      {
+       "grade": "6A+",
+       "score": 61,
+       "done": 1,
+       "tried": 0,
+       "attempts": 18,
+       "successes": 9,
+       "measured": 1,
+       "sessions": [
+        "c-r2"
+       ]
+      },
+      {
+       "grade": "6A",
+       "score": 60,
+       "done": 1,
+       "tried": 0,
+       "attempts": 20,
+       "successes": 10,
+       "measured": 1,
+       "sessions": [
+        "c-r1"
+       ]
+      }
+     ]
+    },
+    "series": [
+     {
+      "id": "c-r1",
+      "date": "2026-09-10T19:00:00Z",
+      "side": "reference",
+      "value": 60,
+      "display": "6A"
+     },
+     {
+      "id": "c-r2",
+      "date": "2026-09-24T19:00:00Z",
+      "side": "reference",
+      "value": 61,
+      "display": "6A+"
+     },
+     {
+      "id": "c-r3",
+      "date": "2026-10-08T19:00:00Z",
+      "side": "reference",
+      "value": 63,
+      "display": "6B"
+     },
+     {
+      "id": "c-c1",
+      "date": "2026-10-15T19:00:00Z",
+      "side": "current",
+      "value": 63,
+      "display": "6B"
+     },
+     {
+      "id": "c-c2",
+      "date": "2026-10-29T19:00:00Z",
+      "side": "current",
+      "value": 64,
+      "display": "6B+"
+     },
+     {
+      "id": "c-c3",
+      "date": "2026-11-12T19:00:00Z",
+      "side": "current",
+      "value": 66,
+      "display": "6C"
+     }
+    ],
+    "limits": [
+     "V-scale bloc, YDS : d’autres échelles, analysées à part. TITAN ne convertit pas les cotations.",
+     "1 séance sans échelle de cotation renseignée : hors analyse.",
+     "Par niveau : TITAN connaît la meilleure réussite et la meilleure tentative de chaque séance, pas la cotation de chaque essai. Les essais et réussites d’un niveau sont ceux des séances dont c’est la meilleure réussite.",
+     "Essais : établi sur 2 des 3 séances (essais non saisis sur 1 séance).",
+     "Réussites : établi sur 2 des 3 séances (réussites non saisies sur 1 séance).",
+     "Taux de réussite : établi sur 2 des 3 séances (essais ou réussites non saisis sur 1 séance).",
+     "Flashs : établi sur 2 des 3 séances (flashs non saisis sur 1 séance).",
+     "Meilleure tentative : établi sur 2 des 3 séances (aucune tentative cotée sur 1 séance).",
+     "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1
+    },
+    "signature": "climbing:bouldering|Fontainebleau bloc|bloc@2026.11-a1:c-c1,c-c2,c-c3|c-r1,c-r2,c-r3",
+    "seriesMetric": "best_done"
+   },
+   "reading": [
+    "Fontainebleau bloc · Bloc · Escalade bloc. 6 dernières semaines (9 oct. – 20 nov.) : 3 séances ; 6 semaines d’avant (28 août – 9 oct.) : 3 séances.",
+    "Essais : 44 contre 60, 2/3 séances mesurées.",
+    "Réussites : 27 contre 31, 2/3 séances mesurées.",
+    "Taux de réussite : 61 % (27/44) contre 52 % (31/60) (en progrès), 2/3 séances mesurées.",
+    "Flashs : 6 contre 5, 2/3 séances mesurées.",
+    "Meilleure réussite : 6C contre 6B (en progrès), 3/3 séances mesurées.",
+    "Meilleure tentative : 7A contre 6B, 2/3 séances mesurées.",
+    "V-scale bloc, YDS : d’autres échelles, analysées à part. TITAN ne convertit pas les cotations.",
+    "1 séance sans échelle de cotation renseignée : hors analyse.",
+    "Par niveau : TITAN connaît la meilleure réussite et la meilleure tentative de chaque séance, pas la cotation de chaque essai. Les essais et réussites d’un niveau sont ceux des séances dont c’est la meilleure réussite.",
+    "Essais : établi sur 2 des 3 séances (essais non saisis sur 1 séance).",
+    "Réussites : établi sur 2 des 3 séances (réussites non saisies sur 1 séance).",
+    "Taux de réussite : établi sur 2 des 3 séances (essais ou réussites non saisis sur 1 séance).",
+    "Flashs : établi sur 2 des 3 séances (flashs non saisis sur 1 séance).",
+    "Meilleure tentative : établi sur 2 des 3 séances (aucune tentative cotée sur 1 séance).",
+    "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Escalade — a V-scale session as reference is not converted",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "climbing",
+    "label": "Escalade",
+    "sport": "bouldering",
+    "group": {
+     "id": "climbing:bouldering|Fontainebleau bloc|bloc",
+     "discipline": "climbing",
+     "sport": "bouldering",
+     "label": "Fontainebleau bloc · Bloc · Escalade bloc",
+     "sessions": 6,
+     "criteria": [
+      "Même sport : Escalade bloc",
+      "Échelle : Fontainebleau bloc, sans conversion vers une autre échelle",
+      "Discipline : Bloc",
+      "Une cotation seulement tentée n’est jamais comptée comme réussite"
+     ],
+     "limits": [
+      "V-scale bloc, YDS : d’autres échelles, analysées à part. TITAN ne convertit pas les cotations."
+     ],
+     "scale": "Fontainebleau bloc",
+     "ordered": true
+    },
+    "groups": 3,
+    "status": "limited",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "c-c1",
+      "c-c2",
+      "c-c3"
+     ]
+    },
+    "reference": {
+     "kind": "session",
+     "label": "Séance du 5 nov.",
+     "sessions": [],
+     "status": "incomparable",
+     "note": "La séance du 5 nov. est cotée en V-scale bloc : TITAN ne convertit pas les cotations."
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Séances",
+      "rule": "Séances du sport dans cette échelle et cette discipline.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 3,
+       "display": "3 séances",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2",
+        "c-c3"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "attempts",
+      "label": "Essais",
+      "rule": "Somme des essais saisis.",
+      "provenance": "Champ « Essais »",
+      "current": {
+       "value": 44,
+       "display": "44",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2"
+       ],
+       "missing": "essais non saisis sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "successes",
+      "label": "Réussites",
+      "rule": "Somme des voies ou blocs réussis saisis.",
+      "provenance": "Champ « Réussites »",
+      "current": {
+       "value": 27,
+       "display": "27",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2"
+       ],
+       "missing": "réussites non saisies sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "success_rate",
+      "label": "Taux de réussite",
+      "rule": "Réussites ÷ essais, sur les seules séances qui ont les deux.",
+      "provenance": "Champs « Essais » et « Réussites »",
+      "current": {
+       "value": 0.6136,
+       "display": "61 % (27/44)",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2"
+       ],
+       "missing": "essais ou réussites non saisis sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "partial"
+     },
+     {
+      "id": "flashes",
+      "label": "Flashs",
+      "rule": "Somme des flashs saisis.",
+      "provenance": "Champ facultatif « Réussites au premier essai »",
+      "current": {
+       "value": 6,
+       "display": "6",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2"
+       ],
+       "missing": "flashs non saisis sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     },
+     {
+      "id": "best_done",
+      "label": "Meilleure réussite",
+      "rule": "La plus haute cotation réussie de la période, dans l’échelle Fontainebleau bloc.",
+      "provenance": "Champ « Meilleure réussie »",
+      "current": {
+       "value": 66,
+       "display": "6C",
+       "measured": 3,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c2",
+        "c-c3"
+       ],
+       "from": "c-c3"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "best_tried",
+      "label": "Meilleure tentative",
+      "rule": "La plus haute cotation tentée de la période. Jamais comptée comme réussite.",
+      "provenance": "Champ « Meilleure tentée »",
+      "current": {
+       "value": 70,
+       "display": "7A",
+       "measured": 2,
+       "total": 3,
+       "sessions": [
+        "c-c1",
+        "c-c3"
+       ],
+       "from": "c-c3",
+       "missing": "aucune tentative cotée sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "partial"
+     }
+    ],
+    "levels": {
+     "current": [
+      {
+       "grade": "7A",
+       "score": 70,
+       "done": 0,
+       "tried": 1,
+       "attempts": 0,
+       "successes": 0,
+       "measured": 0,
+       "sessions": [
+        "c-c3"
+       ]
+      },
+      {
+       "grade": "6C",
+       "score": 66,
+       "done": 1,
+       "tried": 1,
+       "attempts": 0,
+       "successes": 0,
+       "measured": 0,
+       "sessions": [
+        "c-c1",
+        "c-c3"
+       ]
+      },
+      {
+       "grade": "6B+",
+       "score": 64,
+       "done": 1,
+       "tried": 0,
+       "attempts": 24,
+       "successes": 15,
+       "measured": 1,
+       "sessions": [
+        "c-c2"
+       ]
+      },
+      {
+       "grade": "6B",
+       "score": 63,
+       "done": 1,
+       "tried": 0,
+       "attempts": 20,
+       "successes": 12,
+       "measured": 1,
+       "sessions": [
+        "c-c1"
+       ]
+      }
+     ],
+     "reference": null
+    },
+    "series": [
+     {
+      "id": "c-c1",
+      "date": "2026-10-15T19:00:00Z",
+      "side": "current",
+      "value": 63,
+      "display": "6B"
+     },
+     {
+      "id": "c-c2",
+      "date": "2026-10-29T19:00:00Z",
+      "side": "current",
+      "value": 64,
+      "display": "6B+"
+     },
+     {
+      "id": "c-c3",
+      "date": "2026-11-12T19:00:00Z",
+      "side": "current",
+      "value": 66,
+      "display": "6C"
+     }
+    ],
+    "limits": [
+     "V-scale bloc, YDS : d’autres échelles, analysées à part. TITAN ne convertit pas les cotations.",
+     "1 séance sans échelle de cotation renseignée : hors analyse.",
+     "Par niveau : TITAN connaît la meilleure réussite et la meilleure tentative de chaque séance, pas la cotation de chaque essai. Les essais et réussites d’un niveau sont ceux des séances dont c’est la meilleure réussite.",
+     "Essais : établi sur 2 des 3 séances (essais non saisis sur 1 séance).",
+     "Réussites : établi sur 2 des 3 séances (réussites non saisies sur 1 séance).",
+     "Taux de réussite : établi sur 2 des 3 séances (essais ou réussites non saisis sur 1 séance).",
+     "Flashs : établi sur 2 des 3 séances (flashs non saisis sur 1 séance).",
+     "Meilleure tentative : établi sur 2 des 3 séances (aucune tentative cotée sur 1 séance).",
+     "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1
+    },
+    "signature": "climbing:bouldering|Fontainebleau bloc|bloc@2026.11-a1:c-c1,c-c2,c-c3|",
+    "seriesMetric": "best_done"
+   },
+   "reading": [
+    "Fontainebleau bloc · Bloc · Escalade bloc. 6 dernières semaines (9 oct. – 20 nov.) : 3 séances ; référence : Séance du 5 nov., écartée.",
+    "La séance du 5 nov. est cotée en V-scale bloc : TITAN ne convertit pas les cotations.",
+    "Essais : 44, 2/3 séances mesurées.",
+    "Réussites : 27, 2/3 séances mesurées.",
+    "Taux de réussite : 61 % (27/44), 2/3 séances mesurées.",
+    "Flashs : 6, 2/3 séances mesurées.",
+    "Meilleure réussite : 6C, 3/3 séances mesurées.",
+    "Meilleure tentative : 7A, 2/3 séances mesurées.",
+    "V-scale bloc, YDS : d’autres échelles, analysées à part. TITAN ne convertit pas les cotations.",
+    "1 séance sans échelle de cotation renseignée : hors analyse.",
+    "Par niveau : TITAN connaît la meilleure réussite et la meilleure tentative de chaque séance, pas la cotation de chaque essai. Les essais et réussites d’un niveau sont ceux des séances dont c’est la meilleure réussite.",
+    "Essais : établi sur 2 des 3 séances (essais non saisis sur 1 séance).",
+    "Réussites : établi sur 2 des 3 séances (réussites non saisies sur 1 séance).",
+    "Taux de réussite : établi sur 2 des 3 séances (essais ou réussites non saisis sur 1 séance).",
+    "Flashs : établi sur 2 des 3 séances (flashs non saisis sur 1 séance).",
+    "Meilleure tentative : établi sur 2 des 3 séances (aucune tentative cotée sur 1 séance).",
+    "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  },
+  {
+   "name": "Escalade — YDS, a scale TITAN does not order: only attempts and successes",
+   "view": {
+    "version": "2026.11-a1",
+    "discipline": "climbing",
+    "label": "Escalade",
+    "sport": "bouldering",
+    "group": {
+     "id": "climbing:bouldering|YDS|bloc",
+     "discipline": "climbing",
+     "sport": "bouldering",
+     "label": "YDS · Bloc · Escalade bloc",
+     "sessions": 1,
+     "criteria": [
+      "Même sport : Escalade bloc",
+      "Échelle : YDS, sans conversion vers une autre échelle",
+      "Discipline : Bloc",
+      "Une cotation seulement tentée n’est jamais comptée comme réussite"
+     ],
+     "limits": [
+      "TITAN ne sait pas ordonner les cotations de l’échelle « YDS » : ni meilleure cotation, ni tableau par niveau, ni conversion. Seuls les essais et réussites sont présentés.",
+      "Fontainebleau bloc, V-scale bloc : d’autres échelles, analysées à part. TITAN ne convertit pas les cotations."
+     ],
+     "scale": "YDS",
+     "ordered": false
+    },
+    "groups": 3,
+    "status": "insufficient",
+    "current": {
+     "label": "6 dernières semaines (9 oct. – 20 nov.)",
+     "sessions": [
+      "c-yds"
+     ]
+    },
+    "reference": {
+     "kind": "period",
+     "label": "6 semaines d’avant (28 août – 9 oct.)",
+     "sessions": [],
+     "status": "empty",
+     "note": "Aucune séance du groupe dans cette référence : rien à mettre en face."
+    },
+    "rows": [
+     {
+      "id": "sessions",
+      "label": "Séances",
+      "rule": "Séances du sport dans cette échelle et cette discipline.",
+      "provenance": "Journal : séances confirmées",
+      "current": {
+       "value": 1,
+       "display": "1 séance",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "c-yds"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "attempts",
+      "label": "Essais",
+      "rule": "Somme des essais saisis.",
+      "provenance": "Champ « Essais »",
+      "current": {
+       "value": 12,
+       "display": "12",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "c-yds"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "successes",
+      "label": "Réussites",
+      "rule": "Somme des voies ou blocs réussis saisis.",
+      "provenance": "Champ « Réussites »",
+      "current": {
+       "value": 7,
+       "display": "7",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "c-yds"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "measured"
+     },
+     {
+      "id": "success_rate",
+      "label": "Taux de réussite",
+      "rule": "Réussites ÷ essais, sur les seules séances qui ont les deux.",
+      "provenance": "Champs « Essais » et « Réussites »",
+      "current": {
+       "value": 0.5833,
+       "display": "58 % (7/12)",
+       "measured": 1,
+       "total": 1,
+       "sessions": [
+        "c-yds"
+       ]
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "better": "higher",
+      "status": "measured"
+     },
+     {
+      "id": "flashes",
+      "label": "Flashs",
+      "rule": "Somme des flashs saisis.",
+      "provenance": "Champ facultatif « Réussites au premier essai »",
+      "current": {
+       "value": null,
+       "display": "—",
+       "measured": 0,
+       "total": 1,
+       "sessions": [],
+       "missing": "flashs non saisis sur 1 séance"
+      },
+      "reference": null,
+      "direction": "neutral",
+      "significant": false,
+      "status": "absent"
+     }
+    ],
+    "levels": null,
+    "series": [
+     {
+      "id": "c-yds",
+      "date": "2026-11-02T19:00:00Z",
+      "side": "current",
+      "value": 0.5833,
+      "display": "58 %"
+     }
+    ],
+    "limits": [
+     "Historique trop court : 1 séance du groupe dans la période, il en faut 2 pour une tendance. Les mesures de cette séance sont présentées sans verdict.",
+     "TITAN ne sait pas ordonner les cotations de l’échelle « YDS » : ni meilleure cotation, ni tableau par niveau, ni conversion. Seuls les essais et réussites sont présentés.",
+     "Fontainebleau bloc, V-scale bloc : d’autres échelles, analysées à part. TITAN ne convertit pas les cotations.",
+     "1 séance sans échelle de cotation renseignée : hors analyse.",
+     "Non mesuré sur la période : flashs. Aucune valeur n’est estimée.",
+     "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+    ],
+    "states": {
+     "archived": 1
+    },
+    "signature": "climbing:bouldering|YDS|bloc@2026.11-a1:c-yds|",
+    "seriesMetric": "success_rate"
+   },
+   "reading": [
+    "YDS · Bloc · Escalade bloc. 6 dernières semaines (9 oct. – 20 nov.) : 1 séance ; 6 semaines d’avant (28 août – 9 oct.) : 0 séance.",
+    "Aucune séance du groupe dans cette référence : rien à mettre en face.",
+    "Essais : 12, 1/1 séance mesurée.",
+    "Réussites : 7, 1/1 séance mesurée.",
+    "Taux de réussite : 58 % (7/12), 1/1 séance mesurée.",
+    "Historique trop court : 1 séance du groupe dans la période, il en faut 2 pour une tendance. Les mesures de cette séance sont présentées sans verdict.",
+    "TITAN ne sait pas ordonner les cotations de l’échelle « YDS » : ni meilleure cotation, ni tableau par niveau, ni conversion. Seuls les essais et réussites sont présentés.",
+    "Fontainebleau bloc, V-scale bloc : d’autres échelles, analysées à part. TITAN ne convertit pas les cotations.",
+    "1 séance sans échelle de cotation renseignée : hors analyse.",
+    "Non mesuré sur la période : flashs. Aucune valeur n’est estimée.",
+    "Hors calcul : 1 archivée. Seules les séances confirmées dans ton compte entrent dans une valeur."
+   ]
+  }
+ ]
+}
