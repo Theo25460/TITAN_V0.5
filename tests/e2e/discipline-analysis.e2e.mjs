@@ -6,6 +6,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { chromium } from "playwright";
@@ -14,6 +15,7 @@ const FIXTURE = JSON.parse(readFileSync(new URL("../fixtures/discipline-analysis
 const EXPECTED = JSON.parse(readFileSync(new URL("../fixtures/discipline-analysis-v175.expected.json", import.meta.url), "utf8"));
 const SHOTS = process.env.DISCIPLINE_ANALYSIS_SHOTS || "";
 const expected = (i) => EXPECTED.cases[i];
+const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 
 let server, browser, BASE;
 before(async () => {
@@ -133,6 +135,19 @@ test("escalade — attempts, successes and levels in Fontainebleau bloc; YDS sho
     assert.equal(await page.locator("[data-levels]").count(), 0);
     assert.equal(await page.locator('tr[data-metric="best_done"]').count(), 0);
     await shot(page, "web-climbing-yds");
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
+test("accessibility: no WCAG 2.0/2.1 A or AA violation found by axe-core in the three filled views", async () => {
+  const { context, page, errors } = await open();
+  try {
+    await page.evaluate(AXE);
+    for (const d of ["endurance", "strength", "climbing"]) {
+      await page.click(`[data-analysis-discipline="${d}"]`);
+      const violations = await page.evaluate(async () => (await axe.run(document.querySelector("[data-analysis]"), { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] } })).violations.map((v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0].target.join(" ")}`));
+      assert.deepEqual(violations, [], d);
+    }
     assert.deepEqual(errors, []);
   } finally { await context.close(); }
 });
