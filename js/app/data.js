@@ -179,13 +179,50 @@
     return WR().adjustments(window.state?.user?.schedule || {}, { week: day ? window.TitanFormat.dateKey(day) : undefined, today: todayKey() });
   }
 
+  /* ---------- V1.7.4 — Objectifs et blocs d’entraînement (js/core/training-block.js) ----------
+     Multi-week blocks on the planning: each week of a block is the programme of that week (week-plan.js reads it). Every change is
+     previewed first, applies from the first week that has not begun, and writes the schedule only (sessions are never changed). */
+  const TB = () => window.TitanTrainingBlock;
+  const blockOpts = (now = new Date()) => ({ today: todayKey(now), zone: deviceZone(), pauses: cadenceSettings().pauses, logs: logs() });
+  function blocks(now = new Date()) {
+    if (!TB() || !WP()) return [];
+    return TB().list(window.state?.user?.schedule || {}, logs(), blockOpts(now));
+  }
+  function blockContext(day, now = new Date()) {
+    if (!TB() || !WP()) return null;
+    return TB().weekContext(window.state?.user?.schedule || {}, logs(), { ...blockOpts(now), week: day ? window.TitanFormat.dateKey(day) : undefined });
+  }
+  /** kind: create | week | copy | shift | milestone | remove | duplicate | declare. Returns the module's result; confirm writes it. */
+  function blockChange(kind, id, args, { confirm = false } = {}) {
+    if (!window.state?.user || !TB()) throw new Error("TRAINING_BLOCK_UNAVAILABLE");
+    const schedule = window.state.user.schedule || {};
+    const o = { ...blockOpts(), at: new Date().toISOString() };
+    const r = kind === "create" ? TB().create(schedule, args, o)
+      : kind === "week" ? TB().editWeek(schedule, id, args, o)
+      : kind === "copy" ? TB().duplicateWeek(schedule, id, args, o)
+      : kind === "shift" ? TB().shift(schedule, id, args, o)
+      : kind === "milestone" ? TB().setMilestone(schedule, id, args, o)
+      : kind === "remove" ? TB().remove(schedule, id, o)
+      : kind === "duplicate" ? TB().duplicate(schedule, id, args, o)
+      : kind === "declare" ? TB().declare(schedule, id, args, o)
+      : null;
+    if (!r) throw new Error("TRAINING_BLOCK_BAD_ACTION");
+    if (confirm) saveSettings({ schedule: r.schedule });
+    return r;
+  }
+  function blockMeasure() {
+    if (!TB() || !WP()) return null;
+    return TB().measure(window.state?.user?.schedule || {}, logs(), blockOpts());
+  }
+
   function planToday(now = new Date()) {
     if (WP()) {
       const v = weekPlan(null, now);
       const o = v?.occurrences.find((x) => x.effective.day === todayKey(now) && (x.status === "today" || x.status === "ask"));
       if (!o) return null;
-      const p = plan()[o.index];
-      return { ...p, sport: o.effective.sport, minutes: o.effective.sport === p.sport ? p.minutes : null, note: o.effective.sport === p.sport ? p.note : "", occurrence: o.id, moved: o.decision?.kind === "move" || o.decision?.kind === "replace" };
+      // V1.7.4: in a training block, the minutes and the note are the block week's (its reference), not the typical week's.
+      const p = v.reference.block ? { ...plan()[o.index], sport: o.planned.sport, minutes: o.planned.minutes, note: o.planned.note || "" } : plan()[o.index];
+      return { ...p, sport: o.effective.sport, minutes: o.effective.sport === p.sport ? p.minutes : null, note: o.effective.sport === p.sport ? p.note : "", occurrence: o.id, moved: o.decision?.kind === "move" || o.decision?.kind === "replace", ...(v.reference.block ? { block: v.reference.block } : {}) };
     }
     const p = plan()[(new Date(now).getDay() + 6) % 7];
     return p.sport ? p : null;
@@ -301,5 +338,5 @@
     return list.length;
   }
 
-  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, weekPlan, weekPlanSports, decideOccurrence, weekReview, previewAdjustment, applyAdjustment, undoAdjustment, adjustments, progression, rulesV300, guestCandidates, importGuestSessions };
+  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, weekPlan, weekPlanSports, decideOccurrence, weekReview, previewAdjustment, applyAdjustment, undoAdjustment, adjustments, blocks, blockContext, blockChange, blockMeasure, progression, rulesV300, guestCandidates, importGuestSessions };
 })();

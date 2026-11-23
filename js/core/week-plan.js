@@ -108,12 +108,52 @@
     return r && typeof r === "object" ? r : null;
   }
 
+  /* V1.7.4 — Objectifs et blocs d’entraînement (js/core/training-block.js writes them). A block is a multi-week programme that takes
+     the place of the typical week during its weeks. schedule.blocks { "<id>": { layouts: { "<Monday>": layout } … } }: a layout is the
+     whole block (start Monday, weeks of seven days) in force FROM that Monday, or { removed: true } with the range it removes. The
+     layout of a week is the most recent one (by its time) among those whose Monday is not after that week: a layout is always written
+     for a Monday not before the week it is written in, so a week already begun or closed never sees a later change. */
+  function blockAt(schedule, week) {
+    const blocks = schedule?.blocks;
+    if (!blocks || typeof blocks !== "object" || Array.isArray(blocks) || !isKey(week)) return null;
+    let best = null;
+    for (const [id, b] of Object.entries(blocks)) {
+      const lays = b?.layouts && typeof b.layouts === "object" && !Array.isArray(b.layouts) ? b.layouts : null;
+      if (!lays) continue;
+      let pick = null;
+      for (const [from, l] of Object.entries(lays)) {
+        if (!isKey(from) || from > week || !l || typeof l !== "object") continue;
+        if (!pick || String(l.at || "") > String(pick.l.at || "") || (String(l.at || "") === String(pick.l.at || "") && from > pick.from)) pick = { from, l };
+      }
+      if (!pick || !isKey(pick.l.start) || weekOf(pick.l.start) !== pick.l.start) continue;
+      const count = pick.l.removed ? Number(pick.l.count) || 0 : Array.isArray(pick.l.weeks) ? pick.l.weeks.length : 0;
+      const index = daysBetween(pick.l.start, week) / 7;
+      if (!Number.isInteger(index) || index < 0 || index >= count) continue;
+      const w = pick.l.removed ? null : pick.l.weeks[index];
+      const days = pick.l.removed ? null : storedDays(w?.days);
+      if (!pick.l.removed && !days) continue;
+      const c = { id, index, from: pick.from, at: pick.l.at || null, removed: !!pick.l.removed, days, kind: w?.kind || null, label: w?.label || null, origin: pick.l.origin || null };
+      if (!best || String(c.at || "") > String(best.at || "")) best = c;
+    }
+    return best;
+  }
+
   /** The reference of a week: what was planned on its Monday. source: week (kept with the week's decisions), revision (typical week
-      in force that Monday), type (the typical week, nothing changed since), reconstructed (a past week before tracking started). */
+      in force that Monday), type (the typical week, nothing changed since), reconstructed (a past week before tracking started),
+      block (V1.7.4: the week of a training block). A block layout written after a week's kept reference (a week not begun yet when the
+      block changed) wins over it; a block removed from that week gives the typical week back. */
   function reference(schedule, week, { current } = {}) {
     const rec = record(schedule, week);
     const kept = storedDays(rec?.ref?.days);
-    if (kept) return { days: kept, source: "week", at: rec.ref.at || null };
+    const blk = blockAt(schedule, week);
+    if (blk && (!kept || String(blk.at || "") > String(rec.ref.at || ""))) {
+      if (!blk.removed) return { days: blk.days, source: "block", at: blk.at, block: { id: blk.id, index: blk.index, from: blk.from, kind: blk.kind, label: blk.label } };
+      return typeReference(schedule, week, current);
+    }
+    if (kept) return { days: kept, source: "week", at: rec.ref.at || null, ...(rec.ref.block ? { block: rec.ref.block } : {}) };
+    return typeReference(schedule, week, current);
+  }
+  function typeReference(schedule, week, current) {
     const live = typeDays(schedule);
     const revs = revisions(schedule);
     if (!revs.length) return { days: live, source: current && week < current ? "reconstructed" : "type", at: null };
@@ -147,9 +187,9 @@
     for (const k of Object.keys(revs)) if (k !== "_" && k > appliesFrom) delete revs[k];
     revs[appliesFrom] = { days: typeDays(next), at };
     next.revisions = revs;
-    if (appliesFrom !== current && !storedDays(rec?.ref?.days)) {
+    if (appliesFrom !== current && (!storedDays(rec?.ref?.days) || before.source !== "week")) {
       next.weeks = next.weeks && typeof next.weeks === "object" ? next.weeks : {};
-      next.weeks[current] = { v: VERSION, ...(rec || {}), ref: { days: before.days, at, source: before.source }, occ: { ...(rec?.occ || {}) } };
+      next.weeks[current] = { v: VERSION, ...(rec || {}), ref: { days: before.days, at, source: before.source, ...(before.block ? { block: before.block } : {}) }, occ: { ...(rec?.occ || {}) } };
     }
     return { schedule: prune(next, today), appliesFrom };
   }
@@ -182,7 +222,7 @@
     const rec = record(next, week) || {};
     next.weeks[week] = {
       v: VERSION,
-      ref: storedDays(rec.ref?.days) ? rec.ref : { days: ref.days, at, source: ref.source },
+      ref: storedDays(rec.ref?.days) && ref.source === "week" ? rec.ref : { days: ref.days, at, source: ref.source, ...(ref.block ? { block: ref.block } : {}) },
       occ: { ...(rec.occ || {}), [occurrenceId]: entry },
     };
     return prune(next, today);
@@ -227,6 +267,27 @@
       const reviews = {};
       for (const k of new Set([...Object.keys(ra), ...Object.keys(rb)])) reviews[k] = clone(!ra[k] ? rb[k] : !rb[k] ? ra[k] : stamp(rb[k]) > stamp(ra[k]) ? rb[k] : ra[k]);
       out.reviews = reviews;
+    }
+    // V1.7.4: training blocks, block by block — layouts Monday by Monday, milestones one by one, the change log entry by entry; on each
+    // key the most recent write wins. The block's description (title, intent, goal) is the most recent one.
+    if (a.blocks || b.blocks) out.blocks = mergeBlocks(a.blocks, b.blocks);
+    return out;
+  }
+
+  function mergeBlocks(a, b) {
+    const x = a && typeof a === "object" && !Array.isArray(a) ? a : {}, y = b && typeof b === "object" && !Array.isArray(b) ? b : {};
+    const later = (p, q) => (!p ? q : !q ? p : String(q.at || "") > String(p.at || "") ? q : p);
+    const keyed = (p, q) => {
+      const o = { ...(p && typeof p === "object" ? p : {}) };
+      for (const [k, v] of Object.entries(q && typeof q === "object" ? q : {})) o[k] = later(o[k], v);
+      return o;
+    };
+    const out = {};
+    for (const id of new Set([...Object.keys(x), ...Object.keys(y)])) {
+      const p = x[id], q = y[id];
+      if (!p || !q) { out[id] = clone(p || q); continue; }
+      const meta = String(q.at || "") > String(p.at || "") ? q : p;
+      out[id] = clone({ ...meta, created: p.created || q.created, layouts: keyed(p.layouts, q.layouts), milestones: keyed(p.milestones, q.milestones), log: keyed(p.log, q.log) });
     }
     return out;
   }
@@ -348,7 +409,7 @@
       extra: extra.filter((e) => !e.ask).length,
     };
     summary.gaps = summary.moved + summary.replaced + summary.skipped + summary.missed;
-    const out = { version: VERSION, week: w, to, current: w === current, past: w < current, paused, reference: { source: ref.source, at: ref.at, days: ref.days }, occurrences: occ, extra, summary };
+    const out = { version: VERSION, week: w, to, current: w === current, past: w < current, paused, reference: { source: ref.source, at: ref.at, days: ref.days, ...(ref.block ? { block: ref.block } : {}) }, occurrences: occ, extra, summary };
     out.signature = signature(out);
     return out;
   }
@@ -361,7 +422,7 @@
   function snapshot(v) {
     return {
       week: v.week, current: v.current, past: v.past, paused: v.paused,
-      reference: { source: v.reference.source, days: v.reference.days.map((d) => (d ? d.sport : null)) },
+      reference: { source: v.reference.source, days: v.reference.days.map((d) => (d ? d.sport : null)), ...(v.reference.block ? { block: { id: v.reference.block.id, index: v.reference.block.index } } : {}) },
       occurrences: v.occurrences.map((o) => ({ id: o.id, planned: { day: o.planned.day, sport: o.planned.sport }, decision: o.decision ? o.decision.kind : null, effective: o.effective, status: o.status, gap: o.gap, link: o.link, candidates: o.candidates, notice: o.notice, ...(o.actual ? { actual: o.actual } : {}) })),
       extra: v.extra, summary: v.summary, signature: v.signature,
     };
@@ -404,7 +465,7 @@
     return { start, changes, result };
   }
 
-  const api = { VERSION, MAX_WEEKS, DAY_KEYS, DAY_NAMES, RULES, addDays, weekOf, dayIndex, daysBetween, localKey, sessionDay, sessionId, typeDays, revisions, reference, editType, decide, merge, prune, week, snapshot, describe, summarize };
+  const api = { VERSION, MAX_WEEKS, DAY_KEYS, DAY_NAMES, RULES, addDays, weekOf, dayIndex, daysBetween, localKey, sessionDay, sessionId, counted, typeDays, storedDays, revisions, reference, blockAt, editType, decide, merge, mergeBlocks, prune, week, snapshot, describe, summarize };
   root.TitanWeekPlan = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -38,6 +38,8 @@
 
   function referenceNote(v) {
     const s = v.reference.source;
+    // V1.7.4: a week of a training block.
+    if (v.reference.block && window.TitanTrainingBlockView) return window.TitanTrainingBlockView.referenceNote(v);
     if (s === "reconstructed") return "Programme de départ reconstitué : cette semaine est antérieure au suivi des semaines, TITAN reprend la semaine type connue à ce moment-là.";
     const pending = WP().revisions(window.state?.user?.schedule || {}).find((r) => r.from && r.from > v.week);
     const start = `Programme de départ : ta semaine type en vigueur le ${dayLong(v.week)}.`;

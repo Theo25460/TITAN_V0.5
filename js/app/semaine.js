@@ -384,6 +384,13 @@
     return window.TitanWeekReviewView.html(r, { title: offset === 0 ? "Bilan de la semaine et ajustement" : "Bilan et ajustement" });
   }
 
+  /* V1.7.4 — the training block of the week chosen above: its week of the block, the source and the effect of the changes that reach
+     it, and its milestones (js/app/training-block-view.js). */
+  function blockHtml() {
+    if (!window.TitanTrainingBlockView) return "";
+    return window.TitanTrainingBlockView.contextHtml(recapFor(offset).from);
+  }
+
   function render() {
     if (!root) return;
     const active = document.activeElement;
@@ -396,6 +403,7 @@
     root.innerHTML = `${heroHtml(r)}
       ${planHtml(r)}
       ${reviewHtml()}
+      ${blockHtml()}
       ${programHtml()}
       <div class="wk-cols">${weekHtml()}${highlightsHtml(r)}</div>
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty sig-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}

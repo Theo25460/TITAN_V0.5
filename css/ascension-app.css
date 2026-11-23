@@ -2747,6 +2747,155 @@
   text-overflow: clip;
 }
 
+/* ---------- V1.7.4 — Objectifs et blocs d’entraînement (js/app/training-block-view.js) ---------- */
+.tb-card {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s4) 0;
+  border-top: 1px solid var(--line-2);
+}
+.tb-card h3 {
+  margin: 0;
+  font-size: 19px;
+}
+.tb-card p,
+.tb-context p,
+.tb-preview p,
+.tb-goal p {
+  margin: 0;
+}
+.tb-goal {
+  display: grid;
+  gap: var(--s1);
+  padding: var(--s3);
+  border-radius: var(--r2);
+  background: var(--bg-1);
+  box-shadow: inset 3px 0 0 var(--line-2);
+}
+.tb-goal[data-state="reached"] {
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+.tb-weeks,
+.tb-milestones,
+.tb-changes,
+.tb-log ul,
+.tb-draft ol,
+.tb-preview ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--s2);
+}
+.tb-preview ul,
+.tb-draft ol {
+  padding-left: var(--s4);
+  list-style: disc;
+  gap: var(--s1);
+}
+.tb-draft ol {
+  list-style: decimal;
+}
+.tb-week {
+  display: grid;
+  gap: 2px;
+  padding: var(--s2) var(--s3);
+  border-radius: var(--r2);
+  background: var(--bg-1);
+}
+.tb-week[data-state="current"] {
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+.tb-week[data-applied="false"] {
+  opacity: 0.78;
+}
+.tb-week-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s1) var(--s2);
+}
+.tb-week-ms {
+  display: inline-flex;
+  gap: var(--s1);
+  align-items: center;
+}
+.tb-milestone {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s1) var(--s2);
+  align-items: start;
+}
+.tb-ms-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.tb-ms-actions {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+.tb-milestone[data-state="reached"] .tb-ms-icon,
+.tb-milestone[data-state="late"] .tb-ms-icon {
+  color: var(--ok);
+}
+.tb-ms-source a,
+.tb-goal a,
+.tb-context a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tb-sub {
+  margin: var(--s2) 0 0;
+}
+.tb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+.tb-log summary,
+.tb-past > summary,
+.tb-draft summary {
+  cursor: pointer;
+  font-size: 13.5px;
+}
+.tb-log li,
+.tb-changes li {
+  display: grid;
+  gap: 2px;
+}
+.tb-preview {
+  display: grid;
+  gap: var(--s1);
+  padding: var(--s3);
+  border-radius: var(--r2);
+  background: var(--bg-1);
+}
+.tb-preview h3 {
+  margin: 0;
+}
+.tb-pick {
+  display: flex;
+  gap: var(--s2);
+  align-items: flex-start;
+}
+.tb-days {
+  display: grid;
+  gap: var(--s1);
+}
+.tb-day-row {
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr) 5.5em;
+  gap: var(--s2);
+  align-items: center;
+}
+.tb-context .tb-changes {
+  margin-bottom: var(--s2);
+}
+
 /* ---------- Auth ---------- */
 .auth-page {
   min-height: 100dvh;
