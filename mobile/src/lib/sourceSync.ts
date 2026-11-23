@@ -46,7 +46,8 @@ export async function readForResume(deps: SyncDeps, window: ReplayWindow, kind: 
   if (consent === null) return { status: "not_authorised" };
   const access = await deps.hc.granted();
   if (!access.exercise) {
-    await send(deps, { id: deps.newId(), kind, started_at: new Date(now()).toISOString(), outcome: "denied", error_code: "ANDROID_PERMISSION", window_from: window.from, window_to: window.to });
+    // Nothing was read: the denial carries no window, so any later successful reading closes it in the measure.
+    await send(deps, { id: deps.newId(), kind, started_at: new Date(now()).toISOString(), outcome: "denied", error_code: "ANDROID_PERMISSION" });
     return { status: "denied", code: "ANDROID_PERMISSION" };
   }
   const runId = deps.newId();
