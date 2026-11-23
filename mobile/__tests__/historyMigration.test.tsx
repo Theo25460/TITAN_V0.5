@@ -10,7 +10,10 @@ import { Ledger, Migration } from "../src/core";
 import * as Dialog from "../src/components/Dialog";
 import type { TrainingLog } from "../src/core/types";
 
-const mockApi = { importBatches: jest.fn(), importBatchOpen: jest.fn(), importBatchRows: jest.fn(), importBatchReport: jest.fn(), importBatchWithdraw: jest.fn(), fetchAllLogs: jest.fn() };
+const mockFetchAll = jest.fn();
+const mockApi = { importBatches: jest.fn(), importBatchOpen: jest.fn(), importBatchRows: jest.fn(), importBatchReport: jest.fn(), importBatchWithdraw: jest.fn(), fetchAllLogs: mockFetchAll,
+  // V1.6.6: the journal reads through refreshLogs (page by page, or by manifest); here it serves the same rows as fetchAllLogs.
+  refreshLogs: jest.fn(async (owner: string): Promise<unknown> => ({ rows: await mockFetchAll(owner), removed: [], coverage: { complete: true, count: 1, total: 1, oldest: null, newest: null, checkedAt: null, mode: "pages" }, stats: { mode: "pages", requests: 1, read: 1, removed: 0, kept: 0 } })) };
 jest.mock("../src/data/api", () => ({ ...jest.requireActual("../src/data/api"), ...Object.fromEntries(Object.keys(mockApi).map((k) => [k, (...a: unknown[]) => (mockApi as Record<string, jest.Mock>)[k](...a)])) }));
 jest.mock("../src/lib/supabase", () => ({ supabase: { auth: { getSession: async () => ({ data: { session: null } }) } } }));
 jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a" }));

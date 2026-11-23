@@ -8,7 +8,9 @@ import { isOnline } from "../lib/network";
 import { flushRoutes } from "../lib/routeSync";
 import * as api from "./api";
 import { useOwner } from "./auth";
+import { HistoryWindow } from "../core";
 import { historyViews } from "./history";
+import { coverageOf, setCoverage, useCoverage } from "./historyCoverage";
 import { saveLogsCache } from "./logsCache";
 import { enqueue, flushQueue, provisionalLogs, useQueue } from "./queue";
 import { protectPreferences } from "./profileCopies";
@@ -80,15 +82,34 @@ export function useSavePrefs() {
   });
 }
 
-/** Confirmed sessions from the server + sessions still waiting on this device. */
+/** Confirmed sessions from the server + sessions still waiting on this device.
+    V1.6.6 — Journal longue durée (src/core/web/history-window.js): with a complete copy on the phone a refresh reads the manifest and
+    the changed rows only; otherwise the rows come page by page and the first page is shown at once, marked partial. A correction
+    confirmed while a refresh was reading keeps its newer revision. */
 export function useLogs() {
   const owner = useOwner();
   const queue = useQueue();
+  const qc = useQueryClient();
+  const coverage = useCoverage(owner);
   const q = useQuery({
     queryKey: keys.logs(owner),
     queryFn: async () => {
-      const logs = await api.fetchAllLogs(owner);
-      saveLogsCache(owner, logs).catch(() => {});
+      const shown = () => (qc.getQueryData<TrainingLog[]>(keys.logs(owner)) ?? []).filter((l) => !l.syncStatus || l.syncStatus === "confirmed");
+      const startedFrom = shown();
+      const known = coverageOf(owner);
+      const cached = known?.complete && startedFrom.length ? { rows: startedFrom, coverage: known } : null;
+      let partial = false;
+      const r = await api.refreshLogs(owner, cached, (rows, cov) => {
+        if (partial || coverageOf(owner)?.complete) return;
+        partial = true;
+        const first = HistoryWindow.reconcile(shown(), rows, [], startedFrom);
+        setCoverage(owner, cov);
+        qc.setQueryData(keys.logs(owner), first);
+        saveLogsCache(owner, first, cov).catch(() => {});
+      });
+      const logs = HistoryWindow.reconcile(shown(), r.rows, r.removed, startedFrom);
+      setCoverage(owner, r.coverage);
+      saveLogsCache(owner, logs, r.coverage).catch(() => {});
       return logs;
     },
     staleTime: 30_000,
@@ -102,7 +123,7 @@ export function useLogs() {
     const { logs, active, archived } = historyViews(confirmed, pending);
     return { logs, active, archived, pending, confirmed };
   }, [q.data, queue, owner]);
-  return { ...q, ...value };
+  return { ...q, ...value, coverage };
 }
 
 export function useGoals() {

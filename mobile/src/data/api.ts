@@ -2,7 +2,8 @@
    rewards, credits, possession and progression are only ever written by SECURITY DEFINER functions on the server. */
 import { supabase } from "../lib/supabase";
 import type { AdventureSnapshot, Goal, Privacy, Profile, TrainingLog, TrainingPayload } from "../core/types";
-import type { ImportBatch, ImportBatchRow } from "../core";
+import type { HistoryCoverage, ImportBatch, ImportBatchRow } from "../core";
+import { HistoryWindow } from "../core";
 
 import { listProfileCopies, preferenceBase, preferenceSignature, protectPreferences, removeProfileCopy } from "./profileCopies";
 import { isOnline } from "../lib/network";
@@ -115,32 +116,19 @@ export function savePreferences(profile: Profile, prefs: Preferences, opts: { us
 }
 
 /* ---------- Training log ---------- */
+/** A server row as the app holds it. */
+export const toClientLog = (l: TrainingLog): TrainingLog => ({ ...l, cat: l.category ?? l.cat, client_event_id: l.client_event_id ?? l.details?.client_event_id, syncStatus: "confirmed" as const });
+
+/** V1.6.6 — the account history for this phone (src/core/web/history-window.js): with a complete copy, the manifest and the changed
+    rows only; otherwise every row, page by page by key, onPage publishing the first page. */
+export async function refreshLogs(owner: string, cached: { rows: TrainingLog[]; coverage: HistoryCoverage } | null, onPage?: (rows: TrainingLog[], coverage: HistoryCoverage) => unknown) {
+  const r = await HistoryWindow.refresh(supabase, owner, cached, { timeout: (p) => withTimeout(p, 30000), onPage: onPage ? (rows, cov) => onPage(rows.map(toClientLog), cov) : undefined });
+  return { ...r, rows: r.rows.map(toClientLog) };
+}
+
+/** Every row of the account, read page by page by key (V1.6.6; the offset pages were read again from the start by the server). */
 export async function fetchAllLogs(owner: string): Promise<TrainingLog[]> {
-  const logs: TrainingLog[] = [];
-  const pageSize = 500;
-  let offset = 0;
-  let total: number | null = null;
-  for (;;) {
-    const result = await withTimeout(
-      supabase
-        .from("training_logs")
-        .select("*", { count: "exact" })
-        .eq("user_id", owner)
-        .order("date", { ascending: false })
-        .order("id", { ascending: false })
-        .range(offset, offset + pageSize - 1),
-      30000,
-    );
-    if (result.error) throw result.error;
-    const page = (result.data ?? []) as TrainingLog[];
-    if (result.count !== null && result.count !== undefined) total = result.count;
-    for (const row of page) if (row.user_id && row.user_id !== owner) throw new Error("LOG_OWNER_MISMATCH");
-    logs.push(...page);
-    offset += page.length;
-    if (!page.length && total !== null && offset < total) throw new Error("Historique incomplet. Réessaie la synchronisation.");
-    if (!page.length || (total !== null && offset >= total) || (total === null && page.length < pageSize)) break;
-  }
-  return logs.map((l) => ({ ...l, cat: l.category, client_event_id: l.client_event_id ?? l.details?.client_event_id, syncStatus: "confirmed" as const }));
+  return (await refreshLogs(owner, null)).rows;
 }
 
 export type SubmitReceipt = {
@@ -179,7 +167,7 @@ export async function submitSession(owner: string, payload: TrainingPayload): Pr
   return row;
 }
 
-export type SessionPatch = { val?: number; date?: string; note?: string; duration?: number | null; exercises?: unknown[]; extras?: Record<string, unknown>; archived?: boolean };
+export type SessionPatch = { val?: number; date?: string; note?: string; duration?: number | null; elevation?: number | null; exercises?: unknown[]; extras?: Record<string, unknown>; archived?: boolean };
 
 export async function updateSession(log: TrainingLog, patch: SessionPatch): Promise<TrainingLog> {
   const data = await rpc<TrainingLog>("titan_update_training_session", { p_id: log.id, p_revision: log.revision || 1, p_patch: patch });

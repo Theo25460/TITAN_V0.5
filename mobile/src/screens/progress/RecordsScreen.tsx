@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Card } from "../../components/Card";
 import { Chip } from "../../components/Chip";
+import { CoverageNote } from "../../components/CoverageNote";
 import { Icon } from "../../components/Icon";
 import { Tap } from "../../components/Pressable";
 import { Screen } from "../../components/Screen";
@@ -38,7 +39,7 @@ export function specific(context: string, used: Set<string>) {
 /** Records only between comparable values, always linked to the source session (same rules as the website). */
 export function RecordsScreen() {
   const navigation = useNavigation();
-  const { active } = useLogs();
+  const { active, coverage, isFetching } = useLogs();
   const [sport, setSport] = useState<string | null>(null);
   const records = useMemo(() => Insights.records(active, "all", Date.now()), [active]);
   const sports = useMemo(() => [...new Set(records.map((r) => r.sport))], [records]);
@@ -66,6 +67,8 @@ export function RecordsScreen() {
 
   return (
     <Screen>
+      {/* V1.6.6: records of a partial copy are the records of the sessions this phone holds; the note says so. */}
+      <CoverageNote coverage={coverage} loading={isFetching} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -space.s4 }} contentContainerStyle={{ gap: 6, paddingHorizontal: space.s4 }}>
         <Chip label="Tous" selected={!sport} onPress={() => setSport(null)} />
         {sports.map((s) => (

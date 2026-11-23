@@ -35,6 +35,8 @@ const MESSAGES: Record<string, string> = {
   DURATION_INVALID: "La durée va de 1 minute à 24 heures.",
   EXTRAS_INVALID: "Un détail d’escalade n’est pas valide.",
   SESSION_INVALID: "Une valeur n’est pas valide pour cette séance.",
+  ELEVATION_INVALID: "Le dénivelé va de 0 à 12 000 m, pour une séance mesurée en km.",
+  PATCH_INVALID: "Le serveur n’accepte pas encore cette correction. Réessaie après sa prochaine mise à jour.",
   // A queued session cannot be edited (« Réessayer » resends the same values): say what really works, as the website does.
   TRAINING_REJECTED: "Le serveur refuse cette séance : une valeur sort des limites acceptées (distance, durée, vitesse ou date). Supprime-la, puis enregistre-la de nouveau avec des valeurs corrigées.",
   TRAINING_RATE_LIMIT: "Beaucoup de séances ou de modifications en peu de temps. Réessaie dans un moment.",

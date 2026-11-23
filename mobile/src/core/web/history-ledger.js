@@ -171,6 +171,8 @@
     { field: "date", label: "Date", read: (l) => minuteOf(l?.date) },
     { field: "duration", label: "Durée", read: durationOf, unit: () => "min" },
     { field: "note", label: "Note", read: (l) => String(l?.details?.note || "") },
+    // V1.6.6: the positive elevation of a ride, a run or a hike (details.elevation), corrected like the other measures.
+    { field: "elevation", label: "Dénivelé", read: (l) => (l?.details?.elevation === undefined || l?.details?.elevation === null || l?.details?.elevation === "" ? null : Number(l.details.elevation)), unit: () => "m" },
     { field: "archived", label: "Archive", read: (l) => !!l?.archived_at },
   ];
   /** What a correction, an archive or a restore changed between two states of the same session: [{ field, label, before, after }]. */
@@ -203,6 +205,7 @@
     if (c.field === "unit") return `Unité : ${c.before || "—"} → ${c.after || "—"}`;
     const shown = (v) => (num(v) === null ? "non renseignée" : fr(num(v)));
     if (c.field === "duration") return `Durée : ${shown(c.before)} → ${shown(c.after)} min`;
+    if (c.field === "elevation") return `Dénivelé : ${num(c.before) === null ? "non renseigné" : fr(num(c.before))} → ${num(c.after) === null ? "non renseigné" : fr(num(c.after))} m`;
     return `${VALUE_LABEL[c.unit] || "Valeur"} : ${shown(c.before)} → ${shown(c.after)}${c.unit ? ` ${c.unit}` : ""}`;
   }
 

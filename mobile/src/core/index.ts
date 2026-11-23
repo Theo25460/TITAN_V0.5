@@ -26,6 +26,7 @@ require("./web/sync-state.js");
 require("./web/session-match.js");
 require("./web/history-ledger.js");
 require("./web/history-migration.js");
+require("./web/history-window.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -117,7 +118,7 @@ export const SessionMatch = g.TitanSessionMatch as {
 
 /** V1.6.3 — Contrôle et réconciliation: the state matrix and its controls, the same as the website (src/core/web/history-ledger.js). */
 export type LedgerState = "confirmed" | "local" | "stored" | "sending" | "pending" | "refused" | "held" | "archived";
-export type LedgerChange = { field: "val" | "unit" | "date" | "duration" | "note" | "archived"; before: unknown; after: unknown; unit?: string };
+export type LedgerChange = { field: "val" | "unit" | "date" | "duration" | "elevation" | "note" | "archived"; before: unknown; after: unknown; unit?: string };
 export type LedgerControls = {
   journal: number; archives: number; period: { sessions: number; minutes: number; km: number };
   records: { id: string; value: number; ref: string }[]; csv: { journal: number; archives: number }; json: { trainingLogs: number; archived: number };
@@ -324,4 +325,22 @@ export type Career = {
 export const CareerRules = g.TitanCareer as {
   build(logs: TrainingLog[], opts?: { now?: Date | number; range?: CareerRange; stepDays?: { day: string; steps: number }[] | null; rank?: { level?: number; id?: string; name?: string } | null; xp?: number | null }): Career;
   STEP_KM: number;
+};
+
+/** V1.6.6 — Journal longue durée: paged reading by key, refresh by manifest, coverage of the device copy, the same as the website
+    (src/core/web/history-window.js). The readers take the app's Supabase client (the same supabase-js as the website). */
+export type HistoryCoverage = { complete: boolean; count: number; total: number | null; oldest: string | null; newest: string | null; checkedAt: string | null; mode: string };
+export type HistoryRefresh = { rows: TrainingLog[]; removed: string[]; coverage: HistoryCoverage; stats: { mode: "manifest" | "pages"; requests: number; read: number; removed: number; kept: number } };
+export const HistoryWindow = g.TitanHistoryWindow as {
+  PAGE: number;
+  MANIFEST_COLUMNS: string;
+  order(a: Partial<TrainingLog>, b: Partial<TrainingLog>): number;
+  fingerprint(row: Partial<TrainingLog>): string;
+  diff(cached: Partial<TrainingLog>[], manifest: Partial<TrainingLog>[]): { fetch: string[]; remove: string[]; kept: number };
+  merge<L extends Partial<TrainingLog>>(cached: L[], fetched: L[], removed?: string[]): L[];
+  reconcile<L extends Partial<TrainingLog>>(current: L[], refreshed: L[], removed?: string[], startedFrom?: L[]): L[];
+  coverageOf(rows: Partial<TrainingLog>[], opts?: { complete?: boolean; total?: number | null; checkedAt?: number | string | null; mode?: string }): HistoryCoverage;
+  covers(coverage: HistoryCoverage | null | undefined, since?: number): boolean;
+  describe(coverage: HistoryCoverage | null | undefined, opts?: { online?: boolean; loading?: boolean }): { state: "complete" | "partial" | "none"; tone: "info" | "warn"; short: string; text: string } | null;
+  refresh(client: unknown, owner: string, cached: { rows: TrainingLog[]; coverage: HistoryCoverage } | null, opts?: { onPage?: (rows: TrainingLog[], coverage: HistoryCoverage) => unknown; timeout?: <T>(p: PromiseLike<T>) => Promise<T>; now?: () => number }): Promise<HistoryRefresh>;
 };

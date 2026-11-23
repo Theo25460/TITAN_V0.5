@@ -1,15 +1,15 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "e7c56967d048a7bbec569204e577e95472deb84a",
+  "sha": "6cb9d6320f53cf0b6b829b15d920a380f247ce33",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
-    "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
+    "training-store.js": "0d089fdb88f819fae61b77f0e47ae7259efc2e9a70cf10d27602254d8425ccc5",
     "effort.js": "8e11c4dece0b44299faf1f70fd1ee1a5225d764673cfda816a07d4d57551b756",
     "sports-catalog.js": "6e96795b3face2c78353c804aec29050e07a5aec6cb9671ae176547f03bab290",
     "sports.js": "80e3b094d370cc7b9a5b8309e44943030c2203ed91f4b616f5ee3d453bd37d1b",
     "sport-contracts.js": "c44a62d3ab2b31e66de302f9e96beac785299b4993aec6624a8a8d62143d6418",
     "progression.js": "02233dbdd1b6f8b3dd4403c1a9f64ce95352702a95c8f0ca82a1e72ac8437a3a",
-    "sport-insights.js": "425daa25c78192749f62a704e726b8d1b8c41d68a9cc681b757e06ec3ffa74e5",
+    "sport-insights.js": "799ad4b7d0c79261c6b91c5f45a1346537cd57cc6c0a71d2eaa6cc9fc7f4267f",
     "progress.js": "48b68e5003a2fbff03ef4347a2323e535e28ba7f1a5f99995d10bb2735073937",
     "questions.js": "e957bd84080eb8814cf49e7dd2a54fc8a81a40543af9a6488983c972ce72374a",
     "renaissance-catalog.js": "a9b08c20e48a71878ad9ea7596ec4cb4aa1c52d41ae5c9e917569dbb030ce41e",
@@ -33,7 +33,8 @@
     "social-digest.js": "4e56fee2d6fb6d7bfad261761ab0028955137b4d1001304cebe0c9f18c2eca1f",
     "sync-state.js": "65ce3c28f3fdf8c621c154d2d8a088b5edfdbb558bc313224a28caba2b0c5b03",
     "session-match.js": "13b98abfe0a7ba1b0143043770d84c3cda2a33c22b5df0b4685e62dcef4b0749",
-    "history-ledger.js": "1fc59c7dd40f01e452ba28dfb05c3b876f3562dff3c536f9becb16a6d9abc7b5",
-    "history-migration.js": "cb006cefa05a720427091c8cbe8762f4262933b4143d73f9ce11fe2232e8655d"
+    "history-ledger.js": "16803afbfe6c3b5d7c769ca1194097670d2ef4ca35e3b8697db850b8c407b898",
+    "history-migration.js": "cb006cefa05a720427091c8cbe8762f4262933b4143d73f9ce11fe2232e8655d",
+    "history-window.js": "515d55701a101c48f344a167493cf4dce50adc4a8c3715fdb285490760eac019"
   }
 }
