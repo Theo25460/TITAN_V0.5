@@ -1,0 +1,2862 @@
+{
+  "version": 1,
+  "cases": {
+    "1 — premier bilan : le créneau du mardi déplacé deux fois, le bloc régulier": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-10-26/1",
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": null,
+        "signature": "2026-11-16|moved|1:2:0|run-w2+run-w4||"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 2/4 comme prévu, 2 déplacées.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": null,
+      "program": null,
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 0,
+        "found": 0
+      }
+    },
+    "2 — aperçu : la semaine suivante seulement": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-10-26/1",
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": null,
+        "signature": "2026-11-16|moved|1:2:0|run-w2+run-w4||"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 2/4 comme prévu, 2 déplacées.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": {
+        "changes": [
+          {
+            "index": 1,
+            "before": "running",
+            "after": null
+          },
+          {
+            "index": 2,
+            "before": null,
+            "after": "running"
+          }
+        ],
+        "appliesFrom": "2026-11-23",
+        "scope": "next",
+        "words": {
+          "lines": [
+            "Mardi : Course à pied → libre",
+            "Mercredi : libre → Course à pied"
+          ],
+          "where": "Seulement la semaine du 2026-11-23. Ta semaine type ne change pas.",
+          "undo": "Tu pourras annuler ce choix tant que la semaine n’est pas finie."
+        }
+      },
+      "program": null,
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 0,
+        "found": 0
+      }
+    },
+    "3 — aperçu : la semaine type": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-10-26/1",
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": null,
+        "signature": "2026-11-16|moved|1:2:0|run-w2+run-w4||"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 2/4 comme prévu, 2 déplacées.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": {
+        "changes": [
+          {
+            "index": 1,
+            "before": "running",
+            "after": null
+          },
+          {
+            "index": 2,
+            "before": null,
+            "after": "running"
+          }
+        ],
+        "appliesFrom": "2026-11-23",
+        "scope": "type",
+        "words": {
+          "lines": [
+            "Mardi : Course à pied → libre",
+            "Mercredi : libre → Course à pied"
+          ],
+          "where": "Ta semaine type change à partir du 2026-11-23.",
+          "undo": "Tu pourras annuler ce choix tant que la semaine n’est pas finie."
+        }
+      },
+      "program": null,
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 0,
+        "found": 0
+      }
+    },
+    "4 — confirmé pour la semaine suivante : visible au programme": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-10-26/1",
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": {
+            "action": {
+              "kind": "move",
+              "from": 1,
+              "to": 2,
+              "scope": "next"
+            },
+            "undone": false,
+            "applied": {
+              "occurrence": "2026-11-23/1",
+              "prior": null
+            }
+          }
+        },
+        "followUp": null,
+        "signature": "2026-11-16|moved|1:2:0|run-w2+run-w4|move:on|"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 2/4 comme prévu, 2 déplacées.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": null,
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-25",
+              "sport": "running"
+            },
+            "status": "planned",
+            "decision": "move",
+            "origin": "review:2026-11-16"
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": [
+          {
+            "week": "2026-11-16",
+            "action": {
+              "kind": "move",
+              "from": 1,
+              "to": 2,
+              "scope": "next"
+            }
+          }
+        ]
+      },
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 1,
+        "undone": 0,
+        "found": 0
+      }
+    },
+    "5 — deuxième semaine : le bilan suivant distingue le changement décidé et ce qui a été observé": {
+      "review": {
+        "week": "2026-11-23",
+        "target": "2026-11-30",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16",
+            "2026-11-23"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1",
+              "2026-11-23/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 2,
+              "adjusted": 1,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "type"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": {
+          "week": "2026-11-16",
+          "target": "2026-11-23",
+          "undone": false,
+          "state": "done",
+          "session": "run-w5",
+          "occurrence": "2026-11-23/1"
+        },
+        "signature": "2026-11-23|moved|1:2:0|run-w2+run-w4||done"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 2/4 comme prévu (dont 1 au jour choisi au bilan), 2 déplacées.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": {
+          "decided": "Décidé au bilan de la semaine du 2026-11-16 : déplacer Course à pied du mardi au mercredi la semaine suivante.",
+          "observed": "Observé après : Course à pied faite le mercredi, comme décidé.",
+          "tone": "ok"
+        }
+      },
+      "preview": null,
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-25",
+              "sport": "running"
+            },
+            "status": "done",
+            "decision": "move",
+            "origin": "review:2026-11-16"
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": [
+          {
+            "week": "2026-11-16",
+            "action": {
+              "kind": "move",
+              "from": 1,
+              "to": 2,
+              "scope": "next"
+            }
+          }
+        ]
+      },
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 1,
+        "undone": 0,
+        "found": 1
+      }
+    },
+    "5b — deuxième semaine : la séance faite le mardi quand même": {
+      "review": {
+        "week": "2026-11-23",
+        "target": "2026-11-30",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16",
+            "2026-11-23"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 1,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1",
+              "2026-11-23/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 1,
+              "adjusted": 1,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 1
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": {
+          "week": "2026-11-16",
+          "target": "2026-11-23",
+          "undone": false,
+          "state": "missed",
+          "session": "run-w5-tue",
+          "occurrence": "2026-11-23/1"
+        },
+        "signature": "2026-11-23|moved|1:2:1|run-w2+run-w4||missed"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois et non fait 1 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 1/4 comme prévu (dont 1 au jour choisi au bilan), 2 déplacées, 1 non faite.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": {
+          "decided": "Décidé au bilan de la semaine du 2026-11-16 : déplacer Course à pied du mardi au mercredi la semaine suivante.",
+          "observed": "Observé après : la séance du mercredi n’a pas été faite ; une séance Course à pied hors programme a eu lieu le mardi.",
+          "tone": "warn"
+        }
+      },
+      "preview": null,
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-25",
+              "sport": "running"
+            },
+            "status": "missed",
+            "decision": "move",
+            "origin": "review:2026-11-16"
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": [
+          {
+            "week": "2026-11-16",
+            "action": {
+              "kind": "move",
+              "from": 1,
+              "to": 2,
+              "scope": "next"
+            }
+          }
+        ]
+      },
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 1,
+        "undone": 0,
+        "found": 1
+      }
+    },
+    "6 — confirmé dans la semaine type : le programme change à partir du lundi 23": {
+      "review": {
+        "week": "2026-11-23",
+        "target": "2026-11-30",
+        "observation": {
+          "kind": "regular",
+          "followed": 4,
+          "weeks": [
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16",
+            "2026-11-23"
+          ],
+          "slot": null,
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 3,
+              "asPlanned": 1,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 2,
+              "sport": "running",
+              "weeks": 1,
+              "asPlanned": 1,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w3",
+            "run-w4",
+            "run-w5",
+            "bloc-w2",
+            "bloc-w3",
+            "bloc-w4",
+            "bloc-w5",
+            "lift-w2",
+            "lift-w3",
+            "lift-w4",
+            "lift-w5"
+          ],
+          "suggestion": {
+            "kind": "keep"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              2,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              1,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": {
+          "week": "2026-11-16",
+          "target": "2026-11-23",
+          "undone": false,
+          "state": "done",
+          "session": "run-w5",
+          "occurrence": "2026-11-23/2"
+        },
+        "signature": "2026-11-23|regular|-|run-w2+run-w3+run-w4+run-w5+bloc-w2+bloc-w3+bloc-w4+bloc-w5+lift-w2+lift-w3+lift-w4+lift-w5||done"
+      },
+      "words": {
+        "observation": {
+          "title": "Tes séances prévues sont régulières : 10/12 faites comme prévu sur 4 semaines suivies",
+          "text": "Régulières : Escalade bloc du jeudi, Musculation en salle du samedi.",
+          "lines": [
+            "Course à pied du mardi : 1/3 comme prévu, 2 déplacées.",
+            "Course à pied du mercredi : 1/1 comme prévu.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": {
+          "decided": "Décidé au bilan de la semaine du 2026-11-16 : déplacer Course à pied du mardi au mercredi dans ma semaine type.",
+          "observed": "Observé après : Course à pied faite le mercredi, comme décidé.",
+          "tone": "ok"
+        }
+      },
+      "preview": null,
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/2",
+            "effective": {
+              "day": "2026-11-25",
+              "sport": "running"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": [
+          {
+            "week": "2026-11-16",
+            "action": {
+              "kind": "move",
+              "from": 1,
+              "to": 2,
+              "scope": "type"
+            }
+          }
+        ]
+      },
+      "pauses": [],
+      "type": [
+        null,
+        null,
+        "running",
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 1,
+        "undone": 0,
+        "found": 1
+      }
+    },
+    "7 — historique trop court : programme suivi depuis le lundi 16": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "short",
+          "followed": 1,
+          "weeks": [
+            "2026-11-16"
+          ],
+          "slot": null,
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 1,
+              "asPlanned": 0,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 1
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 1,
+              "asPlanned": 1,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 1,
+              "asPlanned": 0,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 1
+            }
+          ],
+          "sources": [
+            "bloc-w4"
+          ],
+          "suggestion": {
+            "kind": "keep"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": null,
+        "signature": "2026-11-16|short|-|bloc-w4||"
+      },
+      "words": {
+        "observation": {
+          "title": "Historique trop court pour un constat",
+          "text": "Seulement 1 semaine suivie sur les 4 dernières : il en faut au moins 2 avec un programme et des séances reliées. Tu peux enrichir ton historique ou garder ton plan tel quel."
+        },
+        "followUp": null
+      },
+      "preview": null,
+      "program": null,
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 0,
+        "found": 0
+      }
+    },
+    "7b — aucun programme": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "short",
+          "followed": 0,
+          "weeks": [],
+          "slot": null,
+          "slots": [],
+          "sources": [],
+          "suggestion": {
+            "kind": "keep"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": null,
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": null,
+        "signature": "2026-11-16|short|-|||"
+      },
+      "words": {
+        "observation": {
+          "title": "Historique trop court pour un constat",
+          "text": "Aucune semaine suivie sur les 4 dernières : il en faut au moins 2 avec un programme et des séances reliées. Tu peux enrichir ton historique ou garder ton plan tel quel."
+        },
+        "followUp": null
+      },
+      "preview": null,
+      "program": null,
+      "pauses": [],
+      "type": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 0,
+        "found": 0
+      }
+    },
+    "8 — refus : la proposition est vue puis ignorée": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-10-26/1",
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": null,
+        "signature": "2026-11-16|moved|1:2:0|run-w2+run-w4||"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 2/4 comme prévu, 2 déplacées.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": {
+        "changes": [
+          {
+            "index": 1,
+            "before": "running",
+            "after": null
+          },
+          {
+            "index": 2,
+            "before": null,
+            "after": "running"
+          }
+        ],
+        "appliesFrom": "2026-11-23",
+        "scope": "next",
+        "words": {
+          "lines": [
+            "Mardi : Course à pied → libre",
+            "Mercredi : libre → Course à pied"
+          ],
+          "where": "Seulement la semaine du 2026-11-23. Ta semaine type ne change pas.",
+          "undo": "Tu pourras annuler ce choix tant que la semaine n’est pas finie."
+        }
+      },
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-24",
+              "sport": "running"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": []
+      },
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 0,
+        "found": 0
+      }
+    },
+    "9 — annulation d’un déplacement pour la semaine suivante": {
+      "review": {
+        "week": "2026-11-23",
+        "target": "2026-11-30",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16",
+            "2026-11-23"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 1,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1",
+              "2026-11-23/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 1,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 1
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": {
+          "week": "2026-11-16",
+          "target": "2026-11-23",
+          "undone": true,
+          "state": null,
+          "session": null,
+          "occurrence": null
+        },
+        "signature": "2026-11-23|moved|1:2:1|run-w2+run-w4||undone"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois et non fait 1 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 1/4 comme prévu, 2 déplacées, 1 non faite.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": {
+          "decided": "Décidé au bilan de la semaine du 2026-11-16 : déplacer Course à pied du mardi au mercredi la semaine suivante.",
+          "observed": "Ce choix a été annulé : la semaine a gardé son programme.",
+          "tone": "muted"
+        }
+      },
+      "preview": null,
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-24",
+              "sport": "running"
+            },
+            "status": "missed",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": []
+      },
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 1,
+        "found": 0
+      }
+    },
+    "9b — annulation d’un changement de la semaine type": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-10-26/1",
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": {
+            "action": {
+              "kind": "move",
+              "from": 1,
+              "to": 2,
+              "scope": "type"
+            },
+            "undone": true,
+            "applied": {
+              "days": {
+                "tuesday": {
+                  "sport": "running",
+                  "minutes": 45,
+                  "note": "Footing"
+                },
+                "wednesday": null
+              },
+              "from": "2026-11-23",
+              "wrote": {
+                "tuesday": {
+                  "sport": null,
+                  "minutes": null,
+                  "note": ""
+                },
+                "wednesday": {
+                  "sport": "running",
+                  "minutes": 45,
+                  "note": "Footing"
+                }
+              }
+            }
+          }
+        },
+        "followUp": null,
+        "signature": "2026-11-16|moved|1:2:0|run-w2+run-w4|move:undone|"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 2/4 comme prévu, 2 déplacées.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": null,
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-24",
+              "sport": "running"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": []
+      },
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 1,
+        "found": 0
+      }
+    },
+    "10 — mettre la semaine suivante en pause, puis le bilan suivant": {
+      "review": {
+        "week": "2026-11-23",
+        "target": "2026-11-30",
+        "observation": {
+          "kind": "moved",
+          "followed": 3,
+          "weeks": [
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 3,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 3,
+              "asPlanned": 1,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 3,
+              "asPlanned": 3,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 3,
+              "asPlanned": 3,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": {
+          "week": "2026-11-16",
+          "target": "2026-11-23",
+          "undone": false,
+          "state": "paused",
+          "session": null,
+          "occurrence": null
+        },
+        "signature": "2026-11-23|moved|1:2:0|run-w2+run-w4||paused"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 3 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 1/3 comme prévu, 2 déplacées.",
+            "Escalade bloc du jeudi : 3/3 comme prévu.",
+            "Musculation en salle du samedi : 3/3 comme prévu."
+          ]
+        },
+        "followUp": {
+          "decided": "Décidé au bilan de la semaine du 2026-11-16 : mettre la semaine en pause (semaine du 2026-11-23).",
+          "observed": "Observé après : semaine en pause, 1 séance faite, aucun écart compté.",
+          "tone": "ok"
+        }
+      },
+      "preview": null,
+      "program": {
+        "paused": true,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-24",
+              "sport": "running"
+            },
+            "status": "paused",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "paused",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": [
+          {
+            "week": "2026-11-16",
+            "action": {
+              "kind": "pause",
+              "scope": "next"
+            }
+          }
+        ]
+      },
+      "pauses": [
+        "2026-11-23"
+      ],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 1,
+        "undone": 0,
+        "found": 1
+      }
+    },
+    "10b — pause annulée": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-10-26/1",
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": {
+            "action": {
+              "kind": "pause",
+              "scope": "next"
+            },
+            "undone": true,
+            "applied": {
+              "pause": "2026-11-23"
+            }
+          }
+        },
+        "followUp": null,
+        "signature": "2026-11-16|moved|1:2:0|run-w2+run-w4|pause:undone|"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 2/4 comme prévu, 2 déplacées.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": null,
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-24",
+              "sport": "running"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": []
+      },
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 1,
+        "found": 0
+      }
+    },
+    "11 — reconduire le plan, puis le bilan suivant": {
+      "review": {
+        "week": "2026-11-23",
+        "target": "2026-11-30",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16",
+            "2026-11-23"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 1,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1",
+              "2026-11-23/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 1,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 1
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": {
+          "week": "2026-11-16",
+          "target": "2026-11-23",
+          "undone": false,
+          "state": "kept",
+          "session": null,
+          "occurrence": null
+        },
+        "signature": "2026-11-23|moved|1:2:1|run-w2+run-w4||kept"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois et non fait 1 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 1/4 comme prévu, 2 déplacées, 1 non faite.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": {
+          "decided": "Décidé au bilan de la semaine du 2026-11-16 : reconduire le plan (semaine du 2026-11-23).",
+          "observed": "Observé après : 2/3 faites comme prévu, 1 écart.",
+          "tone": "ok"
+        }
+      },
+      "preview": null,
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-24",
+              "sport": "running"
+            },
+            "status": "missed",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "done",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": [
+          {
+            "week": "2026-11-16",
+            "action": {
+              "kind": "keep",
+              "scope": "next"
+            }
+          }
+        ]
+      },
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 1,
+        "undone": 0,
+        "found": 1
+      }
+    },
+    "12 — semaines régulières": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "regular",
+          "followed": 4,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": null,
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w1",
+            "run-w2-tue",
+            "run-w3",
+            "run-w4-tue",
+            "bloc-w1",
+            "bloc-w2",
+            "bloc-w3",
+            "bloc-w4",
+            "lift-w1",
+            "lift-w2",
+            "lift-w3",
+            "lift-w4"
+          ],
+          "suggestion": {
+            "kind": "keep"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": null,
+        "signature": "2026-11-16|regular|-|run-w1+run-w2-tue+run-w3+run-w4-tue+bloc-w1+bloc-w2+bloc-w3+bloc-w4+lift-w1+lift-w2+lift-w3+lift-w4||"
+      },
+      "words": {
+        "observation": {
+          "title": "Tes séances prévues sont régulières : 12/12 faites comme prévu sur 4 semaines suivies",
+          "text": "Régulières : Course à pied du mardi, Escalade bloc du jeudi, Musculation en salle du samedi.",
+          "lines": [
+            "Course à pied du mardi : 4/4 comme prévu.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": null,
+      "program": null,
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 0,
+        "found": 0
+      }
+    },
+    "13 — choix fait sur le téléphone, relu sur le site": {
+      "review": {
+        "week": "2026-11-16",
+        "target": "2026-11-23",
+        "observation": {
+          "kind": "moved",
+          "followed": 4,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02",
+            "2026-11-09",
+            "2026-11-16"
+          ],
+          "slot": {
+            "index": 1,
+            "sport": "running",
+            "weeks": 4,
+            "moved": 2,
+            "missed": 0,
+            "days": [
+              {
+                "day": 2,
+                "n": 2
+              }
+            ],
+            "occurrences": [
+              "2026-10-26/1",
+              "2026-11-02/1",
+              "2026-11-09/1",
+              "2026-11-16/1"
+            ]
+          },
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 4,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 2,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 4,
+              "asPlanned": 4,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w2",
+            "run-w4"
+          ],
+          "suggestion": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          }
+        },
+        "actions": {
+          "open": true,
+          "keep": true,
+          "move": {
+            "from": [
+              1,
+              3,
+              5
+            ],
+            "to": [
+              0,
+              2,
+              4,
+              6
+            ]
+          },
+          "pause": true,
+          "alreadyPaused": false,
+          "decided": {
+            "action": {
+              "kind": "move",
+              "from": 1,
+              "to": 2,
+              "scope": "next"
+            },
+            "undone": false,
+            "applied": {
+              "occurrence": "2026-11-23/1",
+              "prior": null
+            }
+          }
+        },
+        "followUp": null,
+        "signature": "2026-11-16|moved|1:2:0|run-w2+run-w4|move:on|"
+      },
+      "words": {
+        "observation": {
+          "title": "Le créneau du mardi (Course à pied) a été déplacé 2 fois sur 4 semaines suivies",
+          "text": "Faite mercredi 2 fois.",
+          "lines": [
+            "Course à pied du mardi : 2/4 comme prévu, 2 déplacées.",
+            "Escalade bloc du jeudi : 4/4 comme prévu.",
+            "Musculation en salle du samedi : 4/4 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": null,
+      "program": {
+        "paused": false,
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "effective": {
+              "day": "2026-11-25",
+              "sport": "running"
+            },
+            "status": "planned",
+            "decision": "move",
+            "origin": "review:2026-11-16"
+          },
+          {
+            "id": "2026-11-23/3",
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "bouldering"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "muscu_gym"
+            },
+            "status": "planned",
+            "decision": null,
+            "origin": null
+          }
+        ],
+        "adjustments": [
+          {
+            "week": "2026-11-16",
+            "action": {
+              "kind": "move",
+              "from": 1,
+              "to": 2,
+              "scope": "next"
+            }
+          }
+        ]
+      },
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 1,
+        "undone": 0,
+        "found": 0
+      }
+    },
+    "14 — bilan d’une semaine trop ancienne : lecture seule": {
+      "review": {
+        "week": "2026-11-02",
+        "target": "2026-11-09",
+        "observation": {
+          "kind": "regular",
+          "followed": 2,
+          "weeks": [
+            "2026-10-26",
+            "2026-11-02"
+          ],
+          "slot": null,
+          "slots": [
+            {
+              "index": 1,
+              "sport": "running",
+              "weeks": 2,
+              "asPlanned": 1,
+              "adjusted": 0,
+              "moved": 1,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 3,
+              "sport": "bouldering",
+              "weeks": 2,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            },
+            {
+              "index": 5,
+              "sport": "muscu_gym",
+              "weeks": 2,
+              "asPlanned": 2,
+              "adjusted": 0,
+              "moved": 0,
+              "replaced": 0,
+              "skipped": 0,
+              "missed": 0
+            }
+          ],
+          "sources": [
+            "run-w1",
+            "run-w2",
+            "bloc-w1",
+            "bloc-w2",
+            "lift-w1",
+            "lift-w2"
+          ],
+          "suggestion": {
+            "kind": "keep"
+          }
+        },
+        "actions": {
+          "open": false,
+          "keep": false,
+          "move": null,
+          "pause": false,
+          "alreadyPaused": false,
+          "decided": null
+        },
+        "followUp": null,
+        "signature": "2026-11-02|regular|-|run-w1+run-w2+bloc-w1+bloc-w2+lift-w1+lift-w2||"
+      },
+      "words": {
+        "observation": {
+          "title": "Tes séances prévues sont régulières : 5/6 faites comme prévu sur 2 semaines suivies",
+          "text": "Régulières : Escalade bloc du jeudi, Musculation en salle du samedi.",
+          "lines": [
+            "Course à pied du mardi : 1/2 comme prévu, 1 déplacée.",
+            "Escalade bloc du jeudi : 2/2 comme prévu.",
+            "Musculation en salle du samedi : 2/2 comme prévu."
+          ]
+        },
+        "followUp": null
+      },
+      "preview": null,
+      "program": null,
+      "pauses": [],
+      "type": [
+        null,
+        "running",
+        null,
+        "bouldering",
+        null,
+        "muscu_gym",
+        null
+      ],
+      "measure": {
+        "confirmed": 0,
+        "undone": 0,
+        "found": 0
+      }
+    }
+  }
+}

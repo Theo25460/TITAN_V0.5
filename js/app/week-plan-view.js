@@ -53,6 +53,7 @@
       <span class="asc-row-main"><span class="asc-row-title">${esc(planned)}</span>
         <span class="asc-row-sub" data-occurrence-status>${esc(w.status)}</span>
         ${o.link ? `<span class="asc-row-sub" data-occurrence-session>${sessionLine(o.link.session)}</span>` : ""}
+        ${o.decision?.origin?.startsWith("review:") ? `<span class="asc-row-sub" data-occurrence-origin>${icon("calendar")} Choisi au bilan de la semaine du ${esc(dayLong(o.decision.origin.slice(7)))}</span>` : ""}
         ${w.notice ? `<span class="asc-row-sub wp-notice" role="note">${icon("info")} ${esc(w.notice)}</span>` : ""}
       </span>
       ${v.editable ? `<button type="button" class="asc-btn ${o.status === "ask" ? "asc-btn-primary" : "asc-btn-ghost"} asc-btn-sm" data-occurrence-act="${esc(o.id)}" aria-label="${esc(`${o.status === "ask" ? "Choisir" : "Ajuster"} : ${planned}`)}">${o.status === "ask" ? "Choisir" : "Ajuster"}</button>` : ""}

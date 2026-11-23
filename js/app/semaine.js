@@ -374,6 +374,16 @@
     return window.TitanWeekPlanView.html(v, { title: offset === 0 ? "Prévu et réalisé" : "Prévu et réalisé cette semaine-là" });
   }
 
+  /* V1.7.3 — the bilan of the week chosen above: one observation and its source sessions, then a choice for the week after it
+     (js/app/week-review-view.js). Older weeks are read only. */
+  const reviewView = () => (D().weekReview ? D().weekReview(recapFor(offset).from) : null);
+  function reviewHtml() {
+    const r = reviewView();
+    if (!r || !window.TitanWeekReviewView) return "";
+    if (!r.actions.open && !r.actions.decided && !r.followUp) return "";
+    return window.TitanWeekReviewView.html(r, { title: offset === 0 ? "Bilan de la semaine et ajustement" : "Bilan et ajustement" });
+  }
+
   function render() {
     if (!root) return;
     const active = document.activeElement;
@@ -385,6 +395,7 @@
     // The week and its programme, then the practice over the period, then the answers side by side, then the month and the year.
     root.innerHTML = `${heroHtml(r)}
       ${planHtml(r)}
+      ${reviewHtml()}
       ${programHtml()}
       <div class="wk-cols">${weekHtml()}${highlightsHtml(r)}</div>
       ${any ? `<section class="asc-section"><div class="asc-section-head"><h2>Tes questions</h2></div><div class="wk-questions">${questions.join("")}</div></section>` : `<div class="asc-empty sig-empty"><h2>Tes statistiques répondront à de vraies questions</h2><p>Est-ce que je progresse ? Où va mon temps ? Ma semaine est-elle chargée ? Les réponses arrivent avec tes séances.</p><a class="asc-btn asc-btn-primary" href="/training">${icon("plus")} Enregistrer une séance</a></div>`}
@@ -415,6 +426,7 @@
       SP().ensure();
       window.TitanPeriodicQuests?.refresh();
       window.TitanWeekPlanView?.bind(root, planView);
+      window.TitanWeekReviewView?.bind(root, reviewView, () => render());
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-week-card]")) return weekCard();
         if (e.target.closest("[data-month-card]")) return monthCard();

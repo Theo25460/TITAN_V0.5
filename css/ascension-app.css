@@ -2670,6 +2670,83 @@
   gap: var(--s1);
 }
 
+/* ---------- V1.7.3 — Bilan et ajustements (js/app/week-review-view.js) ---------- */
+.wr-review .wr-observation,
+.wr-follow,
+.wr-choice,
+.wr-preview,
+.wr-next {
+  display: grid;
+  gap: var(--s1);
+  margin-bottom: var(--s3);
+}
+.wr-review p,
+.wr-follow p,
+.wr-preview p,
+.wr-choice p {
+  margin: 0;
+}
+.wr-follow {
+  padding: var(--s3);
+  border-radius: var(--r2);
+  background: var(--bg-1);
+  box-shadow: inset 3px 0 0 var(--line-2);
+}
+.wr-follow[data-tone="ok"] {
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+.wr-follow[data-tone="warn"] {
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+.wr-lines,
+.wr-sources ul,
+.wr-source-one,
+.wr-preview ul,
+.wr-next ul {
+  margin: 0;
+  padding-left: var(--s4);
+  display: grid;
+  gap: var(--s1);
+}
+.wr-sources summary {
+  cursor: pointer;
+  font-size: 13.5px;
+}
+.wr-sources a,
+.wr-source-one a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.wr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+.wr-field {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s1);
+}
+.wr-preview {
+  padding: var(--s3);
+  border-radius: var(--r2);
+  background: var(--bg-1);
+}
+.wr-preview h3,
+.wr-next h3 {
+  margin: 0;
+}
+.wr-adjust .asc-row-title,
+.wr-adjust .asc-row-sub {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
 /* ---------- Auth ---------- */
 .auth-page {
   min-height: 100dvh;

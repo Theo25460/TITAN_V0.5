@@ -84,8 +84,10 @@
         ${planned ? "" : `<div class="sig-empty pv-none">${icon("calendar")}<h3>Aucune séance prévue</h3><p>Place une séance type sur un jour : le QG te la rappellera ce jour-là. Rien n’est obligatoire, et un jour sauté ne coûte rien.</p><button type="button" class="asc-btn asc-btn-primary" data-day="${today?.key || week[0].key}" data-plan-first>${icon("plus")} Prévoir ${today ? "aujourd’hui" : "un jour"}</button></div>`}
         <div class="pv-week">${week.map(dayCard).join("")}</div>
         ${view && window.TitanWeekPlanView ? window.TitanWeekPlanView.html(view, { title: "Prévu et réalisé cette semaine" }) : ""}
+        ${window.TitanWeekReviewView ? window.TitanWeekReviewView.adjustmentsHtml(F().dateKey(F().weekStart()), { title: "Ajustement de cette semaine" }) : ""}
         ${!paused && planned && planned < target ? `<p class="asc-note">${icon("info")}<span>Ta cadence vise ${target} jours actifs par semaine et ta semaine type en prévoit ${planned}. Les jours libres comptent aussi dès que tu bouges.</span></p>` : ""}
       </section>
+      ${nextHtml()}
       <section class="asc-section"><div class="asc-section-head"><h2>Ta semaine type</h2><span class="asc-small asc-muted">Touchez un jour pour le modifier</span></div>
         <div class="asc-list">${type
           .map(
@@ -101,6 +103,15 @@
     root.setAttribute("aria-busy", "false");
     if (current(ctx)) restoreDay(focusedDay);
     if (focusedPause) root.querySelector("[data-cadence-pause]")?.focus({ preventScroll: true });
+  }
+
+  // V1.7.3: the week after this one, when a bilan chose an adjustment for it — its programme, the origin of the choice, its undo.
+  function nextHtml() {
+    const V = window.TitanWeekReviewView;
+    if (!V) return "";
+    const next = F().dateKey(F().addDays(F().weekStart(), 7));
+    const list = V.adjustmentsHtml(next, { title: "La semaine prochaine" });
+    return list ? list.replace("</section>", `${V.nextWeekHtml(next)}</section>`) : "";
   }
 
   // V1.7.2: say when an edit of the typical week takes effect.
@@ -222,12 +233,13 @@
       booted = true;
       SP().ensure();
       window.TitanWeekPlanView?.bind(root, () => (current(account) && D().weekPlan ? D().weekPlan() : null));
+      window.TitanWeekReviewView?.bind(root, () => null);
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-cadence-pause]")) {
           if (current(account)) account.data.togglePause(F().dateKey(F().weekStart()));
           return;
         }
-        if (e.target.closest("[data-occurrence-act]")) return;
+        if (e.target.closest("[data-occurrence-act], [data-review-undo]")) return;
         const b = e.target.closest("[data-day]");
         if (b) openDay(b.dataset.day, b);
       });

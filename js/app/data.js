@@ -150,6 +150,35 @@
     saveSettings({ schedule });
   }
 
+  /* ---------- V1.7.3 — Bilan et ajustements (js/core/week-review.js) ----------
+     The bilan of a week: one observation with its source sessions, the actions on the week after (keep, move a slot, pause), the
+     preview, the confirmed choice with its origin, its undo, and at the next bilan what was observed once it applied. */
+  const WR = () => window.TitanWeekReview;
+  const reviewOpts = (day, now = new Date()) => ({ week: day ? window.TitanFormat.dateKey(day) : undefined, today: todayKey(now), zone: deviceZone(), pauses: cadenceSettings().pauses });
+  function weekReview(day, now = new Date()) {
+    if (!WR() || !WP()) return null;
+    return WR().review(window.state?.user?.schedule || {}, logs(), reviewOpts(day, now));
+  }
+  function previewAdjustment(day, action) {
+    return WR().preview(window.state?.user?.schedule || {}, logs(), reviewOpts(day), action);
+  }
+  function applyAdjustment(day, action) {
+    if (!window.state?.user || !WR()) throw new Error("WEEK_REVIEW_UNAVAILABLE");
+    const r = WR().apply(window.state.user.schedule || {}, logs(), reviewOpts(day), action);
+    saveSettings({ schedule: r.schedule, cadencePauses: r.pauses });
+    return r.review;
+  }
+  function undoAdjustment(day) {
+    if (!window.state?.user || !WR()) throw new Error("WEEK_REVIEW_UNAVAILABLE");
+    const r = WR().undo(window.state.user.schedule || {}, cadenceSettings().pauses, { week: window.TitanFormat.dateKey(day), today: todayKey() });
+    saveSettings({ schedule: r.schedule, cadencePauses: r.pauses });
+    return r;
+  }
+  function adjustments(day) {
+    if (!WR()) return [];
+    return WR().adjustments(window.state?.user?.schedule || {}, { week: day ? window.TitanFormat.dateKey(day) : undefined, today: todayKey() });
+  }
+
   function planToday(now = new Date()) {
     if (WP()) {
       const v = weekPlan(null, now);
@@ -272,5 +301,5 @@
     return list.length;
   }
 
-  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, weekPlan, weekPlanSports, decideOccurrence, progression, rulesV300, guestCandidates, importGuestSessions };
+  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, weekPlan, weekPlanSports, decideOccurrence, weekReview, previewAdjustment, applyAdjustment, undoAdjustment, adjustments, progression, rulesV300, guestCandidates, importGuestSessions };
 })();
