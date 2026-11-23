@@ -5342,3 +5342,91 @@
 [data-week-quest] {
   margin-top: var(--s3);
 }
+/* V1.6.4 — history migration sheet (js/app/migration.js): plain lists, counts in words, no colour-only meaning. */
+.mig-formats {
+  margin: 0;
+  padding-left: 1.1em;
+}
+.mig-file {
+  align-self: flex-start;
+  cursor: pointer;
+}
+.mig-sheet [data-mig-step] {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.mig-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--s2) var(--s3);
+}
+.mig-grid label,
+.mig-sport {
+  display: grid;
+  align-content: end;
+  gap: 4px;
+  min-width: 0;
+  font-weight: 700;
+}
+.mig-grid select,
+.mig-sport select {
+  width: 100%;
+  min-width: 0;
+}
+.mig-sheet .asc-seg {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.mig-sheet .asc-seg button {
+  flex: 1 1 auto;
+}
+.mig-check {
+  display: flex !important;
+  align-items: center;
+  gap: var(--s2);
+}
+.mig-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s4);
+  font-size: 14px;
+}
+.mig-reasons,
+.mig-group ul,
+.mig-report-rows {
+  margin: 0;
+  padding-left: 1.1em;
+  overflow-wrap: anywhere;
+}
+.mig-group summary {
+  cursor: pointer;
+  padding: 4px 0;
+}
+.mig-batches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s2);
+}
+.mig-batches li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s2);
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line-2);
+  padding-bottom: var(--s2);
+}
+.mig-progress {
+  min-height: 8px;
+}
+button.asc-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

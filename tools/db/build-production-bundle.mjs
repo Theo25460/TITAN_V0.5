@@ -112,6 +112,16 @@ export const BUNDLES = {
     expected: { private: [126, "1a34100c4a43", "30801c0daf70"], public: [327, "37814c491e87", "bbf3b0c5b47f"] },
     beforeNote: "This is the state production reaches at the end of the v21 bundle (head 20261123090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },  // V1.6.4 — Migration de l’historique (23 November 2026): batches of a history file with one result per row, resumable from the
+  // row the server expects, a per-batch report, and the withdrawal of only the untouched sessions a batch added (preview first).
+  // NOT APPLIED: owner's approval required. Requires v22. Additive, rehearsed on a replica (tools/db/test-migrations.sh,
+  // sql/tests/300_history_migration.sql, tools/db/test-history-migration.mjs: 5 000 rows).
+  v23: {
+    out: "supabase/release-v23", after: "20261123120000", until: "20261123150000",
+    before: { private: [126, "1a34100c4a43", "30801c0daf70"], public: [327, "37814c491e87", "bbf3b0c5b47f"] },
+    expected: { private: [129, "8534c00d26df", "23f008c37b34"], public: [332, "fb59f2b689b9", "e20872688661"] },
+    beforeNote: "This is the state production reaches at the end of the v22 bundle (head 20261123120000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
 };
 const NAME = opt("--bundle", "v131");

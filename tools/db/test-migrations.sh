@@ -125,4 +125,10 @@ fi
 python3 "$ROOT/tools/db/test-reward-appeal-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "Source consent and cross-source import concurrency contracts (real overlapping connections)"
 python3 "$ROOT/tools/db/test-import-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "V1.6.4 history migration proofs (5 000 rows, reimports, withdrawals, isolated export reimport)"
+if guard=$(node "$ROOT/tools/db/test-history-migration.mjs" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "history migration runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the history migration proof requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+node "$ROOT/tools/db/test-history-migration.mjs" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."

@@ -297,6 +297,7 @@
       <footer class="jr-foot">
         <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-archived>${icon(ui.archived ? "journal" : "archive")} ${ui.archived ? "Retour au journal" : `Archives${archivedCount ? ` (${archivedCount})` : ""}`}</button>
         <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-export>${icon("download")} Exporter (CSV)</button>
+        <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-history-import>${icon("upload")} Importer un historique</button>
       </footer>`;
     if (focus) {
       const el = document.getElementById(focus);
@@ -797,6 +798,8 @@
       return render();
     }
     if (t.hasAttribute("data-export")) return window.titanExportSessionsCSV?.(filtered());
+    // V1.6.4: a whole history file (TITAN export, CSV profile, Strava), previewed, resumable and withdrawable (js/app/migration.js).
+    if (t.hasAttribute("data-history-import")) return window.titanHistoryMigration?.open();
     if (t.hasAttribute("data-export-pending")) return window.titanExportPending?.();
     if (t.hasAttribute("data-discard-refused")) {
       const context = accountContext();
