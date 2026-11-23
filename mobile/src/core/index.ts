@@ -25,6 +25,7 @@ require("./web/periodic-quests.js");
 require("./web/sync-state.js");
 require("./web/session-match.js");
 require("./web/history-ledger.js");
+require("./web/history-migration.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,6 +137,36 @@ export const Ledger = g.TitanLedger as {
   changes(before: Partial<TrainingLog>, after: Partial<TrainingLog>): LedgerChange[];
   changeText(change: LedgerChange): string;
   sourceLimit(source: string | null | undefined): string | null;
+};
+
+/** V1.6.4 — Migration de l’historique: the same reader of history files as the website (src/core/web/history-migration.js). */
+export type MigrationFormat = "titan_csv" | "titan_json" | "csv_profile" | "strava_csv";
+export type MigrationItem = { id: string; sport: string; startedAt: string; minutes: number; km: number | null; value?: number; unit?: "kg" | "reps"; rpe?: number; note?: string };
+export type MigrationRow = { row: number; status: "ready" | "skip"; reason?: string; item?: MigrationItem; sport?: string | null; sportRaw?: string; dst?: "gap" | "repeated" | null };
+export type MigrationParsed = { format: MigrationFormat; head: string[]; order: "dmy" | "mdy"; tz: string; rows: MigrationRow[]; unknownSports: Record<string, number>; total: number; mapping: Record<string, unknown> | null };
+export type MigrationPlan = MigrationRow & { plan: "add" | "link" | "review" | "skip"; with?: { id: string | null; date: string; sport: string; inFile: boolean } | null; reasons?: string[] };
+export type MigrationPreview = { counts: { add: number; link: number; review: number; skip: number; total: number }; reasons: Record<string, number>; rows: MigrationPlan[] };
+export type MigrationOptions = { format?: MigrationFormat | null; name?: string; mapping?: Record<string, unknown> | null; tz?: string; order?: "dmy" | "mdy" | null; allowDateOnly?: boolean; sportMap?: Record<string, string>; now?: number };
+export type ImportBatch = {
+  id: string; format: MigrationFormat; file_name: string | null; total_rows: number; status: "open" | "done" | "withdrawn"; created_at: string; finished_at: string | null;
+  withdrawn_at: string | null; withdraw_report: Record<string, number> | null; done_rows: number; next_row: number;
+  counts: { added: number; linked: number; duplicate: number; skipped: number; review: number }; reasons: Record<string, number>;
+  resumed?: boolean; processed?: number; replayed?: number; limited?: boolean; busy?: boolean;
+};
+export type ImportBatchRow = { row: number; outcome: "added" | "linked" | "duplicate" | "skipped"; reason: string | null; external_id: string | null; log_id: string | null; needs_review: boolean; withdrawn: string | null; session: { date: string; sport: string; val: number; unit: string; archived: boolean; corrected: boolean } | null };
+export const Migration = g.TitanMigration as {
+  LIMITS: { historyDays: number; batchSize: number; maxRows: number; maxBytes: number };
+  FORMATS: Record<MigrationFormat, string>;
+  REASONS: Record<string, string>;
+  OUTCOMES: Record<string, string>;
+  FIELDS: { column: string | null; json: string; reimport: boolean | string; to: string }[];
+  detect(text: string, name?: string): MigrationFormat;
+  parse(text: string, opts?: MigrationOptions): MigrationParsed;
+  preview(parsed: MigrationParsed, logs: Partial<TrainingLog>[]): MigrationPreview;
+  fileHash(text: string): string;
+  chunks(parsed: MigrationParsed, nextRow?: number, size?: number): Record<string, unknown>[][];
+  measure(batch: Partial<ImportBatch>): { total: number; explained: number; rate: number; duplicates: number; review: number; seconds: number | null };
+  withdrawText(effects: Record<string, number> | null | undefined): string[];
 };
 
 export type MeasureIssue = { code: string; field: string; message: string };

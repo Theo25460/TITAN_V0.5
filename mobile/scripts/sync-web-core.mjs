@@ -45,6 +45,7 @@ export const MODULES = [
   "js/core/sync-state.js",
   "js/core/session-match.js",
   "js/core/history-ledger.js",
+  "js/core/history-migration.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

@@ -2,6 +2,7 @@
    rewards, credits, possession and progression are only ever written by SECURITY DEFINER functions on the server. */
 import { supabase } from "../lib/supabase";
 import type { AdventureSnapshot, Goal, Privacy, Profile, TrainingLog, TrainingPayload } from "../core/types";
+import type { ImportBatch, ImportBatchRow } from "../core";
 
 import { listProfileCopies, preferenceBase, preferenceSignature, protectPreferences, removeProfileCopy } from "./profileCopies";
 import { isOnline } from "../lib/network";
@@ -354,9 +355,16 @@ export const seasonJoin = (owner: string, id: string, join: boolean) => ownerRpc
 export const worldGoalJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_world_goal_join_v1", { p_goal: id, p_join: join });
 
 /* ---------- History import (AUD-43) ---------- */
-export type HistoryImportResult = { imported: number; linked: number; duplicate: number; skipped: number; done: number; remaining: number; limited: boolean };
-export const importHistory = (owner: string, items: { id: string; sport: string; startedAt: string; minutes: number; km: number | null }[]) =>
-  ownerRpc<HistoryImportResult>(owner, "titan_import_history_v1", { p_items: items }, undefined, 60000);
+/* V1.6.4 — Migration de l’historique: one batch per file, one result per row, resumable from the row the server expects. */
+export const importBatchOpen = (owner: string, p: { format: string; hash: string; total: number; name: string }) =>
+  ownerRpc<ImportBatch>(owner, "titan_import_batch_open_v1", { p_format: p.format, p_file_hash: p.hash, p_total: p.total, p_file_name: p.name });
+export const importBatchRows = (owner: string, batch: string, items: Record<string, unknown>[]) =>
+  ownerRpc<ImportBatch>(owner, "titan_import_batch_rows_v1", { p_batch: batch, p_items: items }, undefined, 60000);
+export const importBatchReport = (owner: string, batch: string, outcome: string | null = null, offset = 0) =>
+  ownerRpc<ImportBatch & { rows: ImportBatchRow[] }>(owner, "titan_import_batch_v1", { p_batch: batch, p_outcome: outcome, p_offset: offset, p_limit: 200 });
+export const importBatches = (owner: string) => ownerRpc<ImportBatch[]>(owner, "titan_import_batches_v1", {});
+export const importBatchWithdraw = (owner: string, batch: string, apply: boolean) =>
+  ownerRpc<ImportBatch & { applied: boolean; effects: Record<string, number> }>(owner, "titan_import_batch_withdraw_v1", { p_batch: batch, p_apply: apply }, undefined, 60000);
 
 /* ---------- Community lot 8 (C4 ranking, C5 intents, C7 clubs) ---------- */
 export type Ranking = { optedIn: boolean; entries?: { rank: number; name: string; score: number; activeDays: number; progressPct: number | null; me: boolean }[]; me?: { score: number; activeDays: number; progressPct: number | null } | null };
