@@ -30,6 +30,7 @@ require("./web/history-window.js");
 require("./web/week-plan.js");
 require("./web/week-review.js");
 require("./web/training-block.js");
+require("./web/discipline-analysis.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -510,4 +511,28 @@ export const WeekReview = g.TitanWeekReview as {
   describeAction(a: ReviewAction | ReviewRecord["action"], opts?: Words & { sport?: string | null }): string;
   describePreview(p: ReviewPreview, opts?: Words): { lines: string[]; where: string; undo: string };
   describeFollowUp(f: ReviewFollowUp | null, opts?: Words): { decided: string; observed: string; tone: "ok" | "warn" | "muted" } | null;
+};
+
+/** V1.7.5 — Analyse avancée par discipline: the three depth views of the website (src/core/web/discipline-analysis.js). */
+export type AnalysisDiscipline = "endurance" | "strength" | "climbing";
+export type AnalysisSide = { value: number | null; display: string; measured: number; total: number; sessions: string[]; from?: string; missing?: string };
+export type AnalysisRow = { id: string; label: string; rule: string; provenance: string; current: AnalysisSide; reference: AnalysisSide | null; direction: "better" | "worse" | "stable" | "neutral"; significant: boolean; change?: number; reason?: "short"; better?: "higher" | "lower"; status: "measured" | "partial" | "absent" };
+export type AnalysisGroup = { id: string; discipline: AnalysisDiscipline; sport: string; label: string; sessions: number; criteria: string[]; limits: string[]; anchor?: string; scale?: string; ordered?: boolean; exercise?: string };
+export type AnalysisLevel = { grade: string; score: number; done: number; tried: number; attempts: number; successes: number; measured: number; sessions: string[] };
+export type AnalysisReference = { kind: "period" } | { kind: "block"; id?: string; title: string; start: string; end: string } | { kind: "session"; id: string } | null;
+export type AnalysisView = {
+  version: string; discipline: AnalysisDiscipline; label: string; sport: string | null; group: AnalysisGroup | null; groups: number; status: "ok" | "limited" | "insufficient";
+  current: { label: string; sessions: string[] };
+  reference: { kind: "period" | "block" | "session"; label: string; sessions: string[]; status: "ok" | "empty" | "missing" | "excluded" | "incomparable"; note?: string; id?: string } | null;
+  rows: AnalysisRow[]; levels: { current: AnalysisLevel[] | null; reference: AnalysisLevel[] | null } | null;
+  series: { id: string; date: string; side: "current" | "reference" | "both"; value: number | null; display: string }[]; seriesMetric?: string;
+  limits: string[]; states: Record<string, number>; signature: string;
+};
+export const DisciplineAnalysis = g.TitanDisciplineAnalysis as {
+  VERSION: string; MIN_SESSIONS: number; MIN_SPLITS: number; DISCIPLINES: Record<AnalysisDiscipline, string>; DIRECTION: Record<string, string>;
+  sports(logs: Partial<TrainingLog>[], discipline: AnalysisDiscipline): { sport: string; label: string; sessions: number }[];
+  groups(logs: Partial<TrainingLog>[], discipline: AnalysisDiscipline, opts?: { sport?: string }): AnalysisGroup[];
+  view(logs: Partial<TrainingLog>[], opts: { discipline: AnalysisDiscipline; sport?: string; group?: string; now?: Date; weeks?: number; reference?: AnalysisReference }): AnalysisView | null;
+  reading(view: AnalysisView | null): string[];
+  dateText(t: number, now?: number): string;
 };

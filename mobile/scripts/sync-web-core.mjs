@@ -50,6 +50,7 @@ export const MODULES = [
   "js/core/week-plan.js",
   "js/core/week-review.js",
   "js/core/training-block.js",
+  "js/core/discipline-analysis.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

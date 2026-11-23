@@ -590,7 +590,7 @@
   }
   const DIRECTION_TEXT = { better: "en progrès", worse: "en retrait", stable: "stable", neutral: "" };
 
-  const api = { version: 2, RULES_VERSION, THRESHOLD, SELECTION, SCALES, REASONS, figureOf, comparables, snapshot, compare, disciplines, periods, formatValue, DIRECTION_TEXT };
+  const api = { version: 2, RULES_VERSION, THRESHOLD, SELECTION, SCALES, REASONS, ROUTE_FIELDS, figureOf, exercisesOf, stateReason, comparables, snapshot, compare, disciplines, periods, formatValue, DIRECTION_TEXT };
   root.TitanProgression = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

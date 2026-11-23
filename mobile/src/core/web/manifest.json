@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "5ee050fe3e2c05aa957d87a90381959d9f5e2aca",
+  "sha": "6c573b650a3c5b89a7f987a3e372e28f4768d6f5",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "0d089fdb88f819fae61b77f0e47ae7259efc2e9a70cf10d27602254d8425ccc5",
@@ -8,7 +8,7 @@
     "sports-catalog.js": "6e96795b3face2c78353c804aec29050e07a5aec6cb9671ae176547f03bab290",
     "sports.js": "80e3b094d370cc7b9a5b8309e44943030c2203ed91f4b616f5ee3d453bd37d1b",
     "sport-contracts.js": "c44a62d3ab2b31e66de302f9e96beac785299b4993aec6624a8a8d62143d6418",
-    "progression.js": "9a60fb1d86a787626b19532d50d085060b05f983687a288ba04660a23896ad50",
+    "progression.js": "69b796a183b983040ae0b325b984b8c66222eeeeb2ffd8f13d198228bfee8ffa",
     "sport-insights.js": "799ad4b7d0c79261c6b91c5f45a1346537cd57cc6c0a71d2eaa6cc9fc7f4267f",
     "progress.js": "a6c30dd824398952fe9fdaf0f0d16758db78b318a1d976ecb2597b32a2ef8a7c",
     "questions.js": "e957bd84080eb8814cf49e7dd2a54fc8a81a40543af9a6488983c972ce72374a",
@@ -38,6 +38,7 @@
     "history-window.js": "515d55701a101c48f344a167493cf4dce50adc4a8c3715fdb285490760eac019",
     "week-plan.js": "85f447f43f8fd2c9e91e796dfb8ed8299513705c7cc479edfdea551f9f07e4b5",
     "week-review.js": "20037c60c01eeba792e188b70dc8bf608e2d3441fb37db3fee3ae2905d567f76",
-    "training-block.js": "aa429fa60f6dacb77de95890325e1d49275c740a90d46189852702e55a5ccb4a"
+    "training-block.js": "aa429fa60f6dacb77de95890325e1d49275c740a90d46189852702e55a5ccb4a",
+    "discipline-analysis.js": "1171421cb012a394218bfef78ed9afe4c387b17b74598b7abdd959f9e6dd3b3d"
   }
 }
