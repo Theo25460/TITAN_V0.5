@@ -12,10 +12,11 @@ import { Sheet } from "../../components/Sheet";
 import { SportGrid, SportSearch } from "../../components/SportPicker";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Format, Sports, WeekPlan, type Schedule, type WeekDecision } from "../../core";
+import { Format, Sports, WeekPlan, WeekReview, type ReviewAction, type Schedule, type WeekDecision } from "../../core";
 import { useLogs, usePrefs, useSavePrefs, type Prefs } from "../../data/hooks";
 import { WeekPlanCard } from "../../components/WeekPlanCard";
-import { todayKey, useWeekPlan } from "../../lib/weekPlan";
+import { AdjustmentsCard, WeekReviewCard, dayLong } from "../../components/WeekReviewCard";
+import { deviceZone, todayKey, useWeekPlan, useWeekReview } from "../../lib/weekPlan";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import { colors, radius, space, spaces } from "../../theme/tokens";
@@ -31,7 +32,9 @@ const DAYS: [string, string][] = [
 ];
 
 /** Weekly rhythm (cadence target, paused weeks) and planned week — the same preferences as the website QG/Prévoir.
-    V1.7.2: the week as planned on its Monday, tied to the sessions really done, with the athlete's decisions (WeekPlanCard). */
+    V1.7.2: the week as planned on its Monday, tied to the sessions really done, with the athlete's decisions (WeekPlanCard).
+    V1.7.3: the bilan of the week shown and its adjustment for the week after (WeekReviewCard), and the adjustments acting on this
+    week and the next one, with their origin and their undo (AdjustmentsCard). */
 export function PlanScreen() {
   const navigation = useNavigation();
   const prefs = usePrefs();
@@ -39,6 +42,7 @@ export function PlanScreen() {
   const [weekBack, setWeekBack] = useState(0);
   const shownWeek = WeekPlan.addDays(WeekPlan.weekOf(todayKey()), -7 * weekBack);
   const view = useWeekPlan(shownWeek);
+  const review = useWeekReview(shownWeek);
   const save = useSavePrefs();
   const toast = useToast();
   const online = useOnline();
@@ -70,6 +74,32 @@ export function PlanScreen() {
     return persist({ schedule: schedule as Prefs["schedule"] }, done);
   };
 
+  // V1.7.3: the bilan's choice and its undo write the schedule (and the cadence pauses for a paused week) in one save.
+  const applyReview = (week: string, action: ReviewAction) => {
+    let r;
+    try {
+      r = WeekReview.apply((prefs.schedule ?? {}) as Schedule, logs, { week, today: todayKey(), zone: deviceZone(), pauses: prefs.cadencePauses }, action);
+    } catch {
+      toast({ kind: "err", title: "Choix impossible", message: "Ce choix n’est pas possible pour cette semaine." });
+      return false;
+    }
+    return persist({ schedule: r.schedule as Prefs["schedule"], cadencePauses: r.pauses }, "Ajustement enregistré", `Visible dans Ma semaine pour la semaine du ${dayLong(r.review.target)}. Tu peux l’annuler.`);
+  };
+  const undoReview = (week: string) => {
+    let r;
+    try {
+      r = WeekReview.undo((prefs.schedule ?? {}) as Schedule, prefs.cadencePauses, { week, today: todayKey() });
+    } catch {
+      toast({ kind: "err", title: "Annulation impossible", message: "La semaine concernée est terminée." });
+      return false;
+    }
+    return persist({ schedule: r.schedule as Prefs["schedule"], cadencePauses: r.pauses }, "Choix annulé", r.kept.length ? "Une modification faite ensuite à la main a été gardée." : "Le programme a repris sa forme d’avant.");
+  };
+  const thisMonday = WeekPlan.weekOf(todayKey());
+  const nextMonday = WeekPlan.addDays(thisMonday, 7);
+  const adjustNow = WeekReview.adjustments((prefs.schedule ?? {}) as Schedule, { week: thisMonday, today: todayKey() });
+  const adjustNext = WeekReview.adjustments((prefs.schedule ?? {}) as Schedule, { week: nextMonday, today: todayKey() });
+
   // V1.7.2: an edit made during a week applies from the next Monday (this week keeps its start); a first plan applies at once.
   function setDay(key: string, sport: string | null) {
     const old = (prefs.schedule || {})[key] || {};
@@ -96,6 +126,21 @@ export function PlanScreen() {
         onDecide={decide}
         onOpen={(l) => navigation.navigate("SessionDetail", { id: l.id })}
       />
+      <WeekReviewCard
+        review={review}
+        schedule={(prefs.schedule ?? {}) as Schedule}
+        logs={logs}
+        today={todayKey()}
+        zone={deviceZone()}
+        pauses={prefs.cadencePauses}
+        busy={!online || save.isPending}
+        title={weekBack === 0 ? "Bilan de la semaine et ajustement" : "Bilan et ajustement"}
+        onApply={applyReview}
+        onUndo={undoReview}
+        onOpen={(l) => navigation.navigate("SessionDetail", { id: l.id })}
+      />
+      {weekBack === 0 ? <AdjustmentsCard list={adjustNow} title="Ajustement de cette semaine" today={todayKey()} busy={!online || save.isPending} onUndo={undoReview} /> : null}
+      {weekBack === 0 ? <AdjustmentsCard list={adjustNext} title="La semaine prochaine" today={todayKey()} busy={!online || save.isPending} onUndo={undoReview} /> : null}
       <Section title="Ma cadence">
         <Card style={{ gap: space.s3 }}>
           <T>Combien de jours actifs par semaine ? Une semaine qui atteint ce nombre est une semaine tenue.</T>

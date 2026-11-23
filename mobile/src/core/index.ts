@@ -28,6 +28,7 @@ require("./web/history-ledger.js");
 require("./web/history-migration.js");
 require("./web/history-window.js");
 require("./web/week-plan.js");
+require("./web/week-review.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -378,7 +379,7 @@ export type WeekDecision = { kind: WeekDecisionKind; day?: string; sport?: strin
 export type WeekOccurrence = {
   id: string; index: number;
   planned: { day: string; sport: string; minutes: number | null; note: string };
-  decision: { kind: WeekDecisionKind; at: string | null; day?: string; sport?: string; session?: string } | null;
+  decision: { kind: WeekDecisionKind; at: string | null; day?: string; sport?: string; session?: string; origin?: string } | null;
   effective: { day: string; sport: string };
   status: "done" | "skipped" | "ask" | "paused" | "missed" | "today" | "planned";
   gap: "moved" | "replaced" | "skipped" | "missed" | null;
@@ -410,4 +411,47 @@ export const WeekPlan = g.TitanWeekPlan as {
   snapshot(view: WeekPlanView): unknown;
   describe(o: WeekOccurrence, opts?: { label?: (sport: string) => string }): { plan: string; status: string; notice: string | null; gap: string | null };
   summarize(view: WeekPlanView): { start: string; changes: string; result: string };
+};
+
+/** V1.7.3 — Bilan et ajustements: one observation of the followed weeks with its source sessions, the actions on the week after
+    (keep, move a slot, pause), the preview, the choice with its origin, its undo, and the follow-up at the next bilan, the same rules
+    and words as the website (src/core/web/week-review.js). Stored in schedule.reviews and the cadence pauses. */
+export type ReviewAction = { kind: "keep" | "pause" } | { kind: "move"; from: number; to: number; scope: "next" | "type" };
+export type ReviewSlot = { index: number; sport: string; weeks: number; asPlanned: number; adjusted: number; moved: number; replaced: number; skipped: number; missed: number };
+export type ReviewObservation = {
+  kind: "short" | "moved" | "missed" | "regular" | "mixed"; week: string; window: number; followed: number; weeks: string[];
+  slot: { index: number; sport: string; weeks: number; moved: number; missed: number; days: { day: number; n: number }[]; occurrences: string[] } | null;
+  slots: ReviewSlot[]; sources: string[]; total?: number; asPlanned?: number; regular?: number[];
+  suggestion: { kind: "keep" } | { kind: "move"; from: number; to: number | null; scope: "next" | "type" };
+};
+export type ReviewRecord = {
+  v: number; week: string; target: string; at: string;
+  observation: { kind: ReviewObservation["kind"]; slot: { index: number; sport: string } | null; sources: string[]; suggested: boolean };
+  action: { kind: "keep" | "pause"; scope: "next" } | { kind: "move"; from: number; to: number; scope: "next" | "type" };
+  applied: { occurrence?: string; prior?: unknown; days?: Record<string, unknown>; wrote?: Record<string, unknown>; from?: string; pause?: string };
+  undone: string | null;
+};
+export type ReviewFollowUp = { week: string; target: string; review: ReviewRecord; undone: boolean; state: string | null; session: string | null; occurrence: string | null; summary: WeekPlanView["summary"]; paused: boolean; actualDay?: number; extraDay?: number };
+export type WeekReviewView = {
+  version: number; week: string; target: string; observation: ReviewObservation;
+  actions: { week: string; target: string; open: boolean; decided: ReviewRecord | null; keep: boolean; move: { from: number[]; to: number[] } | null; pause: boolean; alreadyPaused: boolean };
+  followUp: ReviewFollowUp | null; signature: string;
+};
+export type ReviewPreview = { week: string; target: string; appliesFrom: string; scope: "next" | "type"; action: ReviewRecord["action"]; before: { days: (string | null)[]; paused: boolean }; after: { days: (string | null)[]; paused: boolean }; changes: { index: number; before: string | null; after: string | null }[] };
+type ReviewOpts = { week?: string; today: string; zone?: string | null; pauses?: string[]; at?: string };
+type Words = { label?: (sport: string) => string; dayLong?: (key: string) => string };
+export const WeekReview = g.TitanWeekReview as {
+  VERSION: number; WINDOW: number; MIN_WEEKS: number; RULES: Record<"window" | "short" | "shift" | "count" | "choice", string>;
+  review(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ReviewOpts): WeekReviewView;
+  preview(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ReviewOpts, action: ReviewAction): ReviewPreview;
+  apply(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ReviewOpts, action: ReviewAction): { schedule: Schedule; pauses: string[]; review: ReviewRecord };
+  undo(schedule: Schedule, pauses: string[], opts: { week: string; today: string; at?: string }): { schedule: Schedule; pauses: string[]; review: ReviewRecord; kept: string[] };
+  adjustments(schedule: Schedule, opts: { week?: string; today: string }): ReviewRecord[];
+  measure(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ReviewOpts): { confirmed: number; undone: number; found: number };
+  snapshot(view: WeekReviewView): unknown;
+  measureOf(log: Partial<TrainingLog> | undefined): string;
+  describeObservation(o: ReviewObservation, opts?: Words): { title: string; text: string; lines?: string[] };
+  describeAction(a: ReviewAction | ReviewRecord["action"], opts?: Words & { sport?: string | null }): string;
+  describePreview(p: ReviewPreview, opts?: Words): { lines: string[]; where: string; undo: string };
+  describeFollowUp(f: ReviewFollowUp | null, opts?: Words): { decided: string; observed: string; tone: "ok" | "warn" | "muted" } | null;
 };

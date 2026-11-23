@@ -220,6 +220,14 @@
       weeks[k] = { v: VERSION, ref: clone(ref), occ: clone(occ) };
     }
     if (Object.keys(weeks).length) out.weeks = weeks;
+    // V1.7.3: the bilans' choices (js/core/week-review.js), week by week; the most recent change of a week (confirmation or undo) wins.
+    if (a.reviews || b.reviews) {
+      const stamp = (r) => String(r?.undone || r?.at || "");
+      const ra = a.reviews && typeof a.reviews === "object" ? a.reviews : {}, rb = b.reviews && typeof b.reviews === "object" ? b.reviews : {};
+      const reviews = {};
+      for (const k of new Set([...Object.keys(ra), ...Object.keys(rb)])) reviews[k] = clone(!ra[k] ? rb[k] : !rb[k] ? ra[k] : stamp(rb[k]) > stamp(ra[k]) ? rb[k] : ra[k]);
+      out.reviews = reviews;
+    }
     return out;
   }
 
@@ -258,7 +266,7 @@
       const eff = { day: day0, sport: p.sport };
       if (d?.kind === "move" && isKey(d.day)) eff.day = d.day;
       if (d?.kind === "replace") { eff.sport = d.sport; if (isKey(d.day)) eff.day = d.day; }
-      occ.push({ id, index: i, planned: { day: day0, sport: p.sport, minutes: p.minutes, note: p.note }, decision: d ? { kind: d.kind, at: d.at || null, ...(d.day ? { day: d.day } : {}), ...(d.sport ? { sport: d.sport } : {}), ...(d.session ? { session: d.session } : {}) } : null, effective: eff, link: null, candidates: [], notice: null });
+      occ.push({ id, index: i, planned: { day: day0, sport: p.sport, minutes: p.minutes, note: p.note }, decision: d ? { kind: d.kind, at: d.at || null, ...(d.day ? { day: d.day } : {}), ...(d.sport ? { sport: d.sport } : {}), ...(d.session ? { session: d.session } : {}), ...(typeof d.origin === "string" ? { origin: d.origin } : {}) } : null, effective: eff, link: null, candidates: [], notice: null });
     });
 
     // 2. Ties the athlete chose. A tie whose session left the journal or the week is said, and the occurrence is open again.

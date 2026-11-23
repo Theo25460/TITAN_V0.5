@@ -1,7 +1,7 @@
 /* V1.7.2 — Planifié et réalisé on Android: the week of the shared module (src/core/web/week-plan.js) read from the profile's
    typical week and the journal of this phone (confirmed sessions and sessions waiting to be sent), in the phone's time zone. */
 import { useMemo } from "react";
-import { Format, WeekPlan, type Schedule, type WeekPlanView } from "../core";
+import { Format, WeekPlan, WeekReview, type Schedule, type WeekPlanView, type WeekReviewView } from "../core";
 import { useLogs, usePrefs } from "../data/hooks";
 
 export const deviceZone = (): string | null => {
@@ -33,4 +33,16 @@ export function effectiveSports(view: WeekPlanView): (string | null)[] {
     if (!out[i]) out[i] = o.effective.sport;
   }
   return out;
+}
+
+/** V1.7.3 — the bilan of the week containing `day` (src/core/web/week-review.js): the observation, the actions on the week after, the
+    choice already made and the follow-up of the previous bilan. */
+export function useWeekReview(day?: string, now = new Date()): WeekReviewView {
+  const prefs = usePrefs();
+  const { logs } = useLogs();
+  const today = todayKey(now);
+  return useMemo(
+    () => WeekReview.review((prefs.schedule ?? {}) as Schedule, logs, { week: day, today, zone: deviceZone(), pauses: prefs.cadencePauses }),
+    [prefs.schedule, prefs.cadencePauses, logs, day, today],
+  );
 }
