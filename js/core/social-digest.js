@@ -5,6 +5,7 @@
 (function (root) {
   "use strict";
   const Cordee = () => root.TitanCordee || (typeof require === "function" ? require("./cordee.js") : null);
+  const Agenda = () => root.TitanClubAgenda || (typeof require === "function" ? require("./club-agenda.js") : null);
   const int = (v) => (Number.isFinite(Number(v)) ? Math.max(0, Math.floor(Number(v))) : 0);
   const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
   const names = (list, max = 2) => {
@@ -42,6 +43,10 @@
         out.push({ id: `suite-mine-${p.id}`, kind: "together", href: "#cordee", text: `Ta proposition pour repartir sur « ${C.ROUTES[p.route].name} » : ${int(p.yes)} sur ${int(p.eligible)} ${int(p.yes) > 1 ? "ont accepté" : "a accepté"}.` });
       }
     }
+    // V1.8.6: the club meetings that ask for something (an answer, a confirmation after a change, a freed place, a cancellation, a
+    // reminder one asked for, a presence to declare), worded by the agenda's module.
+    const A = Agenda();
+    if (A && Array.isArray(d.agenda)) out.push(...A.digest(d.agenda));
     const duo = d.duo;
     if (duo?.status === "finished") out.push({ id: "duo-finished", kind: duo.reached ? "celebrate" : "together", href: "/aujourdhui", text: duo.reached ? `TITAN Duo réussi${duo.partner ? ` avec ${duo.partner}` : ""} : ${int(duo.together)} / ${int(duo.target)} jours actifs.` : `Votre TITAN Duo est terminé : ${int(duo.together)} / ${int(duo.target)} jours actifs. Ce qui est fait reste fait.` });
     else if (duo?.status === "invited") out.push({ id: "duo-invited", kind: "together", href: "/aujourdhui", text: `${duo.partner || "Un ami"} te propose un TITAN Duo de 14 jours.` });

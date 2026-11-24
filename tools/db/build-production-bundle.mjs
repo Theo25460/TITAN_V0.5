@@ -149,6 +149,20 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v24 bundle (V1.8.4, head 20261127090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.club_match for the pilot clubs' accounts only; leave screens.club_match_versus closed.",
   },
+  // V1.8.6 — Agenda et rendez-vous d’équipe (24 November 2026): a club's private agenda, one-off or weekly meetings kept at their Paris
+  // time, a fallback plan, an optional capacity with a waiting list, answers, a clear history of moves and cancellations, an invitation
+  // link that reveals nothing once expired or to a former member, and a finished card where each member may declare a presence and link
+  // one of their own confirmed sessions (the journal is never written), behind the server flag screens.club_agenda (absent = closed).
+  // NOT APPLIED: owner decision required, after v25.
+  // Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_club_agenda.sql, tools/db/test-club-agenda-concurrency.sh).
+  // Fingerprints measured on a replica built from the repository.
+  v26: {
+    out: "supabase/release-v26", after: "20261128090000", until: "20261129090000",
+    before: { private: [166, "550d46c5de65", "3f3e1401b571"], public: [332, "44ce47c36337", "978b18a6a81f"] },
+    expected: { private: [175, "123f4f781013", "2bbe668c12c0"], public: [335, "5837421547a7", "f1cf55fb57c9"] },
+    beforeNote: "This is the state production reaches at the end of the v25 bundle (V1.8.5, head 20261128090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.club_agenda for the pilot clubs' accounts only.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

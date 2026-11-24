@@ -11,6 +11,8 @@
   const CS = () => window.TitanClubSeason;
   const MATCH_FLAG = "screens.club_match"; // V1.8.5: meetings between clubs (propose, accept, join are checked by the server too)
   const CM = () => window.TitanClubMatch;
+  const AGENDA_FLAG = "screens.club_agenda"; // V1.8.6: the club's agenda (create, yes, maybe, reminders, moves and the link are checked by the server too)
+  const CA = () => window.TitanClubAgenda;
   const MESSAGES = {
     NOT_ELIGIBLE: "Tu pourras créer ou rejoindre un club un jour après la création du compte.",
     BAD_NAME: "Le nom d’un club fait entre 3 et 60 caractères.",
@@ -48,7 +50,7 @@
   const n = (v) => window.TitanFormat.number(v);
   const failure = (error, rpc = "") => {
     // V1.8.5: a meeting's refusal is worded by the meetings' module, a season's by the seasons' module.
-    const shared = /^titan_club_match/.test(rpc) ? window.TitanClubMatch?.message?.(error) : window.TitanClubSeason?.message?.(error);
+    const shared = /^titan_club_match/.test(rpc) ? window.TitanClubMatch?.message?.(error) : /^titan_club_agenda/.test(rpc) ? window.TitanClubAgenda?.message?.(error) : window.TitanClubSeason?.message?.(error);
     if (shared && !/CLUB_NOT_FOUND|RATE_LIMITED/.test(String(error?.message || ""))) return shared;
     const code = Object.keys(MESSAGES).find((k) => String(error?.message || "").includes(k));
     return code ? MESSAGES[code] : "Le serveur ne répond pas pour l’instant. Réessaie dans un moment.";
@@ -63,7 +65,14 @@
   let matchForm = {};    // club id → "propose" | "answer" when the organiser opened a form
   let matchPreview = {}; // club id → { code, found } the proposal read from a code (titan_club_match_preview_v1)
   const matchOn = () => on() && window.titanFlags?.enabled?.(MATCH_FLAG, false) === true && Boolean(CM());
-  function reset() { weeks = {}; seasons = {}; seasonForm = {}; matches = {}; matchForm = {}; matchPreview = {}; data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; synced = false; }
+  let agendas = {};      // V1.8.6: club id → titan_club_agenda_v1 answer
+  let agendaForm = {};   // club id → true when the organiser opened the proposal form
+  let agendaMove = {};   // slot id → true when the organiser opened the move form
+  let agendaFocus = null; // the occurrence an invitation link opened
+  let invitePending = null; // the code of an invitation link, read once from the address
+  let agendaFocused = false; // the opened occurrence takes the focus once
+  const agendaOn = () => on() && window.titanFlags?.enabled?.(AGENDA_FLAG, false) === true && Boolean(CA());
+  function reset() { weeks = {}; seasons = {}; seasonForm = {}; matches = {}; matchForm = {}; matchPreview = {}; agendas = {}; agendaForm = {}; agendaMove = {}; agendaFocus = null; agendaFocused = false; data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; synced = false; }
   function sync() {
     const id = guest() ? null : context().owner;
     if (id !== owner) { owner = id; reset(); render(); }
@@ -100,6 +109,13 @@
           if (!same(ask, context())) return;
           matches = Object.fromEntries(got);
         } else matches = {};
+        // V1.8.6: each club's agenda (an older server has none: nothing is shown).
+        if (agendaOn()) {
+          const got = await Promise.all((data || []).map((c) => ask.client.rpc("titan_club_agenda_v1", { p_club: c.id }).then((r) => [c.id, r.error ? null : r.data], () => [c.id, null])));
+          if (!same(ask, context())) return;
+          agendas = Object.fromEntries(got);
+          if (invitePending) { const code = invitePending; invitePending = null; await openInvite(ask, code); if (!same(ask, context())) return; }
+        } else agendas = {};
       } catch { if (same(ask, context())) notice = "Les clubs ne répondent pas pour l’instant."; }
       finally { flight = null; if (same(ask, context())) render(); }
     })();
@@ -259,6 +275,83 @@
     finally { if (same(ask, context())) { busy = false; render(); } else busy = false; }
   }
 
+  /* ---------- V1.8.6: the club's agenda. Every word from TitanClubAgenda, every count and every right from the server. ---------- */
+  const agendaArgs = (club, action, extra = {}) => ({ p_club: club, p_action: action, p_slot: null, p_event: null, p_answer: null, p_on: null, p_starts_at: null, p_log: null, p_form: null, ...extra });
+  const parisDate = (iso) => new Date(iso).toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
+  const parisTime = (iso) => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Paris" }).replace(/\D/, ":").slice(0, 5);
+  const sportLabel = (id) => window.TitanSports?.label?.(id) || id;
+  function agendaFormHtml(c) {
+    const A = CA(), id = esc(c.id), v = (k, d) => esc(val(`agenda-${k}-${c.id}`) || d);
+    const rec = val(`agenda-rec-${c.id}`) || "once";
+    return `<form class="asc-panel asc-stack" data-agenda-create-form="${id}" novalidate><h4>Proposer un rendez-vous</h4>
+      <p class="asc-small asc-muted">Visible par les membres du club seulement. Chacun répond s’il le souhaite ; rien n’est ajouté au journal de personne.</p>
+      <label class="asc-field"><span>Titre</span><input class="asc-input" maxlength="60" data-club-draft="agenda-title-${id}" value="${v("title", "")}" placeholder="Sortie du samedi"></label>
+      <div class="asc-actions"><label class="asc-field"><span>Date</span><input class="asc-input" type="date" min="${today()}" max="${later(A.RULE.horizonDays)}" data-club-draft="agenda-date-${id}" value="${v("date", tomorrow())}"></label>
+        <label class="asc-field"><span>Heure (Paris)</span><input class="asc-input" type="time" step="300" data-club-draft="agenda-time-${id}" value="${v("time", "09:00")}"></label></div>
+      <label class="asc-field"><span>Durée</span><select class="asc-select" data-club-draft="agenda-dur-${id}">${[30, 45, 60, 90, 120, 150, 180, 240].map((m) => `<option value="${m}" ${String(val(`agenda-dur-${c.id}`) || 90) === String(m) ? "selected" : ""}>${esc(A.duration(m))}</option>`).join("")}</select></label>
+      <label class="asc-field"><span>Lieu de rendez-vous (visible par tous les membres)</span><input class="asc-input" maxlength="60" data-club-draft="agenda-area-${id}" value="${v("area", "")}" placeholder="Parc de la Tête d’Or"></label>
+      <label class="asc-field"><span>Lieu précis (facultatif, donné seulement à ceux qui viennent)</span><input class="asc-input" maxlength="200" data-club-draft="agenda-place-${id}" value="${v("place", "")}" placeholder="Parking nord, portail vert"></label>
+      <label class="asc-field"><span>Plan de repli (facultatif)</span><input class="asc-input" maxlength="200" data-club-draft="agenda-fallback-${id}" value="${v("fallback", "")}" placeholder="Si pluie : séance de renfo au gymnase"></label>
+      <label class="asc-field"><span>Places (facultatif)</span><input class="asc-input" type="number" min="2" max="100" inputmode="numeric" data-club-draft="agenda-cap-${id}" value="${v("cap", "")}" placeholder="Sans limite" style="max-width:9rem"></label>
+      <label class="asc-field"><span>Répétition</span><select class="asc-select" data-club-draft="agenda-rec-${id}"><option value="once" ${rec === "once" ? "selected" : ""}>Une seule fois</option><option value="weekly" ${rec === "weekly" ? "selected" : ""}>Chaque semaine, même heure</option></select></label>
+      ${rec === "weekly" ? `<label class="asc-field"><span>Nombre de rendez-vous</span><select class="asc-select" data-club-draft="agenda-occ-${id}">${Array.from({ length: A.RULE.occurrencesMax - 1 }, (_, i) => i + 2).map((k) => `<option value="${k}" ${String(val(`agenda-occ-${c.id}`) || 4) === String(k) ? "selected" : ""}>${k} semaines</option>`).join("")}</select></label>` : ""}
+      <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${busy ? "disabled" : ""}>Proposer au club</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-agenda-form-cancel="${id}">Annuler</button></div></form>`;
+  }
+  function slotHtml(c, slot, view) {
+    const A = CA(), lock = busy ? "disabled" : "", sid = esc(slot.id), cid = esc(c.id);
+    const acts = A.actions(slot).map((a) => `<button type="button" class="asc-btn ${a.primary ? "asc-btn-primary" : a.danger ? "asc-btn-ghost" : "asc-btn-secondary"} asc-btn-sm" data-agenda-act="${esc(a.id)}" data-club-id="${cid}" data-slot="${sid}" ${a.answer ? `data-answer="${esc(a.answer)}"` : ""} ${a.on != null ? `data-on="${a.on}"` : ""} ${slot.me?.answer && a.answer === slot.me.answer ? 'aria-pressed="true"' : ""} ${lock}>${esc(a.label)}</button>`).join("");
+    const series = A.seriesActions(slot, view).map((a) => `<button type="button" class="asc-btn ${a.danger ? "asc-btn-ghost" : "asc-btn-secondary"} asc-btn-sm" data-agenda-series="${esc(a.id)}" data-club-id="${cid}" data-event="${esc(slot.event)}" ${lock}>${esc(a.label)}</button>`).join("");
+    const report = A.report(slot);
+    const cands = A.candidates(slot, sportLabel);
+    const link = slot.can?.includes("link") ? (cands.length
+      ? `<div class="asc-actions"><label class="sr-only" for="agenda-log-${sid}">Séance à associer</label><select id="agenda-log-${sid}" class="asc-select" data-club-draft="agenda-log-${sid}">${cands.map((x) => `<option value="${esc(x.id)}" ${val("agenda-log-" + slot.id) === x.id ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select>
+          <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-agenda-link="${sid}" data-club-id="${cid}" ${lock}>Associer ma séance</button></div>`
+      : `<p class="asc-small asc-faint" data-agenda-no-candidate>Aucune séance confirmée ce jour-là dans ton journal. Le rendez-vous n’en crée jamais à ta place.</p>`) : "";
+    const move = agendaMove[slot.id] ? `<div class="asc-actions" data-agenda-move-form="${sid}"><label class="asc-field"><span>Nouvelle date</span><input class="asc-input" type="date" min="${today()}" max="${later(A.RULE.horizonDays)}" data-club-draft="agenda-mdate-${sid}" value="${esc(val("agenda-mdate-" + slot.id) || parisDate(slot.startsAt))}"></label>
+        <label class="asc-field"><span>Heure (Paris)</span><input class="asc-input" type="time" step="300" data-club-draft="agenda-mtime-${sid}" value="${esc(val("agenda-mtime-" + slot.id) || parisTime(slot.startsAt))}"></label>
+        <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-agenda-move="${sid}" data-club-id="${cid}" ${lock}>Déplacer</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-agenda-move-cancel="${sid}">Annuler</button></div>` : "";
+    const roster = Array.isArray(slot.roster) ? `<details class="asc-small" data-agenda-roster><summary>Réponses (${slot.roster.length})</summary><ul class="rv-list">${slot.roster.map((r) => `<li>${esc(r.name)} · ${esc(r.answer ? A.ANSWERS[r.answer] : "pas de réponse")}${r.attended === true ? " · présent·e" : r.attended === false ? " · absent·e" : ""}</li>`).join("")}</ul></details>` : "";
+    const hist = A.history(slot);
+    return `<article class="asc-stack" data-agenda-slot="${sid}" data-phase="${esc(slot.phase)}" ${agendaFocus === slot.id ? 'data-agenda-focus tabindex="-1"' : ""}>
+      <p class="asc-small"><strong>${esc(slot.title)}</strong>${slot.phase === "cancelled" ? ' <span class="asc-faint">· annulé</span>' : ""}</p>
+      <p class="asc-small asc-muted" data-agenda-header>${esc(A.header(slot))}</p>
+      ${A.status(slot).map((l) => `<p class="asc-small" data-agenda-status>${esc(l)}</p>`).join("")}
+      ${slot.phase !== "cancelled" ? `<p class="asc-small" data-agenda-counts>${esc(A.counts(slot))}</p>` : ""}
+      ${A.place(slot) ? `<p class="asc-small" data-agenda-place>${esc(A.place(slot))}</p>` : ""}
+      ${A.mine(slot) ? `<p class="asc-small" data-agenda-me>${esc(A.mine(slot))}</p>` : ""}
+      ${report ? `<div class="asc-stack" data-agenda-report><p class="asc-small"><strong>${esc(report.title)}</strong></p><ul class="rv-list">${report.lines.map((l) => `<li class="asc-small">${esc(l)}</li>`).join("")}</ul></div>` : ""}
+      ${A.linked(slot, sportLabel) ? `<p class="asc-small" data-agenda-linked>${esc(A.linked(slot, sportLabel))}</p>` : ""}
+      ${acts ? `<div class="asc-actions">${acts}</div>` : ""}${link}${move}
+      ${slot.code ? `<p class="asc-small asc-faint" data-agenda-code>Lien d’invitation pour les membres : ${esc(A.inviteLink(slot.code, location.origin))}</p>` : ""}
+      ${series ? `<div class="asc-actions">${series}</div>` : ""}${roster}
+      ${hist.length ? `<details class="asc-small" data-agenda-history><summary>Historique</summary><ul class="rv-list">${hist.map((l) => `<li>${esc(l)}</li>`).join("")}</ul></details>` : ""}</article>`;
+  }
+  function agendaHtml(c) {
+    const A = CA();
+    if (!agendaOn() || !A) return "";
+    const view = agendas[c.id];
+    if (!view) return "";
+    const up = Array.isArray(view.upcoming) ? view.upcoming : [], past = Array.isArray(view.past) ? view.past : [];
+    const create = view.canCreate ? (agendaForm[c.id] ? agendaFormHtml(c) : `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-agenda-form="${esc(c.id)}" ${busy ? "disabled" : ""}>Proposer un rendez-vous</button></div>`) : "";
+    return `<div class="asc-stack" data-club-agenda="${esc(c.id)}"><p class="asc-small"><strong>Agenda du club</strong></p>
+      <p class="asc-small asc-faint" data-agenda-role>${esc(A.role(view))}</p>
+      ${up.length ? up.map((x) => slotHtml(c, x, view)).join("") : '<p class="asc-small asc-faint">Pas de rendez-vous à venir.</p>'}
+      ${past.length ? `<details class="asc-small" data-agenda-past ${past.some((x) => x.can?.length) ? "open" : ""}><summary>Rendez-vous passés (${past.length})</summary>${past.map((x) => slotHtml(c, x, view)).join("")}</details>` : ""}
+      ${create}</div>`;
+  }
+  async function openInvite(ask, code) {
+    const A = CA();
+    try {
+      const { data: got, error } = await ask.client.rpc("titan_club_agenda_invite_v1", { p_code: code });
+      if (!same(ask, context())) return;
+      if (error) { notice = failure(error, "titan_club_agenda_invite_v1"); return; }
+      const text = A.invite(got);
+      if (text) { notice = text; return; }
+      agendaFocus = got.slot?.id || null;
+      if (got.club && got.slot && agendas[got.club] && !(agendas[got.club].upcoming || []).some((x) => x.id === got.slot.id)) agendas[got.club].upcoming = [got.slot, ...(agendas[got.club].upcoming || [])];
+    } catch (error) { if (same(ask, context())) notice = failure(error, "titan_club_agenda_invite_v1"); }
+  }
+
   function clubHtml(c) {
     const admin = c.role === "admin";
     const ann = (c.announcements || []).map((a) => `<li class="asc-between" data-club-ann="${esc(a.id)}"><span><span class="asc-small asc-muted">${esc(date(a.at))}</span><br>${esc(a.body)}</span><span class="asc-actions">${admin ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-ann-remove="${esc(a.id)}" aria-label="Retirer cette annonce">Retirer</button>` : ""}${a.mine ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report="${esc(c.id)}" data-ann="${esc(a.id)}" aria-label="Signaler cette annonce">Signaler</button>`}</span></li>`).join("");
@@ -273,6 +366,7 @@
       ${c.description ? `<p class="asc-small asc-muted">${esc(c.description)}</p>` : ""}
       ${(c.trophies || []).length ? `<ul class="rv-list" data-club-trophies aria-label="Trophées du club">${c.trophies.map((t) => `<li><strong>${esc(t.title)}</strong> <span class="asc-small asc-muted">· ${esc(date(t.on))}</span>${t.note ? `<br><span class="asc-small asc-muted">${esc(t.note)}</span>` : ""}</li>`).join("")}</ul>` : ""}
       ${weekHtml(c)}
+      ${agendaHtml(c)}
       ${seasonHtml(c)}
       ${matchHtml(c)}
       ${ann ? `<ul class="rv-list" data-club-announcements>${ann}</ul>` : `<p class="asc-small asc-faint">Pas d’annonce pour l’instant.</p>`}
@@ -285,6 +379,7 @@
     if (!root) return;
     if (!on() || missing || !data) { root.innerHTML = ""; root.hidden = true; return; }
     root.hidden = false;
+    const keepFocus = document.activeElement?.dataset?.agendaFocus !== undefined && root.contains(document.activeElement);
     const lock = busy ? "disabled" : "";
     const found = discover.map((c) => `<li class="asc-between" data-club-found="${esc(c.id)}"><span><strong>${esc(c.name)}</strong> <span class="asc-small asc-muted">· ${n(c.members)} membre${Number(c.members) > 1 ? "s" : ""}</span>${c.description ? `<br><span class="asc-small asc-muted">${esc(c.description)}</span>` : ""}</span><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-club-join-id="${esc(c.id)}" ${lock}>Rejoindre</button></li>`).join("");
     root.innerHTML = `<section class="asc-section asc-appear" aria-labelledby="club-title"><div class="asc-section-head"><h2 id="club-title">Clubs</h2></div>
@@ -300,6 +395,14 @@
         <label class="asc-field"><span>Description (facultatif)</span><input class="asc-input" maxlength="300" data-club-draft="desc" value="${esc(val("desc"))}"></label>
         <label class="auth-check"><input type="checkbox" data-club-draft-check="open" ${draft.open ? "checked" : ""}><span>Afficher ce club dans la liste des clubs ouverts</span></label>
         <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${lock}>Créer le club</button></div></form></section>`;
+    // V1.8.6: the occurrence an invitation link opened takes the focus once.
+    const el = agendaFocus ? root.querySelector("[data-agenda-focus]") : null;
+    if (el && !agendaFocused) {
+      agendaFocused = true; el.scrollIntoView?.({ block: "start" }); el.focus?.({ preventScroll: true });
+      // The Communauté folds may move the section once more just after: the opened meeting takes the focus back, once.
+      setTimeout(() => { const again = root?.querySelector("[data-agenda-focus]"); if (again && document.activeElement !== again && (document.activeElement === document.body || !document.activeElement)) { again.scrollIntoView?.({ block: "start" }); again.focus?.({ preventScroll: true }); } }, 600);
+    }
+    else if (el && keepFocus) el.focus?.({ preventScroll: true });
   }
 
   document.addEventListener("input", (e) => {
@@ -307,6 +410,13 @@
     if (f) draft[f.dataset.clubDraft] = f.value;
     const c = e.target.closest?.("#clubs [data-club-draft-check]");
     if (c) draft[c.dataset.clubDraftCheck] = c.checked;
+  });
+  // V1.8.6: choosing « Chaque semaine » shows the number of occurrences.
+  document.addEventListener("change", (e) => {
+    const f = e.target.closest?.("#clubs select[data-club-draft^='agenda-rec-']");
+    if (!f) return;
+    draft[f.dataset.clubDraft] = f.value; render();
+    root?.querySelector(`select[data-club-draft="${CSS.escape(f.dataset.clubDraft)}"]`)?.focus();
   });
   document.addEventListener("toggle", (e) => {
     const d = e.target;
@@ -332,6 +442,16 @@
       if (bad) { notice = S.MESSAGES[bad]; render(); return; }
       act("titan_club_season_act_v1", { p_club: id, p_action: "create", p_title: form.title, p_pace: form.pace, p_weeks: form.weeks, p_starts_on: form.startsOn, p_days: null }, () => {
         seasonForm[id] = false; ["title", "start", "weeks", "pace"].forEach((k) => delete draft[`season-${k}-${id}`]); notice = S.result("create");
+      });
+    } else if (e.target.matches("[data-agenda-create-form]")) {
+      const id = e.target.dataset.agendaCreateForm, A = CA(), g = (k, d = "") => val(`agenda-${k}-${id}`) || d;
+      const rec = g("rec", "once");
+      const form = { title: g("title"), area: g("area"), place: g("place"), fallback: g("fallback"), durationMin: Number(g("dur", "90")), capacity: g("cap"),
+        recurrence: rec, occurrences: rec === "weekly" ? Number(g("occ", "4")) : 1, startsAt: A.parisInstant(g("date", tomorrow()), g("time", "09:00")) };
+      const bad = A.validate(form, Date.now());
+      if (bad) { notice = A.MESSAGES[bad]; render(); return; }
+      act("titan_club_agenda_act_v1", agendaArgs(id, "create", { p_form: A.payload(form) }), () => {
+        agendaForm[id] = false; ["title", "date", "time", "dur", "area", "place", "fallback", "cap", "rec", "occ"].forEach((k) => delete draft[`agenda-${k}-${id}`]); notice = A.result("create");
       });
     } else if (e.target.matches("[data-match-propose-form]")) {
       const id = e.target.dataset.matchProposeForm, M = CM();
@@ -367,6 +487,46 @@
       const ask = S.confirmText(action, view && view.current);
       if (ask && window.titanShell?.confirm) window.titanShell.confirm({ title: ask.title, message: ask.message, confirmLabel: ask.confirm, action: async () => { run(); } });
       else run();
+      return;
+    }
+    if (t.dataset.agendaForm) { agendaForm[t.dataset.agendaForm] = true; render(); root.querySelector(`[data-agenda-create-form] input`)?.focus(); return; }
+    if (t.dataset.agendaFormCancel) { agendaForm[t.dataset.agendaFormCancel] = false; render(); return; }
+    if (t.dataset.agendaMoveCancel) { agendaMove[t.dataset.agendaMoveCancel] = false; render(); return; }
+    if (t.dataset.agendaAct) {
+      const A = CA(), id = t.dataset.clubId, slot = t.dataset.slot, action = t.dataset.agendaAct, on = t.dataset.on == null ? null : t.dataset.on === "true";
+      if (action === "move") { agendaMove[slot] = true; render(); root.querySelector(`[data-agenda-move-form="${CSS.escape(slot)}"] input`)?.focus(); return; }
+      const run = () => act("titan_club_agenda_act_v1", agendaArgs(id, action, { p_slot: slot, p_answer: t.dataset.answer || null, p_on: on }), (answer) => {
+        const fresh = [...(answer?.upcoming || []), ...(answer?.past || [])].find((x) => x.id === slot);
+        notice = (action === "answer" && A.answered(fresh)) || A.result(action, t.dataset.answer);
+      });
+      const ask = A.confirmText(action);
+      if (ask && window.titanShell?.confirm) window.titanShell.confirm({ title: ask.title, message: ask.message, confirmLabel: ask.confirm, action: async () => { run(); } });
+      else run();
+      return;
+    }
+    if (t.dataset.agendaSeries) {
+      const A = CA(), id = t.dataset.clubId, action = t.dataset.agendaSeries;
+      const run = () => act("titan_club_agenda_act_v1", agendaArgs(id, action, { p_event: t.dataset.event }), () => { notice = A.result(action); });
+      const ask = A.confirmText(action);
+      if (ask && window.titanShell?.confirm) window.titanShell.confirm({ title: ask.title, message: ask.message, confirmLabel: ask.confirm, action: async () => { run(); } });
+      else run();
+      return;
+    }
+    if (t.dataset.agendaMove) {
+      const A = CA(), id = t.dataset.clubId, slot = t.dataset.agendaMove, view = agendas[id];
+      const cur = (view?.upcoming || []).find((x) => x.id === slot);
+      const at = A.parisInstant(val("agenda-mdate-" + slot) || (cur && parisDate(cur.startsAt)), val("agenda-mtime-" + slot) || (cur && parisTime(cur.startsAt)));
+      const nowMs = Date.now();
+      if (!at || Date.parse(at) < nowMs + A.RULE.leadMinutes * 60000 || Date.parse(at) > nowMs + A.RULE.horizonDays * 86400000) { notice = A.MESSAGES.AGENDA_INVALID; render(); return; }
+      act("titan_club_agenda_act_v1", agendaArgs(id, "move", { p_slot: slot, p_starts_at: at }), () => { agendaMove[slot] = false; delete draft["agenda-mdate-" + slot]; delete draft["agenda-mtime-" + slot]; notice = A.result("move"); });
+      return;
+    }
+    if (t.dataset.agendaLink) {
+      const A = CA(), id = t.dataset.clubId, slot = t.dataset.agendaLink, view = agendas[id];
+      const cur = [...(view?.upcoming || []), ...(view?.past || [])].find((x) => x.id === slot);
+      const log = val("agenda-log-" + slot) || A.candidates(cur)[0]?.id;
+      if (!log) return;
+      act("titan_club_agenda_act_v1", agendaArgs(id, "link", { p_slot: slot, p_log: log }), () => { delete draft["agenda-log-" + slot]; notice = A.result("link"); });
       return;
     }
     if (t.dataset.matchForm) { matchForm[t.dataset.matchForm] = t.dataset.kind; matchPreview[t.dataset.matchForm] = null; render(); root.querySelector(`[data-club-match="${CSS.escape(t.dataset.matchForm)}"] select, [data-club-match="${CSS.escape(t.dataset.matchForm)}"] input`)?.focus(); return; }
@@ -424,6 +584,18 @@
   window.addEventListener("titan:account-changing", () => { owner = null; reset(); render(); });
   ["titan:account-changed", "titan:flags-updated", "online"].forEach((ev) => window.addEventListener(ev, () => { sync(); refresh(); }));
   window.TitanClubs = { refresh };
-  function boot() { root = document.getElementById("clubs"); if (!root) return; root.hidden = true; setTimeout(refresh, 0); }
+  function boot() {
+    root = document.getElementById("clubs"); if (!root) return; root.hidden = true;
+    // V1.8.6: an invitation link (/social.html?rdv=CODE) is read once, then removed from the address so that a reload does not ask again.
+    try {
+      const params = new URLSearchParams(location.search), code = params.get("rdv");
+      if (code && window.TitanClubAgenda) {
+        invitePending = window.TitanClubAgenda.code(code);
+        params.delete("rdv");
+        history.replaceState(history.state, "", `${location.pathname}${params.toString() ? `?${params}` : ""}${location.hash || "#clubs"}`);
+      }
+    } catch { /* an address without a query */ }
+    setTimeout(refresh, 0);
+  }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true }); else boot();
 })();
