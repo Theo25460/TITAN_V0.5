@@ -1,0 +1,150 @@
+[
+ {
+  "file": "01-ascension.png",
+  "shot": "dimanche/QG.png",
+  "titleTop": 120,
+  "phoneTop": 540,
+  "title": [
+   {
+    "text": "Ton sport."
+   },
+   {
+    "text": "Ton ascension.",
+    "accent": true
+   }
+  ],
+  "sub": "Séances, progrès et aventure dans une seule app."
+ },
+ {
+  "file": "02-multisport.png",
+  "shot": "dimanche/Journal.png",
+  "titleTop": 120,
+  "phoneTop": 580,
+  "title": [
+   {
+    "text": "Tous tes sports"
+   },
+   {
+    "text": "au même endroit",
+    "accent": true
+   }
+  ],
+  "sub": "Course, salle, escalade, natation… chaque sport avec ses propres mesures.",
+  "callouts": [
+   {
+    "src": "dimanche/Progress-Tendances-long.png",
+    "crop": [
+     32,
+     812,
+     760,
+     560
+    ],
+    "at": [
+     92,
+     1250
+    ],
+    "scale": 1.08,
+    "pad": 24,
+    "bg": "#090C10"
+   }
+  ]
+ },
+ {
+  "file": "03-aventure.png",
+  "shot": "dimanche/SessionResult_eventId_record.png",
+  "titleTop": 120,
+  "size": 104,
+  "phoneTop": 580,
+  "title": [
+   {
+    "text": "Tes séances font"
+   },
+   {
+    "text": "avancer ton aventure",
+    "accent": true
+   }
+  ],
+  "sub": "Chaque séance te rapporte de l’XP et fait progresser ton chapitre."
+ },
+ {
+  "file": "04-progres.png",
+  "shot": "dimanche/Progress-Tendances-long.png",
+  "offset": 1720,
+  "titleTop": 120,
+  "phoneTop": 540,
+  "title": [
+   {
+    "text": "Visualise"
+   },
+   {
+    "text": "tes progrès",
+    "accent": true
+   }
+  ],
+  "sub": "Tendances, temps par sport et records personnels.",
+  "callouts": [
+   {
+    "src": "dimanche/Records.png",
+    "crop": [
+     32,
+     416,
+     760,
+     254
+    ],
+    "at": [
+     94,
+     1520
+    ],
+    "scale": 1.17
+   }
+  ]
+ },
+ {
+  "file": "05-defis.png",
+  "shot": "communaute/Community-Defis.png",
+  "titleTop": 120,
+  "phoneTop": 580,
+  "title": [
+   {
+    "text": "Relève de"
+   },
+   {
+    "text": "nouveaux défis",
+    "accent": true
+   }
+  ],
+  "sub": "Défis entre amis et expéditions collectives. Sans mise, juste du mouvement."
+ },
+ {
+  "file": "06-amis.png",
+  "shot": "communaute/Community.png",
+  "titleTop": 120,
+  "phoneTop": 580,
+  "title": [
+   {
+    "text": "Avance"
+   },
+   {
+    "text": "avec tes amis",
+    "accent": true
+   }
+  ],
+  "sub": "Amis, Moments et encouragements, seulement avec qui tu choisis.",
+  "callouts": [
+   {
+    "src": "communaute/Community-Moments.png",
+    "crop": [
+     32,
+     716,
+     760,
+     314
+    ],
+    "at": [
+     94,
+     1392
+    ],
+    "scale": 1.17
+   }
+  ]
+ }
+]

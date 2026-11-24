@@ -43,6 +43,8 @@ for (const spec of only.length ? only : SCREENS) {
   const [screen, ...clicks] = spec.split("|click=");
   const click = clicks.join("+");
   const page = await browser.newPage({ viewport: VIEW, deviceScaleFactor: DSF });
+  // CLOCK=2026-11-29T11:00:00 fixes the page's date (fixtures are relative to "now"), e.g. a Sunday so the week is full.
+  if (process.env.CLOCK) await page.clock.install({ time: new Date(process.env.CLOCK) });
   page.on("pageerror", (e) => errors.push(`${screen}: ${e.message}`));
   await page.goto(`http://127.0.0.1:${port}/#${screen}`);
   await page.waitForSelector("body[data-preview-ready]", { timeout: 20000 }).catch(() => errors.push(`${screen}: not ready`));
