@@ -171,6 +171,7 @@
         change_accepted: "Changement accepté : nouvelle version en vigueur", change_declined: "Changement décliné : version acceptée gardée",
         link_refused: e.code === "SESSION_ALREADY_LINKED" ? "Tentative de lien refusée : séance déjà liée à une autre proposition" : "Seconde tentative de lien refusée : le lien en place est gardé",
         seen: "Écart traité par le coach",
+        adjusted: "Ajustée après un retour du coach, accepté par le sportif", from_feedback: "Ajoutée depuis un retour du coach, acceptée par le sportif",
       }[e?.k];
       if (t) out.push({ kind: e.k, at, text: t, before: e.before || e.kept || null, after: e.after || null });
     }
@@ -179,7 +180,7 @@
 
   /** The three versions the coach looks for: the original accepted, the correction (pending or last accepted), the linked activity. */
   function versions(row) {
-    const last = [...(Array.isArray(row?.history) ? row.history : [])].reverse().find((e) => e?.k === "change_accepted");
+    const last = [...(Array.isArray(row?.history) ? row.history : [])].reverse().find((e) => e?.k === "change_accepted" || e?.k === "adjusted");
     return {
       original: row?.accepted_version || (Array.isArray(row?.history) ? row.history.find((e) => e?.k === "proposed")?.version : null) || null,
       correction: row?.pending_change ? { ...row.pending_change, pending: true } : last ? { ...last.after, pending: false } : null,

@@ -9,6 +9,7 @@
   const SP = () => window.TitanSports;
   const I = () => window.TitanInsights;
   const FU = () => window.TitanCoachFollowup;
+  const FB = () => window.TitanCoachFeedback;
   const DAY = 86400000;
   const owner = () => window.state?.user?.id;
   const guest = () => !owner() || String(owner()).startsWith("guest_");
@@ -24,6 +25,9 @@
   // V1.9.1: the follow-up of proposals (titan_coach_followup_v1), only when screens.coach_followup is open.
   let follow = null; // Map id -> row of the selected link, as the server words it
   let queue = null, queueError = "", queueAction = "", queueLink = "", queueSeq = 0;
+  // V1.9.2: feedback on sessions (titan_coach_feedback_v1), only when screens.coach_feedback is open. Map assignment id -> rows, as read now.
+  let feedback = null;
+  let directFeedback = /^#retour=([0-9a-f-]{36})$/i.exec(location.hash)?.[1] || "";
   let loading = true;
   let error = "";
   let seq = 0;
@@ -45,7 +49,7 @@
     resetWorkspace();
     ++seq;
     ++detailSeq;
-    snapshot = sessions = assignments = viewContext = follow = queue = null;
+    snapshot = sessions = assignments = viewContext = follow = queue = feedback = null;
     queueError = queueAction = queueLink = "";
     ++queueSeq;
     selected = "";
@@ -106,7 +110,7 @@
     INVALID_TRANSITION: "Cette proposition a changé. Actualise son état.",
     ASSIGNMENT_LIMIT: "La limite de propositions de ce suivi est atteinte.",
   };
-  const human = (e) => MESSAGES[e?.message] || FU()?.message?.(e?.message) || (navigator.onLine ? "La demande n’a pas été confirmée. Réessaie." : "Hors ligne : le coaching revient avec le réseau.");
+  const human = (e) => MESSAGES[e?.message] || FB()?.message?.(e?.message) || FU()?.message?.(e?.message) || (navigator.onLine ? "La demande n’a pas été confirmée. Réessaie." : "Hors ligne : le coaching revient avec le réseau.");
 
   async function rpc(action, data = {}, job = viewContext, fn = "titan_coach_portal") {
     requireContext(job);
@@ -157,6 +161,7 @@
       render();
       if (selected) loadDetail();
       loadQueue();
+      if (directFeedback && feedbackOn()) { const id = directFeedback; directFeedback = ""; openFeedback(id); }
     } catch (e) {
       if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
       if (s !== seq) return;
@@ -174,10 +179,11 @@
     if (!link) return;
     const s = ++detailSeq;
     try {
-      const [logs, tasks, rows] = await Promise.all([
+      const [logs, tasks, rows, notes] = await Promise.all([
         moreAssignments ? Promise.resolve(sessions) : rpc("sessions", { link_id: link.id, from_date: fromDate, to_date: toDate, offset: moreSessions ? sessions?.rows.length || 0 : 0 }, job),
         moreSessions ? Promise.resolve(assignments) : rpc("assignments", { link_id: link.id, offset: moreAssignments ? assignments?.rows.length || 0 : 0 }, job),
         followOn() && !moreSessions ? rpc("list", { link_id: link.id, offset: moreAssignments ? assignments?.rows.length || 0 : 0 }, job, "titan_coach_followup_v1").catch(() => null) : Promise.resolve(null),
+        feedbackOn() && !moreSessions ? rpc("list", { link_id: link.id }, job, FBN).catch(() => null) : Promise.resolve(null),
       ]);
       if (s !== detailSeq || !sameContext(job) || current()?.id !== link.id) return;
       if ((logs && logs.revision !== link.revision) || (tasks && tasks.revision !== link.revision)) {
@@ -192,6 +198,11 @@
         if (!moreAssignments || !follow) follow = new Map();
         for (const r of rows.rows || []) follow.set(r.id, r);
       } else if (!moreSessions) follow = null;
+      // Feedback previews are rebuilt from this read only: what the athlete stopped sharing is gone from them.
+      if (notes?.link_id === link.id) {
+        feedback = new Map();
+        for (const r of notes.rows || []) feedback.set(r.assignment?.id, [...(feedback.get(r.assignment?.id) || []), r]);
+      } else if (!moreSessions) feedback = null;
       error = "";
       render();
     } catch (e) {
@@ -200,6 +211,7 @@
       sessions = null;
       assignments = null;
       follow = null;
+      feedback = null;
       error = human(e);
       if (e.message === "SHARING_UNAVAILABLE") snapshot = null;
       render();
@@ -599,6 +611,148 @@
     }
   }
 
+  /* ---------- V1.9.2 · Retour sur la séance ---------- */
+  const FBN = "titan_coach_feedback_v1";
+  const feedbackOn = () => feature("screens.coach_feedback") && !!FB();
+  const obsHtml = (v) => `<section class="co-fb-obs" data-fb-observation><h3 class="asc-h3">Observation du coach</h3><p class="co-instructions">${esc(v.observation)}</p><p class="asc-small asc-muted">Écrite le ${esc(v.written)}</p></section>`;
+  function fbSessionHtml(v) {
+    return `<section class="co-fb-session" data-fb-session="${esc(v.state)}"><h3 class="asc-h3">${esc(v.heading || "Séance")}</h3>
+      ${v.text ? `<p class="asc-small" data-fb-session-text>${esc(v.text)}</p>` : ""}
+      ${v.measures.length ? `<dl class="co-version">${v.measures.map((m) => `<div data-measure="${esc(m.key)}"><dt>${esc(m.label)}</dt><dd>${esc(m.text)}</dd></div>`).join("")}</dl>` : ""}
+      ${v.exercises.length ? `<ul class="co-fb-ex" data-fb-exercises>${v.exercises.map((e) => `<li><strong>${esc(e.name)}</strong>${e.summary ? ` · ${esc(e.summary)}` : ""}${e.sets.length ? `<br><span class="asc-small">${e.sets.map(esc).join(" · ")}</span>` : ""}</li>`).join("")}</ul>` : ""}
+      ${v.extras.length ? `<p class="asc-small">${v.extras.map((x) => esc(x.text)).join(" · ")}</p>` : ""}
+      ${v.note ? `<p class="jr-note" data-fb-note>${esc(v.note)}</p>` : ""}
+      ${v.checkin ? `<p class="asc-small" data-fb-checkin>${esc(v.checkin)}</p>` : ""}
+      ${v.hidden ? `<p class="asc-small asc-muted" data-fb-hidden>${icon("eyeOff")} ${esc(v.hidden)}</p>` : ""}
+      ${v.corrected ? `<p class="asc-note" data-fb-corrected>${icon("info")}<span>${esc(v.corrected)}</span></p>` : ""}</section>`;
+  }
+  function fbAdjHtml(a) {
+    if (!a) return `<section class="co-fb-adj" data-fb-adj-state="none"><h3 class="asc-h3">Proposition pour la suite</h3><p class="asc-small asc-muted">Aucune : ce retour est une observation.</p></section>`;
+    return `<section class="co-fb-adj" data-fb-adj-state="${esc(a.state)}"><h3 class="asc-h3">Proposition pour la suite</h3>
+      <p><span class="asc-chip" data-adj-state="${esc(a.state)}">${esc(a.label)}</span> <strong>${esc(a.heading)}</strong></p>
+      ${a.changes.length ? `<table class="co-diff" data-fb-changes><caption>${a.kind === "new" ? "Séance proposée" : a.state === "accepted" ? "Ce qui a changé" : "Ce qui changerait"}</caption><thead><tr><th scope="col">Élément</th>${a.kind === "new" ? "" : '<th scope="col">Actuel</th>'}<th scope="col">Proposé</th></tr></thead><tbody>${a.changes.map((c) => `<tr><th scope="row">${esc(c.label)}</th>${a.kind === "new" ? "" : `<td>${esc(c.before)}</td>`}<td>${esc(c.after)}</td></tr>`).join("")}</tbody></table>` : ""}
+      ${a.note ? `<p class="asc-small">Le mot du coach : « ${esc(a.note)} »</p>` : ""}<p class="asc-small" data-fb-adj-text>${esc(a.text)}</p></section>`;
+  }
+  function feedbackBody(r, role) {
+    const v = role === "coach" ? FB().forCoach(r) : FB().forAthlete(r);
+    const buttons = [];
+    if (v.can.includes("accept")) buttons.push(`<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-fb-act="accept">${icon("check")} Accepter l’ajustement</button>`, `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-fb-act="decline">Décliner</button>`);
+    if (v.can.includes("read")) buttons.push(`<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-fb-act="read">Compris</button>`);
+    if (v.can.includes("withdraw")) buttons.push(`<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-fb-act="withdraw">Retirer la proposition</button>`);
+    return `<div class="asc-stack" data-co-feedback="${esc(r.id)}">${v.link ? `<p class="asc-note" data-fb-link>${icon("lock")}<span>${esc(v.link)}</span></p>` : ""}
+      <p class="asc-small asc-muted">Sur « ${esc(r.assignment?.title || "")} »${v.relinked ? ` · ${esc(v.relinked)}` : ""}</p>
+      ${obsHtml(v)}${fbAdjHtml(v.adjustment)}${fbSessionHtml(v.session)}
+      ${buttons.length ? `<div class="asc-row-flex">${buttons.join("")}</div>` : ""}
+      <p class="asc-small asc-faint">Lecture seule pour le journal : ${role === "coach" ? "tu ne modifies jamais les séances, les notes ni le check-in du sportif" : "ton coach ne modifie jamais tes séances, tes notes ni ton check-in"}. Les mesures affichées sont celles que le partage montre maintenant.</p></div>`;
+  }
+  function feedbackBlock(t) {
+    if (!feedbackOn()) return "";
+    const rows = feedback?.get(t.id) || [];
+    const role = mode === "coach" ? "coach" : "athlete";
+    const compose = role === "coach" && t.status === "completed" && t.session_id && !current()?.paused
+      ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-fb-compose="${esc(t.id)}">${icon("edit")} Laisser un retour</button>` : "";
+    if (!rows.length && !compose) return "";
+    return `<div class="co-fb" data-co-fb="${esc(t.id)}">${rows.length ? `<ul class="co-fb-list">${rows.map((r) => {
+        const a = r.adjustment;
+        return `<li data-fb-row="${esc(r.id)}"><span class="asc-small" data-fb-preview>${esc(FB().preview(r, role))}</span>${a ? ` <span class="asc-chip" data-adj-state="${esc(a.state)}">${esc((FB().ADJ[a.state] || FB().ADJ.pending).label)}</span>` : ""} <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-fb-open="${esc(r.id)}">Ouvrir le retour</button></li>`;
+      }).join("")}</ul>` : ""}${compose ? `<div class="asc-row-flex">${compose}</div>` : ""}</div>`;
+  }
+  // Drops a feedback the server no longer shows (revocation, pause): no copy of it stays in this page.
+  function forgetFeedback(id) {
+    if (!feedback) return;
+    for (const [k, rows] of feedback) feedback.set(k, rows.filter((r) => r.id !== id));
+  }
+  async function openFeedback(id, btn) {
+    const job = viewContext;
+    if (!activeView() || !feedbackOn()) return;
+    if (btn) btn.disabled = true;
+    try {
+      const r = await rpc("detail", { id }, job, FBN);
+      if (!sameContext(job)) return;
+      const role = snapshot?.links?.some((l) => l.id === r.link_id && l.coach_id === owner()) ? "coach" : "athlete";
+      const d = formSheet({ title: role === "coach" ? "Mon retour sur la séance" : "Retour de mon coach", eyebrow: "Retour sur la séance", body: feedbackBody(r, role) });
+      d?.addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-fb-act]");
+        if (!b || !d.contains(b)) return;
+        d.close();
+        feedbackAction(b.dataset.fbAct, r);
+      });
+    } catch (e) {
+      if (!sameContext(job)) return;
+      if (["SHARING_UNAVAILABLE", "COACH_CAPACITY_PAUSED"].includes(e.message)) { forgetFeedback(id); if (current()) render(); }
+      window.titanShell.toast({ type: "warn", message: FB().message(e.message) || human(e) });
+    } finally { if (btn) btn.disabled = false; }
+  }
+  function feedbackAction(act, r) {
+    const call = (action, data) => (job) => rpc(action, { id: r.id, ...data }, job, FBN).then((x) => {
+      if (x && x.ok === false) throw new Error(FB().message(x.code) || human({ message: x.code }));
+      if (sameContext(job)) return load();
+    }).catch((e) => { throw new Error(e.message && !/^[A-Z_]+$/.test(e.message) ? e.message : human(e)); });
+    const a = FB().adjustment(r.adjustment, "athlete");
+    if (act === "read") return confirm({ title: "Marquer ce retour comme compris ?", message: r.assignment?.title || "", detail: "Ton coach voit que tu l’as lu. Rien d’autre ne change.", confirmLabel: "Compris", action: call("read", {}) });
+    if (act === "accept") return confirm({ title: "Accepter cet ajustement ?", message: a ? `${a.heading}${a.changes.length ? " · " + a.changes.map((c) => `${c.label} : ${c.after}`).join(" · ") : ""}` : "",
+      detail: r.adjustment?.kind === "new" ? "La séance est ajoutée à tes propositions, déjà acceptée. Ton journal ne change pas." : "La proposition visée est mise à jour et reste acceptée ; sa première version reste dans l’historique. Ton journal ne change pas.",
+      confirmLabel: "Accepter l’ajustement", action: call("answer", { revision: r.revision, accept: true }) });
+    if (act === "decline") return confirm({ title: "Décliner cet ajustement ?", message: a?.heading || "", detail: "La suite reste comme prévu. Ton coach voit ta réponse.", confirmLabel: "Décliner", action: call("answer", { revision: r.revision, accept: false }) });
+    if (act === "withdraw") return confirm({ title: "Retirer cette proposition ?", message: a?.heading || "", detail: "Ton observation reste dans le fil. Le sportif voit que la proposition est retirée.", confirmLabel: "Retirer", action: call("withdraw", { revision: r.revision }) });
+  }
+  function composeBody(c) {
+    const v = FB().session(c.session, "coach");
+    const targets = c.targets || [];
+    const prev = (c.feedback || []).map((r) => `<li><span class="asc-small">${esc(FB().preview(r, "coach"))}</span> <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-fb-open="${esc(r.id)}">Ouvrir</button></li>`).join("");
+    return `<div data-fb-compose-session>${fbSessionHtml(v)}</div>
+      ${prev ? `<section><h3 class="asc-h3">Retours déjà laissés</h3><ul class="co-fb-list">${prev}</ul></section>` : ""}
+      <label class="asc-field"><span>Observation : ce que tu as remarqué</span><textarea name="observation" maxlength="1000" required placeholder="Sur les mesures partagées : charges, répétitions, durée, ressenti…"></textarea></label>
+      <fieldset class="co-fb-next asc-stack"><legend>Proposition pour la suite (facultatif)</legend>
+        <p class="asc-small asc-muted">Une proposition reste à confirmer par le sportif. Rien ne change sans son accord.</p>
+        <label class="asc-check"><input type="radio" name="next" value="" checked> Pas de proposition</label>
+        ${targets.length ? `<label class="asc-check"><input type="radio" name="next" value="change"> Ajuster une séance prévue</label>
+        <label class="asc-field"><span>Séance à ajuster</span><select name="target_id">${targets.map((t) => `<option value="${esc(t.id)}">${esc(t.title)} · ${esc(FU()?.day?.(t.planned_date) || t.planned_date)}</option>`).join("")}</select></label>` : ""}
+        <label class="asc-check"><input type="radio" name="next" value="new"> Ajouter une nouvelle séance</label>
+        <label class="asc-field"><span>Nom</span><input class="asc-input" name="title" maxlength="100"></label>
+        <div class="asc-form-grid"><label class="asc-field"><span>Sport</span><select name="sport"><option value="">Sport inchangé</option>${sportOptions(null)}</select></label>
+        <label class="asc-field"><span>Date</span><input class="asc-input" type="date" name="planned_date" min="${isoDay()}" max="${isoDay(Date.now() + 366 * DAY)}"></label></div>
+        <label class="asc-field"><span>Consignes</span><textarea name="instructions" maxlength="2000"></textarea></label>
+        <label class="asc-field"><span>Un mot pour le sportif (facultatif)</span><input class="asc-input" name="note" maxlength="300"></label>
+        <p class="asc-small asc-faint">Pour un ajustement, ne remplis que ce qui change.</p></fieldset>`;
+  }
+  async function openCompose(id, btn) {
+    const job = viewContext;
+    if (!activeView() || !feedbackOn()) return;
+    if (btn) btn.disabled = true;
+    try {
+      let c = await rpc("compose", { id }, job, FBN);
+      if (!sameContext(job)) return;
+      if (!c.linked) throw Error("NOT_LINKED");
+      const d = formSheet({ title: c.assignment?.title || "Retour sur la séance", eyebrow: "Laisser un retour", body: composeBody(c), submit: "Envoyer le retour",
+        onSubmit: async (f, dialog, j) => {
+          const data = { id, session_key: c.session_key, observation: String(f.get("observation") || "") };
+          const next = String(f.get("next") || "");
+          if (next) {
+            const adj = next === "change" ? { target_id: String(f.get("target_id") || "") } : {};
+            for (const k of ["title", "sport", "planned_date", "instructions", "note"]) { const v = String(f.get(k) || "").trim(); if (v) adj[k] = v; }
+            // A sport left « inchangé » is never sent for an adjustment; a new session takes the sport of the session commented.
+            if (next === "new" && !adj.sport && c.assignment?.sport) adj.sport = c.assignment.sport;
+            data.adjustment = adj;
+          }
+          try { return await rpc("give", data, j, FBN); }
+          catch (e) {
+            // The session, its correction or the sharing changed while writing: show what is shared now, keep the text, ask to resend.
+            if (e.message === "SESSION_CHANGED") {
+              c = await rpc("compose", { id }, j, FBN);
+              const slot = dialog.querySelector("[data-fb-compose-session]");
+              if (slot) slot.innerHTML = fbSessionHtml(FB().session(c.session, "coach"));
+            }
+            throw e;
+          }
+        } });
+      d?.addEventListener("click", (e) => { const b = e.target.closest("button[data-fb-open]"); if (b && d.contains(b)) { d.close(); openFeedback(b.dataset.fbOpen); } });
+    } catch (e) {
+      if (!sameContext(job)) return;
+      window.titanShell.toast({ type: "warn", message: human(e) });
+    } finally { if (btn) btn.disabled = false; }
+  }
+
   /* ---------- Rendering ---------- */
   function comparisonHtml() {
     const c = window.TitanCoachAnalysis?.compare({sessions, assignments, from:fromDate, to:toDate});
@@ -664,7 +818,7 @@
     return (assignments?.rows || [])
       .map(
         (t) => `<article class="co-task" data-status="${esc(t.status)}"><div class="asc-between"><span class="asc-chip">${LABELS[t.status] || t.status}</span><span class="asc-small asc-muted">${esc(date(t.planned_date))}</span></div>
-        <h3>${esc(t.title)}</h3><p class="asc-small asc-muted">${esc(SP().label(t.sport))}</p>${t.instructions ? `<p class="co-instructions">${esc(t.instructions)}</p>` : ""}${followBlock(t)}
+        <h3>${esc(t.title)}</h3><p class="asc-small asc-muted">${esc(SP().label(t.sport))}</p>${t.instructions ? `<p class="co-instructions">${esc(t.instructions)}</p>` : ""}${followBlock(t)}${feedbackBlock(t)}
         <div class="asc-row-flex">${
           mode === "athlete"
             ? t.status === "proposed"
@@ -760,7 +914,7 @@
     if (!slot || !l || !feature("screens.coachtools") || !window.TitanCoachTools) { return; }
     const job = viewContext;
     if (!job || !sameContext(job)) return;
-    window.TitanCoachTools.mount(slot, { client: job.client, link: l.id, mode, ok: () => sameContext(job) && current()?.id === l.id && root.contains(slot), propose });
+    window.TitanCoachTools.mount(slot, { client: job.client, link: l.id, mode, ok: () => sameContext(job) && current()?.id === l.id && root.contains(slot), propose, openFeedback: feedbackOn() ? openFeedback : null });
   }
 
   function onTabKey(e) {
@@ -800,6 +954,8 @@
     if (b.dataset.fuChange) return fuAction("change", fuRow(b.dataset.fuChange));
     if (b.dataset.fuWithdraw) return fuAction("withdraw", fuRow(b.dataset.fuWithdraw));
     if (b.dataset.fuAnswer) return fuAction(b.dataset.fuAnswer, fuRow(b.dataset.fuId));
+    if (b.dataset.fbCompose) return openCompose(b.dataset.fbCompose, b);
+    if (b.dataset.fbOpen) return openFeedback(b.dataset.fbOpen, b);
     if (b.hasAttribute("data-invite")) return invite(b);
     if (b.hasAttribute("data-join")) return join();
     if (b.hasAttribute("data-co-export-csv")) return exportCsv();
@@ -891,12 +1047,18 @@
       cancelExport();
       sessions = null;
       assignments = null;
+      feedback = null;
     }
   });
   window.addEventListener("pagehide", () => {
+    feedback = null;
     sessions = null;
     assignments = null;
     snapshot = null;
+  });
+  window.addEventListener("hashchange", () => {
+    const id = /^#retour=([0-9a-f-]{36})$/i.exec(location.hash)?.[1];
+    if (booted && id && feedbackOn()) openFeedback(id);
   });
   window.addEventListener("titan:history-updated", () => setTimeout(start, 0));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));

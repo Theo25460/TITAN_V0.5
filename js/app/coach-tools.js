@@ -26,7 +26,7 @@
   }
 
   function mount(slot, ctx) {
-    // ctx: { client, ok(), link, mode, propose(copy) }
+    // ctx: { client, ok(), link, mode, propose(copy), openFeedback(id) | null (V1.9.2: a message that carries a session feedback opens it) }
     if (!slot || !ctx?.link) return;
     const state = { messages: [], hasMore: false, checkins: [], templates: [], note: "" };
     const q = (s) => slot.querySelector(s);
@@ -36,7 +36,7 @@
       const coach = ctx.mode === "coach";
       slot.innerHTML = `<section class="asc-section" data-ct-messages><div class="asc-section-head"><h2>Messages</h2></div>
         ${state.hasMore ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ct-older>Messages précédents</button>` : ""}
-        <div class="co-thread" role="log" aria-live="polite" aria-label="Messages du suivi">${state.messages.length ? state.messages.map((m) => `<div class="co-msg${m.mine ? " is-mine" : ""}"><p>${esc(m.body)}</p><small>${esc(fmtAt(m.at))}${m.mine ? (m.read ? " · lu" : "") : ` · <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ct-report="${esc(m.id)}">Signaler</button>`}</small></div>`).join("") : '<p class="asc-small asc-muted">Aucun message pour le moment.</p>'}</div>
+        <div class="co-thread" role="log" aria-live="polite" aria-label="Messages du suivi">${state.messages.length ? state.messages.map((m) => `<div class="co-msg${m.mine ? " is-mine" : ""}"${m.feedback_id ? ` data-ct-feedback-msg="${esc(m.feedback_id)}"` : ""}>${m.feedback_id ? `<p class="asc-small"><span class="asc-chip">Retour sur une séance</span>${ctx.openFeedback ? ` <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ct-feedback="${esc(m.feedback_id)}">Voir la séance et la proposition</button>` : ""}</p>` : ""}<p>${esc(m.body)}</p><small>${esc(fmtAt(m.at))}${m.mine ? (m.read ? " · lu" : "") : ` · <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-ct-report="${esc(m.id)}">Signaler</button>`}</small></div>`).join("") : '<p class="asc-small asc-muted">Aucun message pour le moment.</p>'}</div>
         <form data-ct-send class="asc-row-flex"><label class="asc-field" style="flex:1"><span class="asc-sr">Message</span><input class="asc-input" name="body" maxlength="1000" placeholder="Écrire à ${coach ? "l’athlète" : "mon coach"}…" required></label><button type="submit" class="asc-btn asc-btn-secondary">Envoyer</button></form>
         <p class="asc-small asc-faint">Messages limités à ce suivi ; ils disparaissent si le suivi est supprimé. Un message peut être signalé.</p></section>
         <section class="asc-section" data-ct-checkins><div class="asc-section-head"><h2>${coach ? "Check-ins partagés" : "Mon check-in de la semaine"}</h2></div>
@@ -96,6 +96,7 @@
     slot.addEventListener("click", async (e) => {
       const b = e.target.closest("button"); if (!b) return;
       try {
+        if (b.dataset.ctFeedback) { ctx.openFeedback?.(b.dataset.ctFeedback); return; }
         if (b.dataset.ctUse) { ctx.propose(state.templates.find((t) => t.id === b.dataset.ctUse)); }
         else if (b.dataset.ctDel) { await call(ctx, "titan_coach_template_delete_v1", { p_id: b.dataset.ctDel }); await loadAll(); }
         else if (b.dataset.ctReport) { await call(ctx, "titan_coach_message_report_v1", { p_message: b.dataset.ctReport, p_reason: "Signalé depuis le suivi" }); status("Message signalé à l’équipe TITAN."); }

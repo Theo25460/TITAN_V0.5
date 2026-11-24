@@ -349,7 +349,7 @@ test("privacy: the limits and the device-side features the policy quotes are the
   const library = int(routes, /titan_routes where user_id = v_uid\) >= (\d+) then raise exception 'ROUTE_LIMIT'/, "the routes of a library");
   assert.ok(privacy.includes(`(${points.toLocaleString("fr-FR").replace(NBSP, " ")} points et ${library} parcours au plus)`));
   // Chat messages expire; the thread between a coach and an athlete does not, and the policy must not let one be taken for the other.
-  const thread = int(sql(MIGRATIONS.filter((f) => sql(f).includes("raise exception 'THREAD_FULL'")).at(-1)), /titan_coach_messages where link_id = p_link\) >= (\d+) then raise exception 'THREAD_FULL'/, "the size of a coach thread");
+  const thread = int(sql(MIGRATIONS.filter((f) => sql(f).includes("raise exception 'THREAD_FULL'")).at(-1)), /titan_coach_messages where link_id = (?:p_link|v_link\.id)\) >= (\d+) then raise exception 'THREAD_FULL'/, "the size of a coach thread");
   assert.ok(privacy.includes(`Messages d’un suivi entre un coach et un sportif, check-ins, modèles de séance Tant que le compte existe (${thread} messages au plus par suivi)`));
   assert.ok(privacy.includes("Messages de discussion 48 à 72 heures selon l’espace"));
 });
