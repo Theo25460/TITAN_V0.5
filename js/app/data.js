@@ -210,6 +210,31 @@
     if (confirm) saveSettings({ schedule: r.schedule });
     return r;
   }
+  /* ---------- V1.7.6 — Scénarios multisports (js/core/block-scenario.js) ----------
+     Two private variants compared; a draft never enters the active programme. Applying and undoing write the schedule only (the
+     block layout the variant becomes, and the record of the decision); sessions are never changed. */
+  const BS = () => window.TitanBlockScenario;
+  function scenarios() {
+    if (!BS() || !TB() || !WP()) return [];
+    return BS().list(window.state?.user?.schedule || {});
+  }
+  function scenarioCompare(id, now = new Date()) {
+    if (!BS()) throw new Error("SCENARIO_UNAVAILABLE");
+    return BS().compare(window.state?.user?.schedule || {}, logs(), id, blockOpts(now));
+  }
+  function scenarioFollowUp(day, now = new Date()) {
+    if (!BS() || !WP()) return null;
+    return BS().followUp(window.state?.user?.schedule || {}, logs(), { ...blockOpts(now), week: day ? window.TitanFormat.dateKey(day) : undefined });
+  }
+  /** Writes a schedule the scenario module returned (after the athlete confirmed its preview). */
+  function scenarioSave(schedule) {
+    if (!window.state?.user || !schedule || typeof schedule !== "object") throw new Error("SCENARIO_UNAVAILABLE");
+    saveSettings({ schedule });
+  }
+  function scenarioMeasure() {
+    return BS() ? BS().measure(window.state?.user?.schedule || {}) : null;
+  }
+
   function blockMeasure() {
     if (!TB() || !WP()) return null;
     return TB().measure(window.state?.user?.schedule || {}, logs(), blockOpts());
@@ -338,5 +363,5 @@
     return list.length;
   }
 
-  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, weekPlan, weekPlanSports, decideOccurrence, weekReview, previewAdjustment, applyAdjustment, undoAdjustment, adjustments, blocks, blockContext, blockChange, blockMeasure, progression, rulesV300, guestCandidates, importGuestSessions };
+  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, weekPlan, weekPlanSports, decideOccurrence, weekReview, previewAdjustment, applyAdjustment, undoAdjustment, adjustments, blocks, blockContext, blockChange, blockMeasure, blockOptions: blockOpts, scenarios, scenarioCompare, scenarioFollowUp, scenarioSave, scenarioMeasure, progression, rulesV300, guestCandidates, importGuestSessions };
 })();

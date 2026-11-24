@@ -271,6 +271,9 @@
     // V1.7.4: training blocks, block by block — layouts Monday by Monday, milestones one by one, the change log entry by entry; on each
     // key the most recent write wins. The block's description (title, intent, goal) is the most recent one.
     if (a.blocks || b.blocks) out.blocks = mergeBlocks(a.blocks, b.blocks);
+    // V1.7.6: the scenario drafts (js/core/block-scenario.js), scenario by scenario — variants, availabilities and the application,
+    // the most recent write of each wins.
+    if (a.scenarios || b.scenarios) out.scenarios = root.TitanBlockScenario ? root.TitanBlockScenario.merge(a.scenarios, b.scenarios) : { ...clone(a.scenarios || {}), ...clone(b.scenarios || {}) };
     return out;
   }
 

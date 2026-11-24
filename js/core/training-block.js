@@ -86,7 +86,8 @@
     if (!w) return `Semaine ${i + 1}`;
     if (w.kind === "report") return `Report · reprend la semaine ${w.of}`;
     if (w.kind === "copy") return `Semaine ${w.n} (copie de la semaine ${w.of})`;
-    return `Semaine ${w.n || i + 1}${w.light ? " · allégée" : ""}`;
+    // V1.7.6: a week written by a scenario (js/core/block-scenario.js) says which variant it comes from.
+    return `Semaine ${w.n || i + 1}${w.light ? " · allégée" : ""}${w.scenario ? ` · scénario ${w.scenario}` : ""}`;
   }
 
   /* ---------- Measures of a session (the journal's values, never converted, never added across sports) ---------- */
@@ -774,12 +775,13 @@
   /** The words of a change at the weekly bilan: its source, then its effect on that week. */
   function describeChange(c, { label = (s) => s, dayLong = (k) => k } = {}) {
     const when = dayLong(String(c.at).slice(0, 10));
-    const src = { create: "Création du bloc", duplicate: "Bloc dupliqué", week: "Semaine révisée", copy: "Semaine dupliquée", shift: "Bloc décalé", milestone: "Jalon modifié", remove: "Bloc retiré", declare: "Action déclarée", undeclare: "Déclaration retirée" }[c.kind] || "Changement";
+    const src = { create: "Création du bloc", duplicate: "Bloc dupliqué", week: "Semaine révisée", copy: "Semaine dupliquée", shift: "Bloc décalé", milestone: "Jalon modifié", remove: "Bloc retiré", declare: "Action déclarée", undeclare: "Déclaration retirée", scenario: "Scénario appliqué", "scenario-undo": "Scénario annulé" }[c.kind] || "Changement";
     const effect = [];
     if (c.here) effect.push(c.kind === "remove" ? `cette semaine reprend ta semaine type (au lieu de ${c.here.before || "la semaine du bloc"})` : c.here.before && c.here.after && c.here.before !== c.here.after ? `cette semaine passe de « ${c.here.before} » à « ${c.here.after} »` : c.here.after ? `cette semaine suit « ${c.here.after} »` : "cette semaine change de programme");
     for (const m of c.milestones || []) effect.push(m.after && m.before ? `le jalon « ${m.title} » passe de la semaine du ${dayLong(m.before)} à celle du ${dayLong(m.after)}` : m.after ? `le jalon « ${m.title} » est placé cette semaine` : `le jalon « ${m.title} » est retiré`);
     for (const x of c.exceptions || []) effect.push(`ta décision du ${DAYS()[Number(x.occurrence.split("/")[1])]} ${x.state === "gone" ? "n’a plus de créneau" : "s’applique au nouveau créneau"}`);
     if ((c.kind === "declare" || c.kind === "undeclare") && c.detail?.title) effect.push(c.kind === "declare" ? `« ${c.detail.title} » est déclaré fait` : `la déclaration de « ${c.detail.title} » est retirée`);
+    if ((c.kind === "scenario" || c.kind === "scenario-undo") && c.detail?.name) effect.unshift(c.kind === "scenario" ? `« ${c.detail.name} » du scénario « ${c.detail.title} » choisi` : `« ${c.detail.name} » retiré, le programme d’avant revient`);
     if (c.kind === "milestone" && c.detail && !(c.milestones || []).length) effect.push(c.detail.removed ? `le jalon « ${c.detail.title} » est retiré` : c.detail.added ? `nouveau jalon « ${c.detail.title} »` : `le jalon « ${c.detail.title} » change de mesure : ${describeMeasure(c.detail.before, { label })} → ${describeMeasure(c.detail.after, { label })}`);
     return { source: `${src} le ${when}`, effect: effect.length ? `${cap(effect.join(" ; "))}.` : "" };
   }

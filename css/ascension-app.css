@@ -2947,6 +2947,106 @@
   margin-bottom: var(--s2);
 }
 
+/* ---------- V1.7.6 — Scénarios multisports (js/app/block-scenario-view.js) ---------- */
+.bs-card {
+  grid-template-columns: minmax(0, 1fr);
+}
+.bs-table-wrap {
+  max-width: 100%;
+  min-width: 0;
+}
+.bs-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.bs-table th,
+.bs-table td {
+  padding: var(--s1) 4px;
+  border-bottom: 1px solid var(--line-2);
+  text-align: right;
+  vertical-align: top;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.bs-table th[scope="row"],
+.bs-table thead th:first-child {
+  text-align: left;
+  width: 30%;
+}
+.bs-table thead th {
+  font-weight: 600;
+}
+.bs-table .bs-strong th,
+.bs-table .bs-strong td {
+  font-weight: 600;
+}
+.bs-table td[data-col="delta"],
+.bs-table th[data-col="delta"] {
+  background: var(--bg-1);
+}
+.bs-weeks,
+.bs-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s2);
+}
+.bs-list li {
+  padding-left: var(--s3);
+  box-shadow: inset 2px 0 0 var(--line-2);
+}
+.bs-week {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  gap: 2px;
+  padding: var(--s2) var(--s3);
+  border-radius: var(--r2);
+  background: var(--bg-1);
+}
+.bs-week[data-reduced="true"],
+.bs-week[data-pause="true"] {
+  box-shadow: inset 3px 0 0 var(--line-2);
+}
+.bs-week-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  margin-top: var(--s1);
+}
+.bs-cols {
+  display: grid;
+  gap: var(--s3);
+}
+@media (min-width: 720px) {
+  .bs-cols {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.bs-context p {
+  margin: 0;
+}
+.bs-sheet {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.bs-sheet .seance-chip {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+  padding-block: var(--s1);
+}
+.bs-sheet .asc-confirm-actions .asc-btn {
+  white-space: normal;
+  min-width: 0;
+}
+
 /* ---------- Auth ---------- */
 .auth-page {
   min-height: 100dvh;

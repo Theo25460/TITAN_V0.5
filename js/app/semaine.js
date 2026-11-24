@@ -388,7 +388,8 @@
      it, and its milestones (js/app/training-block-view.js). */
   function blockHtml() {
     if (!window.TitanTrainingBlockView) return "";
-    return window.TitanTrainingBlockView.contextHtml(recapFor(offset).from);
+    // V1.7.6: the scenario applied on that week, read again at the bilan (js/app/block-scenario-view.js).
+    return `${window.TitanTrainingBlockView.contextHtml(recapFor(offset).from)}${window.TitanBlockScenarioView ? window.TitanBlockScenarioView.contextHtml(recapFor(offset).from) : ""}`;
   }
 
   function render() {

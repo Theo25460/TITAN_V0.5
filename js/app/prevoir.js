@@ -92,6 +92,7 @@
       </section>
       ${nextHtml()}
       ${window.TitanTrainingBlockView ? window.TitanTrainingBlockView.html() : ""}
+      ${window.TitanBlockScenarioView ? window.TitanBlockScenarioView.html() : ""}
       <section class="asc-section"><div class="asc-section-head"><h2>Ta semaine type</h2><span class="asc-small asc-muted">Touchez un jour pour le modifier</span></div>
         <div class="asc-list">${type
           .map(
@@ -242,12 +243,13 @@
       window.TitanWeekPlanView?.bind(root, () => (current(account) && D().weekPlan ? D().weekPlan() : null));
       window.TitanWeekReviewView?.bind(root, () => null);
       window.TitanTrainingBlockView?.bind(root);
+      window.TitanBlockScenarioView?.bind(root);
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-cadence-pause]")) {
           if (current(account)) account.data.togglePause(F().dateKey(F().weekStart()));
           return;
         }
-        if (e.target.closest("[data-occurrence-act], [data-review-undo], [data-block-act], [data-block-declare], [data-block-undeclare], [data-blocks]")) return;
+        if (e.target.closest("[data-occurrence-act], [data-review-undo], [data-block-act], [data-block-declare], [data-block-undeclare], [data-blocks], [data-sc-act], [data-scenarios]")) return;
         const b = e.target.closest("[data-day]");
         if (b) openDay(b.dataset.day, b);
       });
