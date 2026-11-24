@@ -15,6 +15,7 @@ import { Sports } from "../../core";
 import { CoachFollowup as F, type AthleteInbox, type FollowRow } from "../../core/coachFollowup";
 import * as api from "../../data/api";
 import { useServerFlag } from "../../data/flags";
+import { CoachFeedbackList } from "./CoachFeedback";
 import { space } from "../../theme/tokens";
 
 const key = (owner: string) => ["coach-followup", owner] as const;
@@ -129,6 +130,7 @@ export function CoachProposals({ owner, online }: { owner: string; online: boole
         {archive.map(card)}
       </> : null}
       <T variant="caption" tone="faint">Un lien avec ton journal ne se fait jamais sans toi. Ton coach voit la date prévue, la tienne et la date faite.</T>
+      <CoachFeedbackList owner={owner} online={online} />
     </View>
   );
 }

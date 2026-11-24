@@ -43,6 +43,7 @@ export const MODULES = [
   "js/core/cordee.js",
   "js/core/social-digest.js",
   "js/core/coach-followup.js",
+  "js/core/coach-feedback.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };
