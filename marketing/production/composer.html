@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:TDisplay;src:url(../../mobile/assets/fonts/TitanDisplay-Heavy.ttf);font-weight:900}
+@font-face{font-family:TDisplay;src:url(../../mobile/assets/fonts/TitanDisplay-Bold.ttf);font-weight:700}
+@font-face{font-family:TText;src:url(../../mobile/assets/fonts/TitanText-Regular.ttf);font-weight:400}
+@font-face{font-family:TText;src:url(../../mobile/assets/fonts/TitanText-SemiBold.ttf);font-weight:600}
+@font-face{font-family:TText;src:url(../../mobile/assets/fonts/TitanText-Bold.ttf);font-weight:700}
+@font-face{font-family:TFig;src:url(../../mobile/assets/fonts/TitanFigure-Bold.ttf);font-weight:700}
+:root{--bg:#090C10;--bg2:#131920;--bg3:#1A222C;--tx:#F1F3EF;--tx2:#AEB7BD;--tx3:#838E97;--cy:#3DD9E8;--am:#F4BB54;--li:#D7F25A;--mo:#7FE0B0}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg);color:var(--tx);font-family:TText,sans-serif}
+.scene{position:absolute;inset:0;overflow:hidden}
+.bgart{position:absolute;inset:0;background-size:cover;background-position:center}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,16,.55) 0%,rgba(9,12,16,.35) 35%,rgba(9,12,16,.85) 70%,#090C10 100%)}
+.kicker{font:700 32px/1.2 TText;margin-bottom:18px;letter-spacing:.16em;text-transform:uppercase;color:var(--cy)}
+.title{font:900 128px/.98 TDisplay;letter-spacing:-.01em;white-space:pre-line}
+.title.m{font-size:100px}.title.s{font-size:80px}
+.sub{font:400 50px/1.3 TText;margin-top:22px;color:var(--tx2);white-space:pre-line}
+.rule{width:64px;height:4px;background:var(--tx);margin:0 0 34px}
+.center{position:absolute;left:84px;right:84px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center}
+.cap{position:absolute;left:84px;right:84px;top:118px;height:220px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px}
+.cap .title{font-size:76px;line-height:1.0}.cap .kicker{margin-bottom:4px}.cap .sub{margin-top:0}
+.phone{position:absolute;left:135px;top:404px;width:810px;height:1440px;border-radius:46px;overflow:hidden;border:2px solid #232D39;background:#05070A}
+.phone img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.demo{position:absolute;right:135px;top:352px;font:600 24px TText;color:#838E97}
+.mark{width:120px;height:120px}
+.end .brand{font:900 120px/1 TDisplay;letter-spacing:.06em}
+.end .brand span{color:var(--cy)}
+.chip{display:inline-block;font:600 34px TText;color:var(--tx);background:var(--bg2);padding:18px 28px;border-radius:16px;margin-top:10px}
+.crests{display:flex;gap:18px;align-items:flex-end;margin-top:46px}
+.crests figure{flex:1;text-align:center;font:600 26px TText;color:var(--tx2)}
+.crests img{width:100%;display:block;margin-bottom:10px}
+.am{color:var(--am)}.cy{color:var(--cy)}.li{color:var(--li)}.mo{color:var(--mo)}
+.inset{position:absolute;right:84px;top:300px;width:300px;height:300px;border-radius:28px;overflow:hidden;border:2px solid rgba(241,243,239,.25)}
+.inset img{width:100%;height:100%;object-fit:cover}
+.big{font:700 150px/1 TFig;letter-spacing:-.02em}
+.topo{position:absolute;left:-120px;top:980px;width:1500px;opacity:.16;transform-origin:center}
+</style></head><body><div id="stage"></div>
+<script>
+// Timeline engine: window.SPEC = {scenes:[...]} ; window.renderAt(t) draws the frame at time t (seconds).
+const ease = (x) => x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3);
+const FADE = 0.28;
+let built = [];
+function el(html) { const d = document.createElement('div'); d.className = 'scene'; d.innerHTML = html; return d; }
+function textBlock(s) {
+  return `${s.kicker ? `<div class="kicker" data-in="0">${s.kicker}</div>` : ''}
+    ${s.title ? `<div class="title ${s.size || ''}" data-in="0.08">${s.title}</div>` : ''}
+    ${s.sub ? `<div class="sub" data-in="0.22">${s.sub}</div>` : ''}`;
+}
+function build(spec) {
+  const st = document.getElementById('stage'); st.innerHTML = ''; built = [];
+  let t0 = 0;
+  for (const s of spec.scenes) {
+    let html = '';
+    if (s.kind === 'title') {
+      html = `${!s.bg ? '<img class="topo" src="../../assets/ascension/contours.svg" data-zoom="1">' : ''}${s.bg ? `<div class="bgart" style="background-image:url(${s.bg})" data-zoom="1"></div><div class="shade"></div>` : ''}
+        ${s.inset ? `<div class="inset" data-in="0.15"><img src="${s.inset}"></div>` : ''}
+        <div class="center" style="${s.align === 'bottom' ? 'justify-content:flex-end;padding-bottom:380px' : ''}">
+          ${s.rule === false ? '' : '<div class="rule" data-in="0"></div>'}${textBlock(s)}${s.extra || ''}</div>`;
+    } else if (s.kind === 'clip') {
+      html = `<div class="cap">${textBlock(s)}</div>
+        <div class="demo" data-in="0.2">Écrans réels · compte de démo</div><div class="phone" data-in="0" data-rise="1"><img class="clip"></div>`;
+    } else if (s.kind === 'end') {
+      html = `<div class="center end" style="align-items:flex-start">
+        <img class="mark" src="../../image/titan-mark.svg" data-in="0">
+        <div class="brand" data-in="0.06" style="margin-top:40px">TITAN <span>Ascent</span></div>
+        <div class="title s" data-in="0.16" style="margin-top:36px">${s.title || 'Rallume le monde.\nPour de vrai.'}</div>
+        <div class="sub" data-in="0.28" style="margin-top:30px">${s.sub || 'Gratuit · sans publicité\nDans ton navigateur, Android ou iPhone'}</div>
+        <div class="chip" data-in="0.38" style="margin-top:40px">titan-app.fr</div></div>`;
+    }
+    const node = el(html); st.appendChild(node);
+    built.push({ s, node, t0, t1: t0 + s.d, img: node.querySelector('img.clip') });
+    t0 += s.d;
+  }
+  window.TOTAL = t0;
+}
+async function renderAt(t) {
+  const waits = [];
+  for (const b of built) {
+    const local = t - b.t0, d = b.s.d;
+    const vis = local > -FADE && local < d;
+    b.node.style.display = vis ? 'block' : 'none';
+    if (!vis) continue;
+    const fadeIn = b.t0 === 0 ? 1 : ease((local + FADE) / FADE);
+    b.node.style.opacity = fadeIn;
+    for (const e of b.node.querySelectorAll('[data-in]')) {
+      const p = ease((local - +e.dataset.in) / 0.42);
+      const dy = e.dataset.rise ? 80 : 34;
+      e.style.opacity = p; e.style.transform = `translateY(${(1 - p) * dy}px)`;
+    }
+    const z = b.node.querySelector('[data-zoom]'); if (z) z.style.transform = `scale(${1.04 + 0.06 * Math.max(0, local) / d})`;
+    if (b.img) {
+      const s = b.s, fps = 30, rate = s.rate || 1;
+      const idx = Math.max(0, Math.min(s.frames - 1, Math.floor((s.from || 0) + Math.max(0, local) * fps * rate)));
+      const src = `clips/${s.clip}/${String(idx + 1).padStart(4, '0')}.jpg`;
+      if (!b.img.src.endsWith(src)) { b.img.src = src; waits.push(b.img.decode().catch(() => {})); }
+    }
+  }
+  await Promise.all(waits);
+  return true;
+}
+window.load = (spec) => { window.SPEC = spec; build(spec); return document.fonts.ready.then(() => Promise.all([...document.images].map(i => i.decode().catch(() => {})))); };
+window.renderAt = renderAt;
+</script></body></html>

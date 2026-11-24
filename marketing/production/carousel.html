@@ -1,0 +1,42 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><style>
+@font-face{font-family:TDisplay;src:url(../../mobile/assets/fonts/TitanDisplay-Heavy.ttf);font-weight:900}
+@font-face{font-family:TText;src:url(../../mobile/assets/fonts/TitanText-Regular.ttf);font-weight:400}
+@font-face{font-family:TText;src:url(../../mobile/assets/fonts/TitanText-SemiBold.ttf);font-weight:600}
+@font-face{font-family:TText;src:url(../../mobile/assets/fonts/TitanText-Bold.ttf);font-weight:700}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1350px;overflow:hidden;background:#090C10;color:#F1F3EF;font-family:TText}
+.s{position:absolute;inset:0;padding:96px 84px}
+.kicker{font:700 30px TText;letter-spacing:.16em;text-transform:uppercase;color:#3DD9E8;margin-bottom:22px}
+.title{font:900 112px/.98 TDisplay;white-space:pre-line}
+.title.m{font-size:84px}
+.sub{font:400 40px/1.34 TText;color:#AEB7BD;margin-top:26px;white-space:pre-line}
+.rule{width:64px;height:4px;background:#F1F3EF;margin-bottom:34px}
+.topo{position:absolute;left:-160px;bottom:-260px;width:1400px;opacity:.16}
+.art{position:absolute;inset:0;background-size:cover;background-position:center}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,12,16,.2),rgba(9,12,16,.55) 45%,#090C10 88%)}
+.bottom{position:absolute;left:84px;right:84px;bottom:110px}
+.phone{position:absolute;left:150px;right:150px;bottom:-40px;height:790px;border-radius:40px 40px 0 0;overflow:hidden;border:2px solid #232D39;border-bottom:0;background:#05070A}
+.phone img{width:100%;display:block;margin-top:var(--off,0px)}
+.demo{position:absolute;right:150px;bottom:770px;font:600 20px TText;color:#AEB7BD;background:rgba(5,7,10,.8);padding:7px 12px;border-radius:999px}
+.num{position:absolute;right:84px;top:96px;font:600 28px TText;color:#838E97}
+.foot{position:absolute;left:84px;bottom:52px;font:600 26px TText;color:#838E97;letter-spacing:.04em}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:56px}
+.vs div{background:#131920;border-radius:24px;padding:36px 32px;font:400 36px/1.3 TText;color:#AEB7BD}
+.vs b{display:block;font:900 60px TDisplay;color:#F1F3EF;margin-bottom:18px}
+.vs .g b{color:#3DD9E8}
+.chip{display:inline-block;font:700 40px TText;background:#3DD9E8;color:#02181B;padding:22px 34px;border-radius:18px;margin-top:48px}
+.mark{width:110px;height:110px;margin-bottom:44px}
+.cy{color:#3DD9E8}.am{color:#F4BB54}
+</style></head><body><div id="root"></div><script>
+window.show = (sl, i, n) => {
+  const r = document.getElementById('root');
+  const t = `${sl.kicker ? `<div class="kicker">${sl.kicker}</div>` : ''}<div class="title ${sl.size || ''}">${sl.title}</div>${sl.sub ? `<div class="sub">${sl.sub}</div>` : ''}`;
+  let h = '';
+  if (sl.kind === 'cover') h = `${sl.bg ? `<div class="art" style="background-image:url(${sl.bg})"></div><div class="shade"></div>` : '<img class="topo" src="../../assets/ascension/contours.svg">'}<div class="bottom"><div class="rule"></div>${t}</div>`;
+  if (sl.kind === 'screen') h = `<div class="s"><div class="rule"></div>${t}</div><div class="phone" style="--off:${sl.off || 0}px"><img src="screens/${sl.img}"></div><div class="demo">Écran réel · compte de démo</div>`;
+  if (sl.kind === 'text') h = `<img class="topo" src="../../assets/ascension/contours.svg"><div class="s"><div class="rule"></div>${t}${sl.extra || ''}</div>`;
+  if (sl.kind === 'cta') h = `<img class="topo" src="../../assets/ascension/contours.svg"><div class="s" style="display:flex;flex-direction:column;justify-content:center"><img class="mark" src="../../image/titan-mark.svg">${t}<div><span class="chip">titan-app.fr</span></div></div>`;
+  r.innerHTML = `<div class="s" style="padding:0">${h}</div>${i > 0 ? `<div class="num">${i + 1}/${n}</div>` : ''}${sl.kind === 'screen' ? '' : `<div class="foot">TITAN Ascent${i < n - 1 ? ' · glisse →' : ''}</div>`}`;
+  return document.fonts.ready.then(() => Promise.all([...document.images].map(x => x.decode().catch(() => {}))));
+};
+</script></body></html>
