@@ -11,6 +11,8 @@ Six images **1080 × 1920**, PNG 24 bits sans transparence, prêtes à importer 
 | `05-defis.png` | Relève de nouveaux défis | Communauté › Défis : défi entre amis, expédition collective |
 | `06-amis.png` | Avance avec tes amis | Communauté › Amis + encart d'un Moment (Communauté › Moments) |
 
+Image de présentation : `feature-graphic-1024x500.png` (1024 × 500, PNG 24 bits sans alpha), même titre que le visuel 1, le QG et la séance confirmée, sur l'illustration de la vallée de l'Aube atténuée (`assets/rpg/valley-small.webp`). Elle remplace celle du site (`docs/play-store/feature-graphic-1024x500.png`, « Ton sport réel. Une progression qui dure. »), laissée en place.
+
 Palette : noir #05070A, bleu-noir #0E141A, surface #1B2530, cyan #3DD9E8 (l'ambre #F4BB54 vient des records dans les écrans). Police : Archivo (`css/fonts`).
 
 ## D'où viennent les écrans
@@ -25,6 +27,7 @@ TITAN_PREVIEW=1 EXPO_OFFLINE=1 npx expo export --platform web --output-dir /tmp/
 CLOCK=2026-11-29T11:00:00 node scripts/preview-shots.mjs /tmp/preview /tmp/shots/dimanche QG Journal Records Adventure "SessionResult?eventId=record" "Progress|click=Tendances"
 CLOCK=2026-10-28T19:00:00 node scripts/preview-shots.mjs /tmp/preview /tmp/shots/communaute Community "Community|click=Défis" "Community|click=Moments"
 node scripts/play-promo.mjs /tmp/shots /tmp/promo
+node scripts/play-feature.mjs /tmp/shots /tmp/promo/feature-graphic-1024x500.png
 python3 -c "import glob; from PIL import Image; [Image.open(f).convert('RGB').save(f, optimize=True) for f in glob.glob('/tmp/promo/*.png')]"
 ```
 
