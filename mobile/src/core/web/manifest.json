@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "019e658ae0d58a01dc0eb9f57c6a26009ba093bc",
+  "sha": "eef981a7773f14f5406e5cf5501a4fc50d38256b",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
@@ -30,6 +30,7 @@
     "program-grid.js": "0d032a355db6cae62ca41160d70c0518d88ac30897c240d899efa1ceb5ff8db3",
     "periodic-quests.js": "fb9abcdcdc3f1fdd668f9f015cd54da5a25036098948cf9557a0826c63dd6c51",
     "cordee.js": "2b718b69580fce76610d1452a9d053b5e8f8faee29797b781f5902d2e564332a",
-    "social-digest.js": "64b1b125b1a56504c4b58c7c91149377b3100e9fd5ead311c036eb0e13a9f5fd"
+    "social-digest.js": "64b1b125b1a56504c4b58c7c91149377b3100e9fd5ead311c036eb0e13a9f5fd",
+    "club-season.js": "14556e43ebb168604b6d445b5713c650e1f7970c775e9452f35445e6108aa1d3"
   }
 }

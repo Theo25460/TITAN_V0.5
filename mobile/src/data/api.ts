@@ -1,5 +1,6 @@
 /* Every server call of the Android app. Same tables, RPCs and rules as the website (production schema v300):
    rewards, credits, possession and progression are only ever written by SECURITY DEFINER functions on the server. */
+import type { ClubSeasonAction, ClubSeasonView } from "../core/clubSeason";
 import { supabase } from "../lib/supabase";
 import type { AdventureSnapshot, Goal, Privacy, Profile, TrainingLog, TrainingPayload } from "../core/types";
 
@@ -390,6 +391,11 @@ export const clubJoin = (owner: string, code: string) => ownerRpc<string>(owner,
 /** minutes and active are null below 3 members: the server never gives a total that would be another member's week. */
 export type ClubWeek = { club: string; weekStart: string; goal: number | null; minutes: number | null; members: number; active: number | null; canSet: boolean };
 export const fetchClubWeek = (owner: string, club: string) => ownerRpc<ClubWeek>(owner, "titan_club_week_v1", { p_club: club });
+/** V1.8.4: a club's private season (current one and the last frozen report). Aggregates are null below 3 participants. */
+export const fetchClubSeason = (owner: string, club: string) => ownerRpc<ClubSeasonView>(owner, "titan_club_season_v1", { p_club: club });
+/** V1.8.4: join, pause, resume, leave (any member); postpone (7 or 14 days) and stop (administrators). Creation is on the website. */
+export const clubSeasonAct = (owner: string, club: string, action: ClubSeasonAction, days: number | null = null) =>
+  ownerRpc<ClubSeasonView>(owner, "titan_club_season_act_v1", { p_club: club, p_action: action, p_title: null, p_pace: null, p_weeks: null, p_starts_on: null, p_days: days });
 
 /* ---------- Life chapters (AUD-48) ---------- */
 export type LifeChapter = { id: string; title: string; startsOn: string; endsOn: string | null; open: boolean; days: number; minutes: number; sessions: number };

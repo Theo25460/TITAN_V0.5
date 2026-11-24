@@ -1,15 +1,20 @@
 /* Lot 8 « communauté » inside the Community screen: C4 the fair ranking among friends (opt-in, progress rather than raw volume)
-   and C7 clubs (my clubs with members, announcements and trophies; join by code). Both use RPCs the server already serves. */
+   and C7 clubs (my clubs with members, announcements and trophies; join by code). Both use RPCs the server already serves.
+   V1.8.4: each club card shows its private season (behind screens.club_season): explicit joining, pause, resume, leave, the organiser's
+   postpone and stop, the stages and the frozen report — every word from the shared module, every figure from the server. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { View } from "react-native";
+import { ClubSeason, type ClubSeasonAction } from "../core/clubSeason";
 import * as api from "../data/api";
 import { useOwner } from "../data/auth";
+import { useServerFlag } from "../data/flags";
 import { errorMessage } from "../lib/errors";
 import { useOnline } from "../lib/network";
 import { space } from "../theme/tokens";
 import { Button } from "./Button";
 import { Card } from "./Card";
+import { Alert } from "./Dialog";
 import { Field } from "./Field";
 import { ProgressBar } from "./Progress";
 import { T } from "./Text";
@@ -90,6 +95,80 @@ function ClubWeek({ owner, club }: { owner: string; club: string }) {
   );
 }
 
+/** V1.8.4: the club's private season. Nothing of the group below 3 participants; one's own part always; no ranking. */
+function ClubSeasonBlock({ owner, club }: { owner: string; club: string }) {
+  const flag = useServerFlag("screens.club_season");
+  const key = ["club-season", owner, club];
+  const qc = useQueryClient();
+  const online = useOnline();
+  const toast = useToast();
+  const q = useQuery({ queryKey: key, queryFn: () => api.fetchClubSeason(owner, club).catch(() => null), staleTime: 60_000, enabled: flag });
+  // A synchronous lock: a double tap sends one request (isPending is only seen at the next render).
+  const busy = useRef(false);
+  const act = useMutation({
+    mutationFn: async ({ action, days }: { action: ClubSeasonAction; days?: number }) => {
+      if (!online) throw new Error("Connexion requise.");
+      return api.clubSeasonAct(owner, club, action, days ?? null);
+    },
+    onSuccess: (data, v) => {
+      if (data) qc.setQueryData(key, data);
+      toast({ kind: "ok", title: ClubSeason.result(v.action) });
+      return qc.invalidateQueries({ queryKey: key });
+    },
+    onError: (e) => toast({ kind: "err", title: "Action impossible", message: ClubSeason.message(e) ?? errorMessage(e) }),
+    onSettled: () => { busy.current = false; },
+  });
+  const view = q.data;
+  if (!flag || !view) return null;
+  const s = view.current;
+  const report = ClubSeason.report(view.last);
+  const go = (action: ClubSeasonAction, days?: number) => {
+    if (busy.current) return;
+    busy.current = true;
+    act.mutate({ action, days });
+  };
+  const run = (action: ClubSeasonAction, days?: number) => {
+    if (busy.current) return;
+    const ask = ClubSeason.confirmText(action, s);
+    if (ask) Alert.alert(ask.title, ask.message, [{ text: "Annuler", style: "cancel" }, { text: ask.confirm, style: "destructive", onPress: () => go(action, days) }]);
+    else go(action, days);
+  };
+  const p = ClubSeason.progress(s);
+  return (
+    <View style={{ gap: 4 }} testID={`club-season-${club}`}>
+      <T variant="small" tone="ink">Saison du club</T>
+      <T variant="caption" tone="faint" testID={`club-season-role-${club}`}>{ClubSeason.role(view)}</T>
+      {s ? (
+        <>
+          <T variant="small" tone="ink">{s.title}</T>
+          <T variant="caption" tone="muted">{ClubSeason.header(s)}</T>
+          <T variant="small" testID={`club-season-group-${club}`}>{ClubSeason.group(s)}</T>
+          {p ? <T variant="small" testID={`club-season-progress-${club}`}>{p.line}</T> : null}
+          {p ? <ProgressBar value={p.target ? Math.min(1, p.total / p.target) : 0} accessibilityLabel="Objectif de la saison" /> : null}
+          {ClubSeason.stages(s).map((st) => (
+            <T key={st.n} variant="caption" tone={st.status === "reached" ? "ok" : st.status === "current" ? "default" : "faint"} testID={`club-season-stage-${club}-${st.n}`}>{st.text}</T>
+          ))}
+          {ClubSeason.ongoing(s) ? <T variant="small" testID={`club-season-ongoing-${club}`}>{ClubSeason.ongoing(s)}</T> : null}
+          <T variant="small" testID={`club-season-me-${club}`}>{ClubSeason.mine(s)}</T>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.s2 }}>
+            {ClubSeason.actions(s).flatMap((a) => a.id === "postpone"
+              ? [7, 14].map((d) => <Button key={`postpone-${d}`} small kind="secondary" label={d === 7 ? "Reporter d’une semaine" : "Reporter de deux semaines"} disabled={act.isPending} onPress={() => run("postpone", d)} testID={`club-season-postpone-${club}-${d}`} />)
+              : [<Button key={a.id} small kind={a.id === "join" || a.id === "resume" ? "primary" : a.danger ? "ghost" : "secondary"} label={a.label} loading={act.isPending && act.variables?.action === a.id} disabled={act.isPending} onPress={() => run(a.id)} testID={`club-season-${a.id}-${club}`} />])}
+          </View>
+        </>
+      ) : view.canCreate ? (
+        <T variant="caption" tone="faint">Une saison privée se lance depuis la version web du club. Chaque membre choisit ensuite d’y participer.</T>
+      ) : !report ? <T variant="caption" tone="faint">Pas de saison en cours.</T> : null}
+      {report && !s ? (
+        <View style={{ gap: 2 }} testID={`club-season-report-${club}`}>
+          <T variant="small" tone="ink">{report.title}</T>
+          {report.lines.map((l, i) => <T key={i} variant="caption" tone="muted">{l}</T>)}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 /** C7: the clubs I belong to — a running club, a workplace, a group of friends — and joining one by its code. */
 export function ClubsPanel() {
   const owner = useOwner();
@@ -110,6 +189,7 @@ export function ClubsPanel() {
           {(c.announcements ?? []).slice(0, 2).map((a) => <T key={a.id} variant="small" tone="muted">« {a.body} »</T>)}
           {(c.trophies ?? []).slice(0, 3).map((t) => <T key={t.id} variant="caption" tone="amber">Trophée : {t.title}</T>)}
           <ClubWeek owner={owner} club={c.id} />
+          <ClubSeasonBlock owner={owner} club={c.id} />
         </Card>
       ))}
       <Card style={{ gap: space.s2 }}>
