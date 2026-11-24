@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "b46a14bd50ced4fae11c95a72abc005453796fb7",
+  "sha": "eed5cabc0f005b9b95b90fb41c36976895f35424",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
@@ -30,7 +30,8 @@
     "program-grid.js": "0d032a355db6cae62ca41160d70c0518d88ac30897c240d899efa1ceb5ff8db3",
     "periodic-quests.js": "fb9abcdcdc3f1fdd668f9f015cd54da5a25036098948cf9557a0826c63dd6c51",
     "cordee.js": "2b718b69580fce76610d1452a9d053b5e8f8faee29797b781f5902d2e564332a",
-    "social-digest.js": "64b1b125b1a56504c4b58c7c91149377b3100e9fd5ead311c036eb0e13a9f5fd",
+    "club-agenda.js": "00720f741786d2fff2dc4f09cff50241c8669233bf892f5f787964255afb0880",
+    "social-digest.js": "a1bd1069b55a439f74c5d189d3291db077b06d6564e3a4f56914e58716e92da3",
     "club-season.js": "14556e43ebb168604b6d445b5713c650e1f7970c775e9452f35445e6108aa1d3",
     "club-match.js": "29d665ebc623774515c3d15dce758e70152f2dfa9b24cdb1c8c84fb0dd25b1e3"
   }

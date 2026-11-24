@@ -41,6 +41,7 @@ export const MODULES = [
   "js/core/program-grid.js",
   "js/core/periodic-quests.js",
   "js/core/cordee.js",
+  "js/core/club-agenda.js",
   "js/core/social-digest.js",
   "js/core/club-season.js",
   "js/core/club-match.js",

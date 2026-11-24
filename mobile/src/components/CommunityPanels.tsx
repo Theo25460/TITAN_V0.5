@@ -4,10 +4,16 @@
    postpone and stop, the stages and the frozen report — every word from the shared module, every figure from the server.
    V1.8.5: each club card shows its meeting with another club (behind screens.club_match): the other club's name, participants and rate
    only, the common score as of midnight, explicit joining, leave and stop behind a dialog, the recap and the two questions of the pilot.
-   Proposing a meeting and answering a code stay on the website. */
+   Proposing a meeting and answering a code stay on the website.
+   V1.8.6: each club card shows its agenda (behind screens.club_agenda): answers with a waiting list when it is full, a reminder, the
+   history, the precise place only when the server gives it, the finished card with a declared presence and one's own session linked by
+   choice (never written for anyone); the organiser switches to the fallback or cancels after a dialog. Proposing, moving and managing a
+   series stay on the website. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { View } from "react-native";
+import { Sports } from "../core";
+import { ClubAgenda, type ClubAgendaAction, type ClubAgendaSlot } from "../core/clubAgenda";
 import { ClubMatch, type ClubMatchAction } from "../core/clubMatch";
 import { ClubSeason, type ClubSeasonAction } from "../core/clubSeason";
 import * as api from "../data/api";
@@ -261,6 +267,92 @@ function ClubMatchBlock({ owner, club }: { owner: string; club: string }) {
   );
 }
 
+/** V1.8.6: one meeting of the club's agenda. Counts of answers, never a name (the organiser's list aside). */
+function ClubAgendaSlotView({ slot, club, organizer, pending, run }: { slot: ClubAgendaSlot; club: string; organizer: boolean; pending: boolean;
+  run: (action: ClubAgendaAction, args: { answer?: "yes" | "maybe" | "no"; on?: boolean; log?: string }) => void }) {
+  const label = (sport: string) => Sports.label(sport) || sport;
+  const report = ClubAgenda.report(slot);
+  const history = ClubAgenda.history(slot);
+  const id = `club-agenda-${club}-${slot.id}`;
+  return (
+    <View style={{ gap: 2, paddingTop: space.s2 }} testID={id}>
+      <T variant="small" tone="ink">{slot.title}{slot.phase === "cancelled" ? " · annulé" : ""}</T>
+      <T variant="caption" tone="muted" testID={`${id}-header`}>{ClubAgenda.header(slot)}</T>
+      {ClubAgenda.status(slot).map((l, i) => <T key={i} variant="caption" testID={`${id}-status-${i}`}>{l}</T>)}
+      {slot.phase !== "cancelled" ? <T variant="caption" testID={`${id}-counts`}>{ClubAgenda.counts(slot)}</T> : null}
+      {ClubAgenda.place(slot) ? <T variant="caption" testID={`${id}-place`}>{ClubAgenda.place(slot)}</T> : null}
+      {ClubAgenda.mine(slot) ? <T variant="caption" tone="ink" testID={`${id}-me`}>{ClubAgenda.mine(slot)}</T> : null}
+      {report ? (
+        <View style={{ gap: 2 }} testID={`${id}-report`}>
+          <T variant="caption" tone="ink">{report.title}</T>
+          {report.lines.map((l, i) => <T key={i} variant="caption" tone="muted">{l}</T>)}
+        </View>
+      ) : null}
+      {ClubAgenda.linked(slot, label) ? <T variant="caption" testID={`${id}-linked`}>{ClubAgenda.linked(slot, label)}</T> : null}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.s2 }}>
+        {ClubAgenda.actions(slot).filter((a) => a.id !== "move" && a.id !== "restore" && (!a.organizer || organizer)).map((a) => (
+          <Button key={`${a.id}-${a.answer ?? ""}-${String(a.on ?? "")}`} small kind={a.primary ? "primary" : a.danger ? "ghost" : "secondary"} label={a.label} disabled={pending}
+            onPress={() => run(a.id as ClubAgendaAction, { answer: a.answer, on: a.on })} testID={`${id}-${a.id}${a.answer ? `-${a.answer}` : a.on != null ? `-${a.on}` : ""}`} />
+        ))}
+        {slot.can.includes("link") ? ClubAgenda.candidates(slot, label).map((c) => (
+          <Button key={c.id} small kind="secondary" label={`Associer : ${c.label}`} disabled={pending} onPress={() => run("link", { log: c.id })} testID={`${id}-link-${c.id}`} />
+        )) : null}
+      </View>
+      {slot.can.includes("link") && !ClubAgenda.candidates(slot).length ? <T variant="caption" tone="faint" testID={`${id}-no-candidate`}>Aucune séance confirmée ce jour-là dans ton journal. Le rendez-vous n’en crée jamais à ta place.</T> : null}
+      {organizer && slot.roster ? <T variant="caption" tone="faint" testID={`${id}-roster`}>{slot.roster.length ? `Réponses : ${slot.roster.map((r) => `${r.name} (${r.answer ? ClubAgenda.ANSWERS[r.answer] : "pas de réponse"}${r.attended === true ? ", présent·e" : ""})`).join(" · ")}` : "Pas encore de réponse."}</T> : null}
+      {history.length ? <T variant="caption" tone="faint" testID={`${id}-history`}>{`Historique : ${history.join(" ")}`}</T> : null}
+    </View>
+  );
+}
+
+/** V1.8.6: the club's agenda. Answers, reminders, presence and one's own session; the organiser's fallback and cancellation. */
+function ClubAgendaBlock({ owner, club }: { owner: string; club: string }) {
+  const flag = useServerFlag("screens.club_agenda");
+  const key = ["club-agenda", owner, club];
+  const qc = useQueryClient();
+  const online = useOnline();
+  const toast = useToast();
+  const q = useQuery({ queryKey: key, queryFn: () => api.fetchClubAgenda(owner, club).catch(() => null), staleTime: 60_000, enabled: flag });
+  // A synchronous lock: a double tap sends one request (isPending is only seen at the next render).
+  const busy = useRef(false);
+  const act = useMutation({
+    mutationFn: async ({ action, slot, answer, on, log }: { action: ClubAgendaAction; slot: string; answer?: "yes" | "maybe" | "no"; on?: boolean; log?: string }) => {
+      if (!online) throw new Error("Connexion requise.");
+      return api.clubAgendaAct(owner, club, action, { slot, answer: answer ?? null, on: on ?? null, log: log ?? null });
+    },
+    onSuccess: (data, v) => {
+      if (data) qc.setQueryData(key, data);
+      const fresh = data ? [...(data.upcoming ?? []), ...(data.past ?? [])].find((x) => x.id === v.slot) : null;
+      toast({ kind: "ok", title: (v.action === "answer" && ClubAgenda.answered(fresh)) || ClubAgenda.result(v.action, v.answer) });
+      return qc.invalidateQueries({ queryKey: key });
+    },
+    onError: (e) => toast({ kind: "err", title: "Action impossible", message: ClubAgenda.message(e) ?? errorMessage(e) }),
+    onSettled: () => { busy.current = false; },
+  });
+  const view = q.data;
+  if (!flag || !view) return null;
+  const organizer = view.role === "organizer";
+  const run = (slot: string) => (action: ClubAgendaAction, args: { answer?: "yes" | "maybe" | "no"; on?: boolean; log?: string }) => {
+    if (busy.current) return;
+    const go = () => { if (busy.current) return; busy.current = true; act.mutate({ action, slot, ...args }); };
+    const ask = ClubAgenda.confirmText(action);
+    if (ask) Alert.alert(ask.title, ask.message, [{ text: "Retour", style: "cancel" }, { text: ask.confirm, style: "destructive", onPress: go }]);
+    else go();
+  };
+  const upcoming = view.upcoming ?? [], past = (view.past ?? []).filter((x) => x.can.length || x.report);
+  return (
+    <View style={{ gap: 4 }} testID={`club-agenda-${club}`}>
+      <T variant="small" tone="ink">Agenda du club</T>
+      <T variant="caption" tone="faint" testID={`club-agenda-role-${club}`}>{ClubAgenda.role(view)}</T>
+      {upcoming.length ? upcoming.map((s) => <ClubAgendaSlotView key={s.id} slot={s} club={club} organizer={organizer} pending={act.isPending} run={run(s.id)} />)
+        : <T variant="caption" tone="faint">Pas de rendez-vous à venir.</T>}
+      {past.length ? <T variant="caption" tone="muted">Rendez-vous passés</T> : null}
+      {past.map((s) => <ClubAgendaSlotView key={s.id} slot={s} club={club} organizer={organizer} pending={act.isPending} run={run(s.id)} />)}
+      {view.canCreate ? <T variant="caption" tone="faint">Proposer un rendez-vous, le déplacer ou gérer une série se fait depuis la version web du club.</T> : null}
+    </View>
+  );
+}
+
 /** C7: the clubs I belong to — a running club, a workplace, a group of friends — and joining one by its code. */
 export function ClubsPanel() {
   const owner = useOwner();
@@ -281,6 +373,7 @@ export function ClubsPanel() {
           {(c.announcements ?? []).slice(0, 2).map((a) => <T key={a.id} variant="small" tone="muted">« {a.body} »</T>)}
           {(c.trophies ?? []).slice(0, 3).map((t) => <T key={t.id} variant="caption" tone="amber">Trophée : {t.title}</T>)}
           <ClubWeek owner={owner} club={c.id} />
+          <ClubAgendaBlock owner={owner} club={c.id} />
           <ClubSeasonBlock owner={owner} club={c.id} />
           <ClubMatchBlock owner={owner} club={c.id} />
         </Card>

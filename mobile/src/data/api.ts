@@ -1,5 +1,6 @@
 /* Every server call of the Android app. Same tables, RPCs and rules as the website (production schema v300):
    rewards, credits, possession and progression are only ever written by SECURITY DEFINER functions on the server. */
+import type { ClubAgendaAction, ClubAgendaView } from "../core/clubAgenda";
 import type { ClubMatchView } from "../core/clubMatch";
 import type { ClubSeasonAction, ClubSeasonView } from "../core/clubSeason";
 import { supabase } from "../lib/supabase";
@@ -404,6 +405,15 @@ export const fetchClubMatch = (owner: string, club: string) => ownerRpc<ClubMatc
 export const clubMatchAct = (owner: string, club: string, action: "join" | "leave" | "stop" | "feedback", answers: { clear: boolean; again: boolean } | null = null) =>
   ownerRpc<ClubMatchView>(owner, "titan_club_match_act_v1", { p_club: club, p_action: action, p_format: null, p_pace: null, p_weeks: null, p_starts_on: null,
     p_match: null, p_clear: answers ? answers.clear : null, p_again: answers ? answers.again : null });
+
+/** V1.8.6: a club's agenda (meetings to come, cancelled ones included, and those finished in the last 30 days). A member reads counts of
+    answers, never a name; the precise place only once they come, hesitate or wait; the group's totals from 3 linked sessions. */
+export const fetchClubAgenda = (owner: string, club: string) => ownerRpc<ClubAgendaView>(owner, "titan_club_agenda_v1", { p_club: club });
+/** V1.8.6: answer, remind, attend, link or unlink one's own session (any member); fallback and cancel (administrators). Proposing,
+    moving and managing a series are on the website. Nothing here ever writes a session. */
+export const clubAgendaAct = (owner: string, club: string, action: ClubAgendaAction, args: { slot: string; answer?: "yes" | "maybe" | "no" | null; on?: boolean | null; log?: string | null }) =>
+  ownerRpc<ClubAgendaView>(owner, "titan_club_agenda_act_v1", { p_club: club, p_action: action, p_slot: args.slot, p_event: null, p_answer: args.answer ?? null,
+    p_on: args.on ?? null, p_starts_at: null, p_log: args.log ?? null, p_form: null });
 
 /* ---------- Life chapters (AUD-48) ---------- */
 export type LifeChapter = { id: string; title: string; startsOn: string; endsOn: string | null; open: boolean; days: number; minutes: number; sessions: number };
