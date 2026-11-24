@@ -13,7 +13,7 @@ import { ProgressBar } from "../../components/Progress";
 import { Sheet } from "../../components/Sheet";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Cordee, type CordeePace, type CordeeRouteId, type CordeeState } from "../../core/cordee";
+import { Cordee, type CordeePace, type CordeeRouteId, type CordeeState, type CordeeTurn } from "../../core/cordee";
 import * as api from "../../data/api";
 import { useServerFlag } from "../../data/flags";
 import { errorMessage } from "../../lib/errors";
@@ -53,6 +53,8 @@ export function CordeePanel({ owner, online, friends }: { owner: string; online:
       await qc.invalidateQueries({ queryKey: cordeeKey(owner) });
     } catch (e) {
       toast({ kind: "err", title: "Action impossible", message: message(e) });
+      // A refusal often means the cordée moved on (another member took the relay first): read it again, as the website does.
+      await qc.invalidateQueries({ queryKey: cordeeKey(owner) }).catch(() => {});
     } finally {
       setBusy(null);
     }
@@ -95,6 +97,8 @@ function CordeeCard({ c, busy, act, owner }: { c: CordeeState; busy: string | nu
       </View>
       <T variant="small" testID={`cordee-mine-${c.id}`}>{words.mine}</T>
       <T variant="small" tone="muted">{words.group} {words.variety}</T>
+      {words.kept ? <T variant="small" tone="muted" testID={`cordee-kept-${c.id}`}>{words.kept}</T> : null}
+      {words.together ? <T variant="small" testID={`cordee-alone-${c.id}`}>{words.together}</T> : null}
       <T variant="small" tone={words.summited ? "ok" : "muted"}>{words.unlocked}</T>
       {words.next ? <T variant="caption" tone="faint">Prochain camp : {words.next.name} à {words.next.at} longueurs.</T> : null}
       {c.members.map((m, i) => (
@@ -119,7 +123,7 @@ function CordeeCard({ c, busy, act, owner }: { c: CordeeState; busy: string | nu
         <View style={styles.row}>
           {c.mine ? <Button small kind="secondary" icon="link" label="Inviter par lien" loading={busy === `k-${c.id}`} testID={`cordee-link-${c.id}`}
             onPress={() => act(`k-${c.id}`, async () => { const r = await api.challengeLinkCreate(c.id); await Share.share({ message: `Viens t’encorder avec ton sport sur TITAN : ${challengeInviteUrl(r.token)}` }).catch(() => {}); })} /> : null}
-          <Button small kind="ghost" label="Quitter la cordée" onPress={() => Alert.alert("Quitter la cordée ?", "Tes longueurs ne compteront plus, et l’objectif commun diminue de ta part.", [{ text: "Annuler", style: "cancel" }, { text: "Quitter", style: "destructive", onPress: () => act(`l-${c.id}`, () => api.challengeRespond(c.id, "leave")) }])} />
+          <Button small kind="ghost" label="Quitter la cordée" testID={`cordee-leave-${c.id}`} onPress={() => Alert.alert("Quitter la cordée ?", Cordee.LEAVE, [{ text: "Annuler", style: "cancel" }, { text: "Quitter", style: "destructive", onPress: () => act(`l-${c.id}`, () => api.challengeRespond(c.id, "leave")) }])} />
         </View>
       ) : null}
     </Card>
@@ -131,9 +135,21 @@ function CordeeCard({ c, busy, act, owner }: { c: CordeeState; busy: string | nu
 function RelayStep({ c, busy, act, owner }: { c: CordeeState; busy: string | null; act: (id: string, fn: () => Promise<unknown>, ok?: string) => Promise<unknown>; owner: string }) {
   const toast = useToast();
   const lock = useRef(false); // a double tap sends one call
+  const [handing, setHanding] = useState(false);
   const r = Cordee.relay(c);
   if (!r) return null;
   const key = `r-${c.id}`;
+  /* V1.8.2 — the optional turns: take, hand over (sheet), withdraw, accept. Only those the server offers (relay.turn). */
+  const turn = (action: CordeeTurn, to: string | null = null) => {
+    if (lock.current) return;
+    lock.current = true;
+    act(key, async () => {
+      const answer = await api.cordeeRelayTurn(owner, c.id, action, to);
+      const words = Cordee.turnResult(answer, action);
+      toast({ kind: "ok", title: words.title, message: words.message });
+      if (action === "handover") setHanding(false);
+    }).finally(() => { lock.current = false; });
+  };
   return (
     <View style={styles.relay} testID={`cordee-relay-${c.id}`} accessibilityLabel={`${r.name} : ${r.status === "confirmed" ? "relais passé" : r.status === "opened" ? "passage ouvert" : "passage à ouvrir"}`}>
       <View style={styles.row}>
@@ -150,6 +166,8 @@ function RelayStep({ c, busy, act, owner }: { c: CordeeState; busy: string | nul
         ))}
       </View>
       <T variant="small" testID={`cordee-relay-shared-${c.id}`}>{r.shared}</T>
+      {r.holder ? <T variant="small" testID={`cordee-relay-holder-${c.id}`}>{r.holder}</T> : null}
+      {r.handover ? <T variant="small" testID={`cordee-relay-handover-${c.id}`}>{r.handover}</T> : null}
       <T variant="small" tone="muted" testID={`cordee-relay-mine-${c.id}`}>{r.mine}</T>
       {r.can && r.label ? (
         <Button small label={r.label} loading={busy === key} disabled={busy !== null} testID={`cordee-relay-${r.can}-${c.id}`}
@@ -164,8 +182,33 @@ function RelayStep({ c, busy, act, owner }: { c: CordeeState; busy: string | nul
             }).finally(() => { lock.current = false; });
           }} />
       ) : null}
+      {r.turns.length ? (
+        <View style={styles.row}>
+          {r.turns.map((t) => (
+            <Button key={t.action} small kind={t.action === "accept" && !r.can ? "primary" : "secondary"} label={t.label} loading={busy === key} disabled={busy !== null}
+              testID={`cordee-turn-${t.action}-${c.id}`} onPress={() => (t.action === "handover" ? setHanding(true) : turn(t.action))} />
+          ))}
+        </View>
+      ) : null}
+      {r.turns.some((t) => t.action === "take") ? <T variant="caption" tone="faint">Facultatif : prendre le relais le réserve {Cordee.RULE.holdHours} h au plus ; sinon tout membre peut le recevoir.</T> : null}
       {r.status === "waiting" ? <T variant="caption" tone="faint">{r.intro}</T> : null}
+      <HandoverSheet visible={handing} onClose={() => setHanding(false)} choices={r.choices} busy={busy === key} onSubmit={(to) => turn("handover", to)} id={c.id} />
     </View>
+  );
+}
+
+/* V1.8.2 — passer la main: to the whole cordée (the first member who accepts) or to one member the server allows. No reason is asked. */
+function HandoverSheet({ visible, onClose, choices, busy, onSubmit, id }: { visible: boolean; onClose: () => void; choices: { id: string; name: string }[]; busy: boolean; onSubmit: (to: string | null) => void; id: string }) {
+  const [to, setTo] = useState<string | null>(null);
+  return (
+    <Sheet visible={visible} onClose={onClose} title="Passer la main" footer={<Button label="Passer la main" loading={busy} onPress={() => onSubmit(to)} testID={`cordee-handover-submit-${id}`} />}>
+      <T variant="small" tone="muted">Le relais reste réservé {Cordee.RULE.offerHours} h au plus, le temps qu’un membre l’accepte. Sans réponse, il redevient libre pour toute la cordée. Tes longueurs restent acquises ; personne ne voit pourquoi tu passes la main.</T>
+      <T variant="bodyStrong">À qui ?</T>
+      <View style={styles.wrap}>
+        <Chip label="Toute la cordée" selected={to === null} onPress={() => setTo(null)} testID={`cordee-handover-all-${id}`} />
+        {choices.map((m) => <Chip key={m.id} label={m.name} selected={to === m.id} onPress={() => setTo(m.id)} testID={`cordee-handover-to-${m.id}`} />)}
+      </View>
+    </Sheet>
   );
 }
 

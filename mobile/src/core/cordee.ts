@@ -19,28 +19,35 @@ export type CordeeState = {
   status: "active" | "summited" | "ended"; summitedAt: string | null; mine: boolean; myStatus: "joined" | "invited" | "declined" | "left" | null;
   share: number; cap: number; target: number; longueurs: number; variety: number; total: number; percent: number; camps: number;
   pending?: number; contributors?: number; needs?: number;
+  /** V1.8.2: longueurs acquired by members who left (a count, never who or why). */
+  kept?: number;
   families: CordeeFamily[]; joined: number; members: CordeeMember[]; me: { pitches: number; counted: number; days: number; families: CordeeFamily[]; strand: boolean } | null;
   title_key: string; earned: boolean;
   /** V1.8.1: the relay step of the pilot route (null or absent elsewhere, or while screens.cordee_relay is closed and nothing was played). */
   relay?: CordeeRelay | null;
 };
 export type CordeeRelayPerson = { name: string; me: boolean; family: CordeeFamily | null };
+/** V1.8.2: the optional turns of the relay (titan_cordee_relay_turn_v1). */
+export type CordeeTurn = "take" | "handover" | "withdraw" | "accept";
+export type CordeeHandover = { pending: true; mine: boolean; forMe: boolean; open: boolean | null; to: CordeeRelayPerson | null; expiresAt: string };
 export type CordeeRelay = {
   step: "sentinelle"; status: "waiting" | "opened" | "confirmed"; active: boolean; can: "transmit" | "confirm" | null;
-  hint: "transmit" | "session" | "own" | "confirm" | "other_day" | "join" | "done" | "closed";
+  hint: "transmit" | "session" | "own" | "confirm" | "other_day" | "join" | "done" | "closed" | "held" | "offered" | "holder" | "holder_session" | "paused" | "alone";
   opener: CordeeRelayPerson | null; receiver: CordeeRelayPerson | null;
+  holder?: CordeeRelayPerson | null; holdUntil?: string | null; handover?: CordeeHandover | null; turn?: CordeeTurn[]; choices?: { id: string; name: string }[] | null;
 };
 export type CordeeRelayWords = {
   name: string; intro: string; status: CordeeRelay["status"]; shared: string; mine: string; can: "transmit" | "confirm" | null; label: string | null;
   steps: { id: "transmit" | "confirm"; label: string; done: boolean }[];
+  holder: string | null; handover: string | null; turns: { action: CordeeTurn; label: string }[]; choices: { id: string; name: string }[];
 };
 export type CordeeWords = {
   route: CordeeRoute; camps: { index: number; name: string; text: string }[]; next: { index: number; name: string; at: number } | null;
-  goal: string; mine: string; group: string; variety: string; unlocked: string; summited: boolean; title: string;
+  goal: string; mine: string; group: string; kept: string | null; together: string | null; variety: string; unlocked: string; summited: boolean; title: string;
 };
 
 export const Cordee = g.TitanCordee as {
-  RULE: { oneLongueur: number; twoLongueurs: number; dailyCap: number; capShare: number; contributors: number; varietyPerFamily: number; varietyMax: number; camps: number };
+  RULE: { oneLongueur: number; twoLongueurs: number; dailyCap: number; capShare: number; contributors: number; varietyPerFamily: number; varietyMax: number; camps: number; holdHours: number; offerHours: number; turnLimit: number };
   PACES: Record<CordeePace, { id: CordeePace; label: string; perWeek: number; text: string }>;
   DAYS: number[];
   FAMILIES: Record<CordeeFamily, { id: CordeeFamily; label: string; text: string }>;
@@ -49,10 +56,12 @@ export const Cordee = g.TitanCordee as {
   cap(share: number): number;
   explain(state: CordeeState): CordeeWords;
   suggestPace(activeDays28: number): CordeePace;
-  RELAY: { route: CordeeRouteId; step: string; name: string; intro: string; labels: { transmit: string; confirm: string } };
+  RELAY: { route: CordeeRouteId; step: string; name: string; intro: string; labels: { transmit: string; confirm: string }; turns: Record<CordeeTurn, string> };
   RELAY_MESSAGES: Record<string, string>;
+  LEAVE: string;
   relay(state: { relay?: CordeeRelay | null } | null): CordeeRelayWords | null;
   relayResult(answer: { changed?: boolean } | null, action: "transmit" | "confirm"): { title: string; message: string };
+  turnResult(answer: { changed?: boolean } | null, action: CordeeTurn): { title: string; message: string };
   relayMessage(error: unknown): string | null;
 };
 

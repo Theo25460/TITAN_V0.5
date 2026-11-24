@@ -281,6 +281,9 @@ export const cordeeCreate = (owner: string, p: { route: string; pace: string; da
     the other day; a repeated call answers changed: false. */
 export const cordeeRelay = (owner: string, id: string, action: "transmit" | "confirm") =>
   ownerRpc<import("../core/cordee").CordeeRelay & { changed: boolean }>(owner, "titan_cordee_relay_v1", { p_id: id, p_action: action });
+/** V1.8.2: take, hand over (to one member or, with no `to`, to the whole cordée), withdraw or accept the relay. No reason is ever sent. */
+export const cordeeRelayTurn = (owner: string, id: string, action: import("../core/cordee").CordeeTurn, to: string | null = null) =>
+  ownerRpc<import("../core/cordee").CordeeRelay & { changed: boolean }>(owner, "titan_cordee_relay_turn_v1", { p_id: id, p_action: action, p_to: to });
 /** The public preview of a challenge or cordée invitation link (never a name), and accepting it on an explicit tap. */
 export type ChallengeLinkPreview = { valid: boolean; title?: string; metric?: string; sport?: string | null; target?: number; endsAt?: string; kind?: "individual" | "cordee"; route?: string | null; pace?: string | null; participants?: number };
 export const challengeLinkPreview = (token: string) => rpc<ChallengeLinkPreview>("titan_challenge_link_preview_v1", { p_token: token });

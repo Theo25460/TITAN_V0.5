@@ -16,6 +16,9 @@
     varietyPerFamily: 2, // each sport family beyond the first brings 2 longueurs once
     varietyMax: 8,
     camps: 4,          // at 25, 50, 75 and 100 %
+    holdHours: 72,     // V1.8.2: taking the relay reserves it for 3 days at most
+    offerHours: 48,    // V1.8.2: a handover nobody accepts expires after 2 days and frees the relay
+    turnLimit: 8,      // V1.8.2: holds and handovers per cordée
   });
   const PACES = Object.freeze({
     douce: { id: "douce", label: "Douce", perWeek: 3, text: "Environ trois longueurs par semaine chacun : deux ou trois courtes séances suffisent." },
@@ -122,13 +125,20 @@
       ? (me.strand ? `Ton brin est tressé : ${plural(int(me.counted), "longueur", "longueurs")} apportées.` : `Ta part : ${plural(int(me.counted), "longueur", "longueurs")} sur ${int(st.share)}. Un jour à ${RULE.oneLongueur} min d’effort en apporte une, à ${RULE.twoLongueurs} min deux.`)
       : "Rejoins la cordée pour y apporter tes longueurs.";
     const group = `La cordée : ${int(st.total)} / ${int(st.target)}${int(st.variety) ? ` (dont ${int(st.variety)} grâce à la variété des sports)` : ""}.`;
+    // V1.8.2: what members who left had brought stays acquired; their part of the goal stopped at what they brought. Never who or why.
+    const kept = int(st.kept)
+      ? `${plural(int(st.kept), "longueur reste acquise", "longueurs restent acquises")} grâce à des membres partis : leur part de l’objectif s’arrête à ce qu’ils ont apporté.`
+      : null;
+    const together = int(st.joined) === 1 && int(st.needs) >= 2 && st.status === "active"
+      ? "Tu continues seul·e : il faut les longueurs d’au moins deux membres, celles des membres partis comptent. Invite par lien pour reformer la cordée."
+      : null;
     const varietyLine = families.length
       ? `Voies ouvertes : ${families.join(", ")}.${families.length < 5 ? " Chaque nouvelle famille de sport ouvre 2 longueurs." : ""}`
       : "Chaque famille de sport qui contribue ouvre 2 longueurs, au-delà de la première.";
     const unlocked = summited
       ? `Sommet atteint : ${route.camps[RULE.camps - 1][0]}. Titre « ${route.title} » pour chaque membre qui a apporté une longueur.`
       : reached.length ? `Débloqué : ${reached.map((c) => c.name).join(" · ")}.` : "Premier camp à 25 % de l’objectif.";
-    return { route, camps: reached, next, goal, mine, group, variety: varietyLine, unlocked, summited, title: route.title };
+    return { route, camps: reached, next, goal, mine, group, kept, together, variety: varietyLine, unlocked, summited, title: route.title };
   }
 
   /** A pace that fits the player's last 28 days (active days), for « Découvrir un défi adapté ». Never more than what was done. */
@@ -147,7 +157,11 @@
     name: "Le relais de la Sentinelle",
     intro: "Un membre ouvre le passage avec une séance confirmée, un autre reçoit le relais un autre jour avec la sienne. Le relais ne compte aucune longueur de plus : il fait passer la corde de l’un à l’autre.",
     labels: { transmit: "Transmettre le relais", confirm: "Confirmer le relais" },
+    /* V1.8.2 — optional turns (20261125090000_cordee_reprise.sql): take the relay, hand it over, withdraw one's offer, accept an offer. */
+    turns: { take: "Prendre le relais", handover: "Passer la main", withdraw: "Retirer ma passation", accept: "Reprendre le relais" },
   });
+  /** What leaving a cordée does (V1.8.2), the same sentence on the website and in the Android app. */
+  const LEAVE = "Les longueurs que tu as déjà apportées restent acquises pour la cordée, et ta part de l’objectif s’arrête à ce que tu as apporté. Tu ne verras plus la cordée ; si tu tenais le relais, il est libéré. Personne ne voit pourquoi tu pars.";
   const RELAY_MESSAGES = Object.freeze({
     RELAY_OWN: "Tu as ouvert ce passage : c’est à un autre membre de recevoir le relais.",
     RELAY_NO_SESSION: `Il faut une séance confirmée par TITAN dans la cordée, sur une journée d’au moins ${RULE.oneLongueur} minutes d’effort. Une séance en attente de vérification ne compte pas encore.`,
@@ -158,6 +172,15 @@
     RELAY_UNAVAILABLE: "Ce relais n’est pas disponible pour toi.",
     RELAY_NOT_ON_ROUTE: "Cette route n’a pas d’étape de relais.",
     RELAY_INVALID: "Action de relais inconnue.",
+    RELAY_HELD: "Un autre membre a pris le relais : c’est à lui de le recevoir, ou de passer la main.",
+    RELAY_NOT_HOLDER: "Tu ne tiens pas ce relais.",
+    RELAY_HANDOVER_PENDING: "Une passation est déjà en cours : retire-la d’abord.",
+    RELAY_HANDOVER_TARGET: "Ce membre ne peut pas reprendre le relais. Choisis un autre membre ou toute la cordée.",
+    RELAY_HANDOVER_SELF: "C’est ta propre passation : tu peux la retirer.",
+    RELAY_HANDOVER_TAKEN: "Un autre membre vient de reprendre le relais.",
+    RELAY_NO_HANDOVER: "Aucune passation ne t’est proposée.",
+    RELAY_GROUP_TOO_SMALL: "Personne d’autre dans la cordée ne peut reprendre le relais pour l’instant. Invite un ami par lien : le passage reste ouvert.",
+    RELAY_TURN_LIMIT: `Le relais a déjà changé de main ${RULE.turnLimit} fois dans cette cordée.`,
   });
   const who = (p, fallback) => {
     if (!p) return fallback;
@@ -184,11 +207,30 @@
       join: "S’encorder d’abord pour prendre part au relais.",
       done: `À ton tour de faire avancer la cordée : chaque journée à ${RULE.oneLongueur} minutes d’effort confirmé apporte une longueur vers le sommet.`,
       closed: "La cordée est terminée : le relais reste où il en est.",
+      // V1.8.2 — the hold and the handover. No hint ever says why someone paused or left.
+      held: `Un membre a pris le relais : il le reçoit avec sa propre séance. S’il passe la main, tu pourras le reprendre.`,
+      holder: `Tu tiens le relais : ta séance confirmée d’un autre jour te permet de le recevoir. Si tu dois faire une pause, passe la main.`,
+      holder_session: `Tu tiens le relais : une séance confirmée d’au moins ${RULE.oneLongueur} minutes d’effort, un autre jour que l’ouverture, te permet de le recevoir. Si tu dois faire une pause, passe la main.`,
+      paused: `Tu as passé la main : le relais reste réservé jusqu’à ce qu’un membre l’accepte, ${RULE.offerHours} h au plus. Sans réponse, il redevient libre pour toute la cordée.`,
+      offered: `On te propose de reprendre le relais. Tu le reçois ensuite avec ta propre séance confirmée d’un autre jour : rien n’est validé d’avance.`,
+      alone: "Il faut un autre membre encordé pour recevoir le relais. Invite un ami par lien : le passage reste ouvert.",
     };
     const can = r.can === "transmit" || r.can === "confirm" ? r.can : null;
+    // V1.8.2: only the turn actions the server offers, in its order; the holder's choices are the members the server allows.
+    const turns = (Array.isArray(r.turn) ? r.turn : []).filter((t) => RELAY.turns[t]).map((t) => ({ action: t, label: RELAY.turns[t] }));
+    const choices = turns.some((t) => t.action === "handover") && Array.isArray(r.choices)
+      ? r.choices.filter((c) => c && c.id).map((c) => ({ id: String(c.id), name: String(c.name || "Membre de la cordée") })) : [];
+    const h = r.handover && typeof r.handover === "object" && r.handover.pending ? r.handover : null;
+    const holder = status === "opened" && r.holder
+      ? (r.holder.me ? `Tu as pris le relais (${RULE.holdHours} h au plus).` : `Relais pris en charge par ${who(r.holder, "un membre")}.`)
+      : null;
+    const handover = !h ? null
+      : h.mine ? (h.open ? `Tu as passé la main à toute la cordée : le premier membre qui accepte reprend le relais.` : `Tu as passé la main à ${who(h.to, "un membre")} : en attente de sa réponse.`)
+        : h.forMe ? (h.open ? "Le relais est proposé à toute la cordée : tu peux le reprendre." : "Le relais t’est proposé : tu peux le reprendre.")
+          : "Passation en cours.";
     return {
       name: RELAY.name, intro: RELAY.intro, status, shared: cap1(shared), mine: MINE[r.hint] || MINE.session, can,
-      label: can ? RELAY.labels[can] : null,
+      label: can ? RELAY.labels[can] : null, holder, handover, turns, choices,
       steps: [
         { id: "transmit", label: "Passage ouvert", done: status !== "waiting" },
         { id: "confirm", label: "Relais reçu par un autre membre", done: status === "confirmed" },
@@ -202,13 +244,23 @@
       ? { title: "Relais reçu", message: "La cordée a passé le relais de la Sentinelle." }
       : { title: "Passage ouvert", message: "Un autre membre peut maintenant recevoir le relais." };
   }
+  /** What a player reads after a turn action (V1.8.2); a repeated call (changed: false) changes nothing. */
+  function turnResult(answer, action) {
+    if (answer && answer.changed === false) return { title: "Déjà fait", message: "Rien n’a changé." };
+    return ({
+      take: { title: "Relais pris", message: `Il t’est réservé ${RULE.holdHours} h au plus. Reçois-le avec une séance confirmée d’un autre jour.` },
+      handover: { title: "Main passée", message: `Le relais reste réservé ${RULE.offerHours} h au plus, le temps qu’un membre l’accepte.` },
+      withdraw: { title: "Passation retirée", message: "Tu tiens de nouveau le relais." },
+      accept: { title: "Relais repris", message: "Il te reste à le recevoir avec ta propre séance confirmée d’un autre jour." },
+    })[action] || { title: "C’est fait", message: "" };
+  }
   function relayMessage(error) {
     const raw = String((error && error.message) || error || "");
     const key = Object.keys(RELAY_MESSAGES).find((k) => raw.includes(k));
     return key ? RELAY_MESSAGES[key] : null;
   }
 
-  const api = { RULE, PACES, DAYS, FAMILIES, ROUTES, share, longueursOfDay, cap, variety, simulate, explain, suggestPace, RELAY, RELAY_MESSAGES, relay, relayResult, relayMessage };
+  const api = { RULE, PACES, DAYS, FAMILIES, ROUTES, share, longueursOfDay, cap, variety, simulate, explain, suggestPace, RELAY, RELAY_MESSAGES, LEAVE, relay, relayResult, turnResult, relayMessage };
   root.TitanCordee = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
