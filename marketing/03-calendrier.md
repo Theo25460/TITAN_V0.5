@@ -38,6 +38,12 @@ Instagram, ajouter un son tendance calme (volume bas)** : c'est ce qui aide le p
 proprement à l'avance (droits musicaux). Si Buffer publie directement, la vidéo part sans musique : c'est acceptable,
 le texte porte le message.
 
+### Ouverture · jeudi 27/11 à 12:30 · Vidéo héro « Les 20 premiers » (concours)
+- Fichier : `production/out/HERO-les-20-premiers-play.mp4` (variante `-web` si la fiche Google Play n'est pas publique).
+- 20 accès TITAN+ à vie pour les 20 premiers nouveaux comptes dont la première séance est confirmée. À épingler.
+- Légendes, règlement, vérifications avant publication et désignation des gagnants : `06-concours-20-premiers.md`.
+- Statut : **Prêt** (4 vérifications bloquantes à faire par le créateur).
+
 ### J1 · jeudi 27/11 · « L'XP ne se coche pas »
 - Fichier : `production/out/J01-xp-ne-se-coche-pas.mp4` · miniature `J01-…-miniature.png`
 - Plateformes et heures : TikTok 18:30 · Reels 18:45 · Shorts 19:00

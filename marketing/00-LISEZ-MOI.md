@@ -13,6 +13,7 @@ Dossier de la mission marketing, créé le 24 novembre 2026. Copie partagée dan
 | 6 | Vidéos et carrousels finaux | `production/out/` (fichiers non versionnés ; copies dans Drive) |
 | 7 | Messages créateurs, clubs, testeurs | `04-messages-partenaires.md` |
 | 8 | Actions qui demandent ton intervention | `05-actions-createur.md` |
+| 8 bis | Concours « Les 20 premiers » : vidéo héro, fiche, règlement | `06-concours-20-premiers.md` |
 | 9 | Tableau de suivi | Google Sheet « TITAN — Suivi campagne Rallume le monde » |
 
 ## Système de production (réutilisable)
