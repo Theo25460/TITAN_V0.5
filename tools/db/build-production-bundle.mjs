@@ -100,7 +100,7 @@ export const BUNDLES = {
   v191: {
     out: "supabase/release-v191", after: "20261122090000", until: "20261201090000",
     before: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [324, "39442f678587", "81ad6534245e"] },
-    expected: { private: [126, "e038c4345853", "b1a6d8583bc3"], public: [325, "52d4cbd3910b", "ce14b8c665ea"] },
+    expected: { private: [126, "e038c4345853", "b1a6d8583bc3"], public: [325, "52d4cbd3910b", "1367d1178a2d"] },
     beforeNote: "This is the state production reaches at the end of the v20 bundle (applied on 18 Nov 2026, head 20261122090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_followup for the pilot accounts only.",
   },

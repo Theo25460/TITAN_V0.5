@@ -258,7 +258,7 @@ begin
     if v_role <> 'coach' then raise exception 'COACH_ONLY' using errcode = '42501'; end if;
     v_row := private.titan_coach_followup_row(v_a, v_link, 'coach');
     if v_row->>'coach_next' <> 'gap' then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
-    if v_row->>'state_key' is distinct from p_data->>'state_key' then raise exception 'COACH_CONFLICT' using errcode = '40001'; end if;
+    if v_row->>'state_key' is distinct from p_data->>'state_key' then raise exception 'COACH_CONFLICT'; end if;
     update public.coach_assignments set coach_seen_key = v_row->>'state_key',
       history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_build_object('k', 'seen', 'at', now(), 'state', v_row->>'state')))
      where id = v_a.id returning * into v_a;
@@ -281,7 +281,7 @@ begin
       update public.coach_assignments set history = private.titan_coach_history_cap(history || jsonb_build_array(v_entry)) where id = v_a.id returning * into v_a;
       return jsonb_build_object('ok', false, 'code', v_entry->>'code', 'row', private.titan_coach_followup_row(v_a, v_link, 'athlete'));
     end if;
-    if v_a.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT' using errcode = '40001'; end if;
+    if v_a.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT'; end if;
     if not exists (select 1 from public.training_logs t where t.id = v_session and t.user_id = v_uid and t.sport = v_a.sport and t.archived_at is null and t.date <= now()
                      and t.date >= v_link.since_date::timestamp at time zone 'UTC' and t.date >= v_a.created_at - interval '7 days' and t.is_suspicious is not true
                      and coalesce(t.status, 'valid') not in ('rejected', 'flagged', 'pending_review')) then raise exception 'INVALID_SESSION' using errcode = '22023'; end if;
@@ -295,7 +295,7 @@ begin
     return jsonb_build_object('ok', true, 'row', private.titan_coach_followup_row(v_a, v_link, 'athlete'));
   end if;
 
-  if v_a.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT' using errcode = '40001'; end if;
+  if v_a.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT'; end if;
 
   if p_action in ('propose_change', 'withdraw_change') then
     if v_role <> 'coach' then raise exception 'COACH_ONLY' using errcode = '42501'; end if;

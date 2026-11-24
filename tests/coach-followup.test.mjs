@@ -23,7 +23,8 @@ test("the scenario: planned date, moved date and the decision, in one row for th
   assert.equal(c.next, "wait");
   assert.equal(c.nextLabel, "Attendre une réponse");
   assert.deepEqual(c.dates.map((d) => d.key), ["planned", "moved"]);
-  assert.match(c.text, /^Déplacée au .+\. Une séance du journal pourrait correspondre : le sportif doit confirmer le rapprochement\.$/);
+  assert.equal(c.text, `Déplacée au ${F.day(hill.moved_date)} ; une séance du journal pourrait correspondre : le sportif doit confirmer le rapprochement.`);
+  assert.ok(!/\.\./.test(c.text), "no double full stop after an abbreviated month");
   assert.equal(hill.candidates, null, "the coach never receives the candidate session");
   const linked = F.forCoach(FX.detail_linked);
   assert.equal(linked.label, "Liée");

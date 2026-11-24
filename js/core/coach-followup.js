@@ -87,12 +87,12 @@
     if (row.state === "linked") {
       if (row.linked && row.linked.in_scope === false) return "Liée à une séance que le partage actuel ne te montre pas (sport ou période hors du partage).";
       const g = between(planned, done);
-      if (g === 0) return `Faite le jour prévu, ${day(done)}.`;
+      if (g === 0) return `Faite le jour prévu (${day(done)}).`;
       if (g === null) return "Liée à une séance du journal.";
       return `Prévue ${day(planned)}, faite ${day(done)} : ${plural(Math.abs(g), "jour", "jours")} ${g > 0 ? "plus tard" : "plus tôt"}.`;
     }
-    if (row.state === "moved") return `Prévue ${day(planned)}, déplacée par le sportif au ${day(moved)}. Pas encore de séance liée.`;
-    if (row.state === "to_match") return `${moved ? `Déplacée au ${day(moved)}. ` : ""}Une séance du journal pourrait correspondre : le sportif doit confirmer le rapprochement.`;
+    if (row.state === "moved") return `Prévue ${day(planned)}, déplacée par le sportif au ${day(moved)} ; pas encore de séance liée.`;
+    if (row.state === "to_match") return `${moved ? `Déplacée au ${day(moved)} ; une` : "Une"} séance du journal pourrait correspondre : le sportif doit confirmer le rapprochement.`;
     if (row.state === "overdue") return `${moved ? `Déplacée au ${day(moved)}` : `Prévue ${day(planned)}`} : la date est passée, aucune séance liée ni déclarée.`;
     if (row.state === "done_unmatched") return row.status === "completed" ? "La séance liée a été retirée du journal : la proposition reste indiquée comme faite, sans séance." : "Le sportif l’indique comme faite ; aucune séance de son journal n’y est liée.";
     return "";
@@ -132,11 +132,11 @@
     switch (row?.state) {
       case "awaiting": text = "Ton coach te propose cette séance. Accepte-la ou décline-la : rien n’est ajouté à ton journal."; break;
       case "reproposed": text = "Ton coach propose un changement. Ta version acceptée reste valable tant que tu n’as pas répondu."; break;
-      case "moved": text = `Tu l’as déplacée au ${day(row.moved_date)}. Ton coach voit les deux dates.`; break;
+      case "moved": text = `Tu l’as déplacée au ${day(row.moved_date)} : ton coach voit les deux dates.`; break;
       case "to_match": text = cands.length === 1 ? "Une séance de ton journal semble correspondre. Confirme si c’est bien elle : rien n’est lié sans toi." : "Plusieurs séances de ton journal pourraient correspondre. Choisis la bonne, ou aucune."; break;
       case "done_unmatched": text = row.status === "completed" ? "La séance liée n’est plus dans ton journal. Relie une autre séance si tu veux." : "Tu l’as indiquée comme faite. Relie la séance de ton journal quand elle y sera."; break;
       case "overdue": text = "La date est passée. Déplace-la, indique-la comme faite ou décline-la : ce n’est pas un échec."; break;
-      case "linked": text = `Reliée à ta séance du ${day(row.done_date)}. Tu peux retirer ce lien ; ton journal ne change pas.`; break;
+      case "linked": text = `Reliée à ta séance du ${day(row.done_date)} : tu peux retirer ce lien, ton journal ne change pas.`; break;
       case "declined": text = "Tu l’as déclinée."; break;
       case "cancelled": text = "Ton coach l’a annulée."; break;
       default: text = "Acceptée et prévue.";
