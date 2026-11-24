@@ -285,6 +285,11 @@ export const cordeeRelay = (owner: string, id: string, action: "transmit" | "con
 export const cordeeRelayTurn = (owner: string, id: string, action: import("../core/cordee").CordeeTurn, to: string | null = null) =>
   ownerRpc<import("../core/cordee").CordeeRelay & { changed: boolean }>(owner, "titan_cordee_relay_turn_v1", { p_id: id, p_action: action, p_to: to });
 /** The public preview of a challenge or cordée invitation link (never a name), and accepting it on an explicit tap. */
+/** V1.8.3: propose a new route to the group of a finished cordée, accept, decline or withdraw (the server decides who may). */
+export const cordeeSuite = (owner: string, from: string, action: "propose" | import("../core/cordee").CordeeSuiteAction,
+  p: { suite?: string | null; route?: string | null; pace?: string | null; days?: number | null } = {}) =>
+  ownerRpc<import("../core/cordee").CordeeSuiteAnswer>(owner, "titan_cordee_suite_v1",
+    { p_from: from, p_action: action, p_suite: p.suite ?? null, p_route: p.route ?? null, p_pace: p.pace ?? null, p_days: p.days ?? null });
 export type ChallengeLinkPreview = { valid: boolean; title?: string; metric?: string; sport?: string | null; target?: number; endsAt?: string; kind?: "individual" | "cordee"; route?: string | null; pace?: string | null; participants?: number };
 export const challengeLinkPreview = (token: string) => rpc<ChallengeLinkPreview>("titan_challenge_link_preview_v1", { p_token: token });
 export const challengeLinkAccept = (owner: string, token: string) => ownerRpc<unknown>(owner, "titan_challenge_link_accept_v1", { p_token: token });
