@@ -581,6 +581,9 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 .cm-relay-steps li[data-done="true"] { color: var(--tx); }
 .cm-relay-steps li[data-done="true"]::before { background: var(--space); }
 .cm-cordee-relay .asc-actions .asc-btn { min-height: 44px; }
+/* V1.8.2 — a pending handover reads as a state of the relay, not as an alert. */
+.cm-relay-handover { padding-left: var(--s3); border-left: 2px solid var(--space); }
+.cm-cordee-relay .asc-actions { flex-wrap: wrap; }
 .cm-cordee-card > .asc-actions { padding: 0 var(--s5) calc(var(--s5) + var(--s1)); padding-right: calc(var(--s5) + var(--cut)); }
 .cm-cordee-card > .asc-actions .asc-btn { min-height: 44px; }
 @media (min-width: 720px) {

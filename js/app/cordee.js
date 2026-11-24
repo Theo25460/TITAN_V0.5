@@ -128,8 +128,11 @@
       <div class="asc-between"><h4 id="relay-${esc(c.id)}">${icon("link")} ${esc(r.name)}</h4><span class="sig-state${r.status === "confirmed" ? " is-rare" : ""}">${r.status === "confirmed" ? "Relais passé" : r.status === "opened" ? "Passage ouvert" : "À ouvrir"}</span></div>
       <ol class="cm-relay-steps">${r.steps.map((s) => `<li data-done="${s.done}"><span>${esc(s.label)}</span></li>`).join("")}</ol>
       <p class="asc-small" data-cordee-relay-shared>${esc(r.shared)}</p>
+      ${r.holder ? `<p class="asc-small" data-cordee-relay-holder>${esc(r.holder)}</p>` : ""}
+      ${r.handover ? `<p class="asc-small cm-relay-handover" data-cordee-relay-handover>${esc(r.handover)}</p>` : ""}
       <p class="asc-small asc-muted" data-cordee-relay-mine>${esc(r.mine)}</p>
-      ${r.can ? `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-cordee-relay="${esc(c.id)}" data-relay-action="${esc(r.can)}" ${lock}>${esc(r.label)}</button></div>` : ""}
+      ${r.can || r.turns.length ? `<div class="asc-actions">${r.can ? `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-cordee-relay="${esc(c.id)}" data-relay-action="${esc(r.can)}" ${lock}>${esc(r.label)}</button>` : ""}${r.turns.map((t) => `<button type="button" class="asc-btn ${t.action === "accept" && !r.can ? "asc-btn-primary" : "asc-btn-secondary"} asc-btn-sm" data-cordee-turn="${esc(c.id)}" data-turn-action="${esc(t.action)}" ${lock}>${esc(t.label)}</button>`).join("")}</div>` : ""}
+      ${r.turns.some((t) => t.action === "take") ? `<p class="asc-small asc-faint" data-cordee-relay-optional>Facultatif : prendre le relais le réserve ${C().RULE.holdHours} h au plus ; sinon tout membre peut le recevoir.</p>` : ""}
       ${r.status === "waiting" ? `<p class="asc-small asc-faint">${esc(r.intro)}</p>` : ""}
     </section>`;
   }
@@ -173,6 +176,8 @@
           <p class="asc-small cm-cordee-mine" data-cordee-mine>${esc(words.mine)}</p>
           ${membersHtml(c)}
           <p class="asc-small asc-muted" data-cordee-group>${esc(words.group)} ${esc(words.variety)}</p>
+          ${words.kept ? `<p class="asc-small asc-muted" data-cordee-kept>${esc(words.kept)}</p>` : ""}
+          ${words.together ? `<p class="asc-small cm-cordee-together" data-cordee-alone>${icon("link")}<span>${esc(words.together)}</span></p>` : ""}
           ${party > 1 ? `<p class="asc-small cm-cordee-together">${icon("link")}<span>Personne n’atteint le sommet seul : la part de chacun compte jusqu’à ${n(c.cap)} longueurs, et il faut celles d’au moins deux membres.</span></p>` : ""}
         </div>
       </div>
@@ -254,6 +259,43 @@
     });
   }
 
+  /* V1.8.2 — passer la main: to one member the server allows (relay.choices) or to the whole cordée. No reason is asked. */
+  function handoverSheet(ask, c) {
+    const r = C().relay(c);
+    if (!r) return;
+    const body = document.createElement("form");
+    body.className = "asc-stack";
+    body.noValidate = true;
+    body.innerHTML = `<p class="asc-small asc-muted">Le relais reste réservé ${C().RULE.offerHours} h au plus, le temps qu’un membre l’accepte. Sans réponse, il redevient libre pour toute la cordée. Tes longueurs restent acquises ; personne ne voit pourquoi tu passes la main.</p>
+      <fieldset class="pf-privacy"><legend class="seance-label">À qui ?</legend>
+        <label class="auth-check"><input type="radio" name="to" value="" checked><span><strong>Toute la cordée</strong><br><small class="asc-muted">Le premier membre qui accepte reprend le relais.</small></span></label>
+        ${r.choices.map((m) => `<label class="auth-check"><input type="radio" name="to" value="${esc(m.id)}"><span>${esc(m.name)}</span></label>`).join("")}</fieldset>
+      <p class="asc-small jr-edit-error" role="alert"></p>
+      <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">Passer la main</button></div>`;
+    const d = window.titanShell.sheet({ title: "Passer la main", eyebrow: C().RELAY.name, body });
+    body.addEventListener("click", (e) => { if (e.target.closest("[data-cancel]")) d.close(); });
+    body.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!same(ask, context()) || busy) return;
+      const to = String(new FormData(body).get("to") || "") || null;
+      const err = body.querySelector(".jr-edit-error");
+      err.textContent = "";
+      busy = true;
+      body.querySelector("[type=submit]").disabled = true;
+      try {
+        const answer = await rpc(ask, "titan_cordee_relay_turn_v1", { p_id: c.id, p_action: "handover", p_to: to });
+        busy = false;
+        d.close();
+        window.titanShell?.toast?.({ type: "ok", ...C().turnResult(answer, "handover") });
+        await refresh();
+      } catch (error) {
+        busy = false;
+        body.querySelector("[type=submit]").disabled = false;
+        err.textContent = failure(error);
+      }
+    });
+  }
+
   async function shareLink(ask, id) {
     const r = await rpc(ask, "titan_challenge_link_create_v1", { p_challenge: id });
     const url = `${location.origin}/defi?t=${r?.token}`;
@@ -277,6 +319,15 @@
       return act(async (a) => { answer = await rpc(a, "titan_cordee_relay_v1", { p_id: b.dataset.cordeeRelay, p_action: action }); })
         .then(() => { if (answer) window.titanShell?.toast?.({ type: "ok", ...C().relayResult(answer, action) }); });
     }
+    if (b.dataset.cordeeTurn) {
+      const action = ["take", "handover", "withdraw", "accept"].includes(b.dataset.turnAction) ? b.dataset.turnAction : null;
+      const c = find(b.dataset.cordeeTurn);
+      if (!action || !c) return;
+      if (action === "handover") return handoverSheet(ask, c);
+      let answer = null;
+      return act(async (a) => { answer = await rpc(a, "titan_cordee_relay_turn_v1", { p_id: c.id, p_action: action }); })
+        .then(() => { if (answer) window.titanShell?.toast?.({ type: "ok", ...C().turnResult(answer, action) }); });
+    }
     if (b.dataset.cordeeDecline) return act((a) => rpc(a, "titan_challenge_respond", { p_id: b.dataset.cordeeDecline, p_action: "decline" }));
     if (b.dataset.cordeeLink) return act((a) => shareLink(a, b.dataset.cordeeLink));
     if (b.dataset.cordeeWear) return act((a) => rpc(a, "titan_set_displayed_title", { p_key: `cordee:${b.dataset.cordeeWear}` }), { title: "Titre porté", message: C().ROUTES[b.dataset.cordeeWear]?.title || "" });
@@ -290,7 +341,7 @@
     }
     if (b.dataset.cordeeLeave) {
       const id = b.dataset.cordeeLeave;
-      return window.titanShell.confirm({ title: "Quitter la cordée ?", message: "Tes longueurs ne compteront plus pour la cordée, et l’objectif commun diminue de ta part.", confirmLabel: "Quitter",
+      return window.titanShell.confirm({ title: "Quitter la cordée ?", message: C().LEAVE, confirmLabel: "Quitter",
         action: async () => { await act((a) => rpc(a, "titan_challenge_respond", { p_id: id, p_action: "leave" })); } });
     }
   }

@@ -131,4 +131,10 @@ if guard=$(bash "$ROOT/tools/db/test-cordee-relay-concurrency.sh" "${PSQL[@]}" -
 fi
 [[ "$guard" == "Refused: the relay concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 bash "$ROOT/tools/db/test-cordee-relay-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Cordée handover concurrency contract (two real connections, V1.8.2)"
+if guard=$(bash "$ROOT/tools/db/test-cordee-reprise-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "handover concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the handover concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-cordee-reprise-concurrency.sh" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."

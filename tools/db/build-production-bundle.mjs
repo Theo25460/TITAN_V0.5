@@ -102,6 +102,17 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v20 bundle (applied on 18 Nov 2026, head 20261122090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.cordee_relay for the pilot accounts only.",
   },
+  // V1.8.2 — Reprise et relais facultatifs (24 November 2026): optional hold and voluntary handover of the relay, departures that keep the
+  // longueurs brought before leaving, behind the server flag screens.cordee_reprise (absent = closed). NOT APPLIED: owner decision required,
+  // after v21. Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_cordee_reprise.sql,
+  // tools/db/test-cordee-reprise-concurrency.sh). Fingerprints measured on a replica built from the repository.
+  v22: {
+    out: "supabase/release-v22", after: "20261124090000", until: "20261125090000",
+    before: { private: [124, "d491e079008f", "b971b4c8829d"], public: [325, "a606edd67a11", "65c91ba6d772"] },
+    expected: { private: [131, "f550f5ce5daf", "0155cb43ef72"], public: [326, "7e442a057127", "95bff8a8e8a1"] },
+    beforeNote: "This is the state production reaches at the end of the v21 bundle (V1.8.1, head 20261124090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.cordee_reprise for the pilot accounts only, after screens.cordee_relay.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
