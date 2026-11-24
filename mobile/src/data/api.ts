@@ -1,5 +1,6 @@
 /* Every server call of the Android app. Same tables, RPCs and rules as the website (production schema v300):
    rewards, credits, possession and progression are only ever written by SECURITY DEFINER functions on the server. */
+import type { ClubMatchView } from "../core/clubMatch";
 import type { ClubSeasonAction, ClubSeasonView } from "../core/clubSeason";
 import { supabase } from "../lib/supabase";
 import type { AdventureSnapshot, Goal, Privacy, Profile, TrainingLog, TrainingPayload } from "../core/types";
@@ -396,6 +397,13 @@ export const fetchClubSeason = (owner: string, club: string) => ownerRpc<ClubSea
 /** V1.8.4: join, pause, resume, leave (any member); postpone (7 or 14 days) and stop (administrators). Creation is on the website. */
 export const clubSeasonAct = (owner: string, club: string, action: ClubSeasonAction, days: number | null = null) =>
   ownerRpc<ClubSeasonView>(owner, "titan_club_season_act_v1", { p_club: club, p_action: action, p_title: null, p_pace: null, p_weeks: null, p_starts_on: null, p_days: days });
+/** V1.8.5: a club's meeting with another club (current one and the last frozen recap). The other club is a name, a number of
+    participants and a rate; rates are null below 3 participants. */
+export const fetchClubMatch = (owner: string, club: string) => ownerRpc<ClubMatchView>(owner, "titan_club_match_v1", { p_club: club });
+/** V1.8.5: join, leave (any member), stop (administrators), feedback after the end. Proposing and answering a code are on the website. */
+export const clubMatchAct = (owner: string, club: string, action: "join" | "leave" | "stop" | "feedback", answers: { clear: boolean; again: boolean } | null = null) =>
+  ownerRpc<ClubMatchView>(owner, "titan_club_match_act_v1", { p_club: club, p_action: action, p_format: null, p_pace: null, p_weeks: null, p_starts_on: null,
+    p_match: null, p_clear: answers ? answers.clear : null, p_again: answers ? answers.again : null });
 
 /* ---------- Life chapters (AUD-48) ---------- */
 export type LifeChapter = { id: string; title: string; startsOn: string; endsOn: string | null; open: boolean; days: number; minutes: number; sessions: number };

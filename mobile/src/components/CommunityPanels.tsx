@@ -1,10 +1,14 @@
 /* Lot 8 « communauté » inside the Community screen: C4 the fair ranking among friends (opt-in, progress rather than raw volume)
    and C7 clubs (my clubs with members, announcements and trophies; join by code). Both use RPCs the server already serves.
    V1.8.4: each club card shows its private season (behind screens.club_season): explicit joining, pause, resume, leave, the organiser's
-   postpone and stop, the stages and the frozen report — every word from the shared module, every figure from the server. */
+   postpone and stop, the stages and the frozen report — every word from the shared module, every figure from the server.
+   V1.8.5: each club card shows its meeting with another club (behind screens.club_match): the other club's name, participants and rate
+   only, the common score as of midnight, explicit joining, leave and stop behind a dialog, the recap and the two questions of the pilot.
+   Proposing a meeting and answering a code stay on the website. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { View } from "react-native";
+import { ClubMatch, type ClubMatchAction } from "../core/clubMatch";
 import { ClubSeason, type ClubSeasonAction } from "../core/clubSeason";
 import * as api from "../data/api";
 import { useOwner } from "../data/auth";
@@ -169,6 +173,94 @@ function ClubSeasonBlock({ owner, club }: { owner: string; club: string }) {
   );
 }
 
+/** V1.8.5: the club's meeting with another club. The other club: a name, a number of participants and a rate; never a person. */
+function ClubMatchBlock({ owner, club }: { owner: string; club: string }) {
+  const flag = useServerFlag("screens.club_match");
+  const key = ["club-match", owner, club];
+  const qc = useQueryClient();
+  const online = useOnline();
+  const toast = useToast();
+  const [clear, setClear] = useState<boolean | null>(null);
+  const [again, setAgain] = useState<boolean | null>(null);
+  const q = useQuery({ queryKey: key, queryFn: () => api.fetchClubMatch(owner, club).catch(() => null), staleTime: 60_000, enabled: flag });
+  // A synchronous lock: a double tap sends one request (isPending is only seen at the next render).
+  const busy = useRef(false);
+  const act = useMutation({
+    mutationFn: async ({ action, answers }: { action: ClubMatchAction; answers?: { clear: boolean; again: boolean } }) => {
+      if (!online) throw new Error("Connexion requise.");
+      return api.clubMatchAct(owner, club, action, answers ?? null);
+    },
+    onSuccess: (data, v) => {
+      if (data) qc.setQueryData(key, data);
+      toast({ kind: "ok", title: ClubMatch.result(v.action) });
+      return qc.invalidateQueries({ queryKey: key });
+    },
+    onError: (e) => toast({ kind: "err", title: "Action impossible", message: ClubMatch.message(e) ?? errorMessage(e) }),
+    onSettled: () => { busy.current = false; },
+  });
+  const view = q.data;
+  if (!flag || !view) return null;
+  const m = view.current;
+  const report = ClubMatch.report(view.last);
+  const go = (action: ClubMatchAction, answers?: { clear: boolean; again: boolean }) => {
+    if (busy.current) return;
+    busy.current = true;
+    act.mutate({ action, answers });
+  };
+  const run = (action: ClubMatchAction) => {
+    if (busy.current) return;
+    const ask = ClubMatch.confirmText(action, m);
+    if (ask) Alert.alert(ask.title, ask.message, [{ text: "Annuler", style: "cancel" }, { text: ask.confirm, style: "destructive", onPress: () => go(action) }]);
+    else go(action);
+  };
+  const choice = (value: boolean | null, set: (v: boolean) => void, id: string) => (
+    <View style={{ flexDirection: "row", gap: space.s2 }}>
+      <Button small kind={value === true ? "primary" : "secondary"} label="Oui" onPress={() => set(true)} testID={`${id}-yes-${club}`} />
+      <Button small kind={value === false ? "primary" : "secondary"} label="Non" onPress={() => set(false)} testID={`${id}-no-${club}`} />
+    </View>
+  );
+  const canAnswer = Boolean(view.last && view.last.can?.includes("feedback"));
+  return (
+    <View style={{ gap: 4 }} testID={`club-match-${club}`}>
+      <T variant="small" tone="ink">Rencontre entre clubs</T>
+      <T variant="caption" tone="faint" testID={`club-match-role-${club}`}>{ClubMatch.role(view)}</T>
+      {m ? (
+        <>
+          <T variant="caption" tone="muted" testID={`club-match-header-${club}`}>{ClubMatch.header(m)}</T>
+          {m.phase === "proposed" ? <T variant="small" testID={`club-match-proposal-${club}`}>{ClubMatch.proposal(m)}</T> : null}
+          {ClubMatch.sides(m).map((line, i) => <T key={i} variant="small" testID={`club-match-side-${club}-${i}`}>{line}</T>)}
+          {ClubMatch.score(m) ? <T variant="small" testID={`club-match-score-${club}`}>{ClubMatch.score(m)}</T> : null}
+          {ClubMatch.mine(m) ? <T variant="small" testID={`club-match-me-${club}`}>{ClubMatch.mine(m)}</T> : null}
+          <T variant="caption" tone="faint" testID={`club-match-rules-${club}`}>{ClubMatch.rules(m)}</T>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.s2 }}>
+            {ClubMatch.actions(m).map((a) => (
+              <Button key={a.id} small kind={a.id === "join" ? "primary" : "ghost"} label={a.label} loading={act.isPending && act.variables?.action === a.id} disabled={act.isPending} onPress={() => run(a.id)} testID={`club-match-${a.id}-${club}`} />
+            ))}
+          </View>
+        </>
+      ) : view.canPropose ? (
+        <T variant="caption" tone="faint">Proposer une rencontre à un autre club, ou répondre à un code reçu, se fait depuis la version web du club.</T>
+      ) : !report ? <T variant="caption" tone="faint">Pas de rencontre en cours.</T> : null}
+      {report && !m ? (
+        <View style={{ gap: 2 }} testID={`club-match-report-${club}`}>
+          <T variant="small" tone="ink">{report.title}</T>
+          {report.lines.map((l, i) => <T key={i} variant="caption" tone="muted">{l}</T>)}
+          {canAnswer ? (
+            <View style={{ gap: space.s2 }} testID={`club-match-feedback-${club}`}>
+              <T variant="caption">Le score était-il clair pour toi ? (compté, jamais montré aux clubs)</T>
+              {choice(clear, setClear, "club-match-clear")}
+              <T variant="caption">Referais-tu une rencontre avec ton club ?</T>
+              {choice(again, setAgain, "club-match-again")}
+              <Button small kind="secondary" label="Envoyer mon avis" disabled={clear === null || again === null || act.isPending}
+                onPress={() => { if (clear !== null && again !== null) go("feedback", { clear, again }); }} testID={`club-match-send-${club}`} />
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 /** C7: the clubs I belong to — a running club, a workplace, a group of friends — and joining one by its code. */
 export function ClubsPanel() {
   const owner = useOwner();
@@ -190,6 +282,7 @@ export function ClubsPanel() {
           {(c.trophies ?? []).slice(0, 3).map((t) => <T key={t.id} variant="caption" tone="amber">Trophée : {t.title}</T>)}
           <ClubWeek owner={owner} club={c.id} />
           <ClubSeasonBlock owner={owner} club={c.id} />
+          <ClubMatchBlock owner={owner} club={c.id} />
         </Card>
       ))}
       <Card style={{ gap: space.s2 }}>
