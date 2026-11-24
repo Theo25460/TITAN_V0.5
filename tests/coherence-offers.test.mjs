@@ -300,6 +300,9 @@ test("privacy: every per-player table added since 17 November 2026 is erased wit
     titan_cordee_titles: ["cordées de la Grande Cordée et titres de route obtenus", "tes cordées et tes titres de route"],
     // V1.8.3: a proposal keeps the group's history with no person (proposed_by on delete set null); the answers go with the account.
     titan_cordee_suite_answers: ["propositions de repartir après une cordée et tes réponses", "tes réponses aux propositions de repartir"],
+    // V1.8.4: a season keeps its frozen report with no person (created_by on delete set null); participations and pauses go with the account.
+    titan_club_season_members: ["saisons privées de club (ta participation choisie", "tes participations aux saisons privées de club"],
+    titan_club_season_pauses: ["tes pauses, ton départ et tes jours actifs comptés", "saisons privées de club et leurs pauses"],
   };
   const privacy = page("legal_privacy.html"), deletion = page("supprimer-mon-compte.html");
   const found = [];

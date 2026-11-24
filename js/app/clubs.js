@@ -7,6 +7,8 @@
   "use strict";
   const esc = (s) => window.titanEsc(s);
   const FLAG = "screens.clubs";
+  const SEASON_FLAG = "screens.club_season"; // V1.8.4: private club seasons (create, join, resume, postpone are checked by the server too)
+  const CS = () => window.TitanClubSeason;
   const MESSAGES = {
     NOT_ELIGIBLE: "Tu pourras créer ou rejoindre un club un jour après la création du compte.",
     BAD_NAME: "Le nom d’un club fait entre 3 et 60 caractères.",
@@ -43,13 +45,18 @@
   const on = () => !guest() && window.titanFlags?.enabled?.(FLAG, false) === true;
   const n = (v) => window.TitanFormat.number(v);
   const failure = (error) => {
+    const season = window.TitanClubSeason?.message?.(error);
+    if (season && !/CLUB_NOT_FOUND|RATE_LIMITED/.test(String(error?.message || ""))) return season;
     const code = Object.keys(MESSAGES).find((k) => String(error?.message || "").includes(k));
     return code ? MESSAGES[code] : "Le serveur ne répond pas pour l’instant. Réessaie dans un moment.";
   };
   const date = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }); };
 
   let weeks = {};
-  function reset() { weeks = {}; data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; synced = false; }
+  let seasons = {};   // V1.8.4: club id → titan_club_season_v1 answer
+  let seasonForm = {}; // club id → true when the organiser opened the creation form
+  const seasonOn = () => on() && window.titanFlags?.enabled?.(SEASON_FLAG, false) === true && Boolean(CS());
+  function reset() { weeks = {}; seasons = {}; seasonForm = {}; data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; synced = false; }
   function sync() {
     const id = guest() ? null : context().owner;
     if (id !== owner) { owner = id; reset(); render(); }
@@ -74,6 +81,12 @@
         const answers = await Promise.all((data || []).map((c) => ask.client.rpc("titan_club_week_v1", { p_club: c.id }).then((r) => [c.id, r.error ? null : r.data], () => [c.id, null])));
         if (!same(ask, context())) return;
         weeks = Object.fromEntries(answers);
+        // V1.8.4: each club's private season (an older server has none: nothing is shown).
+        if (seasonOn()) {
+          const got = await Promise.all((data || []).map((c) => ask.client.rpc("titan_club_season_v1", { p_club: c.id }).then((r) => [c.id, r.error ? null : r.data], () => [c.id, null])));
+          if (!same(ask, context())) return;
+          seasons = Object.fromEntries(got);
+        } else seasons = {};
       } catch { if (same(ask, context())) notice = "Les clubs ne répondent pas pour l’instant."; }
       finally { flight = null; if (same(ask, context())) render(); }
     })();
@@ -119,6 +132,46 @@
       <p class="asc-small asc-faint">Seul le total est visible : personne ne voit la part d’un autre membre.</p>${set}</div>`;
   }
 
+  const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
+  function seasonFormHtml(c) {
+    const S = CS(), id = esc(c.id), v = (k, d) => esc(val(`season-${k}-${c.id}`) || d);
+    return `<form class="asc-panel asc-stack" data-season-create-form="${id}" novalidate><h4>Lancer une saison privée</h4>
+      <p class="asc-small asc-muted">Chaque membre choisit de participer. Le groupe avance avec ses jours actifs (12 minutes d’effort comptées dans la journée, tous les sports comptent pareil) et débloque trois étapes.</p>
+      <label class="asc-field"><span>Titre</span><input class="asc-input" maxlength="60" data-club-draft="season-title-${id}" value="${v("title", "")}"></label>
+      <label class="asc-field"><span>Départ</span><input class="asc-input" type="date" min="${today()}" data-club-draft="season-start-${id}" value="${v("start", today())}"></label>
+      <label class="asc-field"><span>Durée</span><select class="asc-select" data-club-draft="season-weeks-${id}">${[2, 3, 4, 5, 6, 7, 8].map((w) => `<option value="${w}" ${String(val(`season-weeks-${c.id}`) || 4) === String(w) ? "selected" : ""}>${w} semaines</option>`).join("")}</select></label>
+      <label class="asc-field"><span>Allure de l’équipe</span><select class="asc-select" data-club-draft="season-pace-${id}">${Object.values(S.PACES).map((p) => `<option value="${p.id}" ${(val(`season-pace-${c.id}`) || "reguliere") === p.id ? "selected" : ""}>${esc(p.label)} · ${esc(p.short)}</option>`).join("")}</select></label>
+      <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${busy ? "disabled" : ""}>Créer la saison</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-season-form-cancel="${id}">Annuler</button></div></form>`;
+  }
+  function seasonHtml(c) {
+    const S = CS();
+    if (!seasonOn() || !S) return "";
+    const view = seasons[c.id];
+    if (!view) return "";
+    const s = view.current, lock = busy ? "disabled" : "";
+    const report = S.report(view.last);
+    const reportHtml = report && !s ? `<div class="asc-stack" data-season-report><p class="asc-small"><strong>${esc(report.title)}</strong></p><ul class="rv-list">${report.lines.map((l) => `<li class="asc-small">${esc(l)}</li>`).join("")}</ul></div>` : "";
+    let body = "";
+    if (s) {
+      const p = S.progress(s);
+      const acts = S.actions(s).map((a) => a.id === "postpone"
+        ? [7, 14].map((d) => `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-season-act="postpone" data-club-id="${esc(c.id)}" data-days="${d}" ${lock}>Reporter de ${d / 7 > 1 ? "deux semaines" : "une semaine"}</button>`).join("")
+        : `<button type="button" class="asc-btn ${a.id === "join" || a.id === "resume" ? "asc-btn-primary" : a.danger ? "asc-btn-ghost" : "asc-btn-secondary"} asc-btn-sm" data-season-act="${a.id}" data-club-id="${esc(c.id)}" ${lock}>${esc(a.label)}</button>`).join("");
+      body = `<p class="asc-small"><strong>${esc(s.title)}</strong></p>
+        <p class="asc-small asc-muted" data-season-header>${esc(S.header(s))}</p>
+        <p class="asc-small" data-season-group>${esc(S.group(s))}</p>
+        ${p ? `<p class="asc-small" data-season-progress>${esc(p.line)}</p><span class="asc-ascent thin" role="progressbar" aria-label="Objectif de la saison" aria-valuemin="0" aria-valuemax="${p.target}" aria-valuenow="${Math.min(p.target, p.total)}"><span style="--p:${p.pct}%"></span></span>` : ""}
+        <ol class="rv-list" data-season-stages aria-label="Étapes de la saison">${S.stages(s).map((st) => `<li class="asc-small ${st.status === "reached" ? "cy" : st.status === "locked" || st.status === "hidden" ? "asc-faint" : ""}" data-stage="${st.n}" data-status="${st.status}">${esc(st.text)}</li>`).join("")}</ol>
+        ${S.ongoing(s) ? `<p class="asc-small" data-season-ongoing>${esc(S.ongoing(s))}</p>` : ""}
+        <p class="asc-small" data-season-me>${esc(S.mine(s))}</p>
+        ${acts ? `<div class="asc-actions">${acts}</div>` : ""}`;
+    } else if (view.canCreate) {
+      body = seasonForm[c.id] ? seasonFormHtml(c) : `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-season-form="${esc(c.id)}" ${lock}>Lancer une saison privée</button></div>`;
+    } else if (!report) body = `<p class="asc-small asc-faint">Pas de saison en cours.</p>`;
+    return `<div class="asc-stack" data-club-season="${esc(c.id)}"><p class="asc-small"><strong>Saison du club</strong></p>
+      <p class="asc-small asc-faint" data-season-role>${esc(S.role(view))}</p>${body}${reportHtml}</div>`;
+  }
+
   function clubHtml(c) {
     const admin = c.role === "admin";
     const ann = (c.announcements || []).map((a) => `<li class="asc-between" data-club-ann="${esc(a.id)}"><span><span class="asc-small asc-muted">${esc(date(a.at))}</span><br>${esc(a.body)}</span><span class="asc-actions">${admin ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-ann-remove="${esc(a.id)}" aria-label="Retirer cette annonce">Retirer</button>` : ""}${a.mine ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report="${esc(c.id)}" data-ann="${esc(a.id)}" aria-label="Signaler cette annonce">Signaler</button>`}</span></li>`).join("");
@@ -133,6 +186,7 @@
       ${c.description ? `<p class="asc-small asc-muted">${esc(c.description)}</p>` : ""}
       ${(c.trophies || []).length ? `<ul class="rv-list" data-club-trophies aria-label="Trophées du club">${c.trophies.map((t) => `<li><strong>${esc(t.title)}</strong> <span class="asc-small asc-muted">· ${esc(date(t.on))}</span>${t.note ? `<br><span class="asc-small asc-muted">${esc(t.note)}</span>` : ""}</li>`).join("")}</ul>` : ""}
       ${weekHtml(c)}
+      ${seasonHtml(c)}
       ${ann ? `<ul class="rv-list" data-club-announcements>${ann}</ul>` : `<p class="asc-small asc-faint">Pas d’annonce pour l’instant.</p>`}
       ${tools}${roster}
       ${reporting && reporting.club === c.id ? reportForm(c) : ""}
@@ -183,6 +237,14 @@
       act("titan_club_report_v1", { p_club: target.club, p_announcement: target.announcement || null, p_reason: val("reason"), p_details: val("details").trim() || null }, () => {
         reporting = null; delete draft.reason; delete draft.details; notice = "Merci : ton signalement a été transmis à l’équipe TITAN.";
       });
+    } else if (e.target.matches("[data-season-create-form]")) {
+      const id = e.target.dataset.seasonCreateForm, S = CS();
+      const form = { title: val("season-title-" + id).trim(), startsOn: val("season-start-" + id) || today(), weeks: Number(val("season-weeks-" + id) || 4), pace: val("season-pace-" + id) || "reguliere" };
+      const bad = S.validate(form, today());
+      if (bad) { notice = S.MESSAGES[bad]; render(); return; }
+      act("titan_club_season_act_v1", { p_club: id, p_action: "create", p_title: form.title, p_pace: form.pace, p_weeks: form.weeks, p_starts_on: form.startsOn, p_days: null }, () => {
+        seasonForm[id] = false; ["title", "start", "weeks", "pace"].forEach((k) => delete draft[`season-${k}-${id}`]); notice = S.result("create");
+      });
     } else if (e.target.matches("[data-club-create-form]")) {
       const name = val("name").trim();
       if (name.length < 3) { notice = MESSAGES.BAD_NAME; render(); return; }
@@ -195,6 +257,16 @@
     const club = (id) => (data || []).find((c) => c.id === id);
     if (t.dataset.clubReport !== undefined) { reporting = { club: t.dataset.clubReport, announcement: t.dataset.ann || null }; render(); root.querySelector("[data-club-report-form] select")?.focus(); return; }
     if (t.matches("[data-club-report-cancel]")) { reporting = null; render(); return; }
+    if (t.dataset.seasonForm) { seasonForm[t.dataset.seasonForm] = true; render(); root.querySelector(`[data-season-create-form] input`)?.focus(); return; }
+    if (t.dataset.seasonFormCancel) { seasonForm[t.dataset.seasonFormCancel] = false; render(); return; }
+    if (t.dataset.seasonAct) {
+      const S = CS(), id = t.dataset.clubId, action = t.dataset.seasonAct, view = seasons[id];
+      const run = () => act("titan_club_season_act_v1", { p_club: id, p_action: action, p_title: null, p_pace: null, p_weeks: null, p_starts_on: null, p_days: action === "postpone" ? Number(t.dataset.days) : null }, () => { notice = S.result(action); });
+      const ask = S.confirmText(action, view && view.current);
+      if (ask && window.titanShell?.confirm) window.titanShell.confirm({ title: ask.title, message: ask.message, confirmLabel: ask.confirm, action: async () => { run(); } });
+      else run();
+      return;
+    }
     if (t.dataset.clubAnnounce) {
       const id = t.dataset.clubAnnounce, body = val("ann-" + id).trim();
       if (!body) { notice = MESSAGES.BAD_ANNOUNCEMENT; render(); return; }

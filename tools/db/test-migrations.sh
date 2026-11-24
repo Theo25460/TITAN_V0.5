@@ -143,4 +143,10 @@ if guard=$(bash "$ROOT/tools/db/test-cordee-suite-concurrency.sh" "${PSQL[@]}" -
 fi
 [[ "$guard" == "Refused: the proposal concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 bash "$ROOT/tools/db/test-cordee-suite-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Club season concurrency contract (two real connections, V1.8.4)"
+if guard=$(bash "$ROOT/tools/db/test-club-season-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "club season concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the club season concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-club-season-concurrency.sh" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."

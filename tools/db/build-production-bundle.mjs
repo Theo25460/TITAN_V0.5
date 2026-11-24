@@ -124,6 +124,18 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v22 bundle (V1.8.2, head 20261125090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.cordee_suite for the pilot accounts only, where screens.cordee is open.",
   },
+  // V1.8.4 — Saisons privées de club (24 November 2026): a club administrator runs a private season with three stages, explicit and
+  // revocable participation, active days from confirmed sessions with an individual cap, aggregates from 3 participants and a frozen
+  // private report, behind the server flag screens.club_season (absent = closed). NOT APPLIED: owner decision required, after v23.
+  // Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_club_season.sql, tools/db/test-club-season-concurrency.sh).
+  // Fingerprints measured on a replica built from the repository.
+  v24: {
+    out: "supabase/release-v24", after: "20261126090000", until: "20261127090000",
+    before: { private: [141, "681a79d6ef40", "2800c4c153fe"], public: [327, "5429983a73a6", "a81da62357a0"] },
+    expected: { private: [152, "a12f5f1e2548", "eee8973d517f"], public: [329, "82c14f6e68a3", "5ccabb51c604"] },
+    beforeNote: "This is the state production reaches at the end of the v23 bundle (V1.8.3, head 20261126090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.club_season for the pilot clubs' accounts only.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
