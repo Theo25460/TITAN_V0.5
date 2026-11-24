@@ -1,0 +1,415 @@
+-- V1.9.1 — Une séance assignée (24 November 2026). Makes the coach's proposals followable: which ones need a decision, from whom, and why,
+-- especially after a change of date or content. Behind the server flag screens.coach_followup (absent = closed).
+-- It REUSES what exists: the sharing link (public.coach_links, its pause and revocation), the statuses of public.coach_assignments
+-- (proposed, accepted, declined, completed, cancelled), the link to the journal (coach_assignments.session_id, one assignment per session)
+-- and the portal (titan_coach_portal), which keeps working unchanged for older clients.
+-- New on public.coach_assignments (participants already read the row; the account export already carries to_jsonb of it):
+--   accepted_version  the content the athlete accepted first (title, sport, planned_date, instructions, at): never overwritten;
+--   pending_change    a change the coach proposes on an accepted or declined session ("proposée à nouveau"); the version in force stays
+--                     until the athlete accepts; declining keeps it; the coach may withdraw it;
+--   moved_date        the athlete's new date ("reportée"), kept beside the planned date the coach sees;
+--   done_declared_at  the athlete says the session is done but no journal session is linked ("faite sans correspondance");
+--   coach_seen_key    the coach has handled the current gap ("traiter un écart"): the row leaves the coach's queue until something changes;
+--   history           a bounded log (50 entries) written by a trigger for every status and link change, whichever path made it, and by
+--                     the new actions (change proposed, accepted, declined, withdrawn, moved, declared, refused link attempt, handled).
+-- A match with a journal session is only SUGGESTED (same sport, eligible like a completion, Paris day within 3 days of the date in force,
+-- linked to no other proposal); it becomes a link only when the athlete confirms it, through the same session_id as before. Two concurrent
+-- attempts keep a single coherent link: the link row, then the assignment row, then the session (advisory lock) are locked in that order,
+-- and the unique index on session_id stays the last guard. A refused attempt is answered (not raised) and written to the history.
+-- After a pause (capacity) the coach reads nothing and the athlete reads their proposals without acting; after a revocation the coach
+-- reads nothing and the athlete still finds their own proposals and their own session. No action ever writes public.training_logs.
+-- No XP, no credit, no notification. Additive. The caller owns the transaction: never BEGIN/COMMIT here.
+-- Rollback: drop function public.titan_coach_followup_v1(text, jsonb), private.titan_coach_followup_measure(),
+-- private.titan_coach_followup_row(public.coach_assignments, public.coach_links, text), private.titan_coach_match_candidates(public.coach_assignments, public.coach_links),
+-- private.titan_coach_assignment_version(public.coach_assignments), private.titan_coach_history_cap(jsonb);
+-- drop trigger titan_coach_assignment_track on public.coach_assignments; drop function private.titan_coach_assignment_track();
+-- alter table public.coach_assignments drop column history, drop column coach_seen_key, drop column done_declared_at, drop column moved_date,
+-- drop column pending_change, drop column accepted_version.
+
+alter table public.coach_assignments
+  add column if not exists accepted_version jsonb,
+  add column if not exists pending_change jsonb,
+  add column if not exists moved_date date,
+  add column if not exists done_declared_at timestamptz,
+  add column if not exists coach_seen_key text,
+  add column if not exists history jsonb not null default '[]'::jsonb;
+alter table public.coach_assignments drop constraint if exists coach_assignments_followup_check;
+alter table public.coach_assignments add constraint coach_assignments_followup_check check (
+  (moved_date is null or moved_date between '2000-01-01' and '2100-12-31')
+  and (coach_seen_key is null or char_length(coach_seen_key) <= 64)
+  and jsonb_typeof(history) = 'array' and jsonb_array_length(history) <= 50
+  and (pending_change is null or jsonb_typeof(pending_change) = 'object')
+  and (accepted_version is null or jsonb_typeof(accepted_version) = 'object'));
+
+create or replace function private.titan_coach_assignment_version(a public.coach_assignments)
+returns jsonb language sql immutable set search_path = ''
+as $function$ select jsonb_build_object('title', a.title, 'sport', a.sport, 'planned_date', a.planned_date, 'instructions', a.instructions) $function$;
+revoke all on function private.titan_coach_assignment_version(public.coach_assignments) from public, anon, authenticated;
+
+-- The first entry (the proposal) is always kept, then the 49 most recent.
+create or replace function private.titan_coach_history_cap(p jsonb)
+returns jsonb language sql immutable set search_path = ''
+as $function$
+  select case when jsonb_array_length(p) <= 50 then p
+    else jsonb_build_array(p -> 0) || coalesce((select jsonb_agg(e order by i) from jsonb_array_elements(p) with ordinality x(e, i) where i > jsonb_array_length(p) - 49), '[]'::jsonb) end
+$function$;
+revoke all on function private.titan_coach_history_cap(jsonb) from public, anon, authenticated;
+
+-- Every status and link change is logged, whichever path made it (the portal, this lot, a session deleted from the journal).
+create or replace function private.titan_coach_assignment_track()
+returns trigger language plpgsql security definer set search_path = ''
+as $function$
+declare v_add jsonb := '[]'::jsonb; v_day date;
+begin
+  if tg_op = 'INSERT' then
+    new.history := jsonb_build_array(jsonb_build_object('k', 'proposed', 'at', now(), 'version', private.titan_coach_assignment_version(new)));
+    new.accepted_version := null; new.pending_change := null; new.moved_date := null; new.done_declared_at := null; new.coach_seen_key := null;
+    return new;
+  end if;
+  if new.status is distinct from old.status and new.status <> 'completed' then
+    v_add := v_add || jsonb_build_array(jsonb_build_object('k', new.status, 'at', now()));
+    if new.status = 'accepted' and old.accepted_version is null and new.accepted_version is null then
+      new.accepted_version := private.titan_coach_assignment_version(new) || jsonb_build_object('at', now());
+    end if;
+  end if;
+  if new.status = 'cancelled' and old.status <> 'cancelled' then new.pending_change := null; end if;
+  if new.session_id is distinct from old.session_id then
+    select (l.date at time zone 'Europe/Paris')::date into v_day from public.training_logs l where l.id = coalesce(new.session_id, old.session_id);
+    v_add := v_add || jsonb_build_array(jsonb_strip_nulls(jsonb_build_object('k', case when new.session_id is null then 'unlinked' else 'linked' end, 'at', now(), 'day', v_day)));
+    if new.session_id is not null then new.done_declared_at := null; new.pending_change := null; end if;
+  end if;
+  if v_add <> '[]'::jsonb then new.history := private.titan_coach_history_cap(new.history || v_add); end if;
+  return new;
+end;
+$function$;
+revoke all on function private.titan_coach_assignment_track() from public, anon, authenticated;
+drop trigger if exists titan_coach_assignment_track on public.coach_assignments;
+create trigger titan_coach_assignment_track before insert or update on public.coach_assignments
+  for each row execute function private.titan_coach_assignment_track();
+
+-- Journal sessions a proposal may be matched with: the athlete's own, same sport, eligible exactly like a completion through the portal,
+-- Paris day within 3 days of the date in force, not linked to any proposal. Closest first, at most 5.
+create or replace function private.titan_coach_match_candidates(a public.coach_assignments, l public.coach_links)
+returns jsonb language sql stable security definer set search_path = ''
+as $function$
+  select coalesce(jsonb_agg(q.c order by q.gap, q.at), '[]'::jsonb) from (
+    select jsonb_build_object('id', t.id, 'day', (t.date at time zone 'Europe/Paris')::date, 'val', t.val, 'unit', t.unit,
+             'duration', case when coalesce(t.details->>'duration','') ~ '^[0-9]+([.][0-9]+)?$' then (t.details->>'duration')::numeric
+                              when coalesce(t.details#>>'{gpxStats,movingMinutes}','') ~ '^[0-9]+([.][0-9]+)?$' then (t.details#>>'{gpxStats,movingMinutes}')::numeric else null end) as c_json,
+           abs((t.date at time zone 'Europe/Paris')::date - coalesce(a.moved_date, a.planned_date)) as gap, t.date as at
+      from public.training_logs t
+     where t.user_id = l.athlete_id and t.sport = a.sport and t.archived_at is null and t.date <= now()
+       and t.date >= l.since_date::timestamp at time zone 'UTC' and t.date >= a.created_at - interval '7 days'
+       and t.is_suspicious is not true and coalesce(t.status, 'valid') not in ('rejected', 'flagged', 'pending_review')
+       and (t.date at time zone 'Europe/Paris')::date between coalesce(a.moved_date, a.planned_date) - 3 and coalesce(a.moved_date, a.planned_date) + 3
+       and not exists (select 1 from public.coach_assignments x where x.session_id = t.id)
+     order by 2, 3 limit 5
+  ) q(c, gap, at)
+$function$;
+revoke all on function private.titan_coach_match_candidates(public.coach_assignments, public.coach_links) from public, anon, authenticated;
+
+-- One proposal as one side sees it: the state (en attente, proposée à nouveau, reportée, à rapprocher, faite sans correspondance, liée,
+-- écart), what each side can do, the planned date, the date in force and the date done, the versions and the history.
+-- The coach sees the linked session only inside the link's contract (sport and start date), never an unconfirmed candidate.
+create or replace function private.titan_coach_followup_row(a public.coach_assignments, l public.coach_links, p_role text)
+returns jsonb language plpgsql stable security definer set search_path = ''
+as $function$
+declare
+  v_today date := (now() at time zone 'Europe/Paris')::date; v_eff date := coalesce(a.moved_date, a.planned_date);
+  v_cands jsonb := '[]'::jsonb; v_log public.training_logs%rowtype; v_linked jsonb; v_state text; v_coach text; v_key text;
+  v_scope boolean; v_day date; v_gap integer; v_history jsonb := a.history; v_active boolean := l.revoked_at is null and private.titan_coach_link_active(l.id);
+begin
+  if a.status = 'accepted' or (a.status = 'completed' and a.session_id is null) then v_cands := private.titan_coach_match_candidates(a, l); end if;
+  if a.session_id is not null then
+    select * into v_log from public.training_logs t where t.id = a.session_id;
+    v_day := (v_log.date at time zone 'Europe/Paris')::date;
+    v_scope := v_log.id is not null and v_log.archived_at is null and (l.sport is null or l.sport = v_log.sport) and v_log.date >= l.since_date::timestamp at time zone 'UTC';
+    v_gap := v_day - a.planned_date;
+    if p_role = 'athlete' or v_scope then
+      v_linked := jsonb_build_object('in_scope', coalesce(v_scope, false), 'day', v_day, 'sport', v_log.sport, 'val', v_log.val, 'unit', v_log.unit, 'archived', v_log.archived_at is not null,
+        'duration', case when coalesce(v_log.details->>'duration','') ~ '^[0-9]+([.][0-9]+)?$' then (v_log.details->>'duration')::numeric
+                         when coalesce(v_log.details#>>'{gpxStats,movingMinutes}','') ~ '^[0-9]+([.][0-9]+)?$' then (v_log.details#>>'{gpxStats,movingMinutes}')::numeric else null end,
+        'session_id', case when p_role = 'athlete' then a.session_id else null end);
+    else
+      v_linked := jsonb_build_object('in_scope', false);
+      v_gap := null;
+      v_history := coalesce((select jsonb_agg(e - 'day' order by i) from jsonb_array_elements(a.history) with ordinality x(e, i)), '[]'::jsonb);
+    end if;
+  end if;
+  v_state := case
+    when a.status = 'cancelled' then 'cancelled'
+    when a.status = 'completed' and a.session_id is not null then 'linked'
+    when a.status = 'completed' then case when jsonb_array_length(v_cands) > 0 then 'to_match' else 'done_unmatched' end
+    when a.pending_change is not null then 'reproposed'
+    when a.status = 'proposed' then 'awaiting'
+    when a.status = 'declined' then 'declined'
+    when jsonb_array_length(v_cands) > 0 then 'to_match'
+    when a.done_declared_at is not null then 'done_unmatched'
+    when v_eff < v_today then 'overdue'
+    when a.moved_date is not null then 'moved'
+    else 'planned' end;
+  v_coach := case
+    when v_state in ('awaiting', 'reproposed', 'to_match') then 'wait'
+    when v_state in ('overdue', 'done_unmatched', 'moved') then 'gap'
+    when v_state = 'linked' and (v_gap is distinct from 0 or v_scope is not true) then 'gap'
+    when v_state in ('declined', 'planned') then 'suggest'
+    else 'none' end;
+  v_key := left(md5(concat_ws('|', v_state, v_eff, a.session_id, a.done_declared_at, a.pending_change->>'at')), 16);
+  return jsonb_build_object(
+    'id', a.id, 'link_id', a.link_id, 'revision', a.revision, 'status', a.status, 'state', v_state,
+    'title', a.title, 'sport', a.sport, 'planned_date', a.planned_date, 'instructions', a.instructions,
+    'moved_date', a.moved_date, 'effective_date', v_eff, 'done_date', case when v_linked->>'day' is not null then v_day else null end,
+    'gap_days', v_gap, 'done_declared_at', a.done_declared_at, 'created_at', a.created_at, 'updated_at', a.updated_at,
+    'accepted_version', a.accepted_version, 'pending_change', a.pending_change, 'linked', v_linked, 'history', v_history,
+    'coach_next', case when v_active then v_coach else 'none' end, 'seen', a.coach_seen_key is not distinct from v_key and v_coach = 'gap', 'state_key', v_key,
+    'candidates', case when p_role = 'athlete' then v_cands else null end,
+    'candidate_count', case when p_role = 'coach' then jsonb_array_length(v_cands) else null end,
+    'link_state', case when l.revoked_at is not null then 'revoked' when v_active then 'active' else 'paused' end,
+    'can_act', v_active);
+end;
+$function$;
+revoke all on function private.titan_coach_followup_row(public.coach_assignments, public.coach_links, text) from public, anon, authenticated;
+
+create or replace function public.titan_coach_followup_v1(p_action text, p_data jsonb default '{}'::jsonb)
+returns jsonb language plpgsql security definer set search_path = '' set statement_timeout = '8s'
+as $function$
+declare
+  v_uid uuid := auth.uid(); v_link public.coach_links%rowtype; v_a public.coach_assignments%rowtype; v_row jsonb; v_rows jsonb;
+  v_role text; v_change jsonb; v_after jsonb; v_text text; v_date date; v_session uuid; v_entry jsonb; v_today date := (now() at time zone 'Europe/Paris')::date;
+  v_filter text := nullif(p_data->>'action', ''); v_only uuid; v_offset integer;
+begin
+  if v_uid is null or not exists (select 1 from public.profiles where id = v_uid and is_suspended is not true) then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if jsonb_typeof(p_data) is distinct from 'object' or octet_length(p_data::text) > 8000 then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+  if not private.titan_flag_on('screens.coach_followup') then raise exception 'FEATURE_DISABLED' using errcode = '42501'; end if;
+  if p_data ? 'link_id' and coalesce(p_data->>'link_id', '') <> '' then
+    begin v_only := (p_data->>'link_id')::uuid; exception when others then raise exception 'INVALID_INPUT' using errcode = '22023'; end;
+  end if;
+
+  -- ---- Coach: the short queue of decisions, across the active links, filterable by action and by athlete.
+  if p_action = 'queue' then
+    if v_filter is not null and v_filter not in ('wait', 'gap', 'suggest') then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+    select coalesce(jsonb_agg(r order by case r->>'coach_next' when 'gap' then 0 when 'suggest' then 1 else 2 end, r->>'effective_date', r->>'id'), '[]'::jsonb) into v_rows
+      from (select private.titan_coach_followup_row(a, l, 'coach') || jsonb_build_object('athlete_name', p.username) as r
+              from public.coach_assignments a join public.coach_links l on l.id = a.link_id join public.profiles p on p.id = l.athlete_id
+             where l.coach_id = v_uid and l.revoked_at is null and private.titan_coach_link_active(l.id) and (v_only is null or l.id = v_only)
+               and a.status <> 'cancelled' and (a.status in ('proposed', 'declined') or a.pending_change is not null or a.planned_date >= current_date - 60 or a.moved_date >= current_date - 60)) q
+     where (r->>'coach_next' in ('wait', 'gap') or r->>'state' = 'declined') and (r->>'seen')::boolean is not true;
+    return jsonb_build_object('owner', v_uid, 'today', v_today,
+      'counts', jsonb_build_object('wait', (select count(*) from jsonb_array_elements(v_rows) e where e->>'coach_next' = 'wait'),
+                                   'gap', (select count(*) from jsonb_array_elements(v_rows) e where e->>'coach_next' = 'gap'),
+                                   'suggest', (select count(*) from jsonb_array_elements(v_rows) e where e->>'coach_next' = 'suggest')),
+      'athletes', coalesce((select jsonb_agg(jsonb_build_object('link_id', x.link_id, 'name', x.name, 'count', x.n) order by x.name) from (
+                    select e->>'link_id' as link_id, e->>'athlete_name' as name, count(*) as n from jsonb_array_elements(v_rows) e group by 1, 2) x), '[]'::jsonb),
+      'paused', (select count(*) from public.coach_links l where l.coach_id = v_uid and l.revoked_at is null and not private.titan_coach_link_active(l.id)),
+      'rows', coalesce((select jsonb_agg(e order by i) from jsonb_array_elements(v_rows) with ordinality x(e, i) where (v_filter is null or e->>'coach_next' = v_filter) and i <= 200), '[]'::jsonb) );
+  end if;
+
+  -- ---- One link's proposals with their state (coach: active link; athlete: any of their links, read-only unless active).
+  if p_action = 'list' then
+    select * into v_link from public.coach_links where id = v_only and (coach_id = v_uid or athlete_id = v_uid);
+    if not found or (v_link.coach_id = v_uid and v_link.revoked_at is not null) then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+    v_role := case when v_link.coach_id = v_uid then 'coach' else 'athlete' end;
+    if v_role = 'coach' and not private.titan_coach_link_active(v_link.id) then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+    v_offset := greatest(0, least(coalesce((p_data->>'offset')::integer, 0), 100000));
+    return jsonb_build_object('link_id', v_link.id, 'revision', v_link.revision, 'role', v_role,
+      'total', (select count(*) from public.coach_assignments where link_id = v_link.id),
+      'offset', v_offset, 'rows', coalesce((select jsonb_agg(private.titan_coach_followup_row(a, v_link, v_role) order by a.created_at desc, a.id desc)
+                                            from (select * from public.coach_assignments where link_id = v_link.id order by created_at desc, id desc limit 100 offset v_offset) a), '[]'::jsonb));
+  end if;
+
+  -- ---- Athlete: what waits for me across my links, and my proposals of paused or ended links (read-only), so I find my own session.
+  if p_action = 'athlete' then
+    return jsonb_build_object('owner', v_uid, 'today', v_today,
+      'links', coalesce((select jsonb_agg(jsonb_build_object('id', l.id, 'coach_name', c.username, 'revoked_at', l.revoked_at,
+                   'state', case when l.revoked_at is not null then 'revoked' when private.titan_coach_link_active(l.id) then 'active' else 'paused' end) order by l.revoked_at nulls first, l.accepted_at desc)
+                 from public.coach_links l join public.profiles c on c.id = l.coach_id where l.athlete_id = v_uid and (l.revoked_at is null or l.revoked_at > now() - interval '365 days')), '[]'::jsonb),
+      'rows', coalesce((select jsonb_agg(r order by case when r->>'link_state' = 'active' and r->>'state' in ('awaiting', 'reproposed', 'to_match', 'overdue') then 0 when r->>'link_state' = 'active' and r->>'state' in ('planned', 'moved', 'done_unmatched') then 1 else 2 end, r->>'effective_date' desc, r->>'id') from (
+                 select private.titan_coach_followup_row(a, l, 'athlete') || jsonb_build_object('coach_name', c.username) as r
+                   from public.coach_assignments a join public.coach_links l on l.id = a.link_id join public.profiles c on c.id = l.coach_id
+                  where l.athlete_id = v_uid and (l.revoked_at is null or l.revoked_at > now() - interval '365 days')
+                    and (a.status in ('proposed', 'accepted') or a.pending_change is not null or a.planned_date >= current_date - 45 or a.session_id is not null)
+                  order by a.planned_date desc limit 60) q), '[]'::jsonb));
+  end if;
+
+  if p_action not in ('detail', 'propose_change', 'withdraw_change', 'answer_change', 'move', 'declare_done', 'link', 'unlink', 'seen') then
+    raise exception 'INVALID_ACTION' using errcode = '22023';
+  end if;
+  begin v_a.id := (p_data->>'id')::uuid; exception when others then raise exception 'INVALID_INPUT' using errcode = '22023'; end;
+
+  if p_action = 'detail' then
+    select l.* into v_link from public.coach_links l join public.coach_assignments a on a.link_id = l.id where a.id = v_a.id and (l.coach_id = v_uid or l.athlete_id = v_uid);
+    if not found or (v_link.coach_id = v_uid and v_link.revoked_at is not null) then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+    v_role := case when v_link.coach_id = v_uid then 'coach' else 'athlete' end;
+    if v_role = 'coach' and not private.titan_coach_link_active(v_link.id) then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+    select * into v_a from public.coach_assignments where id = v_a.id;
+    return private.titan_coach_followup_row(v_a, v_link, v_role);
+  end if;
+
+  -- ---- Writes. Lock order of the portal: the sharing link, then the proposal (then, for a link, the journal session).
+  select l.* into v_link from public.coach_links l join public.coach_assignments a on a.link_id = l.id
+   where a.id = v_a.id and l.revoked_at is null and (l.coach_id = v_uid or l.athlete_id = v_uid) for update of l;
+  if not found then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  if not private.titan_coach_link_active(v_link.id) then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+  v_role := case when v_link.coach_id = v_uid then 'coach' else 'athlete' end;
+  perform private.titan_rate_limit(v_uid, 'coach_followup', 120);
+  select * into v_a from public.coach_assignments where id = v_a.id for update;
+
+  if p_action = 'seen' then
+    if v_role <> 'coach' then raise exception 'COACH_ONLY' using errcode = '42501'; end if;
+    v_row := private.titan_coach_followup_row(v_a, v_link, 'coach');
+    if v_row->>'coach_next' <> 'gap' then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+    if v_row->>'state_key' is distinct from p_data->>'state_key' then raise exception 'COACH_CONFLICT' using errcode = '40001'; end if;
+    update public.coach_assignments set coach_seen_key = v_row->>'state_key',
+      history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_build_object('k', 'seen', 'at', now(), 'state', v_row->>'state')))
+     where id = v_a.id returning * into v_a;
+    return private.titan_coach_followup_row(v_a, v_link, 'coach');
+  end if;
+
+  -- The link: a second attempt is answered with the link in place, and logged; it never replaces it.
+  if p_action = 'link' then
+    if v_role <> 'athlete' then raise exception 'ATHLETE_ONLY' using errcode = '42501'; end if;
+    begin v_session := (p_data->>'session_id')::uuid; exception when others then raise exception 'INVALID_SESSION' using errcode = '22023'; end;
+    if v_session is null then raise exception 'INVALID_SESSION' using errcode = '22023'; end if;
+    perform pg_advisory_xact_lock(hashtextextended('titan.coach_session:' || v_session::text, 0));
+    if v_a.session_id = v_session then return jsonb_build_object('ok', true, 'already', true, 'row', private.titan_coach_followup_row(v_a, v_link, 'athlete')); end if;
+    v_entry := null;
+    if v_a.session_id is not null then v_entry := jsonb_build_object('k', 'link_refused', 'at', now(), 'code', 'ALREADY_LINKED');
+    elsif v_a.status not in ('accepted', 'completed') then raise exception 'INVALID_TRANSITION' using errcode = '22023';
+    elsif exists (select 1 from public.coach_assignments x where x.session_id = v_session) then v_entry := jsonb_build_object('k', 'link_refused', 'at', now(), 'code', 'SESSION_ALREADY_LINKED');
+    end if;
+    if v_entry is not null then
+      update public.coach_assignments set history = private.titan_coach_history_cap(history || jsonb_build_array(v_entry)) where id = v_a.id returning * into v_a;
+      return jsonb_build_object('ok', false, 'code', v_entry->>'code', 'row', private.titan_coach_followup_row(v_a, v_link, 'athlete'));
+    end if;
+    if v_a.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT' using errcode = '40001'; end if;
+    if not exists (select 1 from public.training_logs t where t.id = v_session and t.user_id = v_uid and t.sport = v_a.sport and t.archived_at is null and t.date <= now()
+                     and t.date >= v_link.since_date::timestamp at time zone 'UTC' and t.date >= v_a.created_at - interval '7 days' and t.is_suspicious is not true
+                     and coalesce(t.status, 'valid') not in ('rejected', 'flagged', 'pending_review')) then raise exception 'INVALID_SESSION' using errcode = '22023'; end if;
+    begin
+      update public.coach_assignments set status = 'completed', session_id = v_session, revision = revision + 1, updated_at = now() where id = v_a.id returning * into v_a;
+    exception when unique_violation then
+      update public.coach_assignments set history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_build_object('k', 'link_refused', 'at', now(), 'code', 'SESSION_ALREADY_LINKED')))
+       where id = v_a.id returning * into v_a;
+      return jsonb_build_object('ok', false, 'code', 'SESSION_ALREADY_LINKED', 'row', private.titan_coach_followup_row(v_a, v_link, 'athlete'));
+    end;
+    return jsonb_build_object('ok', true, 'row', private.titan_coach_followup_row(v_a, v_link, 'athlete'));
+  end if;
+
+  if v_a.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT' using errcode = '40001'; end if;
+
+  if p_action in ('propose_change', 'withdraw_change') then
+    if v_role <> 'coach' then raise exception 'COACH_ONLY' using errcode = '42501'; end if;
+    if p_action = 'withdraw_change' then
+      if v_a.pending_change is null then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+      update public.coach_assignments set pending_change = null, revision = revision + 1, updated_at = now(),
+        history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_build_object('k', 'change_withdrawn', 'at', now())))
+       where id = v_a.id returning * into v_a;
+      return private.titan_coach_followup_row(v_a, v_link, 'coach');
+    end if;
+    if v_a.status not in ('accepted', 'declined') then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+    v_after := private.titan_coach_assignment_version(v_a);
+    if p_data ? 'title' then
+      v_text := left(regexp_replace(btrim(coalesce(p_data->>'title', '')), '[[:cntrl:]<>]', '', 'g'), 100);
+      if v_text = '' then raise exception 'BAD_TITLE' using errcode = '22023'; end if;
+      v_after := v_after || jsonb_build_object('title', v_text);
+    end if;
+    if p_data ? 'sport' then
+      if not exists (select 1 from public.sports s where s.id = p_data->>'sport' and coalesce(s.is_active, true)) then raise exception 'SPORT_UNKNOWN' using errcode = '22023'; end if;
+      v_after := v_after || jsonb_build_object('sport', p_data->>'sport');
+    end if;
+    if p_data ? 'planned_date' then
+      begin v_date := (p_data->>'planned_date')::date; exception when others then raise exception 'INVALID_PERIOD' using errcode = '22023'; end;
+      if v_date is null or v_date < current_date - 7 or v_date > current_date + 366 then raise exception 'INVALID_PERIOD' using errcode = '22023'; end if;
+      v_after := v_after || jsonb_build_object('planned_date', v_date);
+    end if;
+    if p_data ? 'instructions' then
+      v_text := left(regexp_replace(coalesce(p_data->>'instructions', ''), '[\x01-\x09\x0b-\x1f\x7f<>]', '', 'g'), 2000);
+      v_after := v_after || jsonb_build_object('instructions', v_text);
+    end if;
+    if v_after = private.titan_coach_assignment_version(v_a) then raise exception 'CHANGE_EMPTY' using errcode = '22023'; end if;
+    v_text := nullif(left(btrim(regexp_replace(coalesce(p_data->>'note', ''), '[[:cntrl:]<>]', '', 'g')), 300), '');
+    v_change := v_after || jsonb_build_object('note', v_text, 'at', now(), 'from_status', v_a.status);
+    update public.coach_assignments set pending_change = jsonb_strip_nulls(v_change), revision = revision + 1, updated_at = now(), coach_seen_key = null,
+      history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_strip_nulls(jsonb_build_object('k', case when v_a.pending_change is null then 'change_proposed' else 'change_replaced' end,
+                  'at', now(), 'before', private.titan_coach_assignment_version(v_a), 'after', v_after, 'note', v_text))))
+     where id = v_a.id returning * into v_a;
+    return private.titan_coach_followup_row(v_a, v_link, 'coach');
+  end if;
+
+  if v_role <> 'athlete' then raise exception 'ATHLETE_ONLY' using errcode = '42501'; end if;
+
+  if p_action = 'answer_change' then
+    if v_a.pending_change is null or v_a.status not in ('accepted', 'declined') then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+    if jsonb_typeof(p_data->'accept') is distinct from 'boolean' then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+    if (p_data->>'accept')::boolean then
+      v_change := v_a.pending_change;
+      update public.coach_assignments set
+          title = v_change->>'title', sport = v_change->>'sport', planned_date = (v_change->>'planned_date')::date, instructions = coalesce(v_change->>'instructions', ''),
+          moved_date = case when (v_change->>'planned_date')::date is distinct from planned_date then null else moved_date end,
+          done_declared_at = case when (v_change->>'planned_date')::date is distinct from planned_date or v_change->>'sport' is distinct from sport then null else done_declared_at end,
+          status = 'accepted', pending_change = null, revision = revision + 1, updated_at = now(),
+          history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_build_object('k', 'change_accepted', 'at', now(), 'before', private.titan_coach_assignment_version(v_a),
+                      'after', v_change - 'note' - 'at' - 'from_status')))
+       where id = v_a.id returning * into v_a;
+    else
+      update public.coach_assignments set pending_change = null, revision = revision + 1, updated_at = now(),
+        history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_build_object('k', 'change_declined', 'at', now(), 'kept', private.titan_coach_assignment_version(v_a))))
+       where id = v_a.id returning * into v_a;
+    end if;
+    return private.titan_coach_followup_row(v_a, v_link, 'athlete');
+  end if;
+
+  if p_action = 'move' then
+    if v_a.status <> 'accepted' then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+    if p_data->>'date' is null then v_date := null;
+    else
+      begin v_date := (p_data->>'date')::date; exception when others then raise exception 'INVALID_PERIOD' using errcode = '22023'; end;
+      if v_date < v_a.planned_date - 14 or v_date > v_a.planned_date + 30 or v_date < current_date - 7 then raise exception 'INVALID_PERIOD' using errcode = '22023'; end if;
+      if v_date = v_a.planned_date then v_date := null; end if;
+    end if;
+    if v_date is not distinct from v_a.moved_date then raise exception 'CHANGE_EMPTY' using errcode = '22023'; end if;
+    v_text := nullif(left(btrim(regexp_replace(coalesce(p_data->>'note', ''), '[[:cntrl:]<>]', '', 'g')), 140), '');
+    update public.coach_assignments set moved_date = v_date, revision = revision + 1, updated_at = now(),
+      history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_strip_nulls(jsonb_build_object('k', case when v_date is null then 'move_undone' else 'moved' end, 'at', now(),
+                  'from', coalesce(v_a.moved_date, v_a.planned_date), 'to', coalesce(v_date, v_a.planned_date), 'note', v_text))))
+     where id = v_a.id returning * into v_a;
+    return private.titan_coach_followup_row(v_a, v_link, 'athlete');
+  end if;
+
+  if p_action = 'declare_done' then
+    if jsonb_typeof(p_data->'done') is distinct from 'boolean' then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+    if v_a.status <> 'accepted' or (p_data->>'done')::boolean = (v_a.done_declared_at is not null) then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+    if (p_data->>'done')::boolean and v_today < v_a.planned_date - 14 then raise exception 'INVALID_PERIOD' using errcode = '22023'; end if;
+    update public.coach_assignments set done_declared_at = case when (p_data->>'done')::boolean then now() else null end, revision = revision + 1, updated_at = now(),
+      history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_build_object('k', case when (p_data->>'done')::boolean then 'declared_done' else 'declaration_withdrawn' end, 'at', now())))
+     where id = v_a.id returning * into v_a;
+    return private.titan_coach_followup_row(v_a, v_link, 'athlete');
+  end if;
+
+  -- unlink: the athlete takes back a wrong match; the proposal is accepted again and the journal is untouched.
+  if v_a.status <> 'completed' or v_a.session_id is null then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+  update public.coach_assignments set status = 'accepted', session_id = null, revision = revision + 1, updated_at = now() where id = v_a.id returning * into v_a;
+  return private.titan_coach_followup_row(v_a, v_link, 'athlete');
+end;
+$function$;
+revoke all on function public.titan_coach_followup_v1(text, jsonb) from public, anon;
+grant execute on function public.titan_coach_followup_v1(text, jsonb) to authenticated;
+
+-- Measure (team only, no identifier): proposals per state, decisions waiting on each side, cycles proposition -> link.
+create or replace function private.titan_coach_followup_measure()
+returns jsonb language sql stable security definer set search_path = ''
+as $function$
+  select jsonb_build_object(
+    'proposals', (select count(*) from public.coach_assignments),
+    'linked', (select count(*) from public.coach_assignments where session_id is not null),
+    'moved', (select count(*) from public.coach_assignments where moved_date is not null),
+    'declaredWithoutSession', (select count(*) from public.coach_assignments where done_declared_at is not null),
+    'changesPending', (select count(*) from public.coach_assignments where pending_change is not null),
+    'changesAccepted', (select count(*) from public.coach_assignments a, jsonb_array_elements(a.history) e where e->>'k' = 'change_accepted'),
+    'changesDeclined', (select count(*) from public.coach_assignments a, jsonb_array_elements(a.history) e where e->>'k' = 'change_declined'),
+    'refusedLinks', (select count(*) from public.coach_assignments a, jsonb_array_elements(a.history) e where e->>'k' = 'link_refused'),
+    'gapsHandled', (select count(*) from public.coach_assignments a, jsonb_array_elements(a.history) e where e->>'k' = 'seen'))
+$function$;
+revoke all on function private.titan_coach_followup_measure() from public, anon, authenticated;
+
+notify pgrst, 'reload schema';

@@ -92,6 +92,18 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v18 bundle (v19, the coach-places decision of PR #155, is not part of this chain).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.9.1 — Une séance assignée (24 November 2026): coach proposals become followable (states, short queue, change kept beside the
+  // accepted version, suggested match confirmed by the athlete, refused double links logged), behind screens.coach_followup (absent =
+  // closed). NOT APPLIED: owner decision required. Built on main (head 20261122090000, end of v20): the V1.8 bundles v21 to v26 live on
+  // their own branches; if they are applied first, regenerate this bundle after them (its guard and fingerprints change). Additive,
+  // rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_coach_followup.sql, tools/db/test-coach-followup-concurrency.sh).
+  v191: {
+    out: "supabase/release-v191", after: "20261122090000", until: "20261201090000",
+    before: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [324, "39442f678587", "81ad6534245e"] },
+    expected: { private: [126, "e038c4345853", "b1a6d8583bc3"], public: [325, "52d4cbd3910b", "ce14b8c665ea"] },
+    beforeNote: "This is the state production reaches at the end of the v20 bundle (applied on 18 Nov 2026, head 20261122090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_followup for the pilot accounts only.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

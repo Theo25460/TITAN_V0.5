@@ -125,4 +125,10 @@ fi
 python3 "$ROOT/tools/db/test-reward-appeal-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "Source consent and cross-source import concurrency contracts (real overlapping connections)"
 python3 "$ROOT/tools/db/test-import-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Coach follow-up link concurrency contract (two real connections, V1.9.1)"
+if guard=$(bash "$ROOT/tools/db/test-coach-followup-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "coach follow-up concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the coach follow-up concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-coach-followup-concurrency.sh" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."
