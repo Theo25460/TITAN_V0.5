@@ -550,6 +550,37 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
   color: var(--tx-2);
 }
 .cm-cordee-together .t-icon { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--space); }
+/* V1.8.1 — the relay step: two knots on one short rope (passage opened, relay received), the shared line, then what I can do. */
+.cm-cordee-relay {
+  display: grid;
+  gap: var(--s2);
+  margin: 0 var(--s5) var(--s5);
+  padding: var(--s4);
+  border: 1px solid var(--space-line);
+  border-radius: var(--r2);
+  background: rgba(226, 234, 236, 0.04);
+  min-width: 0;
+}
+.cm-cordee-relay p { margin: 0; overflow-wrap: anywhere; }
+.cm-cordee-relay h4 {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: var(--w-title);
+  font-size: 17px;
+  font-weight: 800;
+}
+.cm-cordee-relay h4 .t-icon { width: 16px; height: 16px; color: var(--space); }
+.cm-cordee-relay .asc-between { gap: var(--s2); align-items: center; flex-wrap: wrap; }
+.cm-cordee-relay .sig-state.is-rare { background: var(--am); color: var(--am-ink); }
+.cm-relay-steps { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--tx-2); }
+.cm-relay-steps li { display: inline-flex; align-items: center; gap: 6px; }
+.cm-relay-steps li::before { content: ""; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--space); }
+.cm-relay-steps li[data-done="true"] { color: var(--tx); }
+.cm-relay-steps li[data-done="true"]::before { background: var(--space); }
+.cm-cordee-relay .asc-actions .asc-btn { min-height: 44px; }
 .cm-cordee-card > .asc-actions { padding: 0 var(--s5) calc(var(--s5) + var(--s1)); padding-right: calc(var(--s5) + var(--cut)); }
 .cm-cordee-card > .asc-actions .asc-btn { min-height: 44px; }
 @media (min-width: 720px) {
@@ -557,6 +588,7 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
   .cm-cordee-top { margin-top: -92px; padding: 0 var(--s7); }
   .cm-cordee-body { padding: var(--s6) var(--s7); }
   .cm-cordee-card > .asc-actions { padding-left: var(--s7); padding-bottom: var(--s7); }
+  .cm-cordee-relay { margin: 0 var(--s7) var(--s6); }
 }
 /* The route and the party stand side by side only where the plate itself is wide enough for names to be read in full. */
 .cm-cordee-card { container-type: inline-size; }

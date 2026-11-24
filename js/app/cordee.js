@@ -37,6 +37,8 @@
   const on = () => !guest() && !window.titanAccountTransition?.active && window.titanFlags?.enabled?.(FLAG, false) === true;
   const n = (v) => window.TitanFormat.number(Number(v) || 0);
   const failure = (error) => {
+    const relay = C()?.relayMessage?.(error);
+    if (relay) return relay;
     const code = Object.keys(MESSAGES).find((k) => String(error?.message || "").includes(k));
     return code ? MESSAGES[code] : navigator.onLine ? "Le serveur ne répond pas pour l’instant. Réessaie dans un moment." : "Hors ligne : la cordée revient avec le réseau.";
   };
@@ -116,6 +118,22 @@
       ${m.status === "joined" && m.pitches != null ? `<span class="asc-ascent thin" aria-hidden="true"><span style="--p:${Math.min(100, Math.round((Number(m.pitches) / Math.max(1, Number(c.share))) * 100))}%"></span></span><strong class="asc-num">${n(m.pitches)}${m.strand ? ` ${icon("check")}` : ""}</strong>` : "<span></span><span></span>"}</li>`).join("")}</ul>`;
   }
 
+  /* V1.8.1 — the relay step of the pilot route: the shared state (who opened, who received, as the server names them), what I can do
+     and how the others contribute. Only titan_cordees_v1's relay: no session, sport, date or duration is shown. */
+  function relayHtml(c) {
+    const r = C().relay?.(c);
+    if (!r) return "";
+    const lock = busy ? "disabled" : "";
+    return `<section class="cm-cordee-relay" data-cordee-relay-step="${esc(r.status)}" aria-labelledby="relay-${esc(c.id)}">
+      <div class="asc-between"><h4 id="relay-${esc(c.id)}">${icon("link")} ${esc(r.name)}</h4><span class="sig-state${r.status === "confirmed" ? " is-rare" : ""}">${r.status === "confirmed" ? "Relais passé" : r.status === "opened" ? "Passage ouvert" : "À ouvrir"}</span></div>
+      <ol class="cm-relay-steps">${r.steps.map((s) => `<li data-done="${s.done}"><span>${esc(s.label)}</span></li>`).join("")}</ol>
+      <p class="asc-small" data-cordee-relay-shared>${esc(r.shared)}</p>
+      <p class="asc-small asc-muted" data-cordee-relay-mine>${esc(r.mine)}</p>
+      ${r.can ? `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-cordee-relay="${esc(c.id)}" data-relay-action="${esc(r.can)}" ${lock}>${esc(r.label)}</button></div>` : ""}
+      ${r.status === "waiting" ? `<p class="asc-small asc-faint">${esc(r.intro)}</p>` : ""}
+    </section>`;
+  }
+
   function cordeeHtml(c) {
     const words = C().explain(c);
     const lock = busy ? "disabled" : "";
@@ -158,6 +176,7 @@
           ${party > 1 ? `<p class="asc-small cm-cordee-together">${icon("link")}<span>Personne n’atteint le sommet seul : la part de chacun compte jusqu’à ${n(c.cap)} longueurs, et il faut celles d’au moins deux membres.</span></p>` : ""}
         </div>
       </div>
+      ${relayHtml(c)}
       ${actions}
     </article>`;
   }
@@ -252,6 +271,12 @@
     const find = (id) => (data?.cordees || []).find((c) => c.id === id);
     if (b.hasAttribute("data-cordee-new")) return form(ask);
     if (b.dataset.cordeeJoin) return act((a) => rpc(a, "titan_challenge_respond", { p_id: b.dataset.cordeeJoin, p_action: "join" }), { title: "Tu es encordé", message: "Tes séances confirmées comptent dès maintenant." });
+    if (b.dataset.cordeeRelay) {
+      const action = b.dataset.relayAction === "confirm" ? "confirm" : "transmit";
+      let answer = null;
+      return act(async (a) => { answer = await rpc(a, "titan_cordee_relay_v1", { p_id: b.dataset.cordeeRelay, p_action: action }); })
+        .then(() => { if (answer) window.titanShell?.toast?.({ type: "ok", ...C().relayResult(answer, action) }); });
+    }
     if (b.dataset.cordeeDecline) return act((a) => rpc(a, "titan_challenge_respond", { p_id: b.dataset.cordeeDecline, p_action: "decline" }));
     if (b.dataset.cordeeLink) return act((a) => shareLink(a, b.dataset.cordeeLink));
     if (b.dataset.cordeeWear) return act((a) => rpc(a, "titan_set_displayed_title", { p_key: `cordee:${b.dataset.cordeeWear}` }), { title: "Titre porté", message: C().ROUTES[b.dataset.cordeeWear]?.title || "" });

@@ -98,3 +98,44 @@ test("with friends in it, two members must bring longueurs: one strong member wi
   assert.match(SQL2, /'needs', least\(2, v_joined \+ v_pending\)/);
   assert.equal(C.RULE.contributors, 2);
 });
+
+// V1.8.1 — Relais de cordée: the module words exactly the states and hints the server sends, and nothing else.
+const RELAY_SQL = readFileSync(new URL("../supabase/migrations/20261124090000_cordee_relay.sql", import.meta.url), "utf8");
+test("relay: the module words every hint and refusal of the server, on the pilot route only", () => {
+  assert.match(RELAY_SQL, /v_c\.route <> 'aube'/);
+  assert.equal(C.RELAY.route, "aube");
+  assert.match(RELAY_SQL, /private\.titan_flag_on\('screens\.cordee_relay'\)/);
+  const hints = [...RELAY_SQL.matchAll(/v_hint := '([a-z_]+)'/g)].map((m) => m[1]).concat([...RELAY_SQL.matchAll(/v_hint := case when v_has then '([a-z_]+)' else '([a-z_]+)' end;/g)].flatMap((m) => [m[1], m[2]]));
+  assert.deepEqual([...new Set(hints)].sort(), ["closed", "confirm", "done", "join", "other_day", "own", "session", "transmit"]);
+  for (const hint of hints) {
+    const words = C.relay({ relay: { status: "waiting", hint, can: null } });
+    assert.ok(words.mine && !/undefined/.test(words.mine), hint);
+  }
+  const codes = [...new Set([...RELAY_SQL.matchAll(/raise exception '(RELAY_[A-Z_]+)'/g)].map((m) => m[1]))];
+  assert.ok(codes.length >= 8);
+  for (const code of codes) assert.ok(C.RELAY_MESSAGES[code], code);
+  assert.equal(C.relayMessage({ message: "RELAY_OWN" }), C.RELAY_MESSAGES.RELAY_OWN);
+  assert.equal(C.relayMessage({ message: "CHALLENGE_ENDED" }), null, "other refusals keep the cordée's own wording");
+  assert.match(RELAY_SQL, /having least\(90, sum\(s\.effort_minutes\)\) >= 12/, "the relay uses the longueur threshold of the Cordée");
+  assert.ok(C.RELAY_MESSAGES.RELAY_NO_SESSION.includes(`${C.RULE.oneLongueur} minutes`));
+});
+
+test("relay: the shared state names only who the server names, with a family label, and offers only the server's action", () => {
+  assert.equal(C.relay({}), null);
+  assert.equal(C.relay({ relay: null }), null);
+  const waiting = C.relay({ relay: { status: "waiting", hint: "transmit", can: "transmit", opener: null, receiver: null } });
+  assert.equal(waiting.label, "Transmettre le relais");
+  assert.deepEqual(waiting.steps.map((s) => s.done), [false, false]);
+  const own = C.relay({ relay: { status: "opened", hint: "own", can: null, opener: { name: "Moi", me: true, family: "technique" } } });
+  assert.equal(own.shared, "Tu as ouvert le passage (Prisme).");
+  assert.equal(own.can, null, "the opener is never offered to receive their own relay");
+  const other = C.relay({ relay: { status: "opened", hint: "confirm", can: "confirm", opener: { name: "Léa", me: false, family: "technique" } } });
+  assert.equal(other.shared, "Passage ouvert par Léa (Prisme). Le relais attend un autre membre.");
+  assert.equal(other.label, "Confirmer le relais");
+  const done = C.relay({ relay: { status: "confirmed", hint: "done", can: null, opener: { name: "Léa", me: false, family: "technique" }, receiver: { name: "Membre de la cordée", me: false, family: null } } });
+  assert.equal(done.shared, "Relais passé : Léa (Prisme) → Membre de la cordée. La Sentinelle laisse passer la cordée.");
+  assert.match(done.mine, /À ton tour/);
+  assert.equal(C.relay({ relay: { status: "opened", hint: "own", can: "hack" } }).can, null, "an unknown action is never offered");
+  assert.deepEqual(C.relayResult({ changed: false }, "confirm").title, "Déjà fait");
+  assert.deepEqual(C.relayResult({ changed: true }, "confirm").title, "Relais reçu");
+});

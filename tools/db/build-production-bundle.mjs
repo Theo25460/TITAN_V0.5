@@ -92,6 +92,16 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v18 bundle (v19, the coach-places decision of PR #155, is not part of this chain).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.8.1 — Relais de cordée (24 November 2026): one relay step on the pilot route « Les crêtes de l’Aube », behind the server flag
+  // screens.cordee_relay (absent = closed). NOT APPLIED: owner decision required. Additive, rehearsed on a replica (tools/db/test-migrations.sh,
+  // sql/tests/300_cordee_relay.sql, tools/db/test-cordee-relay-concurrency.sh). Fingerprints measured on a replica built from the repository.
+  v21: {
+    out: "supabase/release-v21", after: "20261122090000", until: "20261124090000",
+    before: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [324, "39442f678587", "81ad6534245e"] },
+    expected: { private: [124, "d491e079008f", "b971b4c8829d"], public: [325, "a606edd67a11", "65c91ba6d772"] },
+    beforeNote: "This is the state production reaches at the end of the v20 bundle (applied on 18 Nov 2026, head 20261122090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.cordee_relay for the pilot accounts only.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
