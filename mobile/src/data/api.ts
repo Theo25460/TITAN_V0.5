@@ -278,6 +278,12 @@ export const fetchCordees = (owner: string) => ownerRpc<CordeeList>(owner, "tita
 export const cordeeCreate = (owner: string, p: { route: string; pace: string; days: number; invitees: string[] }) =>
   ownerRpc<{ id: string; invited: number }>(owner, "titan_cordee_create_v1", { p_route: p.route, p_pace: p.pace, p_days: p.days, p_invitees: p.invitees });
 /** Social lot D: what happened in one's circle since a moment (the server clamps it to 1 hour .. 30 days). */
+/** V1.9.1 — the athlete's side of the coach follow-up (titan_coach_followup_v1, behind screens.coach_followup). */
+export const coachFollowup = <T = unknown>(owner: string, action: string, data: Record<string, unknown> = {}) =>
+  ownerRpc<T>(owner, "titan_coach_followup_v1", { p_action: action, p_data: data });
+/** Answer a proposal through the existing portal (accepted / declined), as the website does. */
+export const coachAnswer = (owner: string, id: string, revision: number, status: "accepted" | "declined") =>
+  ownerRpc<unknown>(owner, "titan_coach_portal", { p_action: "assignment_status", p_data: { id, revision, status } });
 export const fetchSocialDigest = (owner: string, since: string | null) => ownerRpc<import("../core/cordee").SocialDigest>(owner, "titan_social_digest_v1", { p_since: since });
 export const wearTitle = (owner: string, key: string | null) => ownerRpc<{ key: string | null; label: string | null }>(owner, "titan_set_displayed_title", { p_key: key });
 export const expeditionJoin = (id: string) => rpc("titan_expedition_join", { p_id: id });
