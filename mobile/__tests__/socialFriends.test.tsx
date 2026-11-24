@@ -59,8 +59,8 @@ test("tokens: only 64 lowercase hex characters are kept; the shared message carr
   expect(isInvitationToken(TOKEN.toUpperCase())).toBe(true);
   expect(isInvitationToken("ab".repeat(31))).toBe(false);
   expect(isInvitationToken("<script>")).toBe(false);
-  expect(parseInvite({ invitation: TOKEN.toUpperCase() })).toEqual({ friend: null, guild: null, invitation: TOKEN });
-  expect(parseInvite({ invitation: "zz" })).toEqual({ friend: null, guild: null, invitation: null });
+  expect(parseInvite({ invitation: TOKEN.toUpperCase() })).toEqual({ friend: null, guild: null, invitation: TOKEN, challenge: null });
+  expect(parseInvite({ invitation: "zz" })).toEqual({ friend: null, guild: null, invitation: null, challenge: null });
   expect(friendLinkUrl(TOKEN)).toBe(`https://titan-app.fr/social?invitation=${TOKEN}`);
   expect(friendLinkMessage(TOKEN)).toContain(friendLinkUrl(TOKEN));
 });

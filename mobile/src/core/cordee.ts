@@ -21,6 +21,18 @@ export type CordeeState = {
   pending?: number; contributors?: number; needs?: number;
   families: CordeeFamily[]; joined: number; members: CordeeMember[]; me: { pitches: number; counted: number; days: number; families: CordeeFamily[]; strand: boolean } | null;
   title_key: string; earned: boolean;
+  /** V1.8.1: the relay step of the pilot route (null or absent elsewhere, or while screens.cordee_relay is closed and nothing was played). */
+  relay?: CordeeRelay | null;
+};
+export type CordeeRelayPerson = { name: string; me: boolean; family: CordeeFamily | null };
+export type CordeeRelay = {
+  step: "sentinelle"; status: "waiting" | "opened" | "confirmed"; active: boolean; can: "transmit" | "confirm" | null;
+  hint: "transmit" | "session" | "own" | "confirm" | "other_day" | "join" | "done" | "closed";
+  opener: CordeeRelayPerson | null; receiver: CordeeRelayPerson | null;
+};
+export type CordeeRelayWords = {
+  name: string; intro: string; status: CordeeRelay["status"]; shared: string; mine: string; can: "transmit" | "confirm" | null; label: string | null;
+  steps: { id: "transmit" | "confirm"; label: string; done: boolean }[];
 };
 export type CordeeWords = {
   route: CordeeRoute; camps: { index: number; name: string; text: string }[]; next: { index: number; name: string; at: number } | null;
@@ -37,6 +49,11 @@ export const Cordee = g.TitanCordee as {
   cap(share: number): number;
   explain(state: CordeeState): CordeeWords;
   suggestPace(activeDays28: number): CordeePace;
+  RELAY: { route: CordeeRouteId; step: string; name: string; intro: string; labels: { transmit: string; confirm: string } };
+  RELAY_MESSAGES: Record<string, string>;
+  relay(state: { relay?: CordeeRelay | null } | null): CordeeRelayWords | null;
+  relayResult(answer: { changed?: boolean } | null, action: "transmit" | "confirm"): { title: string; message: string };
+  relayMessage(error: unknown): string | null;
 };
 
 /* « Depuis ta dernière visite », social part (public.titan_social_digest_v1), worded by the website's module. */

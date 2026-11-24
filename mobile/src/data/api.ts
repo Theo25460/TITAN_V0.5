@@ -277,6 +277,14 @@ export type CordeeList = { cordees: import("../core/cordee").CordeeState[]; titl
 export const fetchCordees = (owner: string) => ownerRpc<CordeeList>(owner, "titan_cordees_v1", {});
 export const cordeeCreate = (owner: string, p: { route: string; pace: string; days: number; invitees: string[] }) =>
   ownerRpc<{ id: string; invited: number }>(owner, "titan_cordee_create_v1", { p_route: p.route, p_pace: p.pace, p_days: p.days, p_invitees: p.invitees });
+/** V1.8.1: transmit or confirm the relay of a pilot cordée. The server checks membership, the confirmed session, the other member and
+    the other day; a repeated call answers changed: false. */
+export const cordeeRelay = (owner: string, id: string, action: "transmit" | "confirm") =>
+  ownerRpc<import("../core/cordee").CordeeRelay & { changed: boolean }>(owner, "titan_cordee_relay_v1", { p_id: id, p_action: action });
+/** The public preview of a challenge or cordée invitation link (never a name), and accepting it on an explicit tap. */
+export type ChallengeLinkPreview = { valid: boolean; title?: string; metric?: string; sport?: string | null; target?: number; endsAt?: string; kind?: "individual" | "cordee"; route?: string | null; pace?: string | null; participants?: number };
+export const challengeLinkPreview = (token: string) => rpc<ChallengeLinkPreview>("titan_challenge_link_preview_v1", { p_token: token });
+export const challengeLinkAccept = (owner: string, token: string) => ownerRpc<unknown>(owner, "titan_challenge_link_accept_v1", { p_token: token });
 /** Social lot D: what happened in one's circle since a moment (the server clamps it to 1 hour .. 30 days). */
 export const fetchSocialDigest = (owner: string, since: string | null) => ownerRpc<import("../core/cordee").SocialDigest>(owner, "titan_social_digest_v1", { p_since: since });
 export const wearTitle = (owner: string, key: string | null) => ownerRpc<{ key: string | null; label: string | null }>(owner, "titan_set_displayed_title", { p_key: key });

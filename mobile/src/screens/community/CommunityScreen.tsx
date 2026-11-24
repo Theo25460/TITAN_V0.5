@@ -29,6 +29,7 @@ import { useOnline } from "../../lib/network";
 import { colors, space, TOUCH } from "../../theme/tokens";
 import { DuoCard, duoKey } from "./DuoCard";
 import { BlockedAccounts, FriendLinkCard, InvitationCard } from "./FriendLinks";
+import { ChallengeLinkCard } from "./ChallengeLinkCard";
 import { CordeePanel } from "./CordeePanel";
 import { CoachFollows } from "./CoachFollows";
 import { CircleDigestCard } from "./CircleDigestCard";
@@ -50,18 +51,22 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
   const online = useOnline();
   const savePrefs = useSavePrefs();
   const invite = parseInvite(route?.params);
-  const [tab, setTab] = useState<Tab>(invite.guild ? "guild" : "friends");
+  const [tab, setTab] = useState<Tab>(invite.guild ? "guild" : invite.challenge ? "challenges" : "friends");
   const [peopleSheet, setPeopleSheet] = useState<"invite" | "coach" | null>(invite.friend ? "invite" : null);
   const [code, setCode] = useState(invite.friend ?? "");
   const [busy, setBusy] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState(false);
   const [invitation, setInvitation] = useState<string | null>(invite.invitation);
+  const [challengeLink, setChallengeLink] = useState<string | null>(invite.challenge);
   const linksOn = useServerFlag("screens.friendlinks");
   const s = q.data;
 
   /* A link opened while the screen is already shown (AUD-12) fills the matching field and opens its tab. */
   useEffect(() => {
-    if (invite.invitation) {
+    if (invite.challenge) {
+      setTab("challenges");
+      setChallengeLink(invite.challenge);
+    } else if (invite.invitation) {
       setTab("friends");
       setInvitation(invite.invitation);
     } else if (invite.friend) {
@@ -69,7 +74,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
       setCode(invite.friend);
       setPeopleSheet("invite");
     } else if (invite.guild) setTab("guild");
-  }, [invite.friend, invite.guild, invite.invitation]);
+  }, [invite.friend, invite.guild, invite.invitation, invite.challenge]);
 
   /* Sharing a code nobody can use was a silent dead end (AUD-06): the server only finds a "findable" profile. Before sharing,
      an unfindable profile is offered the switch, with what it reveals; refusing cancels the share instead of sending a dead code. */
@@ -235,6 +240,7 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
           </>
         ) : tab === "challenges" ? (
           <>
+            {challengeLink ? <ChallengeLinkCard owner={owner} token={challengeLink} online={online} onDone={() => setChallengeLink(null)} /> : null}
             <CordeePanel owner={owner} online={online} friends={s.friends.map((f) => ({ id: f.id, name: f.name }))} />
             <Button label="Lancer un défi" icon="flag" onPress={() => setNewChallenge(true)} testID="new-challenge" />
             <RankingPanel />

@@ -137,7 +137,78 @@
     return d >= 16 ? "soutenue" : d >= 8 ? "reguliere" : "douce";
   }
 
-  const api = { RULE, PACES, DAYS, FAMILIES, ROUTES, share, longueursOfDay, cap, variety, simulate, explain, suggestPace };
+  /* ------------------------------------------------------------------ V1.8.1 — the relay step (20261124090000_cordee_relay.sql)
+     One step on the pilot route: a member TRANSMITS with a confirmed session that brought a longueur, ANOTHER member CONFIRMS with their
+     own confirmed session on another day. The server decides who can act (state.relay.can) and why not (state.relay.hint); this only
+     words it. The relay adds no longueur, XP, credit or title. Only the game action, a family label and an allowed name are shown. */
+  const RELAY = Object.freeze({
+    route: "aube",
+    step: "sentinelle",
+    name: "Le relais de la Sentinelle",
+    intro: "Un membre ouvre le passage avec une séance confirmée, un autre reçoit le relais un autre jour avec la sienne. Le relais ne compte aucune longueur de plus : il fait passer la corde de l’un à l’autre.",
+    labels: { transmit: "Transmettre le relais", confirm: "Confirmer le relais" },
+  });
+  const RELAY_MESSAGES = Object.freeze({
+    RELAY_OWN: "Tu as ouvert ce passage : c’est à un autre membre de recevoir le relais.",
+    RELAY_NO_SESSION: `Il faut une séance confirmée par TITAN dans la cordée, sur une journée d’au moins ${RULE.oneLongueur} minutes d’effort. Une séance en attente de vérification ne compte pas encore.`,
+    RELAY_OTHER_DAY: "Le relais se reçoit un autre jour que celui de la séance qui a ouvert le passage.",
+    RELAY_ALREADY_OPEN: "Le passage vient d’être ouvert par un autre membre.",
+    RELAY_ALREADY_CONFIRMED: "Le relais a déjà été reçu par un autre membre.",
+    RELAY_NOT_OPEN: "Le passage n’est pas encore ouvert.",
+    RELAY_UNAVAILABLE: "Ce relais n’est pas disponible pour toi.",
+    RELAY_NOT_ON_ROUTE: "Cette route n’a pas d’étape de relais.",
+    RELAY_INVALID: "Action de relais inconnue.",
+  });
+  const who = (p, fallback) => {
+    if (!p) return fallback;
+    const fam = FAMILIES[p.family] ? ` (${FAMILIES[p.family].label})` : "";
+    return `${p.me ? "toi" : p.name || "Membre de la cordée"}${fam}`;
+  };
+  const cap1 = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  /** Words for state.relay (titan_cordees_v1 → cordees[i].relay, or titan_cordee_relay_v1). null when the cordée has no relay step. */
+  function relay(state) {
+    const r = state && state.relay;
+    if (!r || typeof r !== "object") return null;
+    const status = ["waiting", "opened", "confirmed"].includes(r.status) ? r.status : "waiting";
+    const shared = status === "confirmed"
+      ? `Relais passé : ${who(r.opener, "un membre")} → ${who(r.receiver, "un membre")}. La Sentinelle laisse passer la cordée.`
+      : status === "opened"
+        ? (r.opener && r.opener.me ? `Tu as ouvert le passage${FAMILIES[r.opener.family] ? ` (${FAMILIES[r.opener.family].label})` : ""}.` : `Passage ouvert par ${who(r.opener, "un membre")}. Le relais attend un autre membre.`)
+        : "Passage fermé : personne ne l’a encore ouvert.";
+    const MINE = {
+      transmit: "Ta séance confirmée peut ouvrir le passage : transmets le relais à la cordée.",
+      session: `Une journée à ${RULE.oneLongueur} minutes d’effort confirmé dans la cordée te permet d’ouvrir le passage.`,
+      own: "À un autre membre de jouer : il reçoit le relais avec sa propre séance confirmée, un autre jour. Toi, tu continues d’apporter tes longueurs.",
+      confirm: "Ta séance confirmée d’un autre jour te permet de recevoir le relais.",
+      other_day: `Pour recevoir le relais : une séance confirmée d’au moins ${RULE.oneLongueur} minutes d’effort, un autre jour que l’ouverture du passage, puis « ${RELAY.labels.confirm} ».`,
+      join: "S’encorder d’abord pour prendre part au relais.",
+      done: `À ton tour de faire avancer la cordée : chaque journée à ${RULE.oneLongueur} minutes d’effort confirmé apporte une longueur vers le sommet.`,
+      closed: "La cordée est terminée : le relais reste où il en est.",
+    };
+    const can = r.can === "transmit" || r.can === "confirm" ? r.can : null;
+    return {
+      name: RELAY.name, intro: RELAY.intro, status, shared: cap1(shared), mine: MINE[r.hint] || MINE.session, can,
+      label: can ? RELAY.labels[can] : null,
+      steps: [
+        { id: "transmit", label: "Passage ouvert", done: status !== "waiting" },
+        { id: "confirm", label: "Relais reçu par un autre membre", done: status === "confirmed" },
+      ],
+    };
+  }
+  /** What a player reads after an action: a repeated call (changed: false) unlocks nothing more. */
+  function relayResult(answer, action) {
+    if (answer && answer.changed === false) return { title: "Déjà fait", message: "Rien de plus n’est débloqué : le relais compte une seule fois." };
+    return action === "confirm"
+      ? { title: "Relais reçu", message: "La cordée a passé le relais de la Sentinelle." }
+      : { title: "Passage ouvert", message: "Un autre membre peut maintenant recevoir le relais." };
+  }
+  function relayMessage(error) {
+    const raw = String((error && error.message) || error || "");
+    const key = Object.keys(RELAY_MESSAGES).find((k) => raw.includes(k));
+    return key ? RELAY_MESSAGES[key] : null;
+  }
+
+  const api = { RULE, PACES, DAYS, FAMILIES, ROUTES, share, longueursOfDay, cap, variety, simulate, explain, suggestPace, RELAY, RELAY_MESSAGES, relay, relayResult, relayMessage };
   root.TitanCordee = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

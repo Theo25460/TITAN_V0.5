@@ -2,7 +2,7 @@
    The server counts (titan_cordees_v1); the shared module words it (src/core/cordee.ts). Each card always says the common goal, my part,
    the group and what was unlocked; names follow the challenge rule. Joining needs a tap; the summit offers to wear the title and share. */
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Share, StyleSheet, View } from "react-native";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -28,6 +28,8 @@ const MESSAGES: Record<string, string> = {
   CORDEE_INVITEES: "Sept amis au plus : les autres peuvent rejoindre par lien.",
 };
 const message = (e: unknown) => {
+  const relay = Cordee.relayMessage(e);
+  if (relay) return relay;
   const raw = String((e as { message?: string })?.message ?? e ?? "");
   const k = Object.keys(MESSAGES).find((x) => raw.includes(x));
   return k ? MESSAGES[k] : errorMessage(e);
@@ -101,6 +103,7 @@ function CordeeCard({ c, busy, act, owner }: { c: CordeeState; busy: string | nu
           {m.status === "joined" && m.pitches != null ? <T variant="caption" tone="muted">{m.pitches}{m.strand ? " ✓" : ""}</T> : null}
         </View>
       ))}
+      <RelayStep c={c} busy={busy} act={act} owner={owner} />
       {c.myStatus === "invited" && c.status === "active" ? (
         <View style={styles.row}>
           <Button small label="S’encorder" loading={busy === `j-${c.id}`} onPress={() => act(`j-${c.id}`, () => api.challengeRespond(c.id, "join"), "Tu es encordé")} testID={`cordee-join-${c.id}`} />
@@ -120,6 +123,49 @@ function CordeeCard({ c, busy, act, owner }: { c: CordeeState; busy: string | nu
         </View>
       ) : null}
     </Card>
+  );
+}
+
+/* V1.8.1 — the relay step of the pilot route: the shared state, what I can do, how the others contribute. Only the button the server
+   offers (relay.can) is shown, so the member who opened the passage is never offered to receive it. No session detail is shown. */
+function RelayStep({ c, busy, act, owner }: { c: CordeeState; busy: string | null; act: (id: string, fn: () => Promise<unknown>, ok?: string) => Promise<unknown>; owner: string }) {
+  const toast = useToast();
+  const lock = useRef(false); // a double tap sends one call
+  const r = Cordee.relay(c);
+  if (!r) return null;
+  const key = `r-${c.id}`;
+  return (
+    <View style={styles.relay} testID={`cordee-relay-${c.id}`} accessibilityLabel={`${r.name} : ${r.status === "confirmed" ? "relais passé" : r.status === "opened" ? "passage ouvert" : "passage à ouvrir"}`}>
+      <View style={styles.row}>
+        <Icon name="link" size={16} color={colors.cy} />
+        <T variant="bodyStrong" style={{ flex: 1 }}>{r.name}</T>
+        <T variant="caption" tone={r.status === "confirmed" ? "ok" : "muted"}>{r.status === "confirmed" ? "Relais passé" : r.status === "opened" ? "Passage ouvert" : "À ouvrir"}</T>
+      </View>
+      <View style={styles.wrap}>
+        {r.steps.map((s) => (
+          <View key={s.id} style={styles.camp}>
+            <Icon name={s.done ? "check" : "dot"} size={16} color={s.done ? colors.cy : colors.tx3} />
+            <T variant="caption" tone={s.done ? "default" : "faint"}>{s.label}</T>
+          </View>
+        ))}
+      </View>
+      <T variant="small" testID={`cordee-relay-shared-${c.id}`}>{r.shared}</T>
+      <T variant="small" tone="muted" testID={`cordee-relay-mine-${c.id}`}>{r.mine}</T>
+      {r.can && r.label ? (
+        <Button small label={r.label} loading={busy === key} disabled={busy !== null} testID={`cordee-relay-${r.can}-${c.id}`}
+          onPress={() => {
+            if (lock.current) return;
+            lock.current = true;
+            const action = r.can!;
+            act(key, async () => {
+              const answer = await api.cordeeRelay(owner, c.id, action);
+              const words = Cordee.relayResult(answer, action);
+              toast({ kind: "ok", title: words.title, message: words.message });
+            }).finally(() => { lock.current = false; });
+          }} />
+      ) : null}
+      {r.status === "waiting" ? <T variant="caption" tone="faint">{r.intro}</T> : null}
+    </View>
   );
 }
 
@@ -153,4 +199,5 @@ const styles = StyleSheet.create({
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
   camps: { flexDirection: "row", flexWrap: "wrap", gap: space.s2 },
   camp: { flexDirection: "row", alignItems: "center", gap: 4, minWidth: "45%" },
+  relay: { gap: space.s2, padding: space.s3, borderWidth: 1, borderColor: colors.line, borderRadius: 8 },
 });

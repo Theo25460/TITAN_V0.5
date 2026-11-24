@@ -27,7 +27,7 @@ jest.mock("../src/data/hooks", () => ({
 const { social } = jest.requireActual("../test-fixtures/data");
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 
-function show(params?: { ami?: string; guilde?: string }) {
+function show(params?: { ami?: string; guilde?: string; defi?: string }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
   client.setQueryData(["profile", "owner-a"], { privacy: { showStats: true } });
   render(
@@ -58,8 +58,8 @@ test("codes and links: only well-formed codes are accepted and every message car
   expect(friendInviteUrl("tn-ab12")).toBe("https://titan-app.fr/social?ami=TN-AB12");
   expect(friendInviteMessage("TN-AB12")).toContain("https://titan-app.fr/social?ami=TN-AB12");
   expect(guildInviteMessage("Les Aubes", "G-K7P2Q")).toContain("https://titan-app.fr/social?guilde=G-K7P2Q");
-  expect(parseInvite({ ami: "TN-AB12", guilde: "nope" })).toEqual({ friend: "TN-AB12", guild: null, invitation: null });
-  expect(parseInvite(undefined)).toEqual({ friend: null, guild: null, invitation: null });
+  expect(parseInvite({ ami: "TN-AB12", guilde: "nope" })).toEqual({ friend: "TN-AB12", guild: null, invitation: null, challenge: null });
+  expect(parseInvite(undefined)).toEqual({ friend: null, guild: null, invitation: null, challenge: null });
 });
 
 test("a findable profile shares its code with a link at once", async () => {
@@ -156,4 +156,13 @@ test("un défi refusé reste ouvert avec le nom saisi pour corriger ou réessaye
   await screen.findByText("Action impossible", undefined, slow);
   expect(screen.getByDisplayValue("Notre défi")).toBeTruthy();
   expect(share).not.toHaveBeenCalled();
+});
+
+test("V1.8.1: an opened challenge or cordée link (?defi=…) lands on the challenges with its native card", async () => {
+  show({ defi: "ab".repeat(32) });
+  // The preview answers nothing valid here: the card says the link is unavailable, on the challenges tab, and nothing is accepted.
+  expect(await screen.findByTestId("challenge-link-invalid", undefined, slow)).toBeTruthy();
+  expect(screen.getByText("Lancer un défi")).toBeTruthy();
+  expect(mockRpc).toHaveBeenCalledWith("titan_challenge_link_preview_v1", { p_token: "ab".repeat(32) });
+  expect(mockRpc.mock.calls.map((c) => c[0])).not.toContain("titan_challenge_link_accept_v1");
 });

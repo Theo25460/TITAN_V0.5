@@ -37,7 +37,7 @@ export type RootParams = {
   World: { id: string };
   Sentiers: undefined;
   Atelier: undefined;
-  Community: { ami?: string; guilde?: string; invitation?: string } | undefined;
+  Community: { ami?: string; guilde?: string; invitation?: string; defi?: string } | undefined;
   Events: undefined;
   Retro: { year?: number; month?: number } | undefined;
   SaveAccount: undefined;
