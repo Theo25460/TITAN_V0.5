@@ -17,6 +17,7 @@ import { useLogs, usePrefs, useSavePrefs, type Prefs } from "../../data/hooks";
 import { WeekPlanCard } from "../../components/WeekPlanCard";
 import { AdjustmentsCard, WeekReviewCard, dayLong } from "../../components/WeekReviewCard";
 import { TrainingBlockCard } from "../../components/TrainingBlockCard";
+import { ScenarioCard } from "../../components/ScenarioCard";
 import { deviceZone, todayKey, useWeekPlan, useWeekReview } from "../../lib/weekPlan";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
@@ -37,7 +38,8 @@ const DAYS: [string, string][] = [
     V1.7.3: the bilan of the week shown and its adjustment for the week after (WeekReviewCard), and the adjustments acting on this
     week and the next one, with their origin and their undo (AdjustmentsCard).
     V1.7.4: the training block of the week shown, its milestones and the changes that reach that week, and the block actions through a
-    preview (TrainingBlockCard) — the same schedule.blocks as Séance › Prévoir on the website. */
+    preview (TrainingBlockCard) — the same schedule.blocks as Séance › Prévoir on the website. V1.7.6: the scenarios compared on the
+    website, applied or undone here through a preview, and the decision read again for the week shown (ScenarioCard). */
 export function PlanScreen() {
   const navigation = useNavigation();
   const prefs = usePrefs();
@@ -159,6 +161,16 @@ export function PlanScreen() {
         busy={!online || save.isPending}
         onSave={saveBlock}
         onOpen={(l) => navigation.navigate("SessionDetail", { id: l.id })}
+      />
+      <ScenarioCard
+        schedule={(prefs.schedule ?? {}) as Schedule}
+        logs={logs}
+        today={todayKey()}
+        zone={deviceZone()}
+        pauses={prefs.cadencePauses}
+        shownWeek={shownWeek}
+        busy={!online || save.isPending}
+        onSave={saveBlock}
       />
       {weekBack === 0 ? <AdjustmentsCard list={adjustNow} title="Ajustement de cette semaine" today={todayKey()} busy={!online || save.isPending} onUndo={undoReview} /> : null}
       {weekBack === 0 ? <AdjustmentsCard list={adjustNext} title="La semaine prochaine" today={todayKey()} busy={!online || save.isPending} onUndo={undoReview} /> : null}

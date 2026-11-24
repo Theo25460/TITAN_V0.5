@@ -30,6 +30,7 @@ require("./web/history-window.js");
 require("./web/week-plan.js");
 require("./web/week-review.js");
 require("./web/training-block.js");
+require("./web/block-scenario.js");
 require("./web/discipline-analysis.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
@@ -468,6 +469,41 @@ export const TrainingBlock = g.TitanTrainingBlock as {
   describeGoal(g: BlockGoalState | null, opts?: Words): { title: string; what: string; date: string; state: string } | null;
   describePreview(p: BlockPreview, opts?: Words): { lines: string[]; notes: string[]; where: string };
   describeChange(c: BlockChange, opts?: Words): { source: string; effect: string };
+};
+
+/** V1.7.6 — Scénarios multisports: two private variants of a few weeks compared on what the plan gives (time per sport, free days,
+    overlaps, milestones that move), the chosen one applied from an explicit Monday through a preview, then undone, the same rules and
+    words as the website (src/core/web/block-scenario.js). Drafts in schedule.scenarios; applying writes the V1.7.4 block. */
+export type ScenarioSlot = { sport: string; minutes: number | null; note: string } | null;
+export type ScenarioSports = Record<string, { minutes: number; sessions: number; unknown: number }>;
+export type ScenarioConflict = { week: string; day: number; sport: string; kind: "pause" | "cadence" | "unavailable" | "decision"; occurrence?: string; moved?: string };
+export type ScenarioPlan = { sports: ScenarioSports; minutes: number; sessions: number; unknown: number; free: number; weeks: { week: string; minutes: number; sessions: number; unknown: number; free: number; days: ScenarioSlot[] }[]; conflicts: ScenarioConflict[]; exceptions: unknown[]; milestones: Record<string, string | null>; name?: string; same?: boolean };
+export type ScenarioApplied = { at: string; variant: "a" | "b"; name: string; from: string; block: string; created: boolean; undone: { at: string; from: string } | null };
+export type ScenarioComparison = {
+  version: number; id: string; title: string; base: string | null; baseTitle: string | null; start: string; end: string; count: number; weeks: string[]; open: string;
+  availability: { week: string; pause: boolean; days: boolean[] | null }[]; plans: { active: ScenarioPlan; a: ScenarioPlan; b: ScenarioPlan };
+  rows: { sport: string; delta: number | null }[]; free: { active: number; a: number; b: number; delta: number }; conflicts: { active: number; a: number; b: number }; moved: { a: number; b: number };
+  milestones: { id: string; title: string; active: string | null; a: string | null; b: string | null; moved: { a: boolean; b: boolean } }[]; hypotheses: string[]; applied: ScenarioApplied | null;
+};
+export type ScenarioPreview = { kind: "apply" | "undo"; scenario: string; variant: string | null; name: string | null; from: string; occurrences: { id: string; week: string; change: string }[]; kept: number; lived: string[] };
+export type ScenarioFollowUp = { id: string; title: string; variant: string; name: string; week: string; undone: boolean; lived: boolean; summary: { planned: number; done: number; gaps: number } };
+type ScenarioOpts = { today: string; zone?: string | null; pauses?: string[]; at?: string };
+type ScenarioResult = { schedule: Schedule; scenario: Schedule; preview: ScenarioPreview };
+type ScenarioWords = { label?: (s: string) => string; dayLong?: (k: string) => string };
+type Line = { active: string; a: string; b: string; delta: string };
+export const BlockScenario = g.TitanBlockScenario as {
+  VERSION: number; KEYS: ("a" | "b")[]; LETTER: Record<"a" | "b", string>; HYPOTHESES: string[]; RULES: Record<"draft" | "apply" | "undo", string>;
+  list(schedule: Schedule): { id: string; title: string; start: string; count: number; base: string | null; applied: ScenarioApplied | null; names: { a: string; b: string } }[];
+  compare(schedule: Schedule, logs: Partial<TrainingLog>[], id: string, opts: ScenarioOpts): ScenarioComparison;
+  apply(schedule: Schedule, logs: Partial<TrainingLog>[], id: string, args: { variant: "a" | "b"; from: string }, opts: ScenarioOpts): ScenarioResult;
+  undo(schedule: Schedule, logs: Partial<TrainingLog>[], id: string, opts: ScenarioOpts): ScenarioResult;
+  fit(schedule: Schedule, id: string, args: { variant: "a" | "b"; week: number }, opts: ScenarioOpts): { schedule: Schedule };
+  followUp(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ScenarioOpts & { week?: string }): ScenarioFollowUp | null;
+  measure(schedule: Schedule): { scenarios: number; compared: number; applied: number; undone: number; decisions: number; conflictsAvoided: number };
+  snapshot(c: ScenarioComparison | null): unknown;
+  describeComparison(c: ScenarioComparison, opts?: ScenarioWords): { names: Record<"active" | "a" | "b", string>; sports: (Line & { sport: string; label: string })[]; total: Line; free: Line; conflicts: Record<"active" | "a" | "b", string[]>; milestones: { id: string; title: string; active: string; a: string; b: string }[]; fields: string[]; weeks: { week: string; title: string; availability: string | null; active: string; a: string; b: string }[]; observed: { title: string; lines: string[] }; planned: string; same: string[] };
+  describePreview(p: ScenarioPreview, opts?: ScenarioWords): { lines: string[]; notes: string[]; where: string };
+  describeFollowUp(f: ScenarioFollowUp | null, opts?: ScenarioWords): { lead: string; planned: string; done: string; result: string } | null;
 };
 
 /** V1.7.3 — Bilan et ajustements: one observation of the followed weeks with its source sessions, the actions on the week after

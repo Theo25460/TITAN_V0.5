@@ -50,6 +50,7 @@ export const MODULES = [
   "js/core/week-plan.js",
   "js/core/week-review.js",
   "js/core/training-block.js",
+  "js/core/block-scenario.js",
   "js/core/discipline-analysis.js",
 ];
 
