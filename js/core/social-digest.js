@@ -24,8 +24,23 @@
       const route = C?.ROUTES?.[c.route];
       if (!route) continue;
       if (c.summitedSince && c.earned) out.push({ id: `summit-${c.id}`, kind: "celebrate", href: "#cordee", text: `Sommet atteint : ${route.name}. Le titre « ${route.title} » t’attend.` });
+      // V1.8.3: a cordée that follows a finished one, started by the group without me yet: the answer it waits for.
+      else if (c.status === "active" && c.myStatus === "invited" && C?.ROUTES?.[c.follows]) out.push({ id: `cordee-invite-${c.id}`, kind: "together", href: "#cordee", text: `Ton groupe de « ${C.ROUTES[c.follows].name} » est reparti sur « ${route.name} », compteurs à zéro. Tu peux t’encorder ou décliner.` });
       else if (c.status === "active" && c.myStatus === "invited") out.push({ id: `cordee-invite-${c.id}`, kind: "together", href: "#cordee", text: `On t’attend dans la cordée « ${route.name} ». Tu peux t’encorder ou décliner.` });
       else if (c.status === "active") out.push({ id: `cordee-${c.id}`, kind: "together", href: "#cordee", text: `${route.name} : ${plural(int(c.camps), "camp atteint", "camps atteints")} sur 4, ${int(c.percent)} % de l’objectif commun${int(c.mine) ? ` — ta part : ${plural(int(c.mine), "longueur", "longueurs")}` : ""}.` });
+    }
+    // V1.8.3: a finished cordée whose group proposes to set off again. Only an answer that is waiting (never a reminder to someone who
+    // already declined) and the state of my own proposal; a started one is the invitation above.
+    for (const s of d.suites || []) {
+      const from = C?.ROUTES?.[s.route];
+      if (!from) continue;
+      const list = (s.proposals || []).filter((p) => p && C.ROUTES[p.route]);
+      const waiting = list.filter((p) => p.status === "open" && !p.mine && !p.myAnswer && (p.turn || []).includes("accept"));
+      if (waiting.length >= 2) out.push({ id: `suite-choice-${s.id}`, kind: "together", href: "#cordee", text: `Ta cordée de « ${from.name} » propose ${plural(waiting.length, "itinéraire", "itinéraires")} pour repartir : choisis celui qui te va, ou aucun.` });
+      else if (waiting.length === 1) out.push({ id: `suite-${waiting[0].id}`, kind: "together", href: "#cordee", text: `${waiting[0].by && waiting[0].by !== "Membre de la cordée" ? waiting[0].by : "Un membre"} propose à ta cordée de « ${from.name} » de repartir sur ${C.itinerary(waiting[0])}. Accepte ou décline quand tu veux.` });
+      for (const p of list.filter((x) => x.status === "open" && x.mine)) {
+        out.push({ id: `suite-mine-${p.id}`, kind: "together", href: "#cordee", text: `Ta proposition pour repartir sur « ${C.ROUTES[p.route].name} » : ${int(p.yes)} sur ${int(p.eligible)} ${int(p.yes) > 1 ? "ont accepté" : "a accepté"}.` });
+      }
     }
     const duo = d.duo;
     if (duo?.status === "finished") out.push({ id: "duo-finished", kind: duo.reached ? "celebrate" : "together", href: "/aujourdhui", text: duo.reached ? `TITAN Duo réussi${duo.partner ? ` avec ${duo.partner}` : ""} : ${int(duo.together)} / ${int(duo.target)} jours actifs.` : `Votre TITAN Duo est terminé : ${int(duo.together)} / ${int(duo.target)} jours actifs. Ce qui est fait reste fait.` });

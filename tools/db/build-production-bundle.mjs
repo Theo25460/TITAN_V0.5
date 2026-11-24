@@ -113,6 +113,17 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v21 bundle (V1.8.1, head 20261124090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.cordee_reprise for the pilot accounts only, after screens.cordee_relay.",
   },
+  // V1.8.3 — Un groupe qui se retrouve (24 November 2026): a group that finished a cordée proposes a new private route and sets off again
+  // with the members who accept, behind the server flag screens.cordee_suite (absent = closed). NOT APPLIED: owner decision required, after
+  // v22. Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_cordee_suite.sql, tools/db/test-cordee-suite-concurrency.sh).
+  // Fingerprints measured on a replica built from the repository.
+  v23: {
+    out: "supabase/release-v23", after: "20261125090000", until: "20261126090000",
+    before: { private: [131, "f550f5ce5daf", "0155cb43ef72"], public: [326, "7e442a057127", "95bff8a8e8a1"] },
+    expected: { private: [141, "681a79d6ef40", "2800c4c153fe"], public: [327, "5429983a73a6", "a81da62357a0"] },
+    beforeNote: "This is the state production reaches at the end of the v22 bundle (V1.8.2, head 20261125090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.cordee_suite for the pilot accounts only, where screens.cordee is open.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

@@ -197,3 +197,90 @@ test("reprise: kept longueurs and the departure sentence say what the server doe
   assert.match(REPRISE_SQL, /'needs', least\(2, v_joined \+ v_pending \+ v_kept_members\)/, "the two-contributor rule stands");
   assert.match(REPRISE_SQL, /where l\.created_at < p_until/, "nothing recorded after the departure counts");
 });
+
+// V1.8.3 — Un groupe qui se retrouve: the module words every hint and refusal of the server, offers only the answers the server
+// sends, never names a refusal, mirrors the windows and suggests a pace that is never harder than what the group lived.
+const SUITE_SQL = readFileSync(new URL("../supabase/migrations/20261126090000_cordee_suite.sql", import.meta.url), "utf8");
+test("suite: every hint and refusal of the server is worded; the flag, the windows and the limits match", () => {
+  const hints = [...new Set([...SUITE_SQL.matchAll(/(?:then|else) '(suspended|closed|in|alone|answer|mine|full|propose)'/g)].map((m) => m[1]))];
+  assert.deepEqual(hints.sort(), ["alone", "answer", "closed", "full", "in", "mine", "propose", "suspended"]);
+  for (const hint of hints) {
+    const w = C.suite({ suite: { hint, can: [], proposals: [] } });
+    assert.ok(w.hint && !/undefined/.test(w.hint), hint);
+    assert.doesNotMatch(w.hint, /pourquoi|raison|motif|derni[eè]re chance|vite/i, hint);
+  }
+  const codes = [...new Set([...SUITE_SQL.matchAll(/raise exception '(SUITE_[A-Z_]+)'/g)].map((m) => m[1]))];
+  assert.ok(codes.includes("SUITE_ALREADY_IN") && codes.includes("SUITE_UNAVAILABLE") && codes.includes("SUITE_GROUP_TOO_SMALL"));
+  for (const code of codes) assert.ok(C.SUITE_MESSAGES[code], code);
+  assert.equal(C.suiteMessage(new Error("SUITE_ALREADY_IN")), C.SUITE_MESSAGES.SUITE_ALREADY_IN);
+  assert.match(SUITE_SQL, /private\.titan_flag_on\('screens\.cordee_suite'\)/);
+  assert.match(SUITE_SQL, new RegExp(`clock_timestamp\\(\\) \\+ interval '${C.SUITE.proposalHours} hours'`));
+  assert.match(SUITE_SQL, new RegExp(`v_c\\.ends_at \\+ interval '${C.SUITE.windowDays} days'`));
+  assert.match(SUITE_SQL, new RegExp(`>= ${C.SUITE.openMax} then\\s+raise exception 'SUITE_LIMIT'`));
+  assert.match(SUITE_SQL, /titan_cordee_suite_yes\(p_suite\)\)\s*<\s*2 then return null/, "two acceptances start the new cordée");
+  assert.match(SUITE_SQL, /starts_at, ends_at, kind, route, pace\)\s*values \(v_s\.proposed_by, v_title, 'pitches', null, private\.titan_cordee_share\(v_s\.pace, v_s\.days\), now\(\)/,
+    "a new row starts now: the counters start at zero");
+  assert.doesNotMatch(SUITE_SQL, /\b(reason|motif|message|comment)\s+text\b/i, "no free text column");
+});
+
+test("suite: the next pace is never harder than what the group lived", () => {
+  assert.equal(C.nextPace("soutenue", true), "soutenue");
+  assert.equal(C.nextPace("soutenue", false), "reguliere");
+  assert.equal(C.nextPace("reguliere", false), "douce");
+  assert.equal(C.nextPace("douce", false), "douce");
+  assert.equal(C.nextPace("inconnue", false), "douce");
+  assert.equal(C.itinerary({ route: "marees", pace: "douce", days: 14 }), "« La passe des Marées » · allure douce · 14 jours");
+});
+
+test("suite: proposals as the server sends them — answers offered, acceptances named under the rule, refusals counted only", () => {
+  const w = C.suite({ suite: { hint: "answer", choice: true, can: [], previous: { route: "aube", pace: "reguliere", days: 14, summited: true }, proposals: [
+    { id: "p1", route: "marees", pace: "douce", days: 14, status: "open", by: { name: "Léa", me: false }, mine: false, myAnswer: null, yes: 2, no: 1, eligible: 5,
+      accepted: [{ name: "Léa", me: false }], others: 1, turn: ["accept", "decline", "hack"], expiresAt: "2026-11-27T10:00:00Z" },
+    { id: "p2", route: "forge", pace: "soutenue", days: 7, status: "open", by: { name: "Moi", me: true }, mine: true, myAnswer: "yes", yes: 1, no: 0, eligible: 5,
+      accepted: [{ name: "Moi", me: true }], others: 0, turn: ["withdraw"] },
+    { id: "p3", route: "aurores", pace: "douce", days: 21, status: "started", by: { name: "Membre de la cordée", me: false }, myStatus: "invited", yes: 2, no: 0, eligible: 5, joined: 2,
+      accepted: [], others: 2, turn: ["accept", "decline"] },
+  ] } });
+  assert.equal(w.pace, "reguliere", "after a summit, the same pace");
+  assert.match(w.choice, /une acceptation à la fois/);
+  const [p1, p2, p3] = w.proposals;
+  assert.deepEqual(p1.actions.map((a) => a.action), ["accept", "decline"], "unknown answers are never offered");
+  assert.equal(p1.counts, "2 sur 5 ont accepté · 1 a décliné · 2 n’ont pas encore répondu");
+  assert.equal(p1.accepted, "Ont accepté : Léa et 1 autre membre.");
+  assert.equal(p1.by, "Proposée par Léa");
+  assert.equal(p2.by, "Ta proposition");
+  assert.deepEqual(p2.actions.map((a) => a.label), ["Retirer ma proposition"]);
+  assert.equal(p3.by, "Repartie à 2");
+  assert.deepEqual(p3.actions.map((a) => a.label), ["S’encorder", "Décliner"]);
+  assert.match(p3.mine, /La cordée est partie : tu peux encore t’encorder ou décliner/);
+  assert.doesNotMatch(JSON.stringify(w), /décliné par|a refusé :|pourquoi/i, "a refusal is never named or explained");
+  assert.equal(C.suite({}), null);
+  assert.equal(C.suiteResult({ changed: true, started: "n1" }, "accept").title, "La cordée repart");
+  assert.equal(C.suiteResult({ changed: true, canonical: true, started: null }, "propose").title, "Même itinéraire");
+  assert.equal(C.suiteResult({ changed: false }, "accept").title, "Déjà fait");
+});
+
+test("suite: the story tells shareable steps and the group's decisions only; the new cordée names the one it follows", () => {
+  const lines = C.story({ route: "aube", story: [
+    { kind: "formed", at: "2026-11-01T08:00:00Z", members: 5 },
+    { kind: "relay_opened", at: "2026-11-05T08:00:00Z", who: { name: "Léa", me: false, family: "technique" } },
+    { kind: "relay_confirmed", at: "2026-11-07T08:00:00Z", who: { name: "Moi", me: true, family: "endurance" } },
+    { kind: "camps", camps: 2, total: 40, target: 80 },
+    { kind: "ended", at: "2026-11-15T08:00:00Z", total: 52, target: 80 },
+    { kind: "proposal", at: "2026-11-16T08:00:00Z", route: "marees", pace: "douce", days: 14, by: { name: "Sam", me: false }, status: "started", yes: 3, no: 1 },
+    { kind: "suite", at: "2026-11-16T09:00:00Z", route: "marees", joined: 2 },
+    { kind: "session", log_id: "x", sport: "running" },
+  ] }).map((l) => l.text);
+  assert.deepEqual(lines, [
+    "La cordée se forme à 5 sur « Les crêtes de l’Aube ».",
+    "Léa (Prisme) ouvre le passage de la Sentinelle.",
+    "Tu reçois le relais : la Sentinelle laisse passer la cordée.",
+    "2 camps atteints : Le gué des premiers pas · La terrasse des bergers.",
+    "La cordée s’arrête à 52 / 80 longueurs. Ce qui est fait reste fait.",
+    "Sam propose « La passe des Marées » · allure douce · 14 jours — 3 acceptations, 1 refus, le groupe repart.",
+    "Le groupe repart à 2 sur « La passe des Marées », compteurs à zéro.",
+  ], "an unknown event (a session) is never shown");
+  assert.equal(C.follows({ follows: { route: "aube", summited: false, total: 52, target: 80, group: 5, proposedBy: { name: "Sam" } } }),
+    "Suite de « Les crêtes de l’Aube » (52 / 80 longueurs, à 5). Proposée par Sam. Les compteurs sont repartis de zéro.");
+  assert.equal(C.follows({}), null);
+});

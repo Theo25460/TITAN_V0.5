@@ -260,7 +260,145 @@
     return key ? RELAY_MESSAGES[key] : null;
   }
 
-  const api = { RULE, PACES, DAYS, FAMILIES, ROUTES, share, longueursOfDay, cap, variety, simulate, explain, suggestPace, RELAY, RELAY_MESSAGES, LEAVE, relay, relayResult, turnResult, relayMessage };
+  /* ------------------------------------------------------------------ V1.8.3 — a group that sets off again (20261126090000_cordee_suite.sql)
+     After a cordée ends, a member proposes a new private route (an existing route, a tested pace, a duration); each member accepts or
+     declines; from two acceptances a NEW cordée starts with the counters at zero, with those who accepted only. The finished cordée stays
+     closed and readable, with its story (shareable steps and group decisions). The server decides who may answer (proposal.turn) and how
+     the state reads (suite.hint); this only words it. A refusal is a count, never a name; nobody is told why someone declined. */
+  const SUITE = Object.freeze({
+    proposalHours: 72, // a proposal stays open 3 days at most
+    windowDays: 14,    // after the end of the cordée
+    openMax: 3,        // distinct open proposals per finished cordée
+    labels: { propose: "Proposer un nouvel itinéraire", accept: "Accepter", decline: "Décliner", withdraw: "Retirer ma proposition" },
+  });
+  const SUITE_MESSAGES = Object.freeze({
+    SUITE_NOT_FINISHED: "La cordée est encore en cours : la suite se propose une fois qu’elle est terminée.",
+    SUITE_CLOSED: "Cette proposition n’est plus ouverte.",
+    SUITE_ALREADY_IN: "Tu es déjà reparti·e avec une autre proposition. Quitte cette cordée pour en choisir une autre.",
+    SUITE_PENDING: "Tu as déjà une proposition ouverte pour cette cordée : retire-la d’abord pour en faire une autre.",
+    SUITE_LIMIT: `Il y a déjà ${SUITE.openMax} propositions ouvertes : choisis parmi elles.`,
+    SUITE_GROUP_TOO_SMALL: "Personne d’autre de la cordée ne peut repartir avec toi pour l’instant. Tu peux former une cordée et inviter par lien.",
+    SUITE_UNAVAILABLE: "Cette proposition n’est pas ouverte pour toi.",
+    SUITE_NOT_MINE: "Seule la personne qui a proposé peut retirer cette proposition.",
+    SUITE_OWN: "C’est ta proposition : tu peux la retirer.",
+    SUITE_NOT_FOUND: "Cette proposition n’existe plus.",
+    SUITE_FULL: "La nouvelle cordée compte déjà dix membres.",
+    SUITE_INVALID: "Action inconnue.",
+  });
+  const paceOrder = ["douce", "reguliere", "soutenue"];
+  /** The pace to suggest for the next route: the same after a summit, one step softer otherwise (never harder than what was lived). */
+  function nextPace(previous, summited) {
+    const i = Math.max(0, paceOrder.indexOf(previous));
+    return summited ? paceOrder[i] : paceOrder[Math.max(0, i - 1)];
+  }
+  const routeName = (id) => `« ${(ROUTES[id] || ROUTES.aube).name} »`;
+  const paceText = (p) => (PACES[p] || PACES.reguliere).label.toLowerCase();
+  /** « La passe des Marées · allure douce · 14 jours » */
+  function itinerary(p) {
+    return `${routeName(p && p.route)} · allure ${paceText(p && p.pace)} · ${int(p && p.days)} jours`;
+  }
+  const personName = (p) => (!p ? "Un membre" : p.me ? "Toi" : p.name || "Membre de la cordée");
+  /** Words for state.suite (titan_cordees_v1 → cordees[i].suite on a finished cordée). null when there is none. */
+  function suite(state) {
+    const s = state && state.suite;
+    if (!s || typeof s !== "object") return null;
+    const HINTS = {
+      propose: "Votre cordée est terminée. Propose un nouvel itinéraire : seuls ceux qui acceptent repartent, avec des compteurs à zéro.",
+      answer: "Ton groupe propose de repartir. Accepte ou décline, quand tu veux : rien ne part sans deux acceptations.",
+      mine: "Ta proposition attend les autres. La nouvelle cordée part dès qu’un autre membre accepte ; les suivants la rejoignent en acceptant.",
+      in: "Tu es reparti·e avec ton groupe. Cette cordée reste close et consultable.",
+      full: `Il y a déjà ${SUITE.openMax} propositions ouvertes : choisis parmi elles.`,
+      alone: "Personne d’autre de cette cordée ne peut repartir avec toi pour l’instant.",
+      closed: "Cette cordée reste consultable. Le temps de proposer une suite est passé : forme une nouvelle cordée quand tu veux.",
+      suspended: "Ton compte ne peut pas proposer ni répondre pour l’instant.",
+    };
+    const proposals = (Array.isArray(s.proposals) ? s.proposals : []).map((p) => {
+      const yes = int(p.yes), no = int(p.no), eligible = Math.max(int(p.eligible), yes + no);
+      const waiting = Math.max(0, eligible - yes - no);
+      const named = (Array.isArray(p.accepted) ? p.accepted : []).map(personName);
+      const others = int(p.others);
+      const who = named.length ? `${named.join(", ")}${others ? ` et ${plural(others, "autre membre", "autres membres")}` : ""}` : others ? plural(others, "membre", "membres") : "";
+      const counts = [`${yes} sur ${eligible} ${yes > 1 ? "ont accepté" : "a accepté"}`];
+      if (no) counts.push(`${no} ${no > 1 ? "ont décliné" : "a décliné"}`);
+      if (waiting && (p.status === "open" || p.status === "started")) counts.push(`${waiting} ${waiting > 1 ? "n’ont" : "n’a"} pas encore répondu`);
+      const status = {
+        open: p.mine ? "Ta proposition" : `Proposée par ${personName(p.by)}`,
+        started: `Repartie à ${int(p.joined) || yes}`,
+        withdrawn: "Retirée",
+        merged: "Ralliée à une autre proposition",
+        expired: "Restée sans suite",
+        cancelled: "Close",
+      }[p.status] || "Close";
+      const mineText = p.status === "started"
+        ? (p.myStatus === "joined" ? "Tu fais partie de la nouvelle cordée." : p.myStatus === "invited" ? "La cordée est partie : tu peux encore t’encorder ou décliner." : p.myAnswer === "no" ? "Tu as décliné. Tu peux encore changer d’avis." : null)
+        : p.status === "open"
+          ? (p.mine ? "Tu as accepté en proposant." : p.myAnswer === "yes" ? "Tu as accepté : tu repars si un autre membre accepte aussi." : p.myAnswer === "no" ? "Tu as décliné. Tu peux encore changer d’avis." : null)
+          : null;
+      const actions = (Array.isArray(p.turn) ? p.turn : []).filter((t) => SUITE.labels[t]).map((t) => ({ action: t, label: p.status === "started" && t === "accept" ? "S’encorder" : SUITE.labels[t] }));
+      return { id: String(p.id || ""), status: p.status, route: p.route, title: itinerary(p), by: status, counts: counts.join(" · "), accepted: who ? `${named.length + others > 1 ? "Ont accepté" : "A accepté"} : ${who}.` : null,
+        mine: mineText, actions, expiresAt: p.status === "open" ? p.expiresAt || null : null, startedId: p.startedId || null };
+    });
+    const open = proposals.filter((p) => p.status === "open").length;
+    return {
+      title: "Repartir ensemble",
+      hint: HINTS[s.hint] || HINTS.propose,
+      choice: s.choice || open >= 2 ? "Plusieurs itinéraires sont proposés : chacun choisit le sien, une acceptation à la fois. Choisir l’un retire ton acceptation des autres." : null,
+      can: Array.isArray(s.can) && s.can.includes("propose"),
+      label: SUITE.labels.propose,
+      previous: s.previous || null,
+      pace: nextPace(s.previous && s.previous.pace, s.previous && s.previous.summited),
+      proposals,
+    };
+  }
+  /** The story of a finished cordée: shareable steps and the group's decisions only (state.story). */
+  function story(state) {
+    const list = Array.isArray(state && state.story) ? state.story : [];
+    const route = ROUTES[state && state.route] || ROUTES.aube;
+    return list.map((e) => {
+      switch (e && e.kind) {
+        case "formed": return { kind: e.kind, at: e.at, text: `La cordée se forme${int(e.members) > 1 ? ` à ${int(e.members)}` : ""} sur ${routeName(route.id)}.` };
+        case "follows": return { kind: e.kind, at: e.at, text: `Elle fait suite à ${routeName(e.route)}${e.summited ? ", atteinte ensemble" : ""}.` };
+        case "relay_opened": return { kind: e.kind, at: e.at, text: e.who && e.who.me ? "Tu ouvres le passage de la Sentinelle." : `${who(e.who, "Un membre")} ouvre le passage de la Sentinelle.` };
+        case "relay_confirmed": return { kind: e.kind, at: e.at, text: `${e.who && e.who.me ? "Tu reçois" : `${who(e.who, "Un membre")} reçoit`} le relais : la Sentinelle laisse passer la cordée.` };
+        case "camps": return { kind: e.kind, at: e.at, text: `${plural(Math.min(RULE.camps, int(e.camps)), "camp atteint", "camps atteints")} : ${route.camps.slice(0, Math.min(RULE.camps, int(e.camps))).map((c) => c[0]).join(" · ")}.` };
+        case "summit": return { kind: e.kind, at: e.at, text: `Sommet atteint : ${route.camps[RULE.camps - 1][0]}, ${plural(int(e.total), "longueur", "longueurs")} ensemble.` };
+        case "ended": return { kind: e.kind, at: e.at, text: `La cordée s’arrête à ${int(e.total)} / ${int(e.target)} longueurs. Ce qui est fait reste fait.` };
+        case "proposal": {
+          const answered = `${plural(int(e.yes), "acceptation", "acceptations")}${int(e.no) ? `, ${plural(int(e.no), "refus", "refus")}` : ""}`;
+          const end = { open: "en attente", started: "le groupe repart", withdrawn: "retirée", merged: "ralliée à une autre", expired: "restée sans suite", cancelled: "close" }[e.status] || "close";
+          return { kind: e.kind, at: e.at, text: `${personName(e.by)} propose ${itinerary(e)} — ${answered}, ${end}.` };
+        }
+        case "suite": return { kind: e.kind, at: e.at, text: `Le groupe repart à ${int(e.joined)} sur ${routeName(e.route)}, compteurs à zéro.` };
+        default: return null;
+      }
+    }).filter(Boolean);
+  }
+  /** The finished cordée a running one follows (state.follows): closed and readable from the new one. */
+  function follows(state) {
+    const f = state && state.follows;
+    if (!f || typeof f !== "object") return null;
+    const outcome = f.summited ? "sommet atteint" : `${int(f.total)} / ${int(f.target)} longueurs`;
+    return `Suite de ${routeName(f.route)} (${outcome}, à ${int(f.group)}). Proposée par ${personName(f.proposedBy).replace(/^Toi$/, "toi")}. Les compteurs sont repartis de zéro.`;
+  }
+  function suiteResult(answer, action) {
+    if (answer && answer.changed === false) return { title: "Déjà fait", message: "Rien n’a changé." };
+    if (answer && answer.started && (action === "accept" || action === "propose")) return { title: "La cordée repart", message: "Elle part de zéro avec ceux qui ont accepté ; les autres peuvent encore la rejoindre." };
+    if (answer && answer.canonical) return { title: "Même itinéraire", message: "Cette proposition existait déjà : tu l’as acceptée." };
+    return ({
+      propose: { title: "Itinéraire proposé", message: "Chacun accepte ou décline. La cordée part dès qu’un autre membre accepte." },
+      accept: { title: "Tu as accepté", message: "Tu repars dès qu’un autre membre accepte aussi." },
+      decline: { title: "Tu as décliné", message: "Personne ne voit qui a décliné : seulement combien." },
+      withdraw: { title: "Proposition retirée", message: "Plus personne n’a à y répondre." },
+    })[action] || { title: "C’est fait", message: "" };
+  }
+  function suiteMessage(error) {
+    const raw = String((error && error.message) || error || "");
+    const key = Object.keys(SUITE_MESSAGES).find((k) => raw.includes(k));
+    return key ? SUITE_MESSAGES[key] : null;
+  }
+
+  const api = { RULE, PACES, DAYS, FAMILIES, ROUTES, share, longueursOfDay, cap, variety, simulate, explain, suggestPace, RELAY, RELAY_MESSAGES, LEAVE, relay, relayResult, turnResult, relayMessage,
+    SUITE, SUITE_MESSAGES, nextPace, itinerary, suite, story, follows, suiteResult, suiteMessage };
   root.TitanCordee = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

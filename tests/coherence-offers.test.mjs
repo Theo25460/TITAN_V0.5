@@ -298,6 +298,8 @@ test("privacy: every per-player table added since 17 November 2026 is erased wit
     titan_live_buildings: ["bâtiments du Camp de base", "bâtiments"],
     titan_live_collection: ["trouvailles", "trouvailles"],
     titan_cordee_titles: ["cordées de la Grande Cordée et titres de route obtenus", "tes cordées et tes titres de route"],
+    // V1.8.3: a proposal keeps the group's history with no person (proposed_by on delete set null); the answers go with the account.
+    titan_cordee_suite_answers: ["propositions de repartir après une cordée et tes réponses", "tes réponses aux propositions de repartir"],
   };
   const privacy = page("legal_privacy.html"), deletion = page("supprimer-mon-compte.html");
   const found = [];

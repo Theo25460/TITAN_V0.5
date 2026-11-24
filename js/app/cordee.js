@@ -7,6 +7,7 @@
   const icon = (n) => window.titanIcon(n);
   const C = () => window.TitanCordee;
   const FLAG = "screens.cordee";
+  const SUITE_FLAG = "screens.cordee_suite"; // V1.8.3: proposing and answering a new route after a finished cordée
   const MESSAGES = {
     FEATURE_DISABLED: "La Grande Cordée n’est pas encore ouverte sur ton compte.",
     CORDEE_INVALID: "Choisis une route, une allure et une durée.",
@@ -36,8 +37,9 @@
   const guest = () => !context().owner || String(context().owner).startsWith("guest_");
   const on = () => !guest() && !window.titanAccountTransition?.active && window.titanFlags?.enabled?.(FLAG, false) === true;
   const n = (v) => window.TitanFormat.number(Number(v) || 0);
+  const suiteOn = () => window.titanFlags?.enabled?.(SUITE_FLAG, false) === true;
   const failure = (error) => {
-    const relay = C()?.relayMessage?.(error);
+    const relay = C()?.relayMessage?.(error) || C()?.suiteMessage?.(error);
     if (relay) return relay;
     const code = Object.keys(MESSAGES).find((k) => String(error?.message || "").includes(k));
     return code ? MESSAGES[code] : navigator.onLine ? "Le serveur ne répond pas pour l’instant. Réessaie dans un moment." : "Hors ligne : la cordée revient avec le réseau.";
@@ -137,6 +139,39 @@
     </section>`;
   }
 
+  /* V1.8.3 — the finished cordée stays closed and readable: its story (shareable steps and the group's decisions, as the server tells it)
+     and « Repartir ensemble »: the proposals of a new route, who accepted (named under the Cordée rule; refusals are a count), what I can do. */
+  function storyHtml(c) {
+    const lines = C().story?.(c) || [];
+    if (!lines.length) return "";
+    return `<section class="cm-cordee-history" data-cordee-story aria-labelledby="story-${esc(c.id)}"><h4 id="story-${esc(c.id)}">${icon("route")} L’histoire de la cordée</h4>
+      <ol class="cm-cordee-history-list">${lines.map((l) => `<li data-kind="${esc(l.kind)}"><span>${esc(l.text)}</span>${l.at ? ` <small class="asc-faint">${esc(date(l.at))}</small>` : ""}</li>`).join("")}</ol></section>`;
+  }
+
+  function suiteHtml(c) {
+    const s = C().suite?.(c);
+    if (!s) return "";
+    const flag = suiteOn();
+    // With the flag closed, only one's own open proposal can still be withdrawn: nothing else is offered.
+    const proposals = flag ? s.proposals : s.proposals.filter((p) => p.actions.some((a) => a.action === "withdraw"));
+    if (!flag && !proposals.length) return "";
+    const lock = busy ? "disabled" : "";
+    return `<section class="cm-cordee-suite" data-cordee-suite="${esc(c.id)}" aria-labelledby="suite-${esc(c.id)}">
+      <div class="asc-between"><h4 id="suite-${esc(c.id)}">${icon("link")} ${esc(s.title)}</h4>${proposals.some((p) => p.status === "open") ? `<span class="sig-state is-worn">${proposals.filter((p) => p.status === "open").length > 1 ? "Propositions ouvertes" : "Proposition ouverte"}</span>` : ""}</div>
+      ${flag ? `<p class="asc-small asc-muted" data-cordee-suite-hint>${esc(s.hint)}</p>` : ""}
+      ${flag && s.choice ? `<p class="asc-small cm-cordee-together" data-cordee-suite-choice>${icon("route")}<span>${esc(s.choice)}</span></p>` : ""}
+      ${proposals.length ? `<ul class="cm-suite-list">${proposals.map((p) => `<li class="cm-suite-item" data-suite="${esc(p.id)}" data-suite-status="${esc(p.status)}">
+        <div class="asc-between"><strong>${esc(p.title)}</strong><small class="asc-faint">${esc(p.by)}</small></div>
+        <p class="asc-small asc-muted" data-suite-counts>${esc(p.counts)}</p>
+        ${p.accepted ? `<p class="asc-small" data-suite-accepted>${esc(p.accepted)}</p>` : ""}
+        ${p.mine ? `<p class="asc-small asc-muted" data-suite-mine>${esc(p.mine)}</p>` : ""}
+        ${p.expiresAt ? `<p class="asc-small asc-faint">Ouverte jusqu’au ${esc(date(p.expiresAt))}.</p>` : ""}
+        ${p.actions.length ? `<div class="asc-actions">${p.actions.map((a) => `<button type="button" class="asc-btn ${a.action === "accept" ? "asc-btn-primary" : a.action === "withdraw" ? "asc-btn-ghost" : "asc-btn-secondary"} asc-btn-sm" data-suite-action="${esc(a.action)}" data-suite-from="${esc(c.id)}" data-suite-id="${esc(p.id)}" ${lock}>${esc(a.label)}</button>`).join("")}</div>` : ""}
+      </li>`).join("")}</ul>` : ""}
+      ${flag && s.can ? `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-suite-propose="${esc(c.id)}" ${lock}>${icon("plus")} ${esc(s.label)}</button></div>` : ""}
+    </section>`;
+  }
+
   function cordeeHtml(c) {
     const words = C().explain(c);
     const lock = busy ? "disabled" : "";
@@ -156,11 +191,13 @@
       actions = `<div class="asc-actions">${c.mine ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-cordee-link="${esc(c.id)}" ${lock}>${icon("link")} Inviter par lien</button>` : ""}<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cordee-leave="${esc(c.id)}" ${lock}>Quitter la cordée</button></div>`;
     }
     const story = words.summited ? words.route.camps[3][1] : Number(c.camps) > 0 ? words.route.camps[Number(c.camps) - 1][1] : "";
+    const followed = C().follows?.(c);
     return `<article class="sig-plate cm-cordee-card" data-cordee="${esc(c.id)}" data-status="${esc(c.status)}" data-route="${esc(words.route.id)}">
       <div class="cm-cordee-view"><img src="/assets/renaissance/${view}-small.webp" srcset="/assets/renaissance/${view}-xs.webp 480w, /assets/renaissance/${view}-small.webp 800w" sizes="(min-width: 1100px) 620px, 100vw" alt="" width="800" height="450" loading="lazy" decoding="async"></div>
       <div class="cm-cordee-top"><div class="asc-between"><p class="asc-eyebrow">Route ${esc(/^les /.test(words.route.world) ? `des ${words.route.world.slice(4)}` : `de ${words.route.world}`)}</p>${state}</div>
         <h3>${esc(words.route.name)}</h3>
-        <p class="cm-cordee-intro">${esc(words.route.intro)}</p></div>
+        <p class="cm-cordee-intro">${esc(words.route.intro)}</p>
+        ${followed ? `<p class="asc-small asc-muted" data-cordee-follows>${icon("route")} ${esc(followed)}</p>` : ""}</div>
       <div class="cm-cordee-body">
         <div class="cm-cordee-ascent">
           <div class="cm-exp-bar"><div class="asc-between"><span>La cordée</span><strong class="asc-num cm-cordee-figure">${n(c.total)} / ${n(c.target)}</strong></div>
@@ -183,6 +220,7 @@
       </div>
       ${relayHtml(c)}
       ${actions}
+      ${c.status !== "active" ? storyHtml(c) + suiteHtml(c) : ""}
     </article>`;
   }
 
@@ -296,6 +334,47 @@
     });
   }
 
+  /* V1.8.3 — propose a new route to the group of a finished cordée: an existing route, a tested pace (the suggested one comes from how
+     the last route went: the same after a summit, one step softer otherwise), a duration. Nobody else is invited, no text is asked. */
+  function proposeSheet(ask, c) {
+    const K = C();
+    const s = K.suite(c);
+    if (!s) return;
+    const prev = s.previous || {};
+    const body = document.createElement("form");
+    body.className = "asc-stack";
+    body.noValidate = true;
+    body.innerHTML = `<p class="asc-small asc-muted">Chaque membre de la cordée accepte ou décline. La nouvelle cordée part dès qu’un autre membre accepte, avec des compteurs à zéro ; seuls ceux qui acceptent y entrent. « ${esc(K.ROUTES[c.route]?.name || "")} » reste consultable.</p>
+      <fieldset class="pf-privacy"><legend class="seance-label">Route</legend>${Object.values(K.ROUTES).map((r) => `<label class="auth-check"><input type="radio" name="route" value="${esc(r.id)}" ${r.id === (c.route === "aube" ? "marees" : "aube") ? "checked" : ""}><span><strong>${esc(r.name)}</strong> · ${esc(r.world)}${r.id === c.route ? ' <small class="asc-faint">la route que vous venez de faire</small>' : ""}</span></label>`).join("")}</fieldset>
+      <fieldset class="pf-privacy"><legend class="seance-label">Allure</legend>${Object.values(K.PACES).map((p) => `<label class="auth-check"><input type="radio" name="pace" value="${esc(p.id)}" ${p.id === s.pace ? "checked" : ""}><span><strong>${esc(p.label)}</strong>${[p.id === s.pace ? "conseillée" : "", p.id === prev.pace ? "celle de la dernière cordée" : ""].filter(Boolean).map((t) => ` <small class="asc-faint">· ${t}</small>`).join("")}<br><small class="asc-muted">${esc(p.text)}</small></span></label>`).join("")}</fieldset>
+      <label class="asc-field"><span>Durée</span><select name="days">${K.DAYS.map((d) => `<option value="${d}" ${d === (Number(prev.days) || 14) ? "selected" : ""}>${d} jours</option>`).join("")}</select></label>
+      <p class="asc-small jr-edit-error" role="alert"></p>
+      <div class="asc-confirm-actions"><button type="button" class="asc-btn asc-btn-secondary" data-cancel>Annuler</button><button type="submit" class="asc-btn asc-btn-primary">Proposer</button></div>`;
+    const d = window.titanShell.sheet({ title: K.SUITE.labels.propose, eyebrow: "Repartir ensemble", body });
+    body.addEventListener("click", (e) => { if (e.target.closest("[data-cancel]")) d.close(); });
+    body.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!same(ask, context()) || busy) return;
+      const v = new FormData(body);
+      const err = body.querySelector(".jr-edit-error");
+      err.textContent = "";
+      busy = true;
+      body.querySelector("[type=submit]").disabled = true;
+      try {
+        const answer = await rpc(ask, "titan_cordee_suite_v1", { p_from: c.id, p_action: "propose", p_suite: null, p_route: String(v.get("route")), p_pace: String(v.get("pace")), p_days: Number(v.get("days")) });
+        busy = false;
+        d.close();
+        window.titanShell?.toast?.({ type: "ok", ...K.suiteResult(answer, "propose") });
+        await refresh();
+        window.dispatchEvent(new CustomEvent("titan:cordee-suite-changed"));
+      } catch (error) {
+        busy = false;
+        body.querySelector("[type=submit]").disabled = false;
+        err.textContent = failure(error);
+      }
+    });
+  }
+
   async function shareLink(ask, id) {
     const r = await rpc(ask, "titan_challenge_link_create_v1", { p_challenge: id });
     const url = `${location.origin}/defi?t=${r?.token}`;
@@ -327,6 +406,14 @@
       let answer = null;
       return act(async (a) => { answer = await rpc(a, "titan_cordee_relay_turn_v1", { p_id: c.id, p_action: action }); })
         .then(() => { if (answer) window.titanShell?.toast?.({ type: "ok", ...C().turnResult(answer, action) }); });
+    }
+    if (b.dataset.suitePropose) { const c = find(b.dataset.suitePropose); return c ? proposeSheet(ask, c) : undefined; }
+    if (b.dataset.suiteAction) {
+      const action = ["accept", "decline", "withdraw"].includes(b.dataset.suiteAction) ? b.dataset.suiteAction : null;
+      if (!action || !b.dataset.suiteFrom || !b.dataset.suiteId) return;
+      let answer = null;
+      return act(async (a) => { answer = await rpc(a, "titan_cordee_suite_v1", { p_from: b.dataset.suiteFrom, p_action: action, p_suite: b.dataset.suiteId }); })
+        .then(() => { if (answer) { window.titanShell?.toast?.({ type: "ok", ...C().suiteResult(answer, action) }); window.dispatchEvent(new CustomEvent("titan:cordee-suite-changed")); } });
     }
     if (b.dataset.cordeeDecline) return act((a) => rpc(a, "titan_challenge_respond", { p_id: b.dataset.cordeeDecline, p_action: "decline" }));
     if (b.dataset.cordeeLink) return act((a) => shareLink(a, b.dataset.cordeeLink));

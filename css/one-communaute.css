@@ -584,6 +584,34 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 /* V1.8.2 — a pending handover reads as a state of the relay, not as an alert. */
 .cm-relay-handover { padding-left: var(--s3); border-left: 2px solid var(--space); }
 .cm-cordee-relay .asc-actions { flex-wrap: wrap; }
+/* V1.8.3 — the story of a finished cordée (a short rope of knots) and « Repartir ensemble » (proposals as plain plates). */
+.cm-cordee-history, .cm-cordee-suite {
+  display: grid;
+  gap: var(--s2);
+  margin: 0 var(--s5) var(--s5);
+  padding: var(--s4);
+  border: 1px solid var(--space-line);
+  border-radius: var(--r2);
+  background: rgba(226, 234, 236, 0.04);
+  min-width: 0;
+}
+.cm-cordee-history p, .cm-cordee-suite p { margin: 0; overflow-wrap: anywhere; }
+.cm-cordee-history h4, .cm-cordee-suite h4 {
+  display: inline-flex; align-items: center; gap: var(--s2); margin: 0;
+  font-family: var(--font-display); font-stretch: var(--w-title); font-size: 17px; font-weight: 800;
+}
+.cm-cordee-history h4 .t-icon, .cm-cordee-suite h4 .t-icon { width: 16px; height: 16px; color: var(--space); }
+.cm-cordee-history-list { display: grid; gap: var(--s2); margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--tx-2); }
+.cm-cordee-history-list li { position: relative; padding-left: var(--s5); overflow-wrap: anywhere; }
+.cm-cordee-history-list li::before { content: ""; position: absolute; left: 2px; top: 6px; width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--space); }
+.cm-cordee-history-list li[data-kind="summit"]::before, .cm-cordee-history-list li[data-kind="suite"]::before { background: var(--space); }
+.cm-cordee-suite .asc-between { gap: var(--s2); align-items: center; flex-wrap: wrap; }
+.cm-suite-list { display: grid; gap: var(--s3); margin: 0; padding: 0; list-style: none; }
+.cm-suite-item { display: grid; gap: var(--s1); padding: var(--s3); border-radius: var(--r2); border: 1px solid var(--space-line); min-width: 0; }
+.cm-suite-item[data-suite-status="open"] { border-left: 2px solid var(--space); }
+.cm-cordee-suite .asc-actions { flex-wrap: wrap; }
+.cm-cordee-suite .asc-actions .asc-btn { min-height: 44px; }
+@media (min-width: 720px) { .cm-cordee-history, .cm-cordee-suite { margin: 0 var(--s7) var(--s6); } }
 .cm-cordee-card > .asc-actions { padding: 0 var(--s5) calc(var(--s5) + var(--s1)); padding-right: calc(var(--s5) + var(--cut)); }
 .cm-cordee-card > .asc-actions .asc-btn { min-height: 44px; }
 @media (min-width: 720px) {

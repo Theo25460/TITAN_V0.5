@@ -50,3 +50,27 @@ test("a finished Duo that was not reached is told kindly; the wording never pres
   const all = JSON.stringify(l);
   for (const bad of [/derni[eè]re chance/i, /tu vas perdre/i, /rat[ée]/i, /pas fait/i, /dépêche/i, /série/i, /retard/i]) assert.doesNotMatch(all, bad);
 });
+
+// V1.8.3 — a group that sets off again: the digest says when the group waits for my answer, and how my own proposal is received.
+test("a proposal to set off again: the answer that waits, a choice between two, my proposal's acceptances, never a reminder to a refusal", () => {
+  const one = D.lines({ suites: [{ id: "k1", route: "aube", waiting: 1, proposals: [
+    { id: "p1", route: "marees", pace: "douce", days: 14, status: "open", by: "Léa", mine: false, myAnswer: null, yes: 1, eligible: 4, turn: ["accept", "decline"] }] }] }, NOW);
+  assert.equal(one.length, 1);
+  assert.equal(one[0].text, "Léa propose à ta cordée de « Les crêtes de l’Aube » de repartir sur « La passe des Marées » · allure douce · 14 jours. Accepte ou décline quand tu veux.");
+  assert.equal(one[0].href, "#cordee");
+  assert.equal(one[0].kind, "together");
+  assert.ok(D.hasNews({ suites: [{ id: "k1", route: "aube", proposals: [{ id: "p1", route: "marees", pace: "douce", days: 14, status: "open", by: "Membre de la cordée", turn: ["accept", "decline"] }] }] }, NOW));
+  assert.match(D.lines({ suites: [{ id: "k1", route: "aube", proposals: [{ id: "p1", route: "marees", pace: "douce", days: 14, status: "open", by: "Membre de la cordée", turn: ["accept"] }] }] }, NOW)[0].text, /^Un membre propose/);
+  const two = D.lines({ suites: [{ id: "k1", route: "aube", choice: true, proposals: [
+    { id: "p1", route: "marees", pace: "douce", days: 14, status: "open", by: "Léa", turn: ["accept", "decline"] },
+    { id: "p2", route: "forge", pace: "soutenue", days: 7, status: "open", by: "Sam", turn: ["accept", "decline"] }] }] }, NOW);
+  assert.deepEqual(two.map((l) => l.text), ["Ta cordée de « Les crêtes de l’Aube » propose 2 itinéraires pour repartir : choisis celui qui te va, ou aucun."]);
+  const declined = D.lines({ suites: [{ id: "k1", route: "aube", proposals: [{ id: "p1", route: "marees", pace: "douce", days: 14, status: "open", by: "Léa", myAnswer: "no", turn: ["accept"] }] }] }, NOW);
+  assert.deepEqual(declined, [], "someone who declined is never reminded");
+  const mine = D.lines({ suites: [{ id: "k1", route: "aube", proposals: [{ id: "p2", route: "forge", pace: "douce", days: 14, status: "open", mine: true, yes: 2, eligible: 5, turn: ["withdraw"] }] }] }, NOW);
+  assert.deepEqual(mine.map((l) => l.text), ["Ta proposition pour repartir sur « Les cols d’Obsidienne » : 2 sur 5 ont accepté."]);
+  const started = D.lines({ cordees: [{ id: "n1", route: "marees", status: "active", myStatus: "invited", follows: "aube", percent: 0, camps: 0 }] }, NOW);
+  assert.deepEqual(started.map((l) => l.text), ["Ton groupe de « Les crêtes de l’Aube » est reparti sur « La passe des Marées », compteurs à zéro. Tu peux t’encorder ou décliner."]);
+  const all = JSON.stringify([one, two, mine, started]);
+  for (const bad of [/derni[eè]re chance/i, /tu vas perdre/i, /dépêche/i, /plus que \d/i, /a décliné/i]) assert.doesNotMatch(all, bad);
+});
