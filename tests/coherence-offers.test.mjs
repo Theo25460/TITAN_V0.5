@@ -303,6 +303,8 @@ test("privacy: every per-player table added since 17 November 2026 is erased wit
     // V1.8.4: a season keeps its frozen report with no person (created_by on delete set null); participations and pauses go with the account.
     titan_club_season_members: ["saisons privées de club (ta participation choisie", "tes participations aux saisons privées de club"],
     titan_club_season_pauses: ["tes pauses, ton départ et tes jours actifs comptés", "saisons privées de club et leurs pauses"],
+    // V1.8.5: a meeting keeps its frozen recap with no person (created_by, answered_by on delete set null); participations and answers go with the account.
+    titan_club_match_members: ["rencontres entre clubs (ta participation choisie, ton départ, tes jours actifs comptés jusqu’à ta part et ton avis sur le score", "tes participations aux rencontres entre clubs et tes avis"],
   };
   const privacy = page("legal_privacy.html"), deletion = page("supprimer-mon-compte.html");
   const found = [];

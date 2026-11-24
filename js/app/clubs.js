@@ -9,6 +9,8 @@
   const FLAG = "screens.clubs";
   const SEASON_FLAG = "screens.club_season"; // V1.8.4: private club seasons (create, join, resume, postpone are checked by the server too)
   const CS = () => window.TitanClubSeason;
+  const MATCH_FLAG = "screens.club_match"; // V1.8.5: meetings between clubs (propose, accept, join are checked by the server too)
+  const CM = () => window.TitanClubMatch;
   const MESSAGES = {
     NOT_ELIGIBLE: "Tu pourras créer ou rejoindre un club un jour après la création du compte.",
     BAD_NAME: "Le nom d’un club fait entre 3 et 60 caractères.",
@@ -44,9 +46,10 @@
   const guest = () => !context().owner || String(context().owner).startsWith("guest_");
   const on = () => !guest() && window.titanFlags?.enabled?.(FLAG, false) === true;
   const n = (v) => window.TitanFormat.number(v);
-  const failure = (error) => {
-    const season = window.TitanClubSeason?.message?.(error);
-    if (season && !/CLUB_NOT_FOUND|RATE_LIMITED/.test(String(error?.message || ""))) return season;
+  const failure = (error, rpc = "") => {
+    // V1.8.5: a meeting's refusal is worded by the meetings' module, a season's by the seasons' module.
+    const shared = /^titan_club_match/.test(rpc) ? window.TitanClubMatch?.message?.(error) : window.TitanClubSeason?.message?.(error);
+    if (shared && !/CLUB_NOT_FOUND|RATE_LIMITED/.test(String(error?.message || ""))) return shared;
     const code = Object.keys(MESSAGES).find((k) => String(error?.message || "").includes(k));
     return code ? MESSAGES[code] : "Le serveur ne répond pas pour l’instant. Réessaie dans un moment.";
   };
@@ -56,7 +59,11 @@
   let seasons = {};   // V1.8.4: club id → titan_club_season_v1 answer
   let seasonForm = {}; // club id → true when the organiser opened the creation form
   const seasonOn = () => on() && window.titanFlags?.enabled?.(SEASON_FLAG, false) === true && Boolean(CS());
-  function reset() { weeks = {}; seasons = {}; seasonForm = {}; data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; synced = false; }
+  let matches = {};      // V1.8.5: club id → titan_club_match_v1 answer
+  let matchForm = {};    // club id → "propose" | "answer" when the organiser opened a form
+  let matchPreview = {}; // club id → { code, found } the proposal read from a code (titan_club_match_preview_v1)
+  const matchOn = () => on() && window.titanFlags?.enabled?.(MATCH_FLAG, false) === true && Boolean(CM());
+  function reset() { weeks = {}; seasons = {}; seasonForm = {}; matches = {}; matchForm = {}; matchPreview = {}; data = null; discover = []; flight = null; missing = false; busy = false; notice = ""; draft = {}; openRoster = new Set(); reporting = null; synced = false; }
   function sync() {
     const id = guest() ? null : context().owner;
     if (id !== owner) { owner = id; reset(); render(); }
@@ -87,6 +94,12 @@
           if (!same(ask, context())) return;
           seasons = Object.fromEntries(got);
         } else seasons = {};
+        // V1.8.5: each club's meeting with another club (an older server has none: nothing is shown).
+        if (matchOn()) {
+          const got = await Promise.all((data || []).map((c) => ask.client.rpc("titan_club_match_v1", { p_club: c.id }).then((r) => [c.id, r.error ? null : r.data], () => [c.id, null])));
+          if (!same(ask, context())) return;
+          matches = Object.fromEntries(got);
+        } else matches = {};
       } catch { if (same(ask, context())) notice = "Les clubs ne répondent pas pour l’instant."; }
       finally { flight = null; if (same(ask, context())) render(); }
     })();
@@ -101,9 +114,9 @@
     try {
       const { data: answer, error } = await ask.client.rpc(name, args);
       if (!same(ask, context())) return;
-      if (error) notice = failure(error); else after?.(answer);
+      if (error) notice = failure(error, name); else after?.(answer);
     } catch (error) {
-      if (same(ask, context())) notice = failure(error);
+      if (same(ask, context())) notice = failure(error, name);
     } finally {
       if (same(ask, context())) { const message = notice; busy = false; await refresh(); if (same(ask, context())) { notice = message || notice; render(); } } else busy = false;
     }
@@ -172,6 +185,80 @@
       <p class="asc-small asc-faint" data-season-role>${esc(S.role(view))}</p>${body}${reportHtml}</div>`;
   }
 
+  /* ---------- V1.8.5: meetings between clubs. Every word from TitanClubMatch, every figure from the server. ---------- */
+  const tomorrow = () => new Date(Date.parse(today() + "T12:00:00Z") + 86400000).toISOString().slice(0, 10);
+  const later = (days) => new Date(Date.parse(today() + "T12:00:00Z") + days * 86400000).toISOString().slice(0, 10);
+  const matchArgs = (club, action, extra = {}) => ({ p_club: club, p_action: action, p_format: null, p_pace: null, p_weeks: null, p_starts_on: null, p_match: null, p_clear: null, p_again: null, ...extra });
+  function matchProposeHtml(c, view) {
+    const M = CM(), id = esc(c.id), v = (k, d) => val(`match-${k}-${c.id}`) || d;
+    const formats = (Array.isArray(view.formats) ? view.formats : ["cooperation"]).filter((f) => M.FORMATS[f]);
+    return `<form class="asc-panel asc-stack" data-match-propose-form="${id}" novalidate><h4>Proposer une rencontre à un autre club</h4>
+      <p class="asc-small asc-muted">Tu obtiens un code à transmettre à un administrateur de l’autre club. Rien n’est partagé avant qu’il accepte, puis chaque membre choisit de participer.</p>
+      <label class="asc-field"><span>Format</span><select class="asc-select" data-club-draft="match-format-${id}">${formats.map((f) => `<option value="${f}" ${v("format", "cooperation") === f ? "selected" : ""}>${esc(M.FORMATS[f].label)} · ${esc(M.FORMATS[f].text)}</option>`).join("")}</select></label>
+      <label class="asc-field"><span>Départ</span><input class="asc-input" type="date" min="${tomorrow()}" max="${later(M.RULE.startWithinDays)}" data-club-draft="match-start-${id}" value="${esc(v("start", tomorrow()))}"></label>
+      <label class="asc-field"><span>Durée</span><select class="asc-select" data-club-draft="match-weeks-${id}">${M.RULE.weeks.map((w) => `<option value="${w}" ${String(v("weeks", 1)) === String(w) ? "selected" : ""}>${w > 1 ? `${w} semaines` : "1 semaine"}</option>`).join("")}</select></label>
+      <label class="asc-field"><span>Allure de chacun</span><select class="asc-select" data-club-draft="match-pace-${id}">${Object.values(M.PACES).map((p) => `<option value="${p.id}" ${v("pace", "reguliere") === p.id ? "selected" : ""}>${esc(p.label)} · ${esc(p.short)}</option>`).join("")}</select></label>
+      <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-primary asc-btn-sm" ${busy ? "disabled" : ""}>Obtenir un code de rencontre</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-match-form-cancel="${id}">Annuler</button></div></form>`;
+  }
+  function matchAnswerHtml(c) {
+    const M = CM(), id = esc(c.id), pv = matchPreview[c.id], lock = busy ? "disabled" : "";
+    const shown = pv && pv.found && !pv.found.self ? M.preview(pv.found) : null;
+    return `<div class="asc-panel asc-stack" data-match-answer-form="${id}"><h4>Répondre à une proposition</h4>
+      <label class="asc-field"><span>Code de rencontre reçu</span><input class="asc-input" maxlength="12" autocomplete="off" autocapitalize="characters" data-club-draft="match-code-${id}" value="${esc(val("match-code-" + c.id))}"></label>
+      <div class="asc-actions"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-match-preview="${id}" ${lock}>Voir la proposition</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-match-form-cancel="${id}">Annuler</button></div>
+      ${shown ? `<div class="asc-stack" data-match-preview-box><p class="asc-small"><strong>${esc(shown.title)}</strong></p>${shown.lines.map((l) => `<p class="asc-small">${esc(l)}</p>`).join("")}
+        <div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-match-accept="${id}" ${lock}>Accepter la rencontre</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-match-refuse="${id}" ${lock}>Refuser</button></div></div>` : ""}</div>`;
+  }
+  function matchFeedbackHtml(c) {
+    const id = esc(c.id), q = (k, label) => `<fieldset class="asc-field"><legend class="asc-small">${label}</legend>${[["yes", "Oui"], ["no", "Non"]].map(([v, l]) => `<label class="auth-check"><input type="radio" name="match-${k}-${id}" value="${v}" data-club-draft="match-${k}-${id}" ${val(`match-${k}-${c.id}`) === v ? "checked" : ""}><span>${l}</span></label>`).join("")}</fieldset>`;
+    return `<form class="asc-stack" data-match-feedback-form="${id}" novalidate><p class="asc-small"><strong>Ton avis sur cette rencontre</strong> <span class="asc-faint">(compté, jamais montré aux clubs)</span></p>
+      ${q("clear", "Le score était-il clair pour toi ?")}${q("again", "Referais-tu une rencontre avec ton club ?")}
+      <div class="asc-actions"><button type="submit" class="asc-btn asc-btn-secondary asc-btn-sm" ${busy ? "disabled" : ""}>Envoyer mon avis</button></div></form>`;
+  }
+  function matchHtml(c) {
+    const M = CM();
+    if (!matchOn() || !M) return "";
+    const view = matches[c.id];
+    if (!view) return "";
+    const m = view.current, lock = busy ? "disabled" : "";
+    const report = M.report(view.last);
+    let body = "";
+    if (m) {
+      const acts = M.actions(m).map((a) => `<button type="button" class="asc-btn ${a.id === "join" ? "asc-btn-primary" : "asc-btn-ghost"} asc-btn-sm" data-match-act="${a.id}" data-club-id="${esc(c.id)}" ${lock}>${esc(a.label)}</button>`).join("");
+      body = `<p class="asc-small asc-muted" data-match-header>${esc(M.header(m))}</p>
+        ${m.phase === "proposed" ? `<p class="asc-small" data-match-proposal>${esc(M.proposal(m))}</p>` : ""}
+        ${M.sides(m).length ? `<ul class="rv-list" data-match-sides aria-label="Les deux clubs">${M.sides(m).map((l) => `<li class="asc-small">${esc(l)}</li>`).join("")}</ul>` : ""}
+        ${M.score(m) ? `<p class="asc-small" data-match-score>${esc(M.score(m))}</p>` : ""}
+        ${M.mine(m) ? `<p class="asc-small" data-match-me>${esc(M.mine(m))}</p>` : ""}
+        <details class="asc-small" data-match-rules><summary>Comment le score est calculé</summary><p class="asc-small asc-muted">${esc(M.rules(m))}</p></details>
+        ${acts ? `<div class="asc-actions">${acts}</div>` : ""}`;
+    } else if (view.canPropose) {
+      body = matchForm[c.id] === "propose" ? matchProposeHtml(c, view) : matchForm[c.id] === "answer" ? matchAnswerHtml(c)
+        : `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-match-form="${esc(c.id)}" data-kind="propose" ${lock}>Proposer une rencontre</button><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-match-form="${esc(c.id)}" data-kind="answer" ${lock}>J’ai reçu un code</button></div>`;
+    } else if (!report) body = `<p class="asc-small asc-faint">Pas de rencontre en cours.</p>`;
+    const feedback = view.last && Array.isArray(view.last.can) && view.last.can.includes("feedback") ? matchFeedbackHtml(c) : "";
+    const reportHtml = report && !m ? `<div class="asc-stack" data-match-report><p class="asc-small"><strong>${esc(report.title)}</strong></p><ul class="rv-list">${report.lines.map((l) => `<li class="asc-small">${esc(l)}</li>`).join("")}</ul>${feedback}</div>` : "";
+    return `<div class="asc-stack" data-club-match="${esc(c.id)}"><p class="asc-small"><strong>Rencontre entre clubs</strong></p>
+      <p class="asc-small asc-faint" data-match-role>${esc(M.role(view))}</p>${body}${reportHtml}</div>`;
+  }
+  async function previewMatch(id) {
+    sync();
+    const M = CM(), code = M.code(val("match-code-" + id));
+    if (busy || !matchOn()) return;
+    if (code.length !== 8) { notice = M.MESSAGES.MATCH_CODE; render(); return; }
+    const ask = context();
+    busy = true; notice = ""; render();
+    try {
+      const { data: found, error } = await ask.client.rpc("titan_club_match_preview_v1", { p_club: id, p_code: code });
+      if (!same(ask, context())) return;
+      if (error) notice = failure(error, "titan_club_match_preview_v1");
+      else if (!found) { matchPreview[id] = null; notice = M.MESSAGES.MATCH_CODE; }
+      else if (found.self) { matchPreview[id] = null; notice = M.MESSAGES.MATCH_SELF; }
+      else matchPreview[id] = { code, found };
+    } catch (error) { if (same(ask, context())) notice = failure(error, "titan_club_match_preview_v1"); }
+    finally { if (same(ask, context())) { busy = false; render(); } else busy = false; }
+  }
+
   function clubHtml(c) {
     const admin = c.role === "admin";
     const ann = (c.announcements || []).map((a) => `<li class="asc-between" data-club-ann="${esc(a.id)}"><span><span class="asc-small asc-muted">${esc(date(a.at))}</span><br>${esc(a.body)}</span><span class="asc-actions">${admin ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-ann-remove="${esc(a.id)}" aria-label="Retirer cette annonce">Retirer</button>` : ""}${a.mine ? "" : `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-club-report="${esc(c.id)}" data-ann="${esc(a.id)}" aria-label="Signaler cette annonce">Signaler</button>`}</span></li>`).join("");
@@ -187,6 +274,7 @@
       ${(c.trophies || []).length ? `<ul class="rv-list" data-club-trophies aria-label="Trophées du club">${c.trophies.map((t) => `<li><strong>${esc(t.title)}</strong> <span class="asc-small asc-muted">· ${esc(date(t.on))}</span>${t.note ? `<br><span class="asc-small asc-muted">${esc(t.note)}</span>` : ""}</li>`).join("")}</ul>` : ""}
       ${weekHtml(c)}
       ${seasonHtml(c)}
+      ${matchHtml(c)}
       ${ann ? `<ul class="rv-list" data-club-announcements>${ann}</ul>` : `<p class="asc-small asc-faint">Pas d’annonce pour l’instant.</p>`}
       ${tools}${roster}
       ${reporting && reporting.club === c.id ? reportForm(c) : ""}
@@ -245,6 +333,20 @@
       act("titan_club_season_act_v1", { p_club: id, p_action: "create", p_title: form.title, p_pace: form.pace, p_weeks: form.weeks, p_starts_on: form.startsOn, p_days: null }, () => {
         seasonForm[id] = false; ["title", "start", "weeks", "pace"].forEach((k) => delete draft[`season-${k}-${id}`]); notice = S.result("create");
       });
+    } else if (e.target.matches("[data-match-propose-form]")) {
+      const id = e.target.dataset.matchProposeForm, M = CM();
+      const form = { format: val("match-format-" + id) || "cooperation", startsOn: val("match-start-" + id) || tomorrow(), weeks: Number(val("match-weeks-" + id) || 1), pace: val("match-pace-" + id) || "reguliere" };
+      const bad = M.validate(form, today());
+      if (bad) { notice = M.MESSAGES[bad]; render(); return; }
+      act("titan_club_match_act_v1", matchArgs(id, "propose", { p_format: form.format, p_pace: form.pace, p_weeks: form.weeks, p_starts_on: form.startsOn }), () => {
+        matchForm[id] = null; ["format", "start", "weeks", "pace"].forEach((k) => delete draft[`match-${k}-${id}`]); notice = M.result("propose");
+      });
+    } else if (e.target.matches("[data-match-feedback-form]")) {
+      const id = e.target.dataset.matchFeedbackForm, M = CM(), clear = val("match-clear-" + id), again = val("match-again-" + id);
+      if (!clear || !again) { notice = "Réponds aux deux questions."; render(); return; }
+      act("titan_club_match_act_v1", matchArgs(id, "feedback", { p_clear: clear === "yes", p_again: again === "yes" }), () => {
+        delete draft["match-clear-" + id]; delete draft["match-again-" + id]; notice = M.result("feedback");
+      });
     } else if (e.target.matches("[data-club-create-form]")) {
       const name = val("name").trim();
       if (name.length < 3) { notice = MESSAGES.BAD_NAME; render(); return; }
@@ -263,6 +365,28 @@
       const S = CS(), id = t.dataset.clubId, action = t.dataset.seasonAct, view = seasons[id];
       const run = () => act("titan_club_season_act_v1", { p_club: id, p_action: action, p_title: null, p_pace: null, p_weeks: null, p_starts_on: null, p_days: action === "postpone" ? Number(t.dataset.days) : null }, () => { notice = S.result(action); });
       const ask = S.confirmText(action, view && view.current);
+      if (ask && window.titanShell?.confirm) window.titanShell.confirm({ title: ask.title, message: ask.message, confirmLabel: ask.confirm, action: async () => { run(); } });
+      else run();
+      return;
+    }
+    if (t.dataset.matchForm) { matchForm[t.dataset.matchForm] = t.dataset.kind; matchPreview[t.dataset.matchForm] = null; render(); root.querySelector(`[data-club-match="${CSS.escape(t.dataset.matchForm)}"] select, [data-club-match="${CSS.escape(t.dataset.matchForm)}"] input`)?.focus(); return; }
+    if (t.dataset.matchFormCancel) { matchForm[t.dataset.matchFormCancel] = null; matchPreview[t.dataset.matchFormCancel] = null; render(); return; }
+    if (t.dataset.matchPreview) { previewMatch(t.dataset.matchPreview); return; }
+    if (t.dataset.matchAccept || t.dataset.matchRefuse) {
+      const M = CM(), id = t.dataset.matchAccept || t.dataset.matchRefuse, action = t.dataset.matchAccept ? "accept" : "refuse", pv = matchPreview[id];
+      if (!pv || !pv.found) return;
+      const run = () => act("titan_club_match_act_v1", matchArgs(id, action, { p_match: pv.found.id }), () => {
+        matchForm[id] = null; matchPreview[id] = null; delete draft["match-code-" + id]; notice = M.result(action);
+      });
+      const ask = M.confirmText(action, null);
+      if (ask && window.titanShell?.confirm) window.titanShell.confirm({ title: ask.title, message: ask.message, confirmLabel: ask.confirm, action: async () => { run(); } });
+      else run();
+      return;
+    }
+    if (t.dataset.matchAct) {
+      const M = CM(), id = t.dataset.clubId, action = t.dataset.matchAct, view = matches[id];
+      const run = () => act("titan_club_match_act_v1", matchArgs(id, action), () => { notice = M.result(action); });
+      const ask = M.confirmText(action, view && view.current);
       if (ask && window.titanShell?.confirm) window.titanShell.confirm({ title: ask.title, message: ask.message, confirmLabel: ask.confirm, action: async () => { run(); } });
       else run();
       return;

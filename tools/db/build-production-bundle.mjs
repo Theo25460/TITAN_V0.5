@@ -136,6 +136,19 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v23 bundle (V1.8.3, head 20261126090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.club_season for the pilot clubs' accounts only.",
   },
+  // V1.8.5 — Rencontres entre clubs (24 November 2026): a private one- or two-week meeting between two clubs, proposed by an organiser
+  // and accepted by another club's organiser with a one-time code, explicit participation, a capped share per person, a rate per club
+  // from 3 participants, scores as of the last midnight, cooperation first (screens.club_match) and the comparative format behind its
+  // own closed flag (screens.club_match_versus). NOT APPLIED: owner decision required, after v24.
+  // Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_club_match.sql, tools/db/test-club-match-concurrency.sh).
+  // Fingerprints measured on a replica built from the repository.
+  v25: {
+    out: "supabase/release-v25", after: "20261127090000", until: "20261128090000",
+    before: { private: [152, "a12f5f1e2548", "eee8973d517f"], public: [329, "82c14f6e68a3", "5ccabb51c604"] },
+    expected: { private: [166, "550d46c5de65", "3f3e1401b571"], public: [332, "44ce47c36337", "978b18a6a81f"] },
+    beforeNote: "This is the state production reaches at the end of the v24 bundle (V1.8.4, head 20261127090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.club_match for the pilot clubs' accounts only; leave screens.club_match_versus closed.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
