@@ -104,6 +104,18 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v20 bundle (applied on 18 Nov 2026, head 20261122090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_followup for the pilot accounts only.",
   },
+  // V1.9.2 — Retour sur la séance (24 November 2026): a coach feedback tied to the proposal and to the session it is about (observation in
+  // the link's thread, measures projected at every read through the link's current contract, never copied), an adjustment the athlete
+  // accepts or declines and that is carried into the next proposal, behind screens.coach_feedback (absent = closed). NOT APPLIED: owner
+  // decision required. Needs v191 first (it extends the V1.9.1 follow-up and its history). Additive, rehearsed on a replica
+  // (tools/db/test-migrations.sh, sql/tests/300_coach_feedback.sql).
+  v192: {
+    out: "supabase/release-v192", after: "20261201090000", until: "20261202090000",
+    before: { private: [126, "e038c4345853", "b1a6d8583bc3"], public: [325, "52d4cbd3910b", "1367d1178a2d"] },
+    expected: { private: [132, "f470df633887", "8431bbe577ef"], public: [326, "a50bf326388e", "321fae833080"] },
+    beforeNote: "This is the state production reaches at the end of the v191 bundle (head 20261201090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_feedback for the pilot accounts only, once screens.coach_followup is open for them.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
