@@ -131,4 +131,10 @@ if guard=$(bash "$ROOT/tools/db/test-coach-followup-concurrency.sh" "${PSQL[@]}"
 fi
 [[ "$guard" == "Refused: the coach follow-up concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 bash "$ROOT/tools/db/test-coach-followup-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Coach review send concurrency contract (two real connections, V1.9.3)"
+if guard=$(bash "$ROOT/tools/db/test-coach-review-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "coach review concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the coach review concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-coach-review-concurrency.sh" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."
