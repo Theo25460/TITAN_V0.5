@@ -172,6 +172,7 @@
         link_refused: e.code === "SESSION_ALREADY_LINKED" ? "Tentative de lien refusée : séance déjà liée à une autre proposition" : "Seconde tentative de lien refusée : le lien en place est gardé",
         seen: "Écart traité par le coach",
         adjusted: "Ajustée après un retour du coach, accepté par le sportif", from_feedback: "Ajoutée depuis un retour du coach, acceptée par le sportif",
+        from_review: e.week ? `Préparée lors de la revue de la semaine du ${day(e.week)}, envoyée par le coach` : "Préparée lors de la revue de la semaine, envoyée par le coach",
       }[e?.k];
       if (t) out.push({ kind: e.k, at, text: t, before: e.before || e.kept || null, after: e.after || null });
     }

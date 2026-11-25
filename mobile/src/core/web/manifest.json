@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "45f7c66e65eeab19e8f2456c60a450b7e90ae09f",
+  "sha": "bcdd5223b1c10513762d968f83e683da5af1f4b6",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
@@ -31,7 +31,7 @@
     "periodic-quests.js": "fb9abcdcdc3f1fdd668f9f015cd54da5a25036098948cf9557a0826c63dd6c51",
     "cordee.js": "8f542b0a923c5168d18b74a7345e4e0f7370250dd980a68108b58caac5af1737",
     "social-digest.js": "4e56fee2d6fb6d7bfad261761ab0028955137b4d1001304cebe0c9f18c2eca1f",
-    "coach-followup.js": "566ab63eb69cb828a3570bb0f1e388d45134d4ae38d665723c47d04987971fff",
+    "coach-followup.js": "cf5feed82c439e3da90c90d1dbc7d160cf2da57bce5ca62f21a506177056d524",
     "coach-feedback.js": "1e4791655e9c98f7a5106a8a57160ce889df86138a6719054c46aaa6f7ff42d3"
   }
 }
