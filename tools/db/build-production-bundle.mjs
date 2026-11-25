@@ -128,6 +128,19 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v192 bundle (head 20261202090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_review for the pilot accounts only, once screens.coach_followup and screens.coach_feedback are open for them.",
   },
+  // V1.9.4 — Programmation multi-semaines (25 November 2026): the coach's versioned multi-week templates, adapted for one athlete (draft
+  // previewed against its starting point, duplicated from another athlete's programme), sent once as ordinary proposals, answered session by
+  // session (accept, decline, to discuss), revised by occurrence, week or rest of the cycle with a preview and an op_id (done sessions kept,
+  // accepted ones get a change beside the accepted version), closed with an immutable version, behind screens.coach_programs (absent =
+  // closed). NOT APPLIED: owner decision required. Needs v191, v192 and v193 first (it re-applies the V1.9.1 row and the V1.9.3 export).
+  // Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_coach_programs.sql, tools/db/test-coach-program-concurrency.sh).
+  v194: {
+    out: "supabase/release-v194", after: "20261203090000", until: "20261204090000",
+    before: { private: [135, "46ef37ce6ad4", "65b87c582f10"], public: [327, "38f8cdbe16ff", "e631f251f386"] },
+    expected: { private: [142, "7f7fdc02ec0d", "e8547c9acb1c"], public: [328, "7410ae198479", "c98a08c50f3b"] },
+    beforeNote: "This is the state production reaches at the end of the v193 bundle (head 20261203090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_programs for the pilot accounts only, once screens.coach_followup, screens.coach_feedback and screens.coach_review are open for them.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
