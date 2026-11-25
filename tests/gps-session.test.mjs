@@ -12,7 +12,8 @@ test('each sport family reads its own dashboard: pace on foot, speed on wheels, 
   assert.deepEqual(S.layout('gravel').main, ['speed', 'distance']); assert.deepEqual(S.layout('hiking').main, ['distance', 'moving']);
   assert.deepEqual(S.layout('gravel', ['clock', 'remaining', 'nope', 'speed', 'stopped']).more, ['clock', 'remaining', 'stopped'], 'an unknown or duplicated choice is dropped');
   assert.ok(!Object.keys(S.FIELDS).some((k) => /heart|cardio|power|watt|cadence/i.test(k)));
-  assert.deepEqual(S.cell('speed', a(), { speedMs: 1000 / 312 }, true), { key: 'speed', label: 'Allure', value: '5:12', unit: '/km' });
+  assert.deepEqual(S.cell('speed', a(), { speedMs: 1000 / 312 }, true), { key: 'speed', label: 'Allure', value: '5:12', unit: '/km', short: 'Allure' });
+  assert.equal(S.cell('avgMoving', a(), {}, false).short, 'Moy. mouv.'); assert.equal(S.cell('avgMoving', a(), {}, true).short, 'Allure moy. mouv.');
   assert.equal(S.cell('speed', a(), { speedMs: 6.75 }, false).value, '24,3');
   assert.equal(S.cell('speed', a(), {}, false).value, '–');
   assert.equal(S.cell('avgMoving', a(), {}, false).value, '20,0');
