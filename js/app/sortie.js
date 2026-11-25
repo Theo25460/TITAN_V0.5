@@ -153,7 +153,7 @@
     const all = E().GPS_SPORTS.filter((id) => SP().conf(id) && window.SPORTS_CONFIG?.[id]);
     const favourites = (window.state?.user?.favoriteSports || []).filter((id) => all.includes(id));
     const recent = [...(window.state?.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date)).map((l) => l.sport).filter((id) => all.includes(id));
-    const first = [...new Set([...favourites, ...recent, ...(prefs?.sport ? [prefs.sport] : []), "running", "cycling", "gravel", "hiking", "trail", "walking", "mountain_bike"])].filter((id) => all.includes(id)).slice(0, 6);
+    const first = [...new Set([...favourites, ...recent, "running", "cycling", "gravel", "hiking", "trail", "walking", "mountain_bike"])].filter((id) => all.includes(id)).slice(0, 6);
     return { all, first, rest: all.filter((id) => !first.includes(id)), favourites };
   }
   function plannedGoal(sport) {
@@ -617,7 +617,7 @@
       ${a.splits.length >= 2 ? `<div class="gps-block"><h3 class="asc-h3">Kilomètre par kilomètre</h3><div class="gps-table"><table><caption class="sr-only">Temps en mouvement et ${pace ? "allure" : "vitesse"} de chaque kilomètre</caption><thead><tr><th scope="col">Km</th><th scope="col">Temps</th><th scope="col">${pace ? "Allure" : "Vitesse"}</th></tr></thead><tbody>${a.splits.map(splitRow).join("")}</tbody></table></div><p class="asc-small asc-muted">Mesuré sur le mouvement seulement : un arrêt ou un trou n’entre dans aucun kilomètre.</p></div>` : ""}
       <div class="gps-block"><h3 class="asc-h3">Arrêts et qualité des données</h3>
         <p data-stops>${a.stops.length ? `${a.stops.length} arrêt${a.stops.length > 1 ? "s" : ""} détecté${a.stops.length > 1 ? "s" : ""}, le plus long de ${esc(E().clock(longest))}.` : "Aucun arrêt détecté."}</p>
-        <p class="asc-small asc-muted" data-quality>${esc(`${q.points} positions gardées. ${q.refusedText} ${q.holesText} ${q.accuracyText} ${q.thinnedText}`.trim())}</p></div>
+        <p class="asc-small asc-muted" data-quality>${esc(`${q.points} position${q.points > 1 ? "s" : ""} gardée${q.points > 1 ? "s" : ""}. ${q.refusedText} ${q.holesText} ${q.accuracyText} ${q.thinnedText}`.trim())}</p></div>
       ${plan ? `<div class="gps-block" data-plan-summary><h3 class="asc-h3">Séance structurée</h3><p>${plan.complete ? "Toutes les étapes ont été faites." : `${plan.done} étape${plan.done > 1 ? "s" : ""} sur ${plan.total}. Une séance interrompue garde ce qui a été fait.`}</p>${plan.laps.length ? `<ol class="gps-laps">${plan.laps.map((l) => `<li>${esc(l.text)}</li>`).join("")}</ol>` : ""}${plan.missed.length ? `<p class="asc-small asc-muted">Non atteintes : ${esc(plan.missed.join(", "))}.</p>` : ""}</div>` : ""}
       ${goal ? `<div class="gps-block" data-goal-result="${goal.reached}"><h3 class="asc-h3">${esc(goal.title)}</h3><p>${esc(goal.line)}</p></div>` : ""}
       <details class="gps-how"><summary>Comment c’est calculé</summary>${E().explain(a).map((line) => `<p class="asc-small">${esc(line)}</p>`).join("")}</details>

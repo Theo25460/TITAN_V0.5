@@ -410,7 +410,7 @@
     wireDownloads(host, r, segs, status);
     host.querySelector("[data-rt-del]")?.addEventListener("click", async (e) => {
       const b = e.currentTarget; b.disabled = true;
-      try { await call(ctx, "titan_route_delete_v1", { p_id: r.id }); copies(ctx.owner).remove(r.id); onDeleted?.(); } catch (err) { b.disabled = false; if (err.message !== "STALE") status("Suppression impossible pour le moment."); }
+      try { await call(ctx, "titan_route_delete_v1", { p_id: r.id }); onDeleted?.(); } catch (err) { b.disabled = false; if (err.message !== "STALE") status("Suppression impossible pour le moment."); }
     });
   }
 
@@ -583,18 +583,20 @@
     body.className = "asc-stack rt-lib";
     const d = sheet({ title: "Mes parcours", eyebrow: "GPS", body });
     guardSheet(d, ctx);
-    const S = { rows: [], more: false, offline: false, nameLocal: false, error: "", q: "", flash: o.flash || "", run: 0, pulls: 0, tracks: new Map() };
+    const S = { rows: [], more: false, offline: false, nameLocal: false, error: "", q: "", flash: o.flash || "", run: 0, pulls: 0, quiet: 0, tracks: new Map() };
     const C = () => copies(ctx.owner);
     const ok = () => alive(ctx) && d.open;
     const say = (t) => { const n = body.querySelector("[data-rt-status]"); if (n) n.textContent = t || ""; };
     let onClick = null, onChange = null, onInput = null;
-    body.addEventListener("click", (e) => { if (ok()) onClick?.(e); });
+    // The second tap of a double tap on « Enregistrer » would land on whatever the redrawn sheet puts under the finger: it is ignored.
+    body.addEventListener("click", (e) => { if (ok() && Date.now() >= S.quiet) onClick?.(e); });
     body.addEventListener("change", (e) => { if (ok()) onChange?.(e); });
     body.addEventListener("input", (e) => { if (ok()) onInput?.(e); });
     const refresh = () => { if (ok() && body.querySelector("[data-rt-view='list']")) load(); };
     window.addEventListener("titan:routes-updated", refresh);
     d.addEventListener("close", () => { S.run++; window.removeEventListener("titan:routes-updated", refresh); }, { once: true });
-    const show = (view, html) => { body.innerHTML = `<div class="asc-stack" data-rt-view="${view}">${html}</div>`; };
+    // A new view starts at its top: what was just said (a saved route, a refusal) is never left above the visible part of the sheet.
+    const show = (view, html, keep) => { body.innerHTML = `<div class="asc-stack" data-rt-view="${view}">${html}</div>`; if (!keep) body.closest(".asc-sheet-body")?.scrollTo?.(0, 0); };
 
     /* -- list -- */
     const localRows = () => C().list().map(rowOf);
@@ -622,7 +624,7 @@
     async function load(before) {
       const view = ++S.run;
       if (!(await pull(before)) || view !== S.run) return;
-      list();
+      list(!!before);
       if (!before && !S.offline && S.rows.some((r) => r.queued)) flush(ctx);
     }
     const rowHtml = (r) => `<li><button type="button" class="rt-row" data-rt-open="${esc(r.id)}"><span class="rt-row-top"><strong class="rt-row-name">${esc(titleOf(r))}</strong>${chip(r)}${r.queued ? '<span class="asc-chip warn">En attente d’envoi</span>' : r.localOnly ? '<span class="asc-chip">Sur cet appareil</span>' : ""}</span>
@@ -633,7 +635,7 @@
       if (!rows.length) return `<p class="asc-small asc-muted" data-rt-empty>Aucun parcours ne porte ce nom.</p>`;
       return `<ul class="rt-list">${rows.map(rowHtml).join("")}</ul>`;
     }
-    function list() {
+    function list(keep) {
       const notes = [
         S.flash ? `<p class="asc-note" role="status" data-rt-flash>${icon("check")}<span>${esc(S.flash)}</span></p>` : "",
         guest ? `<p class="asc-note" data-rt-guest>${icon("info")}<span>Mes parcours demande un compte : la bibliothèque est gardée sur ton compte TITAN. En mode découverte, un parcours importé reste sur cet appareil seulement, sans sauvegarde ni synchronisation.</span></p>` : "",
@@ -643,14 +645,14 @@
       ].join("");
       S.flash = "";
       show("list", `<p class="asc-small asc-muted">Tes parcours enregistrés, importés ou planifiés. Privés : jamais partagés ni publiés.</p>
-        <div class="rt-tools"><button type="button" class="asc-btn asc-btn-secondary rt-tap" data-rt-import>${icon("upload")} Importer un GPX</button>
-          <button type="button" class="asc-btn asc-btn-secondary rt-tap" data-rt-plan>${icon("route")} Créer un parcours</button>
-          <button type="button" class="asc-btn asc-btn-secondary rt-tap" data-rt-places>${icon("pin")} Mes points</button>
+        <div class="rt-tools"><button type="button" class="asc-btn asc-btn-secondary rt-tap" data-rt-import>${icon("upload")}<span>Importer un GPX</span></button>
+          <button type="button" class="asc-btn asc-btn-secondary rt-tap" data-rt-plan>${icon("route")}<span>Créer un parcours</span></button>
+          <button type="button" class="asc-btn asc-btn-secondary rt-tap" data-rt-places>${icon("pin")}<span>Mes points</span></button>
           <input type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" data-rt-file hidden aria-label="Fichier GPX à importer" /></div>
         ${notes}<p class="asc-small" role="status" data-rt-status></p>
         ${S.rows.length > 1 ? `<label class="asc-field rt-search"><span>Chercher par nom</span><input type="search" class="asc-input" data-rt-q value="${esc(S.q)}" autocomplete="off" enterkeyhint="search" /></label>` : ""}
         <div data-rt-items>${listItems()}</div>
-        ${S.more ? `<button type="button" class="asc-btn asc-btn-ghost rt-tap" data-rt-more>Afficher les parcours plus anciens</button>` : ""}`);
+        ${S.more ? `<button type="button" class="asc-btn asc-btn-ghost rt-tap" data-rt-more>Afficher les parcours plus anciens</button>` : ""}`, keep);
       onInput = (e) => { if (e.target.matches("[data-rt-q]")) { S.q = e.target.value; body.querySelector("[data-rt-items]").innerHTML = listItems(); } };
       onChange = (e) => { if (e.target.matches("[data-rt-file]")) pick(e.target); };
       onClick = (e) => {
@@ -663,7 +665,7 @@
           if (!window.TitanGpx?.analyse) return say("L’import GPX n’est pas disponible sur cette page (lecteur de fichiers non chargé).");
           return body.querySelector("[data-rt-file]").click();
         }
-        if (t.closest("[data-rt-plan]")) return window.TitanPlanner?.open ? window.TitanPlanner.open({ onSaved: (r) => { S.flash = r?.message || "Parcours enregistré dans Mes parcours."; if (ok()) load(); }, onFollow: o.onFollow }) : say("La planification n’est pas chargée sur cette page.");
+        if (t.closest("[data-rt-plan]")) return window.TitanPlanner?.open ? window.TitanPlanner.open({ fromLibrary: true, onSaved: (r) => { S.flash = r?.message || "Parcours enregistré dans Mes parcours."; if (ok()) load(); }, onFollow: o.onFollow }) : say("La planification n’est pas chargée sur cette page.");
         if (t.closest("[data-rt-places]")) return window.TitanPlaces?.open ? window.TitanPlaces.open() : say("Mes points n’est pas chargé sur cette page.");
       };
     }
@@ -714,6 +716,7 @@
         if (!b || b.disabled) return;
         const v = form();
         b.disabled = true;
+        S.quiet = Date.now() + 450; // the second tap of a double tap, whatever is under the finger by then
         say("Enregistrement…");
         const r = await saveRoute(ctx, { ...route, name: v.name, sport: v.sport }, { origin: "imported", sport: v.sport, name: v.name });
         if (!ok()) return;

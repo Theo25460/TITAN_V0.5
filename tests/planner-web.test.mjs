@@ -113,7 +113,7 @@ test('every error code and every broken answer is one state with its own sentenc
     for (const state of ['not_configured', 'offline', 'guest', 'auth', 'no_route', 'rate', 'quota', 'bad', 'unavailable']) assert.ok(P.MESSAGES[state].length > 30, state);
     assert.equal(P.MESSAGES.offline, 'Le calcul d’itinéraire demande une connexion. Tes parcours enregistrés restent utilisables.');
     assert.ok(!Object.values(P.MESSAGES).some(m => /[A-Z]{4,}_[A-Z]/.test(m)), 'no code is shown to the athlete');
-    assert.ok(!/\bs[ûu]re?s?\b|sécuris/i.test(Object.values(P.MESSAGES).join(' ')), 'a route is never called safe');
+    assert.ok(!/(^|[^a-zà-ÿ])sûre?s?(?![a-zà-ÿ])|sécuris/i.test(Object.values(P.MESSAGES).join(' ')), 'a route is never called safe');
 });
 
 test('a loop is shown as asked beside obtained, and every line says it is a preference', () => {

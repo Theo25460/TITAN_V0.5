@@ -423,7 +423,7 @@
       ${gpsBar(GPS_TIME.slice(0, 4).map(([kind, label]) => ({ kind, label, seconds: times[kind] })), E.clock)}
       <dl class="jr-kv rt-bilan-figures">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
       <p class="asc-small asc-faint">${g.autoPause === false ? "Pause automatique désactivée : la durée de la séance garde les arrêts détectés, pas les pauses ni les trous." : "Durée de la séance = temps en mouvement."}${times.missing > 0 ? " Le temps sans position fiable n’est pas compté comme effort." : ""}</p>
-      <div data-gps-detail-slot></div></section>`;
+      <div class="rt-bilan-detail" data-gps-detail-slot></div></section>`;
   }
   /** « Voir le détail »: the engine run again on the trace kept in the library, when that trace carries its times. The library trace
       is thinned (3,000 points at most), so these figures may differ slightly from the saved bilan above, which stays the reference. */

@@ -176,12 +176,12 @@
     const say = (t) => { P.message = t || ""; const n = body.querySelector("[data-pl-status]"); if (n) n.textContent = P.message; };
 
     const blocked = (state) => {
-      if (state === "not_configured") return `<section class="pl-panel" data-pl-state="not_configured"><h3 class="asc-h3">${esc(MESSAGES.not_configured)}</h3>
+      if (state === "not_configured") return `<section class="pl-panel" data-pl-state="not_configured" tabindex="-1"><h3 class="asc-h3">${esc(MESSAGES.not_configured)}</h3>
         <p class="asc-small"><strong>Ce qu’il faut :</strong> un compte chez un fournisseur d’itinéraires, configuré sur le serveur de TITAN (voir docs/V177_CARTES_ET_ROUTAGE.md). Tant que ce n’est pas fait, aucun itinéraire ne peut être calculé ici — et TITAN n’en invente pas.</p>
         <p class="asc-small"><strong>Ce qui marche en attendant :</strong></p>
         <ul class="asc-small pl-meanwhile"><li>importer un GPX préparé dans n’importe quel planificateur (Mes parcours, « Importer un GPX ») ;</li><li>suivre un parcours que tu as déjà enregistré ;</li><li>revenir par le même chemin pendant une sortie.</li></ul>
         ${o.fromLibrary || !window.TitanRoutes?.openLibrary ? "" : `<button type="button" class="asc-btn asc-btn-secondary rt-tap" data-pl-library>${icon("route")} Ouvrir Mes parcours</button>`}</section>`;
-      return `<p class="asc-note ${state === "offline" || state === "guest" ? "warn" : "err"}" data-pl-state="${esc(state)}">${icon(state === "offline" ? "offline" : "alert")}<span>${esc(MESSAGES[state] || MESSAGES.unavailable)}</span>${state === "unavailable" || state === "rate" ? '<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm rt-tap" data-pl-go>Réessayer</button>' : ""}</p>`;
+      return `<p class="asc-note ${state === "offline" || state === "guest" ? "warn" : "err"}" data-pl-state="${esc(state)}" tabindex="-1">${icon(state === "offline" ? "offline" : "alert")}<span>${esc(MESSAGES[state] || MESSAGES.unavailable)}</span>${state === "unavailable" || state === "rate" ? '<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm rt-tap" data-pl-go>Réessayer</button>' : ""}</p>`;
     };
     const fill = (target, text) => `<select class="pl-fill" data-pl-fill="${esc(target)}" aria-label="Remplir ${esc(text)} avec…"><option value="">Remplir avec…</option><option value="here">Ma position</option>
       ${P.places.length ? `<optgroup label="Mes points">${P.places.map((p) => `<option value="place:${esc(p.id)}">${esc(p.name)}</option>`).join("")}</optgroup>` : ""}
@@ -196,7 +196,7 @@
     function formHtml() {
       const n = P.points.length;
       return `${P.state ? blocked(P.state) : !ui.online() ? blocked("offline") : ""}
-        <div class="asc-form-grid"><label class="asc-field"><span>Sport</span><select data-pl-sport>${sports.map(([id, label]) => `<option value="${esc(id)}"${id === P.sport ? " selected" : ""}>${esc(label)}</option>`).join("")}</select></label>
+        <div class="pl-grid"><label class="asc-field"><span>Sport</span><select data-pl-sport>${sports.map(([id, label]) => `<option value="${esc(id)}"${id === P.sport ? " selected" : ""}>${esc(label)}</option>`).join("")}</select></label>
           <label class="asc-field"><span>Profil d’itinéraire</span><select data-pl-profile>${Object.entries(PROFILES).map(([k, v]) => `<option value="${k}"${k === P.profile ? " selected" : ""}>${esc(v)}</option>`).join("")}</select></label></div>
         <div class="asc-seg pl-tabs" role="group" aria-label="Type de parcours"><button type="button" class="rt-tap" data-pl-mode="points" aria-pressed="${P.mode === "points"}">D’un point à un autre</button><button type="button" class="rt-tap" data-pl-mode="loop" aria-pressed="${P.mode === "loop"}">Boucle</button></div>
         ${P.mode === "points" ? `<ol class="pl-points">${P.points.map((p, i) => pointRow(p, i, n)).join("")}</ol>
@@ -215,9 +215,11 @@
         <button type="button" class="asc-btn asc-btn-primary rt-tap" data-pl-go ${P.phase === "busy" ? "disabled" : ""}>${icon("route")} ${P.phase === "busy" ? "Calcul en cours…" : "Calculer l’itinéraire"}</button>
         <p class="asc-small" role="status" data-pl-status>${esc(P.message)}</p>`;
     }
+    // « Non renseigné » and « Autres » are drawn in the neutral tone: they are not a kind of ground.
+    const tone = (r, i) => (r.key === "unknown" || r.key === "others" ? 5 : i % 5);
     const bars = (title, rows, missingText) => (rows ? `<section class="pl-shares" data-pl-shares="${esc(title)}"><p class="asc-eyebrow">${esc(title)}</p>
-        <div class="pl-bar" role="img" aria-label="${esc(`${title} : ${rows.map((r) => `${r.label} ${r.pct} %`).join(", ")}`)}">${rows.map((r, i) => `<span class="pl-bar-part pl-tone-${i % 6}" style="flex-grow:${Math.max(1, Math.round(r.share * 1000))}"></span>`).join("")}</div>
-        <ul class="pl-legend">${rows.map((r, i) => `<li><span class="pl-swatch pl-tone-${i % 6}" aria-hidden="true"></span>${esc(r.label)} · <span class="asc-num">${r.pct} %</span></li>`).join("")}</ul></section>`
+        <div class="pl-bar" role="img" aria-label="${esc(`${title} : ${rows.map((r) => `${r.label} ${r.pct} %`).join(", ")}`)}">${rows.map((r, i) => `<span class="pl-bar-part pl-tone-${tone(r, i)}" style="flex-grow:${Math.max(1, Math.round(r.share * 1000))}"></span>`).join("")}</div>
+        <ul class="pl-legend">${rows.map((r, i) => `<li><span class="pl-swatch pl-tone-${tone(r, i)}" aria-hidden="true"></span>${esc(r.label)} · <span class="asc-num">${r.pct} %</span></li>`).join("")}</ul></section>`
       : `<p class="asc-small asc-muted" data-pl-shares-missing>${esc(missingText)}</p>`);
     function resultHtml() {
       const plan = P.plan, facts = P.wish ? loopFacts(plan, P.wish) : [];
@@ -235,7 +237,7 @@
         ${plan.profileNote ? `<p class="asc-small asc-muted" data-pl-profile-note>${esc(plan.profileNote)}</p>` : ""}
         <p class="asc-small asc-faint">Tracé indicatif : TITAN ne connaît ni l’état des chemins ni la circulation. Vérifie-le avant de partir.${plan.attribution ? ` <span data-pl-attribution>${esc(plan.attribution)}</span>` : ""}</p>
         <label class="asc-field"><span>Nom du parcours</span><input type="text" class="asc-input" maxlength="80" data-pl-name value="${esc(P.name)}" autocomplete="off" /></label>
-        <div class="asc-actions rt-actions">${P.savedId ? "" : `<button type="button" class="asc-btn asc-btn-primary rt-tap" data-pl-save>${guest ? "Garder sur cet appareil" : "Enregistrer dans Mes parcours"}</button>`}
+        <div class="asc-actions rt-actions">${P.savedId ? `<button type="button" class="asc-btn asc-btn-primary rt-tap" data-pl-saved disabled>${icon("check")} Enregistré</button>` : `<button type="button" class="asc-btn asc-btn-primary rt-tap" data-pl-save>${guest ? "Garder sur cet appareil" : "Enregistrer dans Mes parcours"}</button>`}
           <button type="button" class="asc-btn asc-btn-secondary rt-tap" data-pl-follow>${icon("play")} Suivre maintenant</button>
           ${P.mode === "loop" ? `<button type="button" class="asc-btn asc-btn-secondary rt-tap" data-pl-again>${icon("swap")} Autre proposition</button>` : ""}
           <button type="button" class="asc-btn asc-btn-ghost rt-tap" data-pl-edit>Modifier</button></div>
@@ -282,7 +284,7 @@
       const ceiling = Number(String(P.ceiling).replace(",", "."));
       const req = buildRequest({ profile: P.profile, mode: P.mode, points: P.points.map((p) => parseCoords(p.text)), loop: { start: parseCoords(P.loop.text), km: P.loop.km, seed: P.loop.seed }, prefer: P.prefer });
       if (!req.ok) { P.phase = "form"; P.message = req.error; return draw(req.at !== undefined ? `[data-pl-coords="${req.at}"]` : "[data-pl-go]"); }
-      if (!ui.online()) { P.phase = "form"; P.state = "offline"; P.message = ""; return draw("[data-pl-go]"); }
+      if (!ui.online()) { P.phase = "form"; P.state = "offline"; P.message = ""; return draw("[data-pl-state]"); }
       const run = ++P.run;
       P.phase = "busy"; P.state = ""; P.message = "Calcul en cours chez le fournisseur d’itinéraires…";
       draw();

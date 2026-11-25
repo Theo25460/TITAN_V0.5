@@ -1684,8 +1684,9 @@ html[data-motion="reduced"] *::after {
 .rt-tap { min-height: 44px; white-space: normal; line-height: 1.2; text-align: center; }
 .asc-btn-sm.rt-tap { padding-block: 6px; }
 .rt-back { justify-self: start; margin-left: calc(-1 * var(--s3)); }
-.rt-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--s2); }
-.rt-tools .asc-btn { padding-inline: var(--s3); font-size: 14.5px; }
+.rt-tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); }
+.rt-tools .asc-btn { flex-direction: column; gap: 6px; min-height: 72px; padding: 10px 6px; font-size: 13.5px; }
+.rt-lib p[role="status"]:empty, .pl-sheet p[role="status"]:empty, .pl-sheet p[role="alert"]:empty { margin-top: calc(-1 * var(--s4)); }
 .rt-list li + li { margin-top: 0; }
 .rt-list { gap: 0; border-top: 1px solid var(--line-2); }
 .rt-row { display: grid; gap: 4px; width: 100%; min-height: 60px; padding: var(--s3) 0; border: 0; border-bottom: 1px solid var(--line-2); background: transparent; color: var(--tx); text-align: left; }
@@ -1703,6 +1704,9 @@ html[data-motion="reduced"] *::after {
 .rt-name:focus { outline: none; }
 .rt-actions { gap: var(--s2); }
 .rt-actions .asc-btn { flex: 1 1 150px; padding-inline: var(--s3); }
+.rt-actions .asc-btn-primary, .rt-actions .rt-wrap { flex-basis: 100%; }
+.rt-bilan-detail { display: grid; gap: var(--s3); justify-items: start; }
+.rt-bilan-detail > [data-gps-detail-out] { justify-self: stretch; }
 .rt-copy { display: grid; gap: var(--s2); justify-items: start; padding: var(--s3) var(--s4); border-radius: var(--r2); background: var(--bg-3); }
 .rt-facts { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
 .rt-notes { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
@@ -1734,6 +1738,8 @@ html[data-motion="reduced"] *::after {
 .rt-time-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px var(--s4); }
 
 .pl-sheet { min-width: 0; }
+/* A sheet is already one tone above the ground: a plain note inside it goes one tone further to stay a block. */
+.rt-lib .asc-note:not(.warn, .err), .pl-sheet .asc-note:not(.warn, .err) { background: var(--bg-3); }
 .pl-tabs { display: grid; width: 100%; }
 .pl-tabs button { min-height: 44px; white-space: normal; line-height: 1.15; }
 .pl-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-2); }
@@ -1754,6 +1760,8 @@ html[data-motion="reduced"] *::after {
 .pl-radio input, .pl-check input { width: 20px; height: 20px; flex: none; margin: 0; accent-color: var(--space); }
 .poi-raw { color: var(--tx-2); overflow-wrap: anywhere; }
 .poi-results { display: grid; gap: var(--s2); }
+.pl-grid { display: grid; gap: var(--s4); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.pl-panel:focus, .pl-sheet .asc-note:focus { outline: none; }
 .pl-panel { display: grid; gap: var(--s2); padding: var(--s4); border-radius: var(--r2); background: var(--bg-3); border-left: 3px solid var(--am); }
 .pl-panel .asc-h3 { font-size: 17px; }
 .pl-meanwhile { margin: 0; padding-left: 18px; display: grid; gap: 4px; }

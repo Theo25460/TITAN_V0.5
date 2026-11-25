@@ -5894,6 +5894,11 @@ button.asc-link {
 .gps-main {
   --gps-foot: 76px;
 }
+/* The page's entrance (css/signature.css) animates a transform on the direct children of the main: a transformed box would hold the
+   fixed action bar of a live outing inside itself instead of the bottom of the screen. */
+.gps-main > #sortie {
+  animation: none;
+}
 .gps-skeleton {
   height: 320px;
   margin-top: var(--s5);
@@ -6196,7 +6201,7 @@ body.gps-on #sortie {
 }
 .gps-map {
   position: relative;
-  height: clamp(200px, 40dvh, 520px);
+  height: clamp(200px, calc(100dvh - 420px), 520px);
   overflow: hidden;
   border-radius: var(--r3);
   background: var(--bg-1);
@@ -6363,7 +6368,7 @@ body.gps-on #sortie {
   gap: var(--s4);
 }
 .gps-live[data-view="dash"] .gps-mains .gps-v {
-  font-size: clamp(72px, 24vw, 148px);
+  font-size: clamp(72px, 28vw, 148px);
 }
 .gps-live[data-view="dash"] .gps-mains dt {
   font-size: 15px;

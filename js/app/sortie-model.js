@@ -223,7 +223,7 @@
       totals only — never a position. `{ ok:false, error }` when nothing was measured. */
   function sessionDetails(rec, a) {
     const minutes = round(a.effortS / 60, 2), km = a.distanceKm;
-    if (!(km > 0) && !(minutes > 0)) return { ok: false, error: "Aucune distance ni durée d’effort n’a été mesurée : il n’y a rien à enregistrer. Tu peux exporter la trace ou abandonner la sortie." };
+    if (!(km > 0) && !(minutes > 0)) return { ok: false, error: "Aucune distance ni durée d’effort n’a été mesurée : il n’y a rien à enregistrer. Tu peux abandonner la sortie, ou exporter la trace si elle a des positions." };
     const data = { note: "", tags: [], extras: {}, bio: {}, performedAt: new Date(rec.startedAt).toISOString() };
     if (rec.eventId) data.client_event_id = rec.eventId;
     if (minutes > 0) { data.val2 = Math.min(1440, minutes); data.duration = data.val2; }

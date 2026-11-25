@@ -321,7 +321,7 @@
     }
 
     /* -- Points utiles -- */
-    const hit = (p, i) => `<li class="poi-item" data-poi-index="${i}"><div class="pl-item-main"><strong class="pl-name">${esc(p.name || KINDS[p.kind] || KINDS.other)}</strong><span class="asc-chip">${esc(KINDS[p.kind] || KINDS.other)}</span></div>
+    const hit = (p, i) => `<li class="poi-item" data-poi-index="${i}"><div class="pl-item-main"><strong class="pl-name">${esc(p.name || KINDS[p.kind] || KINDS.other)}</strong>${p.name ? `<span class="asc-chip">${esc(KINDS[p.kind] || KINDS.other)}</span>` : ""}</div>
       <p class="asc-small asc-muted">${esc([p.where, freshness(p.osmUpdatedAt)].filter(Boolean).join(" · "))}</p>
       ${[hoursText(p.openingHours), feeText(p.fee), accessText(p.access)].filter(Boolean).map((t) => `<p class="asc-small poi-raw">${esc(t)}</p>`).join("")}
       <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm rt-tap" data-poi-keep>${icon("plus")} Enregistrer dans mes points</button><span class="asc-small" role="status" data-poi-kept></span></li>`;
@@ -351,9 +351,13 @@
         <p class="asc-small" role="status" data-poi-status>${esc(s.message)}</p>
         <div data-poi-out>${resultsHtml()}</div>`;
     }
+    let drawn = "";
     function draw() {
       body.innerHTML = `${P.editing ? "" : tabs()}<div class="asc-stack" data-pl-view="${P.view}">${P.view === "places" ? placesHtml() : poiHtml()}</div>`;
       P.flash = "";
+      // Another view, or a form opening or closing, starts at its top; a list that only refreshes keeps its place.
+      const now = `${P.view}:${P.editing || ""}`;
+      if (now !== drawn) { drawn = now; body.closest(".asc-sheet-body")?.scrollTo?.(0, 0); }
       if (P.editing) body.querySelector("[data-pl-focus]")?.focus();
     }
     async function search() {
