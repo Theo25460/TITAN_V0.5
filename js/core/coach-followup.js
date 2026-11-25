@@ -1,4 +1,4 @@
-/* V1.9.1 — Une séance assignée. Shared unchanged by the website (coach) and the Android app (athlete) through
+/* V1.9.1 — Une séance assignée (V1.9.4: « à discuter » and the programme of a proposal). Shared unchanged by the website (coach) and the Android app (athlete) through
    mobile/scripts/sync-web-core.mjs. Pure: words what the server computed (public.titan_coach_followup_v1) — the state of a proposal,
    the dates (planned, in force, done), what changes in a proposed change, what each side can do, and the history.
    The server decides; this module never infers a state. Rules of the wording: the athlete's journal belongs to the athlete (a match is
@@ -26,6 +26,7 @@
 
   const STATES = {
     awaiting: { label: "En attente", tone: "wait" },
+    to_discuss: { label: "À discuter", tone: "gap" },
     reproposed: { label: "Proposée à nouveau", tone: "wait" },
     moved: { label: "Reportée", tone: "gap" },
     to_match: { label: "À rapprocher", tone: "wait" },
@@ -105,6 +106,7 @@
     let text = "";
     switch (row?.state) {
       case "awaiting": text = "Proposée, pas encore de réponse du sportif."; break;
+      case "to_discuss": text = `Le sportif souhaite en discuter${row.discuss_note ? ` : « ${row.discuss_note} »` : ""}. Tu peux la modifier ; il peut toujours l’accepter ou la décliner.`; break;
       case "reproposed": text = "Changement proposé : la version acceptée reste en vigueur jusqu’à la réponse du sportif."; break;
       case "declined": text = "Déclinée par le sportif. Tu peux proposer à nouveau, avec une autre date ou d’autres consignes."; break;
       case "planned": text = "Acceptée et prévue."; break;
@@ -131,6 +133,7 @@
     let text = "";
     switch (row?.state) {
       case "awaiting": text = "Ton coach te propose cette séance. Accepte-la ou décline-la : rien n’est ajouté à ton journal."; break;
+      case "to_discuss": text = `Tu as demandé à en discuter${row.discuss_note ? ` (« ${row.discuss_note} »)` : ""}. Ton coach peut la modifier ; tu peux toujours l’accepter ou la décliner.`; break;
       case "reproposed": text = "Ton coach propose un changement. Ta version acceptée reste valable tant que tu n’as pas répondu."; break;
       case "moved": text = `Tu l’as déplacée au ${day(row.moved_date)} : ton coach voit les deux dates.`; break;
       case "to_match": text = cands.length === 1 ? "Une séance de ton journal semble correspondre. Confirme si c’est bien elle : rien n’est lié sans toi." : "Plusieurs séances de ton journal pourraient correspondre. Choisis la bonne, ou aucune."; break;
@@ -143,7 +146,7 @@
     }
     const can = [];
     if (row?.can_act !== false) {
-      if (row?.state === "awaiting") can.push("accept", "decline");
+      if (row?.state === "awaiting" || row?.state === "to_discuss") can.push("accept", "decline");
       if (row?.pending_change) can.push("accept_change", "decline_change");
       if (cands.length && ["accepted", "completed"].includes(row?.status) && !row?.linked?.session_id) can.push("confirm");
       if (row?.status === "accepted") {
@@ -172,6 +175,9 @@
         link_refused: e.code === "SESSION_ALREADY_LINKED" ? "Tentative de lien refusée : séance déjà liée à une autre proposition" : "Seconde tentative de lien refusée : le lien en place est gardé",
         seen: "Écart traité par le coach",
         adjusted: "Ajustée après un retour du coach, accepté par le sportif", from_feedback: "Ajoutée depuis un retour du coach, acceptée par le sportif",
+        from_plan: e.plan ? `Fait partie du programme « ${e.plan} »${e.week ? `, semaine ${e.week}${e.weeks ? ` sur ${e.weeks}` : ""}` : ""}` : "Fait partie d’un programme du coach",
+        plan_revised: e.scope === "occurrence" ? "Modifiée par le coach avant ta réponse" : "Décalée avec le programme avant ta réponse",
+        discuss: e.note ? `À discuter : « ${e.note} »` : "À discuter, demandé par le sportif",
         from_review: e.week ? `Préparée lors de la revue de la semaine du ${day(e.week)}, envoyée par le coach` : "Préparée lors de la revue de la semaine, envoyée par le coach",
       }[e?.k];
       if (t) out.push({ kind: e.k, at, text: t, before: e.before || e.kept || null, after: e.after || null });
@@ -196,7 +202,14 @@
     return c;
   }
 
-  const api = { STATES, NEXT, FIELDS, MESSAGES, message, day, dates, diff, gapText, forCoach, forAthlete, history, versions, counts };
+  /** V1.9.4: the programme a proposal belongs to, in one line: « Programme « … » · semaine 2 sur 4 ». */
+  function planLine(row) {
+    const p = row?.plan;
+    if (!p || !p.title) return "";
+    return `Programme « ${p.title} »${p.week ? ` · semaine ${p.week}${p.weeks ? ` sur ${p.weeks}` : ""}` : ""}`;
+  }
+
+  const api = { STATES, NEXT, FIELDS, MESSAGES, message, day, dates, diff, gapText, forCoach, forAthlete, history, versions, counts, planLine };
   root.TitanCoachFollowup = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

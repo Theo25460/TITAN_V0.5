@@ -523,7 +523,7 @@
     const v = FU().forCoach(r);
     return `<li class="co-queue-item" data-tone="${esc(v.tone)}" data-queue-row="${esc(r.id)}">
       <div class="asc-between"><span><strong>${esc(r.athlete_name || "Compte TITAN")}</strong> · ${esc(r.title)}</span><span class="asc-chip" data-state="${esc(r.state)}">${esc(v.label)}</span></div>
-      <p class="asc-small asc-muted">${esc(SP().label(r.sport))}</p>${datesHtml(v)}
+      <p class="asc-small asc-muted">${esc(SP().label(r.sport))}${FU().planLine?.(r) ? ` · <span data-plan-line>${esc(FU().planLine(r))}</span>` : ""}</p>${datesHtml(v)}
       <p class="asc-small" data-gap-text>${esc(v.text)}</p>
       <p class="asc-small co-next" data-next="${esc(v.next)}"><strong>${esc(v.nextLabel)}</strong>${v.advice ? ` · ${esc(v.advice)}` : ""}</p>
       ${changesHtml(v)}<div class="asc-row-flex">${coachButtons(r, v, "queue")}</div></li>`;
@@ -797,6 +797,7 @@
     return `<li class="co-queue-item co-review-item" data-tone="${esc(v.tone)}" data-rv-card="${id}" data-rv-next="${esc(v.next)}">
       <div class="asc-between"><strong>${esc(v.name)}</strong><span class="asc-chip" data-next="${esc(v.next)}">${esc(v.label)}</span></div>
       <p class="asc-small" data-rv-dossier>${esc(v.text)}</p>
+      ${d && FU().planLine?.(d) ? `<p class="asc-small asc-muted" data-rv-plan>${esc(FU().planLine(d))}</p>` : ""}
       ${v.source ? `<p class="asc-small asc-muted" data-rv-source><strong>Source</strong> · ${esc(v.source)}</p>` : ""}
       ${v.checkin ? `<p class="asc-small" data-rv-checkin>${icon("info")} Check-in partagé · ${esc(v.checkin)}</p>` : ""}
       ${v.previous.length ? `<p class="asc-small" data-rv-previous><strong>Décision sur la revue précédente</strong> · ${v.previous.map(esc).join(" ; ")}</p>` : ""}
@@ -1060,6 +1061,7 @@
             <div class="asc-row-flex">${mode === "athlete" ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-scope>${icon("settings")} Modifier mon partage</button>` : `<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-propose>${icon("plus")} Proposer une séance</button>`}<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-revoke>Arrêter le partage</button></div></section>
           <div data-co-calendar-slot>${calendarHtml()}</div>
           <div data-co-tools-slot></div>
+          <div data-co-program-slot></div>
           <section class="asc-section"><div class="asc-section-head"><h2>Séances proposées</h2><span class="asc-small asc-muted">${assignments ? `${assignments.total} au total` : "…"}</span></div>
             ${assignments ? (assignments.rows.length ? `<div class="co-tasks">${taskCards()}</div>${assignments.rows.length < assignments.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-tasks>Voir les précédentes</button>` : ""}` : `<p class="asc-small asc-muted">${mode === "coach" ? "Prépare une séance : l’athlète choisit de l’accepter." : "Aucune proposition pour le moment."}</p>`) : '<div class="asc-skeleton" style="height:80px"></div>'}</section>
           <section class="asc-section" id="co-seen" tabindex="-1"><div class="asc-section-head"><h2>${mode === "coach" ? "Séances partagées" : "Ce que mon coach peut voir"}</h2></div>
@@ -1073,6 +1075,7 @@
       <p class="asc-small asc-faint co-foot">TITAN facilite l’organisation entre vous. Il ne vérifie pas les qualifications d’un coach et ses propositions ne sont pas un avis médical.</p>`;
     root.setAttribute("aria-busy", "false");
     mountTools();
+    mountPrograms();
     if (focusedMode) root.querySelector(`[role="tab"][data-mode="${focusedMode}"]`)?.focus({ preventScroll: true });
   }
 
@@ -1082,6 +1085,17 @@
     const job = viewContext;
     if (!job || !sameContext(job)) return;
     window.TitanCoachTools.mount(slot, { client: job.client, link: l.id, mode, ok: () => sameContext(job) && current()?.id === l.id && root.contains(slot), propose, openFeedback: feedbackOn() ? openFeedback : null });
+  }
+
+  // V1.9.4: multi-week programmes of the selected link, only when screens.coach_programs is open (checked again by the server).
+  function mountPrograms() {
+    const slot = root.querySelector("[data-co-program-slot]"), l = current();
+    if (!slot || !l || !feature("screens.coach_programs") || !window.TitanCoachPrograms || !window.TitanCoachProgram) return;
+    const job = viewContext;
+    if (!job || !sameContext(job)) return;
+    window.TitanCoachPrograms.mount(slot, { client: job.client, link: l, links: mode === "coach" ? links() : [], mode,
+      ok: () => sameContext(job) && current()?.id === l.id && root.contains(slot),
+      onChanged: () => { if (!sameContext(job)) return; loadDetail(); loadQueue(); loadReview(); } });
   }
 
   function onTabKey(e) {

@@ -5336,3 +5336,21 @@
 .co-fb-next legend { font-weight: 600; padding: 0 var(--s1); }
 /* V1.9.3 — Revue de suivi: the week shown between the navigation buttons. */
 .co-rv-week { font-weight: 700; flex: 1 1 100%; }
+/* V1.9.4 — Programmation multi-semaines: a cycle week by week, its sessions, the sessions editor and the previews. */
+.co-cp-week { display: grid; gap: var(--s2); padding: var(--s3) 0; border-top: 1px solid var(--line-2); }
+.co-cp-week[data-week-state="played"] { opacity: .86; }
+.co-cp-week[data-week-state="current"] { border-left: 3px solid var(--space-line); padding-left: var(--s3); }
+.co-cp-week .asc-row-flex { flex-wrap: wrap; gap: var(--s2); }
+.co-cp-week-title { margin: 0; font-size: 15px; font-weight: 700; }
+.co-cp-sessions, .co-cp-effects { display: grid; gap: var(--s2); list-style: none; margin: 0; padding: 0; }
+.co-cp-session, .co-cp-effects li { display: grid; gap: var(--s1); padding: var(--s2) 0 var(--s2) var(--s3); border-left: 3px solid var(--line-2); min-width: 0; overflow-wrap: anywhere; }
+.co-cp-session[data-tone="gap"] { border-left-color: var(--warn, #d9a441); }
+.co-cp-session[data-tone="done"], .co-cp-effects [data-cp-effect^="kept"] { border-left-color: var(--ok); }
+.co-cp-effects [data-cp-effect="change_proposed"], .co-cp-effects [data-cp-effect="updated"] { border-left-color: var(--space-hi); }
+.co-cp-goals { margin: 0; padding-left: 1.1em; font-size: 14px; }
+.co-cp-rows { display: grid; gap: var(--s3); }
+.co-cp-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--s2); align-items: end; border: 1px solid var(--line-2); border-radius: 14px; padding: var(--s3); margin: 0; min-width: 0; }
+.co-cp-row .co-cp-grow, .co-cp-row .co-cp-wide-field { grid-column: span 2; }
+@media (max-width: 520px) { .co-cp-row .co-cp-grow, .co-cp-row .co-cp-wide-field { grid-column: 1 / -1; } }
+.co-cp-answers .auth-check { margin: 0; }
+.asc-sheet.co-cp-wide .asc-sheet-body { max-width: min(860px, 100%); }
