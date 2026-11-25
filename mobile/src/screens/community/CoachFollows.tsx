@@ -5,6 +5,7 @@ import { T } from "../../components/Text";
 import { Sports } from "../../core";
 import { ownerRpc } from "../../data/api";
 import { space } from "../../theme/tokens";
+import { CoachPrograms } from "./CoachPrograms";
 import { CoachProposals } from "./CoachProposals";
 
 type Link = {
@@ -37,7 +38,7 @@ export function CoachFollows({ owner, online }: { owner: string; online: boolean
   if (!online) return <T>Reconnecte-toi pour vérifier les partages actifs.</T>;
   if (failed) return <View style={{ gap: space.s3 }}><T>Les suivis sont indisponibles pour le moment.</T><Button label="Réessayer" onPress={() => setAttempt((v) => v + 1)} /></View>;
   if (!links) return <T accessibilityLiveRegion="polite">Vérification des suivis…</T>;
-  if (!links.length) return <View style={{ gap: space.s4 }}><T>Aucun suivi partagé sur ce compte.</T><CoachProposals owner={owner} online={online} /></View>;
+  if (!links.length) return <View style={{ gap: space.s4 }}><T>Aucun suivi partagé sur ce compte.</T><CoachPrograms owner={owner} online={online} /><CoachProposals owner={owner} online={online} /></View>;
   return <>{links.map((link) => {
     const coaching = owner === link.coach_id;
     return <View key={link.id} style={{ gap: space.s1 }}>
@@ -46,5 +47,6 @@ export function CoachFollows({ owner, online }: { owner: string; online: boolean
       <T variant="small">{link.paused ? "Suivi en pause" : "Partage actif"} · {link.sport ? Sports.label(link.sport) : "Tous les sports partagés"}</T>
     </View>;
   })}
+  <CoachPrograms owner={owner} online={online} />
   <CoachProposals owner={owner} online={online} /></>;
 }

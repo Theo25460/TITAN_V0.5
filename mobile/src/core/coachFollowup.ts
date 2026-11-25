@@ -7,7 +7,7 @@ require("./web/coach-followup.js");
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const g = globalThis as any;
 
-export type FollowState = "awaiting" | "reproposed" | "moved" | "to_match" | "done_unmatched" | "overdue" | "linked" | "declined" | "planned" | "cancelled";
+export type FollowState = "awaiting" | "to_discuss" | "reproposed" | "moved" | "to_match" | "done_unmatched" | "overdue" | "linked" | "declined" | "planned" | "cancelled";
 export type FollowVersion = { title: string; sport: string; planned_date: string; instructions: string; at?: string; note?: string };
 export type FollowCandidate = { id: string; day: string; val: number; unit: string | null; duration: number | null };
 export type FollowRow = {

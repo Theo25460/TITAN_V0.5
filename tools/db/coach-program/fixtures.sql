@@ -137,7 +137,12 @@ begin
   perform pg_temp.keep('snapshot_ines_paused', pg_temp.p(ines, 'snapshot', '{}'));
   perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
   perform public.titan_apply_entitlement_v1(c, 'google_play', 'fx-coach-lou-v194', true, 'active', 'test', clock_timestamp(), null, 'titan02', null, now() + interval '30 days', now() + interval '30 days', null, null);
-  -- Malo revokes while his programme is open; Inès's cycle is closed.
+  -- Malo accepts his first week and links his Tuesday run, then revokes while his programme is open; Inès's cycle is closed.
+  perform pg_temp.g(malo, 'answer', jsonb_build_object('id', pm, 'decisions', '[{"key":"w1-tue","answer":"accept"},{"key":"w1-sat","answer":"accept"}]'::jsonb));
+  set local session_replication_role = replica;
+  insert into public.training_logs(id, user_id, sport, val, unit, xp, date, details, created_at) values (pg_temp.id('5a3'), malo, 'running', 6.0, 'km', 10, now() - interval '2 minutes', '{"duration":33}', now());
+  set local session_replication_role = origin;
+  x := pg_temp.row(pm, 'w1-tue'); perform pg_temp.f(malo, 'link', jsonb_build_object('id', x.id, 'revision', x.revision, 'session_id', pg_temp.id('5a3')));
   perform pg_temp.p(malo, 'revoke', jsonb_build_object('link_id', l[5], 'revision', (select revision from public.coach_links where id = l[5])));
   perform pg_temp.keep('revoked_error', to_jsonb(pg_temp.err(c, 'plan', jsonb_build_object('id', pm))));
   perform pg_temp.keep('athlete_revoked', pg_temp.g(malo, 'athlete', '{}'));
