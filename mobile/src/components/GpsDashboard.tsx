@@ -64,7 +64,7 @@ export function GpsFigure({ cell, size = 84, align = "left" }: { cell: GpsCell; 
 export function GpsCellBox({ cell }: { cell: GpsCell }) {
   return (
     <View style={styles.cell} accessible accessibilityRole="text" accessibilityLabel={cellLabel(cell)} testID={`gps-cell-${cell.key}`}>
-      <T variant="caption" tone="muted" numberOfLines={1}>{cell.label}</T>
+      <T variant="caption" tone="muted" numberOfLines={1}>{cell.short}</T>
       <View style={styles.figureRow}>
         <T variant="num" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5} style={{ fontSize: 30, lineHeight: 32, flexShrink: 1 }}>{cell.value}</T>
         {cell.unit ? <T variant="caption" tone="faint" style={{ marginBottom: 4 }}>{cell.unit}</T> : null}

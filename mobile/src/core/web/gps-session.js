@@ -53,7 +53,7 @@
     return { value: comma(ms * 3.6, 1), unit: "km/h" };
   }
   /** One dashboard cell: { key, label, value, unit, note }. `a` is the engine's analysis, `live` what only exists while recording. */
-  function cell(key, a, live, pace) {
+  function cellOf(key, a, live, pace) {
     const f = FIELDS[key], l = live || {};
     const kmh = (v) => (v === null || v === undefined ? null : v / 3.6);
     switch (key) {
@@ -71,6 +71,10 @@
       default: return { key, label: key, value: "–", unit: "" };
     }
   }
+
+  const SHORT_PACE = { speed: "Allure", avgMoving: "Allure moy. mouv.", avgOverall: "Allure moy. globale" };
+  /** The cell with its `short` label, for the small tiles where the full one would be cut. */
+  const cell = (key, a, live, pace) => ({ ...cellOf(key, a, live, pace), short: (pace && SHORT_PACE[key]) || (FIELDS[key] ? FIELDS[key].short : key) });
 
   /* ---- Goals ---- */
   /** A goal is optional: { kind: "distance", km } | { kind: "time", minutes } | { kind: "return", at } (epoch ms). Null when it is not usable. */

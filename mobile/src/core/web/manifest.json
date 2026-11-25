@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "6f394fe568f49c8d0e68de2250b2692ed93f4597",
+  "sha": "5b7774d46693a2053b6ddcae5c6f9db5249fcd1f",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "0d089fdb88f819fae61b77f0e47ae7259efc2e9a70cf10d27602254d8425ccc5",
@@ -43,6 +43,6 @@
     "discipline-analysis.js": "1171421cb012a394218bfef78ed9afe4c387b17b74598b7abdd959f9e6dd3b3d",
     "gps-engine.js": "828fa0c7effb057260a43336541f6010051b45536b6ca2f61c6313732a9679b3",
     "gps-nav.js": "3bef75f3a73c422549d736678bfbdb2a60a09dec5337126ca3cb15fec5a437ec",
-    "gps-session.js": "44c75ab55420334520e2efdf263d87573eeaf4ed6795b3ffc4451f07d69a2981"
+    "gps-session.js": "618426f272835edf69d47c07c12d27f01296e8f71e17461adddd8f655f37c40a"
   }
 }

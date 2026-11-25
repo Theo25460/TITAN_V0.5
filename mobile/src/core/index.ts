@@ -637,7 +637,7 @@ export const GpsNav = g.TitanGpsNav as {
 };
 
 export type GpsFieldKey = "moving" | "elapsed" | "stopped" | "distance" | "speed" | "avgMoving" | "avgOverall" | "ascent" | "altitude" | "remaining" | "clock";
-export type GpsCell = { key: string; label: string; value: string; unit: string; note?: string };
+export type GpsCell = { key: string; label: string; short: string; value: string; unit: string; note?: string };
 export type GpsGoal = { kind: "distance"; km: number } | { kind: "time"; minutes: number } | { kind: "return"; at: number };
 export type GpsGoalView = { kind: GpsGoal["kind"]; title: string; ratio: number | null; reached: boolean; line: string; estimate: string | null; note: string | null; status?: "ok" | "tight" | "late" | "unknown"; marginS?: number };
 export type GpsStep = { kind: "warmup" | "work" | "recover" | "cooldown" | "free"; by: "time" | "distance" | "manual"; value: number; label: string };

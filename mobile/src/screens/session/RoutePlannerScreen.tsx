@@ -309,7 +309,7 @@ export function RoutePlannerScreen({ navigation, route: nav }: NativeStackScreen
         </View>
         {chosenSport && !first.fits ? <T variant="small" tone="warn">Aucun profil d’itinéraire n’existe pour ce sport : choisis le plus proche, en sachant que le tracé sera pensé pour un autre usage.</T> : null}
       </View>
-      <Segmented value={mode} onChange={(v) => { setMode(v); setFormError(null); }} options={[{ value: "ab", label: "Aller d’un point à un autre" }, { value: "loop", label: "Boucle" }]} accessibilityLabel="Type de parcours" />
+      <Segmented value={mode} onChange={(v) => { setMode(v); setFormError(null); }} options={[{ value: "ab", label: "Point à point" }, { value: "loop", label: "Boucle" }]} accessibilityLabel="Type de parcours" />
 
       {mode === "ab" ? (
         <View style={{ gap: space.s2 }}>
