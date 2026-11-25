@@ -175,7 +175,7 @@ for (const entry of readdirSync(root)) {
 
 // Offline shell: every local asset the app pages load, plus the pages themselves.
 // Public help and its assets are available offline even before the first help visit.
-const APP_PAGES = ['aujourdhui', 'training', 'journal', 'stats', 'records', 'carriere', 'objectifs', 'prevoir', 'adventure', 'profile', 'social', 'coaching', 'boutique', 'onboarding', 'login', 'service'];
+const APP_PAGES = ['aujourdhui', 'training', 'journal', 'stats', 'records', 'carriere', 'objectifs', 'prevoir', 'sortie', 'adventure', 'profile', 'social', 'coaching', 'boutique', 'onboarding', 'login', 'service'];
 const precache = new Set(['/', '/network-error.html', '/manifest.json', '/favicon.ico', '/image/logo-192.png', '/css/fonts/archivo-latin-variable.woff2', '/js/vendor/qrcode-generator-1.4.4.js']);
 // The GPX worker is started by code (js/app/seance.js), so no page names it. It is precached under the stamped address that code now
 // requests, together with what it loads itself (its importScripts, stamped above), so a GPX import also works offline.

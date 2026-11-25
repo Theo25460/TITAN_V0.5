@@ -156,8 +156,9 @@
   function poiRequest(q) {
     const kinds = [...new Set((q && q.kinds) || [])].filter((k) => Object.prototype.hasOwnProperty.call(POI_KINDS, k));
     if (!kinds.length) return { ok: false, error: "Choisis au moins un type de point à chercher." };
-    const radiusM = Math.max(50, Math.min(5000, Math.round(Number(q.radiusM) || 0)));
-    if (q.mode === "along") {
+    // The function accepts 100 m to 5 km around a position, 50 to 500 m along a route.
+    const along = q.mode === "along", radiusM = Math.max(along ? 50 : 100, Math.min(along ? 500 : 5000, Math.round(Number(q.radiusM) || 0)));
+    if (along) {
       const pts = thin(q.route);
       if (pts.length < 2) return { ok: false, error: "Choisis un parcours le long duquel chercher." };
       return { ok: true, body: { kinds, along: { points: pts.map((p) => [Math.round(p.lat * 1e5) / 1e5, Math.round(p.lon * 1e5) / 1e5]), radiusM } } };
@@ -343,7 +344,7 @@
           <label class="pl-radio"><input type="radio" name="poi-mode" data-poi-mode value="along"${s.mode === "along" ? " checked" : ""} /><span>Le long d’un parcours</span></label>
           ${s.mode === "around" ? `<label class="asc-field"><span>Rayon</span><select data-poi-radius>${[[500, "500 m"], [1000, "1 km"], [2000, "2 km"], [5000, "5 km"]].map(([v, t]) => `<option value="${v}"${v === s.radiusM ? " selected" : ""}>${t}</option>`).join("")}</select></label>`
             : `<label class="asc-field"><span>Parcours</span><select data-poi-route>${s.routes === null ? '<option value="">Lecture de tes parcours…</option>' : s.routes.length ? `<option value="">Choisir un parcours</option>${s.routes.map((r) => `<option value="${esc(r.id)}"${r.id === s.routeId ? " selected" : ""}>${esc(ui.titleOf(r))} · ${esc(ui.km(r.distanceM))}</option>`).join("")}` : '<option value="">Aucun parcours dans ta bibliothèque</option>'}</select></label>
-              <label class="asc-field"><span>Distance au tracé</span><select data-poi-along>${[[100, "100 m"], [300, "300 m"], [1000, "1 km"]].map(([v, t]) => `<option value="${v}"${v === s.alongM ? " selected" : ""}>${t}</option>`).join("")}</select></label>`}
+              <label class="asc-field"><span>Distance au tracé</span><select data-poi-along>${[[100, "100 m"], [300, "300 m"], [500, "500 m"]].map(([v, t]) => `<option value="${v}"${v === s.alongM ? " selected" : ""}>${t}</option>`).join("")}</select></label>`}
         </fieldset>
         <button type="button" class="asc-btn asc-btn-primary rt-tap" data-poi-go ${s.busy ? "disabled" : ""}>${icon("search")} ${s.busy ? "Recherche…" : "Chercher"}</button>
         <div data-poi-ask hidden></div>

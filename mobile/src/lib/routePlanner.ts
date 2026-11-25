@@ -65,7 +65,8 @@ export function buildPlanRequest(input: PlanInput): { ok: true; body: PlanBody }
     // « Chemins » only means unpaved ways for the profiles that ride or walk them.
     if (input.profile === "gravel" || input.profile === "mtb" || input.profile === "hike") prefer.unpaved = true;
   }
-  const seed = Number.isInteger(input.seed) && (input.seed as number) > 0 ? { seed: input.seed as number } : {};
+  // The server accepts a seed from 0 to 99 (0 when absent): « Autre proposition » walks through them.
+  const seed = Number.isInteger(input.seed) && (input.seed as number) > 0 ? { seed: (input.seed as number) % 100 } : {};
   return { ok: true, body: { profile: input.profile, loop: { start: at(input.start), distanceM: Math.round(km * 1000), ...seed }, ...(Object.keys(prefer).length ? { prefer } : {}) } };
 }
 
@@ -131,7 +132,8 @@ export async function planRoute(owner: string, body: PlanBody, deps: PlanDeps = 
   try {
     answer = await siteFunction(owner, "route-plan", body, deps.fetch);
   } catch (e) {
-    return { ok: false, code: /AUTH_REQUIRED/.test(String((e as Error)?.message)) ? "AUTH_REQUIRED" : "OFFLINE" };
+    // A request cut after its time limit is a service that does not answer, not a phone without a network.
+    return { ok: false, code: /AUTH_REQUIRED/.test(String((e as Error)?.message)) ? "AUTH_REQUIRED" : (e as Error)?.name === "AbortError" ? "UPSTREAM_UNAVAILABLE" : "OFFLINE" };
   }
   if (answer.body?.ok === true && answer.status >= 200 && answer.status < 300) {
     const read = readPlan(answer.body, body.profile);
@@ -180,13 +182,13 @@ const km = (m: number) => `${(m / 1000).toFixed(m < 100000 ? 1 : 0).replace(".",
 /** For a loop: what was asked against what was obtained. A preference is stated as such — it is not a guarantee. */
 export function loopReading(plan: Pick<PlanResult, "distanceM" | "ascentM" | "requested">, body: PlanBody): { distance: string; relief: string | null } | null {
   if (!body.loop) return null;
-  const asked = num(plan.requested?.distanceM) ?? body.loop.distanceM;
+  const echoed = plan.requested?.loop as { distanceM?: unknown } | undefined;
+  const asked = num(echoed?.distanceM) ?? body.loop.distanceM;
   const gap = asked > 0 ? Math.round(((plan.distanceM - asked) / asked) * 100) : 0;
   const distance = `Distance demandée : ${km(asked)} · obtenue : ${km(plan.distanceM)}${gap ? ` (${gap > 0 ? "+" : "−"}${Math.abs(gap)} %)` : ""}`;
-  const ceiling = num(plan.requested?.maxAscentM) ?? num(plan.requested?.ascentMaxM);
+  // No climb ceiling can be asked (the server takes « plutôt plat » as a preference only): what was wished is said next to what came back.
   let relief: string | null = null;
-  if (ceiling !== null) relief = plan.ascentM === null ? `D+ souhaité : ${Math.round(ceiling)} m au plus · D+ obtenu : non fourni (préférence, pas garantie)` : `D+ souhaité : ${Math.round(ceiling)} m au plus · obtenu : ${Math.round(plan.ascentM)} m (préférence, pas garantie)`;
-  else if (body.prefer?.flat) relief = plan.ascentM === null ? "Tu as demandé plutôt plat : le dénivelé obtenu n’est pas fourni (préférence, pas garantie)" : `Tu as demandé plutôt plat · D+ obtenu : ${Math.round(plan.ascentM)} m (préférence, pas garantie)`;
+  if (body.prefer?.flat) relief = plan.ascentM === null ? "Tu as demandé plutôt plat : le dénivelé obtenu n’est pas fourni (préférence, pas garantie)" : `Tu as demandé plutôt plat · D+ obtenu : ${Math.round(plan.ascentM)} m (préférence, pas garantie)`;
   return { distance, relief };
 }
 /** « 1 h 12 », « 48 min ». */

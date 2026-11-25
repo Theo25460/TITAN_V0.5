@@ -11,7 +11,7 @@ const ORIGIN = (args.find((a) => /^https?:/.test(a)) || "http://127.0.0.1:4173")
 const STRICT = args.includes("--strict");
 const SHOTS = flag("--shots");
 const WIDTHS = (flag("--widths") || "320,360,375,390,412,430,600,719,720,721,768,859,860,861,959,960,961,979,980,981,1024,1039,1040,1041,1280,1440,1920").split(",").map(Number);
-const PAGES = (flag("--pages") || "/,/titan-plus,/pour-les-coachs,/fonctionnalites,/niveaux-et-xp,/aventures-sportives,/sports,/debuter-titan,/comprendre-mes-donnees,/service,/legal_privacy,/login,/onboarding,/aujourdhui,/training,/journal,/stats,/carriere,/records,/objectifs,/prevoir,/adventure,/profile,/boutique,/social,/coaching").split(",");
+const PAGES = (flag("--pages") || "/,/titan-plus,/pour-les-coachs,/fonctionnalites,/niveaux-et-xp,/aventures-sportives,/sports,/debuter-titan,/comprendre-mes-donnees,/service,/legal_privacy,/login,/onboarding,/aujourdhui,/training,/journal,/stats,/carriere,/records,/objectifs,/prevoir,/sortie,/adventure,/profile,/boutique,/social,/coaching").split(",");
 if (SHOTS) mkdirSync(SHOTS, { recursive: true });
 
 const heightFor = (w) => (w <= 430 ? 844 : w <= 768 ? 900 : 900);

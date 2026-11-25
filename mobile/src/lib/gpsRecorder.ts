@@ -121,6 +121,13 @@ export function createRecorder(deps: Deps) {
   };
   const lastFix = (r: Recording) => r.track.segs.at(-1)?.at(-1) ?? null;
 
+  /** Where a stretch is closed: the clock, or the last position when the receiver's time runs slightly ahead of the phone's clock
+      (GPS time and system time are two clocks) — otherwise the last positions of the stretch would fall outside it and be ignored. */
+  const edge = (r: Recording, t: number) => {
+    const last = lastFix(r);
+    return last && last.t > t && last.t - t <= 60000 ? last.t : t;
+  };
+
   /** Time the recording was running (pauses and interruptions excluded) at `at`. */
   const activeMs = (r: Recording, at: number) => r.activeMs + (r.status === "recording" && r.runStart ? Math.max(0, at - r.runStart) : 0);
 
@@ -270,7 +277,7 @@ export function createRecorder(deps: Deps) {
         const r = await read(owner);
         if (!r || r.status !== "recording") return r;
         const t = deps.now();
-        const next: Recording = { ...r, status: "paused", activeMs: activeMs(r, t), runStart: null, newSegment: true, stretches: closeStretch(r.stretches, t, "pause") };
+        const next: Recording = { ...r, status: "paused", activeMs: activeMs(r, t), runStart: null, newSegment: true, stretches: closeStretch(r.stretches, edge(r, t), "pause") };
         await save(next, owner);
         await deps.stopUpdates().catch(() => {});
         return next;
@@ -299,8 +306,8 @@ export function createRecorder(deps: Deps) {
         if (!r || r.status === "ended") return r;
         const t = deps.now();
         // Finished while paused or interrupted: the outing ended where it last ran, the wait before « Terminer » is not part of it.
-        const endedAt = r.status === "recording" ? t : r.stretches.at(-1)?.e ?? r.startedAt;
-        let next: Recording = { ...r, activeMs: activeMs(r, t), runStart: null, stretches: closeStretch(r.stretches, t, "finish") };
+        const endedAt = r.status === "recording" ? edge(r, t) : r.stretches.at(-1)?.e ?? r.startedAt;
+        let next: Recording = { ...r, activeMs: activeMs(r, t), runStart: null, stretches: closeStretch(r.stretches, endedAt, "finish") };
         next = { ...next, plan: runPlan(next, endedAt).plan, status: "ended", endedAt };
         await save(next, owner);
         if (r.status === "recording") await deps.stopUpdates().catch(() => {});

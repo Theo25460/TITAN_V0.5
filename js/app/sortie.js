@@ -634,7 +634,7 @@
     if (!el || !rec) return;
     const saved = rec.saved;
     const base = saved ? (isGuest() ? "Séance enregistrée sur cet appareil, comme toute séance en découverte. Retrouve-la dans ton journal." : "Séance enregistrée dans ton journal. La confirmation du serveur y apparaît dès qu’elle arrive.") : "";
-    const trace = saved ? (saved.route === "saved" ? " La trace est gardée dans Mes parcours, en privé." : saved.route === "failed" ? " La trace n’a pas pu être gardée dans Mes parcours : elle reste sur cet appareil, exporte-la en GPX pour la garder." : " La trace reste sur cet appareil : exporte-la en GPX pour la garder.") : "";
+    const trace = saved ? (saved.route === "saved" ? " La trace est gardée dans Mes parcours, en privé." : saved.route === "queued" ? " La trace est gardée sur cet appareil et rejoindra Mes parcours, en privé, au retour du réseau." : saved.route === "failed" ? " La trace n’a pas pu être gardée dans Mes parcours : elle reste sur cet appareil, exporte-la en GPX pour la garder." : " La trace reste sur cet appareil : exporte-la en GPX pour la garder.") : "";
     el.textContent = bilanStatus?.text || `${base}${trace}`;
     el.dataset.tone = bilanStatus?.tone || (saved ? "ok" : "");
   }
@@ -691,8 +691,9 @@
       if (count === 1 || count === 2) window.TitanAnalytics?.track(count === 1 ? "first_session" : "second_session", { family: SP().familyOf(d.sport) });
       // The trace joins the private library when the library can take it; otherwise it stays here and the screen says so.
       if (!isGuest() && typeof window.TitanRoutes?.saveRecorded === "function") {
-        try { await window.TitanRoutes.saveRecorded(rec); if (current()) rec = { ...rec, saved: { ...rec.saved, route: "saved" } }; }
-        catch { if (current()) rec = { ...rec, saved: { ...rec.saved, route: "failed" } }; }
+        let kept = null;
+        try { kept = await window.TitanRoutes.saveRecorded({ segs: rec.track.segs, sport: rec.sport, startedAt: rec.startedAt, eventId: rec.eventId }, a); } catch { kept = null; }
+        if (current()) rec = { ...rec, saved: { ...rec.saved, route: kept?.ok ? (kept.local ? "queued" : "saved") : "failed" } };
         if (current()) await persist(true);
       }
       if (!current()) return;
@@ -746,10 +747,16 @@
   }
 
   /* ---------- Sheets ---------- */
+  /** The library or the planner handed a route over (they wrote the hand-off key): their sheet closes and the preparation shows it. */
+  function handedOver() {
+    document.querySelectorAll("dialog.asc-sheet[open]").forEach((d) => d.close());
+    draft.follow = readFollow();
+    if (screen === "prepare") { render(); root.querySelector('[data-open="route"]')?.focus(); }
+  }
   function openRoute() {
     const guest = isGuest();
     const library = guest ? '<p class="asc-small asc-muted" data-need-account="library">Mes parcours demande un compte : tes traces y sont gardées en privé.</p>'
-      : typeof window.TitanRoutes?.openLibrary === "function" && window.TitanRoutes.enabled?.() !== false ? '<button type="button" class="asc-btn asc-btn-secondary asc-btn-block" data-route="library">Choisir dans Mes parcours</button>'
+      : typeof window.TitanRoutes?.openLibrary === "function" && (window.TitanRoutes.gpsEnabled?.() || window.TitanRoutes.enabled?.()) ? '<button type="button" class="asc-btn asc-btn-secondary asc-btn-block" data-route="library">Choisir dans Mes parcours</button>'
       : '<p class="asc-small asc-muted">Mes parcours n’est pas disponible pour le moment.</p>';
     const planner = guest ? '<p class="asc-small asc-muted" data-need-account="planner">Créer un itinéraire demande un compte.</p>'
       : typeof window.TitanPlanner?.open === "function" ? '<button type="button" class="asc-btn asc-btn-secondary asc-btn-block" data-route="planner">Créer un itinéraire</button>'
@@ -785,8 +792,8 @@
       if (!act) return;
       if (act === "remove") { draft.follow = null; writeFollow(null); home(); render(); }
       else if (act === "import") s.body.querySelector("[data-gpx-file]").click();
-      else if (act === "library") { s.close(); window.TitanRoutes.openLibrary(); }
-      else if (act === "planner") { s.close(); window.TitanPlanner.open({ sport: draft.sport }); }
+      else if (act === "library") { s.close(); window.TitanRoutes.openLibrary({ onFollow: handedOver }); }
+      else if (act === "planner") { s.close(); window.TitanPlanner.open({ sport: draft.sport, onFollow: handedOver }); }
       else if (act === "cancel") { pending = null; previewMap?.destroy(); home(); s.body.querySelector('[data-route="import"]').focus(); }
       else if (act === "follow" && pending) {
         draft.follow = { id: null, route: pending.route };
@@ -994,7 +1001,18 @@
       if (!act) return;
       if (act === "same") { rec = R().startBack(rec, now()); lastGuide = null; courseOf = null; persist(true); s.close(); renderLive(); map?.fit(); announce("Retour par le même chemin : suis le tracé en pointillés."); }
       else if (act === "stop") { rec = R().stopBack(rec); lastGuide = null; courseOf = null; persist(true); s.close(); renderLive(); announce("Guidage de retour arrêté."); }
-      else if (act === "computed") { s.close(); window.TitanPlanner.open({ from: way.from, to: way.start, sport: rec.sport }); }
+      else if (act === "computed") {
+        s.close();
+        // The planner's proposal, once the athlete chose « suivre », replaces what is followed in this outing; nothing is navigated away.
+        window.TitanPlanner.open({ from: [way.from.lat, way.from.lon], to: [way.start.lat, way.start.lon], sport: rec.sport, onFollow: (payload) => {
+          document.querySelectorAll("dialog.asc-sheet[open]").forEach((d) => d.close());
+          const route = payload?.route && Array.isArray(payload.route.segs) ? N().makeRoute(payload.route.segs, { name: payload.route.name || "Itinéraire vers le départ", sport: rec?.sport, origin: payload.route.origin }) : null;
+          writeFollow(null);
+          if (!route || !rec || screen !== "live") return;
+          rec = { ...R().stopBack(rec), follow: { id: payload.id || null, name: route.name, route, state: N().startFollow() } };
+          lastGuide = null; courseOf = null; persist(true); renderLive(); map?.fit(); announce("Itinéraire calculé vers le départ : suis le tracé en pointillés.");
+        } });
+      }
     });
   }
 
@@ -1053,7 +1071,7 @@
     else if (act === "notice-close") { notice = null; paintNotice(); root.querySelector(".gps-foot-pause")?.focus(); }
     else if (act === "recheck") { booted = null; boot(); }
     else if (act === "next-step" && rec?.plan && rec.status === "recording") { rec = { ...rec, plan: { ...rec.plan, cursor: S().skipStep(rec.plan.steps, rec.plan.cursor, analysis()) } }; persist(true); paintLive(); }
-    else if (act === "new") window.titanShell.confirm({ title: "Nouvelle sortie ?", message: "La séance est dans ton journal. La trace de cette sortie est effacée de cet appareil.", detail: rec?.saved?.route === "saved" ? "Elle reste dans Mes parcours." : "Exporte-la d’abord en GPX si tu veux la garder.", confirmLabel: "Effacer la trace et continuer" }).then((ok) => { if (ok) clear(); });
+    else if (act === "new") window.titanShell.confirm({ title: "Nouvelle sortie ?", message: "La séance est dans ton journal. La trace de cette sortie est effacée de cet appareil.", detail: rec?.saved?.route === "saved" || rec?.saved?.route === "queued" ? "Elle reste dans Mes parcours." : "Exporte-la d’abord en GPX si tu veux la garder.", confirmLabel: "Effacer la trace et continuer" }).then((ok) => { if (ok) clear(); });
   }
 
   function onVisibility() {

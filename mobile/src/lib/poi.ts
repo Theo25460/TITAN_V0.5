@@ -28,7 +28,7 @@ const round = (x: number, per: number) => Math.round(x * per) / per;
 const validAt = (lat: unknown, lon: unknown): boolean => typeof lat === "number" && typeof lon === "number" && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180;
 
 /** The body sent to the server, or why nothing can be asked. Around a position: rounded to 3 decimals (about 100 m), 100 m to 5 km.
-    Along a route: 60 points at most, rounded to 4 decimals (about 10 m), 50 m to 1 km on each side. */
+    Along a route: 60 points at most, rounded to 4 decimals (about 10 m), 50 to 500 m on each side (the server's own limits). */
 export function buildPoiRequest(q: PoiQuery): { ok: true; body: PoiBody } | { ok: false; error: string } {
   const kinds = POI_KINDS.filter((k) => q.kinds.includes(k));
   if (!kinds.length) return { ok: false, error: "Choisis au moins un type de point." };
@@ -40,7 +40,7 @@ export function buildPoiRequest(q: PoiQuery): { ok: true; body: PoiBody } | { ok
     const points = q.along.points.filter((p) => validAt(p[0], p[1])).map((p) => [round(p[0], 1e4), round(p[1], 1e4)] as [number, number]);
     if (points.length < 2) return { ok: false, error: "Ce parcours n’a pas assez de points." };
     if (points.length > POI_ALONG_POINTS) return { ok: false, error: "Parcours trop détaillé pour cette recherche." };
-    return { ok: true, body: { kinds, along: { points, radiusM: Math.min(1000, Math.max(50, Math.round(q.along.radiusM) || POI_ALONG_M)) } } };
+    return { ok: true, body: { kinds, along: { points, radiusM: Math.min(500, Math.max(50, Math.round(q.along.radiusM) || POI_ALONG_M)) } } };
   }
   return { ok: false, error: "Recherche incomplète." };
 }
@@ -79,7 +79,8 @@ export async function fetchPois(owner: string, query: PoiQuery, deps: PoiDeps = 
   try {
     answer = await siteFunction(owner, "poi-nearby", built.body, deps.fetch);
   } catch (e) {
-    return { ok: false, code: /AUTH_REQUIRED/.test(String((e as Error)?.message)) ? "AUTH_REQUIRED" : "OFFLINE" };
+    // A request cut after its time limit is a service that does not answer, not a phone without a network.
+    return { ok: false, code: /AUTH_REQUIRED/.test(String((e as Error)?.message)) ? "AUTH_REQUIRED" : (e as Error)?.name === "AbortError" ? "UPSTREAM_UNAVAILABLE" : "OFFLINE" };
   }
   const { status, body } = answer;
   if (body?.ok === true && status >= 200 && status < 300) return { ok: true, ...readAnswer(body, (deps.now ?? Date.now)()) };

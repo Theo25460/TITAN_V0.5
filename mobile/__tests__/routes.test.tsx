@@ -79,9 +79,12 @@ test("a link waits while its route is still waiting and remains recoverable afte
 });
 
 /* ---- screens ---- */
-const mockApi = { routesList: jest.fn(), routeGet: jest.fn(), routeDelete: jest.fn() } as Record<string, jest.Mock>;
+const mockApi = { routesLibrary: jest.fn(), routeGetV2: jest.fn(), routeDelete: jest.fn(), routeSaveV2: jest.fn(), routeRename: jest.fn() } as Record<string, jest.Mock>;
 const mockShare = jest.fn(async (..._a: unknown[]) => undefined);
-jest.mock("../src/data/api", () => ({ routesList: (...a: unknown[]) => mockApi.routesList(...a), routeGet: (...a: unknown[]) => mockApi.routeGet(...a), routeDelete: (...a: unknown[]) => mockApi.routeDelete(...a) }));
+jest.mock("../src/data/api", () => ({
+  routesLibrary: (...a: unknown[]) => mockApi.routesLibrary(...a), routeGetV2: (...a: unknown[]) => mockApi.routeGetV2(...a), routeDelete: (...a: unknown[]) => mockApi.routeDelete(...a),
+  routeSaveV2: (...a: unknown[]) => mockApi.routeSaveV2(...a), routeRename: (...a: unknown[]) => mockApi.routeRename(...a),
+}));
 jest.mock("../src/data/auth", () => ({ useOwner: () => "o1", useAuth: () => ({ owner: "o1" }) }));
 jest.mock("../src/lib/exportFile", () => ({ shareTextFile: (...a: unknown[]) => mockShare(...a) }));
 
@@ -96,10 +99,13 @@ const { encodeTrack } = require("../src/lib/gpsTrack");
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 const nav = { navigate: jest.fn(), goBack: jest.fn() };
 const wrap = (ui: React.ReactElement) => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })}><SafeAreaProvider initialMetrics={metrics}><ToastProvider>{ui}</ToastProvider></SafeAreaProvider></QueryClientProvider>);
-const meta = { id: "r-1", sport: "running", startedAt: new Date(T0).toISOString(), distanceM: 5300, durationS: 1800, ascentM: 42, points: 60 };
+const meta = { id: "r-1", sport: "running", startedAt: new Date(T0).toISOString(), distanceM: 5300, durationS: 1800, ascentM: 42, points: 60, name: null, origin: "recorded", summary: null };
+const library = (routes: unknown[], legacy = false) => ({ routes, legacy });
+/** A server route id (the server's ids are UUIDs; any other id is one made on the phone). */
+const R1 = "11111111-1111-4111-8111-111111111111";
 
 test("library: lists the athlete's routes, opens one, says clearly that nothing is shared", async () => {
-  mockApi.routesList.mockResolvedValue([meta]);
+  mockApi.routesLibrary.mockResolvedValue(library([meta]));
   wrap(<RoutesScreen navigation={nav} />);
   expect(await screen.findByText(/jamais partagées ni publiées/)).toBeTruthy();
   fireEvent.press(await screen.findByTestId("route-r-1"));
@@ -107,7 +113,7 @@ test("library: lists the athlete's routes, opens one, says clearly that nothing 
 });
 
 test("library: empty state invites to record; a pending upload is announced", async () => {
-  mockApi.routesList.mockResolvedValue([]);
+  mockApi.routesLibrary.mockResolvedValue(library([]));
   await queueRoute("o1", mk("route-aaaa-0009"));
   wrap(<RoutesScreen navigation={nav} />);
   expect(await screen.findByText(/1 parcours en attente d’envoi/)).toBeTruthy();
@@ -115,7 +121,7 @@ test("library: empty state invites to record; a pending upload is announced", as
 
 test("library: an unsent trace remains exportable while the server is unavailable", async () => {
   mockShare.mockClear();
-  mockApi.routesList.mockRejectedValue(new Error("offline"));
+  mockApi.routesLibrary.mockRejectedValue(new Error("offline"));
   await queueRoute("o1", mk("route-offline-0001"));
   wrap(<RoutesScreen navigation={nav} />);
   fireEvent.press(await screen.findByTestId("pending-export-route-offline-0001"));
@@ -138,7 +144,7 @@ test("the athlete can remove a route waiting on the phone; its session link goes
 });
 
 test("library: a refused route can be removed from the phone after a confirmation, which frees the outbox", async () => {
-  mockApi.routesList.mockResolvedValue([]);
+  mockApi.routesLibrary.mockResolvedValue(library([]));
   for (const r of await pendingRoutes("o1")) await discardPendingRoute("o1", r.clientRouteId);
   await queueRoute("o1", mk("route-refused-0001"));
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })}><SafeAreaProvider initialMetrics={metrics}><ToastProvider><RoutesScreen navigation={nav} /><DialogHost /></ToastProvider></SafeAreaProvider></QueryClientProvider>);
@@ -152,10 +158,10 @@ test("library: a refused route can be removed from the phone after a confirmatio
 });
 
 test("detail: map, figures, GPX export and deletion; no map server is contacted", async () => {
-  mockApi.routeGet.mockResolvedValue({ ...meta, track: encodeTrack(track(400)) });
+  mockApi.routeGetV2.mockResolvedValue({ ...meta, id: R1, legacy: false, track: encodeTrack(track(400)) });
   mockApi.routeDelete.mockResolvedValue(true);
   const fetchSpy = jest.spyOn(global, "fetch");
-  wrap(<RouteDetailScreen navigation={nav} route={{ params: { id: "r-1" } }} />);
+  wrap(<><RouteDetailScreen navigation={nav} route={{ params: { id: R1 } }} /><DialogHost /></>);
   expect(await screen.findByText(/5,3\s?km|5\.3\s?km/)).toBeTruthy();
   expect(screen.getByText("42 m")).toBeTruthy();
   fireEvent.press(screen.getByTestId("route-export"));
@@ -167,8 +173,12 @@ test("detail: map, figures, GPX export and deletion; no map server is contacted"
   expect(shared[0]).toBe("titan-parcours-2026-11-02.gpx");
   expect(String(shared[1])).not.toContain("<time>");
   expect(String(shared[1])).not.toContain("<ele>");
+  // Deleting asks first: nothing is removed until the athlete confirms.
   fireEvent.press(screen.getByTestId("route-delete"));
-  await waitFor(() => expect(mockApi.routeDelete).toHaveBeenCalledWith("o1", "r-1"));
+  expect(await screen.findByText("Supprimer ce parcours ?")).toBeTruthy();
+  expect(mockApi.routeDelete).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByText("Supprimer"));
+  await waitFor(() => expect(mockApi.routeDelete).toHaveBeenCalledWith("o1", R1));
   await waitFor(() => expect(nav.goBack).toHaveBeenCalled());
   expect(fetchSpy).not.toHaveBeenCalled();
 });

@@ -111,3 +111,61 @@ test("an account change pauses a readable recording and leaves the same account 
   expect((await stored("owner-a")).status).toBe("paused");
   expect(await getActiveOwner()).toBeNull();
 });
+
+/* ---- V1.7.7 ---- */
+/* eslint-disable @typescript-eslint/no-require-imports */
+const Location = require("expo-location");
+const { Vibration } = require("react-native");
+const { toRaw, ALERT_STEP, ALERT_OFF } = require("../src/lib/gpsNative") as typeof import("../src/lib/gpsNative");
+const { saveRouteOffline } = require("../src/lib/routeLibrary") as typeof import("../src/lib/routeLibrary");
+const { GpsNav, GpsSession } = require("../src/core") as typeof import("../src/core");
+/* eslint-enable @typescript-eslint/no-require-imports */
+
+test("V1.7.7: updates are time-based (a standstill keeps delivering), still a user-started foreground service", async () => {
+  await setActiveOwner("owner-a");
+  await recorder.start("owner-a", "running");
+  const [task, options] = (Location.startLocationUpdatesAsync as jest.Mock).mock.calls.at(-1)!;
+  expect(task).toBe("titan-gps-recording");
+  expect(options).toMatchObject({ timeInterval: 2000, distanceInterval: 0, pausesUpdatesAutomatically: false });
+  expect(options.foregroundService.notificationTitle).toMatch(/TITAN enregistre/);
+});
+
+test("V1.7.7: the raw location feeds the heartbeat (speed, course, altitude) while the stored fix stays compact; a stored v1 recording is upgraded on read", async () => {
+  expect(toRaw({ timestamp: T0, coords: { latitude: 48.85, longitude: 2.35, altitude: 35, altitudeAccuracy: 3, accuracy: 6, heading: 181.6, speed: 2.9 } } as never)).toEqual({ lat: 48.85, lon: 2.35, alt: 35, altAcc: 3, acc: 6, t: T0, spd: 2.9, hdg: 181.6 });
+  await setActiveOwner("owner-a");
+  await recorder.start("owner-a", "running");
+  await mockTask!({ data: { locations: [location(1), { ...location(2), coords: { ...location(2).coords, heading: 90.4, accuracy: 55 } }] } });
+  const rec = await stored("owner-a");
+  expect(rec.v).toBe(2);
+  expect(rec.track.segs[0]).toHaveLength(1); // the second position is too imprecise for the trace…
+  expect(rec.live).toMatchObject({ t: T0 + 4000, acc: 55, spd: 3, hdg: 90 }); // …but it is the heartbeat of the signal
+  expect(JSON.stringify(rec.track)).not.toContain("spd");
+  await recorder.discard("owner-a");
+  await AsyncStorage.setItem(recKey("owner-a"), JSON.stringify({ v: 1, owner: "owner-a", sport: "cycling", status: "paused", startedAt: T0, activeMs: 4000, runStart: null, newSegment: true, interrupted: false, track: { segs: [[toFix(location(0) as never), toFix(location(2) as never)]], rejected: 0 } }));
+  const old = (await recorder.load("owner-a"))!;
+  expect([old.v, old.stretches.length, old.track.segs[0]!.length]).toEqual([2, 1, 2]);
+});
+
+test("V1.7.7: a route kept on the phone is followed from the background task, and a change of step or a route left vibrates — nothing is spoken", async () => {
+  const vibrate = jest.spyOn(Vibration, "vibrate").mockImplementation(() => {});
+  const north = (i: number) => ({ lat: 48.85 + i * 0.00009, lon: 2.35222 });
+  await saveRouteOffline("owner-a", "route-1", GpsNav.makeRoute([Array.from({ length: 200 }, (_, i) => north(i))], { name: "Canal" })!);
+  await setActiveOwner("owner-a");
+  await recorder.start("owner-a", "running", { follow: { id: "route-1", name: "Canal" }, plan: { steps: GpsSession.buildPlan({ warmup: { by: "distance", value: 100 }, work: { by: "manual" }, reps: 1 }), alerts: true } });
+  // 16 positions along the route (10 m every 2 s): joined, and the 100 m warm-up ends.
+  await mockTask!({ data: { locations: Array.from({ length: 16 }, (_, i) => location(i + 1)) } });
+  let rec = await stored("owner-a");
+  expect(rec.follow.state).toMatchObject({ joined: true, off: false });
+  expect(rec.plan.cursor.index).toBe(1);
+  expect(vibrate).toHaveBeenCalledTimes(1);
+  expect(vibrate).toHaveBeenLastCalledWith(ALERT_STEP);
+  // Then straight east, away from the line.
+  const east = (k: number) => ({ timestamp: T0 + (16 + k) * 2000, coords: { ...location(16).coords, longitude: 2.3522198765432 + k * 0.00012 } });
+  await mockTask!({ data: { locations: Array.from({ length: 12 }, (_, k) => east(k + 1)) } });
+  rec = await stored("owner-a");
+  expect(rec.follow.state.off).toBe(true);
+  expect(vibrate).toHaveBeenCalledTimes(2);
+  expect(vibrate).toHaveBeenLastCalledWith(ALERT_OFF);
+  expect(JSON.stringify(rec)).not.toContain("Canal\",\"sport"); // the route is not copied into the recording
+  vibrate.mockRestore();
+});

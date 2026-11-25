@@ -55,6 +55,18 @@ test('the web never contacts a map server and never publishes: the module only c
     const src = readFileSync(new URL('../js/app/parcours.js', import.meta.url), 'utf8');
     assert.ok(!/https?:\/\/(?!www\.topografix\.com|www\.w3\.org)/.test(src), 'no external address');
     assert.ok(!/fetch\(|XMLHttpRequest|sendBeacon/.test(src), 'no network call of its own');
-    const calls = [...src.matchAll(/"(titan_[a-z_]+_v1)"/g)].map(m => m[1]);
-    assert.deepEqual([...new Set(calls)].sort(), ['titan_route_delete_v1', 'titan_route_for_event_v1', 'titan_route_get_v1', 'titan_routes_v1']);
+    // V1.7.7 (screens.gps): the v2 readers and the save with their v1 fallbacks, the rename, and the link of a recorded route to its session.
+    const calls = [...src.matchAll(/"(titan_[a-z_]+_v\d)"/g)].map(m => m[1]);
+    assert.deepEqual([...new Set(calls)].sort(), ['titan_route_delete_v1', 'titan_route_for_event_v1', 'titan_route_get_v1', 'titan_route_get_v2', 'titan_route_link_v1',
+        'titan_route_rename_v1', 'titan_route_save_v1', 'titan_route_save_v2', 'titan_routes_v1', 'titan_routes_v2']);
+    assert.ok(!/analytics|titanTrack|gtag\(/.test(src), 'no analytics event leaves the library: no position, distance or place can be in one');
+});
+
+test('with screens.gps off the library is the one from before V1.7.7: only the v1 readers and the deletion', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('../js/app/parcours.js', import.meta.url), 'utf8');
+    const legacy = src.slice(src.indexOf('async function openLegacy()'), src.indexOf('/* ---- Saving'));
+    assert.ok(legacy.length > 500, 'the legacy library is still there');
+    assert.deepEqual([...new Set([...legacy.matchAll(/"(titan_[a-z_]+_v\d)"/g)].map(m => m[1]))].sort(), ['titan_route_get_v1', 'titan_routes_v1']);
+    assert.match(src, /if \(!gpsEnabled\(\)\) return openLegacy\(\);/);
 });

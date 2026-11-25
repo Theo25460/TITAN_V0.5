@@ -1679,6 +1679,101 @@ html[data-motion="reduced"] *::after {
 .rt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .rt-legend { margin: 6px 0 0; }
 
+/* V1.7.7 — the route library (import, detail, comparison), the GPS bilan of a session, the planner (pl-) and the points (pl-, poi-).
+   Everything sits in a sheet: rows on the ground under hairlines, one primary action per view, 44 px targets, wrapping labels. */
+.rt-tap { min-height: 44px; white-space: normal; line-height: 1.2; text-align: center; }
+.asc-btn-sm.rt-tap { padding-block: 6px; }
+.rt-back { justify-self: start; margin-left: calc(-1 * var(--s3)); }
+.rt-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--s2); }
+.rt-tools .asc-btn { padding-inline: var(--s3); font-size: 14.5px; }
+.rt-list li + li { margin-top: 0; }
+.rt-list { gap: 0; border-top: 1px solid var(--line-2); }
+.rt-row { display: grid; gap: 4px; width: 100%; min-height: 60px; padding: var(--s3) 0; border: 0; border-bottom: 1px solid var(--line-2); background: transparent; color: var(--tx); text-align: left; }
+.rt-row:hover { background: var(--bg-3); }
+.rt-row:hover .rt-row-name { color: var(--space); }
+.rt-row-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--s2); min-width: 0; }
+.rt-row-name { min-width: 0; overflow-wrap: anywhere; font-size: 15.5px; }
+.rt-row-sub { overflow-wrap: anywhere; }
+.rt-origin[data-origin="imported"] { color: var(--cy-2); background: var(--cy-soft); }
+.rt-origin[data-origin="planned"] { color: var(--am); background: var(--am-soft); }
+.rt-detail { display: grid; gap: var(--s4); min-width: 0; }
+.rt-detail .moment-metrics { margin-top: 0; border-top-color: var(--line-2); }
+.rt-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+.rt-name { min-width: 0; overflow-wrap: anywhere; }
+.rt-name:focus { outline: none; }
+.rt-actions { gap: var(--s2); }
+.rt-actions .asc-btn { flex: 1 1 150px; padding-inline: var(--s3); }
+.rt-copy { display: grid; gap: var(--s2); justify-items: start; padding: var(--s3) var(--s4); border-radius: var(--r2); background: var(--bg-3); }
+.rt-facts { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+.rt-notes { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.rt-rename { padding: var(--s3) var(--s4); border-radius: var(--r2); background: var(--bg-3); }
+.rt-progress { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3); }
+.rt-cmp { display: grid; gap: var(--s2); }
+.rt-cmp-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-2); }
+.rt-cmp-list li { display: grid; gap: 2px; padding: var(--s2) 0; border-bottom: 1px solid var(--line); }
+.rt-cmp-date { font-size: 13px; color: var(--tx-2); }
+.rt-cmp-figures { font-weight: 700; overflow-wrap: anywhere; }
+.rt-table-wrap { overflow-x: auto; max-width: 100%; }
+.rt-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rt-table caption { text-align: left; padding-bottom: 6px; }
+.rt-table th, .rt-table td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.rt-table thead th { font-size: 12.5px; color: var(--tx-2); font-weight: 700; }
+.rt-table tbody th { font-weight: 600; overflow-wrap: anywhere; }
+.rt-ask { display: grid; gap: var(--s2); padding: var(--s3) var(--s4); border-radius: var(--r2); background: var(--bg-3); border-left: 3px solid var(--space); }
+/* Time of an outing as one line: what was movement, a stop, a pause, a hole. The colours are named by the figures beside them. */
+.rt-bilan-figures { grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); }
+.rt-timebar { display: flex; height: 12px; border-radius: 3px; overflow: hidden; background: var(--bg-4); gap: 1px; }
+.rt-timebar-line { gap: 0; }
+.rt-time { flex: 1 1 0; min-width: 1px; }
+.rt-time-moving { background: var(--cy); }
+.rt-time-stopped { background: var(--am); }
+.rt-time-paused { background: var(--tx-3); }
+.rt-time-missing { background: repeating-linear-gradient(135deg, var(--tx-4) 0 3px, var(--bg-4) 3px 6px); }
+.rt-time-interrupted { background: repeating-linear-gradient(90deg, var(--err) 0 2px, var(--bg-4) 2px 5px); }
+.rt-swatch { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; vertical-align: baseline; }
+.rt-time-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px var(--s4); }
+
+.pl-sheet { min-width: 0; }
+.pl-tabs { display: grid; width: 100%; }
+.pl-tabs button { min-height: 44px; white-space: normal; line-height: 1.15; }
+.pl-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-2); }
+.pl-item, .poi-item { display: grid; gap: 6px; padding: var(--s3) 0; border-bottom: 1px solid var(--line-2); justify-items: start; }
+.pl-item-main { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--s2); min-width: 0; }
+.pl-name { min-width: 0; overflow-wrap: anywhere; }
+.pl-item-actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-left: calc(-1 * var(--s3)); }
+.pl-here { justify-self: start; }
+.pl-fieldset { display: grid; gap: var(--s2); margin: 0; padding: 0; border: 0; min-width: 0; }
+.pl-fieldset legend { padding: 0; margin-bottom: var(--s2); font-size: 13.5px; font-weight: 700; color: var(--tx-2); }
+.pl-chips { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.pl-chip { position: relative; display: inline-flex; }
+.pl-chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.pl-chip span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--s4); border-radius: var(--r2); border: 1.5px solid var(--line-3); color: var(--tx-2); font-weight: 700; font-size: 14.5px; }
+.pl-chip input:checked + span { border-color: var(--space); background: var(--space-soft); color: var(--tx); }
+.pl-chip input:focus-visible + span { outline: 2px solid var(--space); outline-offset: 2px; }
+.pl-radio, .pl-check { display: flex; align-items: center; gap: var(--s3); min-height: 44px; font-size: 15px; cursor: pointer; }
+.pl-radio input, .pl-check input { width: 20px; height: 20px; flex: none; margin: 0; accent-color: var(--space); }
+.poi-raw { color: var(--tx-2); overflow-wrap: anywhere; }
+.poi-results { display: grid; gap: var(--s2); }
+.pl-panel { display: grid; gap: var(--s2); padding: var(--s4); border-radius: var(--r2); background: var(--bg-3); border-left: 3px solid var(--am); }
+.pl-panel .asc-h3 { font-size: 17px; }
+.pl-meanwhile { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.pl-points { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
+.pl-point { display: grid; gap: 6px; min-width: 0; }
+.pl-point-tools { display: flex; align-items: center; gap: var(--s1); min-width: 0; }
+.asc select.pl-fill { flex: 1 1 0; min-width: 0; min-height: 44px; font-size: 14.5px; }
+.pl-facts, .pl-warnings { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.pl-shares { display: grid; gap: 6px; }
+.pl-bar { display: flex; height: 14px; border-radius: 3px; overflow: hidden; gap: 2px; background: var(--bg-2); }
+.pl-bar-part { flex: 1 1 0; min-width: 2px; }
+.pl-tone-0 { background: var(--cy); }
+.pl-tone-1 { background: var(--am); }
+.pl-tone-2 { background: var(--azur); }
+.pl-tone-3 { background: var(--mousse); }
+.pl-tone-4 { background: var(--corail); }
+.pl-tone-5 { background: var(--tx-3); }
+.pl-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px var(--s4); font-size: 13px; color: var(--tx-2); }
+.pl-swatch { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; }
+
 /* Folding sections carry one mark everywhere: a chevron at the end of the line that turns when the section opens, instead of the
    browser's triangle at its start. Components that draw their own mark (the QG « why », the optional measures of a session,
    the public menu, coaching rows, the groups of the profile) are left alone; the rule has no specificity, so any component can still restyle its summary. */

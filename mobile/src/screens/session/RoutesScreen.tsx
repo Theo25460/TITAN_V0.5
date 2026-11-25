@@ -792,7 +792,7 @@ export function RouteDetailScreen({ navigation, route }: NativeStackScreenProps<
           <T variant="h2" style={{ flex: 1 }} testID="route-title">{title}</T>
           <Chip label={ORIGINS[d.origin]} />
         </View>
-        <Button small kind="ghost" icon="edit" label="Renommer" disabled={busy || (!onServer && !d.pending && false)} onPress={() => { setRenameError(null); setRenaming(d.name); }} style={{ alignSelf: "flex-start" }} testID="route-rename" />
+        <Button small kind="ghost" icon="edit" label="Renommer" disabled={busy} onPress={() => { setRenameError(null); setRenaming(d.name); }} style={{ alignSelf: "flex-start" }} testID="route-rename" />
         {d.nameOnPhone ? <T variant="caption" tone="faint" testID="route-name-local">{NAME_KEPT_ON_PHONE}</T> : null}
         {d.stale ? <T variant="small" tone="warn" accessibilityRole="alert" testID="route-stale">Bibliothèque en ligne injoignable : tu vois la copie gardée sur ce téléphone. Elle peut être suivie normalement.</T>
           : d.pending ? <T variant="small" tone="warn" testID="route-pending">En attente d’envoi vers ta bibliothèque : déjà utilisable sur ce téléphone.</T>

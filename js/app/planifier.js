@@ -33,7 +33,8 @@
   }
   const pair = (p) => [Math.round(p.lat * 1e5) / 1e5, Math.round(p.lon * 1e5) / 1e5];
   const valid = (p) => !!p && Number.isFinite(p.lat) && Number.isFinite(p.lon) && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180;
-  const newSeed = () => Math.floor(Math.random() * 1e9);
+  /** Another proposal of the same loop: the function accepts a whole number from 0 to 99, and never the one just shown. */
+  const newSeed = (previous) => { let n = Math.floor(Math.random() * 100); if (n === previous) n = (n + 1) % 100; return n; };
 
   /** The body of one request, or why it cannot be sent. `f`: { profile, mode: "points" | "loop", points: [{lat, lon} | null],
       loop: { start, km, seed }, prefer: { flat, quiet, unpaved } }. Only preferences that are set travel. */
@@ -49,7 +50,7 @@
       const km = Number(String(l.km === undefined || l.km === null ? "" : l.km).replace(",", "."));
       if (!Number.isFinite(km) || km < LOOP_MIN_KM || km > LOOP_MAX_KM) return { ok: false, error: `Indique une distance de boucle entre ${LOOP_MIN_KM} et ${LOOP_MAX_KM} km.` };
       const loop = { start: pair(l.start), distanceM: Math.round(km * 1000) };
-      if (Number.isFinite(l.seed)) loop.seed = Math.round(l.seed);
+      if (Number.isFinite(l.seed)) loop.seed = Math.max(0, Math.min(99, Math.round(l.seed)));
       return { ok: true, body: { profile: form.profile, loop, ...extra } };
     }
     const points = form.points || [];
@@ -170,7 +171,7 @@
     const at = (v) => (Array.isArray(v) && Number.isFinite(v[0]) && Number.isFinite(v[1]) ? coordsText({ lat: v[0], lon: v[1] }) : "");
     const sports = ui.gpsSports().filter(([id]) => profileOf(id));
     const firstSport = profileOf(o.sport) ? o.sport : profileOf(ui.lastGpsSport()) ? ui.lastGpsSport() : "hiking";
-    const P = { sport: firstSport, profile: profileOf(firstSport), mode: o.from && !o.to ? "loop" : "points", points: [{ text: at(o.from), note: "" }, { text: at(o.to), note: "" }], loop: { text: at(o.from), note: "", km: "20", seed: newSeed() },
+    const P = { sport: firstSport, profile: profileOf(firstSport), mode: o.from && !o.to ? "loop" : "points", points: [{ text: at(o.from), note: "" }, { text: at(o.to), note: "" }], loop: { text: at(o.from), note: "", km: "20", seed: 0 },
       prefer: { flat: false, quiet: false, unpaved: false }, ceiling: "", phase: "form", state: knownOff() ? "not_configured" : "", message: "", plan: null, route: null, wish: null, name: "", savedId: null, places: [], routes: [], run: 0 };
     const say = (t) => { P.message = t || ""; const n = body.querySelector("[data-pl-status]"); if (n) n.textContent = P.message; };
 
@@ -277,7 +278,7 @@
     async function compute(again) {
       if (P.phase === "busy") return;
       collect();
-      if (again) P.loop.seed = newSeed();
+      if (again) P.loop.seed = newSeed(P.loop.seed);
       const ceiling = Number(String(P.ceiling).replace(",", "."));
       const req = buildRequest({ profile: P.profile, mode: P.mode, points: P.points.map((p) => parseCoords(p.text)), loop: { start: parseCoords(P.loop.text), km: P.loop.km, seed: P.loop.seed }, prefer: P.prefer });
       if (!req.ok) { P.phase = "form"; P.message = req.error; return draw(req.at !== undefined ? `[data-pl-coords="${req.at}"]` : "[data-pl-go]"); }

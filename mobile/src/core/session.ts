@@ -434,7 +434,7 @@ function sanitizeExtras(extras: unknown, sport: string, plus = false): Record<st
 
 const GPS_STEP_KINDS = ["warmup", "work", "recover", "cooldown", "free"];
 /** `details.gps` (V1.7.7), bounded: the engine's digest of a recording made by TITAN, plus the laps of a structured session and the
-    goal when there were any. Whole numbers inside known limits, at most 60 laps, no free text and no position: about 2 kB at the very
+    goal when there were any. Whole numbers inside known limits, at most 60 laps, no free text and no position: under 3 kB at the very
     most, 400 bytes for an ordinary outing. Null when the value is not a digest. */
 export function gpsDetails(raw: unknown): Record<string, unknown> | null {
   if (!raw || typeof raw !== "object") return null;
