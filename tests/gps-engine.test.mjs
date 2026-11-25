@@ -248,3 +248,35 @@ test('a very long outing is thinned, never frozen, and only GPS sports ask for a
   for (const indoor of ['musculation', 'badminton', 'climbing_boulder', 'yoga', 'swimming', 'treadmill']) assert.equal(E.isGpsSport(indoor), false);
   assert.equal(E.familyOf('gravel'), 'bike'); assert.equal(E.familyOf('hiking'), 'walk'); assert.equal(E.familyOf('mountain_bike'), 'mtb');
 });
+
+test('a position stamped in the future does not freeze the trace, and one stamped far ahead of the clock is refused', () => {
+  const fixes = [at(0, T0), at(6, T0 + 2000), at(12, T0 + 4000), at(18, T0 + 3600000)];
+  for (let i = 4; i <= 30; i++) fixes.push(at(i * 6, T0 + i * 2000));
+  const track = record('running', fixes);
+  assert.equal(track.segs.length, 1); assert.equal(track.segs[0].at(-1).t, T0 + 60000);
+  assert.ok(track.segs[0].length >= 29, `${track.segs[0].length} positions kept`);
+  assert.ok(track.segs.flat().every((f, i, all) => i === 0 || f.t > all[i - 1].t), 'time only goes forward in what is kept');
+  near(E.analyse({ sport: 'running', startedAt: T0, endedAt: T0 + 60000, segs: track.segs }).distanceM, 180, 8, 'distance');
+  // doubled timestamps alone never trigger that recovery
+  const doubled = record('running', [at(0, T0), at(6, T0 + 2000), at(7, T0 + 2000), at(8, T0 + 2000), at(9, T0 + 2000), at(12, T0 + 4000)]);
+  assert.equal(doubled.why.order, 3); assert.equal(doubled.segs[0].length, 3);
+  const ahead = E.ingest({ segs: [], rejected: 0 }, at(0, T0 + 10 * 60000), { sport: 'running', newSegment: true, now: T0 });
+  assert.equal(ahead.why.order, 1); assert.equal(ahead.segs.length, 0);
+});
+
+test('a receiver clock a few seconds off the phone clock loses nothing, and the live tail does not flicker to « stopped »', () => {
+  const [a, m, t] = cruise(0, T0, 4, 600);
+  const segs = record('cycling', [at(0, T0), ...a]).segs;
+  // the phone's clock is 8 s behind the receiver's: the recording « ends » before its last positions
+  const skew = E.analyse({ sport: 'cycling', startedAt: T0 - 8000, endedAt: t - 8000, segs, stretches: [{ s: T0 - 8000, e: t - 8000, why: 'finish' }] });
+  near(skew.distanceM, m, 2, 'every position still counts'); assert.equal(skew.elapsedS, 600); assert.equal(skew.missingS, 0);
+  sumIsElapsed(skew);
+  // and 12 s ahead: the first positions come « before the start »
+  const early = E.analyse({ sport: 'cycling', startedAt: T0 + 12000, endedAt: t + 12000, segs, stretches: [{ s: T0 + 12000, e: t + 12000, why: 'finish' }] });
+  near(early.distanceM, m, 2, 'distance with the clock ahead'); sumIsElapsed(early);
+  // live: 1.5 s after the latest position of a moving athlete, the whole time is still movement
+  const live = E.analyse({ sport: 'cycling', startedAt: T0, segs, stretches: [{ s: T0, e: null, why: 'pause' }] }, { now: t + 1500 });
+  assert.equal(live.ms.stopped, 0); assert.equal(live.ms.moving, 601500);
+  // 12 s without anything new: that wait is a halt, not movement
+  assert.equal(E.analyse({ sport: 'cycling', startedAt: T0, segs, stretches: [{ s: T0, e: null, why: 'pause' }] }, { now: t + 12000 }).ms.stopped, 12000);
+});

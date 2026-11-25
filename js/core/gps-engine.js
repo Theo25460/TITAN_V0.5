@@ -80,6 +80,7 @@
     const max = (FAMILIES[o.family] || FAMILIES[familyOf(o.sport)] || FAMILIES.bike).maxSpeedMs;
     const limit = o.maxPoints || MAX_POINTS;
     if (!validFix(fix)) return refuse(track, "invalid");
+    if (Number.isFinite(o.now) && fix.t > o.now + 120000) return refuse(track, "order"); // stamped more than 2 min ahead of the clock
     if (fix.acc !== null && fix.acc !== undefined && fix.acc > MAX_ACCURACY_M) return refuse(track, "accuracy");
     const open = track.segs[track.segs.length - 1];
     let newSegment = !!o.newSegment || !open;
@@ -88,7 +89,19 @@
     if (!newSegment) {
       const prev = open[open.length - 1];
       const dt = (fix.t - prev.t) / 1000;
-      if (dt <= 0) return refuse(track, "order");
+      if (dt <= 0) {
+        // One position stamped in the future would make every later one « out of order » for ever. Three positions in a row that are
+        // older than it but advance normally among themselves show that IT was the wrong one: it is dropped and they are read again.
+        const cand = (track.late || []).slice(-2);
+        const last = cand[cand.length - 1];
+        const next = last && fix.t > last.t && haversine(last, fix) / ((fix.t - last.t) / 1000) <= max ? [...cand, fix] : [fix];
+        if (next.length < 3 || fix.t === prev.t) return refuse(track, "order", { late: fix.t === prev.t ? track.late : next });
+        let back = { ...refuse(track, "order"), segs: open.length === 1 ? track.segs.slice(0, -1) : [...track.segs.slice(0, -1), open.slice(0, -1)] };
+        delete back.late;
+        const reopen = open.length === 1 && o.newSegment === undefined;
+        next.forEach((f, i) => { back = ingest(back, f, { ...o, newSegment: reopen && i === 0 }); });
+        return back;
+      }
       if (haversine(prev, fix) / dt > max) {
         const cand = (track.cand || []).slice(-2);
         const last = cand[cand.length - 1];
@@ -120,6 +133,7 @@
     }
     const next = { ...track, segs: out, rejected: track.rejected || 0 };
     delete next.cand;
+    delete next.late;
     if (every) next.every = every; else delete next.every;
     return next;
   }
@@ -204,13 +218,32 @@
         : segs.map((s) => ({ s: s[0].t, e: s[s.length - 1].t, why: "pause" }));
       const stretches = given.filter((x) => Number.isFinite(x.s) && Number.isFinite(x.e))
         .map((x) => ({ s: clamp(x.s, start, end), e: clamp(x.e, start, end), why: x.why })).sort((a, b) => a.s - b.s);
+      // Each position goes to the period that contains it; the receiver's clock and the phone's may differ by a few seconds, so a
+      // position up to 60 s outside goes to the nearest period. Its time is then read inside that period (never outside: no time is
+      // counted twice), its place is kept as measured.
+      const byStretch = new Map();
+      let squeezed = 0;
+      segs.forEach((seg, si) => { for (const f of seg) {
+        let best = null, gap = Infinity;
+        for (const st of stretches) { const d = f.t < st.s ? st.s - f.t : f.t > st.e ? f.t - st.e : 0; if (d < gap) { gap = d; best = st; } }
+        if (!best || gap > 60000) continue;
+        if (!byStretch.has(best)) byStretch.set(best, []);
+        const list = byStretch.get(best), t = clamp(f.t, best.s, best.e), prev = list[list.length - 1];
+        if (!prev || t > prev.f.t) list.push({ f: t === f.t ? f : { ...f, t }, si });
+        else {
+          // several positions on one edge of the period: the latest place stays. Before the start their path is added (nothing else
+          // measures it); after the end the line from the last position inside the period already covers it.
+          if (list.length === 1) squeezed += haversine(prev.f, f);
+          list[list.length - 1] = { f: { ...f, t: prev.f.t }, si };
+        }
+      } });
+      distance += squeezed;
       let cursor = start, previousWhy = "pause";
       for (const st of stretches) {
         const s = Math.max(st.s, cursor), e = Math.max(st.e, s);
         mark(cursor, s, previousWhy === "interrupted" ? "interrupted" : "paused");
         // positions of this period, in time order, each remembering the stretch it belongs to
-        const pts = [];
-        segs.forEach((seg, si) => { for (const f of seg) if (f.t >= s && f.t <= e) pts.push({ f, si }); });
+        const pts = byStretch.get(st) || [];
         if (!pts.length) {
           // recording but not one usable position: nothing is known about this period
           mark(s, e, e - s > p.gapS * 1000 ? "missing" : "stopped");
@@ -253,8 +286,10 @@
             } else move(a.t, b.t, d / dt >= p.minSpeedMs ? d : 0);
             i++;
           }
-          const tail = e - pts[pts.length - 1].f.t;
-          mark(pts[pts.length - 1].f.t, e, tail > p.gapS * 1000 ? "missing" : "stopped");
+          // The few seconds since the latest position continue what the athlete was doing (no flicker between « moving » and
+          // « stopped » on a live screen); a longer wait is a halt, and beyond the gap threshold nothing is known.
+          const tail = e - pts[pts.length - 1].f.t, lastKind = timeline.length ? timeline[timeline.length - 1].kind : "stopped";
+          mark(pts[pts.length - 1].f.t, e, tail > p.gapS * 1000 ? "missing" : tail <= 5000 && lastKind === "moving" && pts.length > 1 ? "moving" : "stopped");
         }
         cursor = e;
         previousWhy = st.why;
