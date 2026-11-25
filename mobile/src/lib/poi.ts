@@ -97,14 +97,14 @@ export async function fetchPois(owner: string, query: PoiQuery, deps: PoiDeps = 
 /* ---- The last answers, kept on the phone per account ---- */
 export type PoiCached = { answer: PoiAnswer; kinds: string[]; center?: { lat: number; lon: number }; radiusM: number; savedAt: number };
 const CACHE = (owner: string) => ownerKey("poi-cache", owner);
-const MAX_SLOTS = 9; // « around me » and the eight routes looked at last
+const MAX_ROUTE_SLOTS = 8; // « around me » is always kept, with the eight routes looked at last
 /** `slot`: "around" for the search around a position, "route:<id>" for a route. */
 export const readPoiCache = async (owner: string, slot: string): Promise<PoiCached | null> => (await readJSON<Record<string, PoiCached>>(CACHE(owner), {}))[slot] ?? null;
 export async function writePoiCache(owner: string, slot: string, entry: Omit<PoiCached, "savedAt">, now = Date.now()): Promise<void> {
   const all = await readJSON<Record<string, PoiCached>>(CACHE(owner), {});
   all[slot] = { ...entry, answer: { ...entry.answer, pois: entry.answer.pois.slice(0, 300) }, savedAt: now };
-  const kept = Object.entries(all).sort((a, b) => b[1].savedAt - a[1].savedAt).slice(0, MAX_SLOTS);
-  await writeJSON(CACHE(owner), Object.fromEntries(kept));
+  const routes = Object.entries(all).filter(([key]) => key !== "around").sort((a, b) => b[1].savedAt - a[1].savedAt).slice(0, MAX_ROUTE_SLOTS);
+  await writeJSON(CACHE(owner), Object.fromEntries([...(all.around ? [["around", all.around] as [string, PoiCached]] : []), ...routes]));
 }
 
 /* ---- What is said about a point: never more than the source says ---- */

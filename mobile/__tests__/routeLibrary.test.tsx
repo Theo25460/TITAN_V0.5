@@ -126,7 +126,7 @@ test("import: a valid GPX is previewed with what the file really contains, then 
   wrap(<RoutesScreen navigation={nav} />);
   fireEvent.press(await screen.findByTestId("routes-import"));
   expect(await screen.findByText("Aperçu du GPX")).toBeTruthy();
-  expect(screen.getByText(/^Distance : 3[,.]\d+\s?km$/)).toBeTruthy();
+  expect(screen.getByText(/^Distance : 2[,.]9\s?km$/)).toBeTruthy();
   expect(screen.getByText(/^Dénivelé positif : \d+ m$/)).toBeTruthy();
   expect(screen.getByText(/60 points lus, 0 ignoré/)).toBeTruthy();
   expect(screen.getByText(/^1 tronçon$/)).toBeTruthy();
@@ -376,4 +376,27 @@ test("detail without a network: the copy on the phone is shown as such and can b
   expect(mockApi.routeGetV2).toHaveBeenCalledTimes(1);
   fireEvent.press(screen.getByTestId("route-add"));
   await waitFor(() => expect(mockApi.routeSaveV2).toHaveBeenCalledWith("o1", expect.objectContaining({ clientRouteId: "r-phone-0001", name: "Fichier d’un ami", sport: "cycling", origin: "imported" })));
+});
+
+test("opened from the planner to import a file: the picker starts at once and the preview follows", async () => {
+  const setParams = jest.fn();
+  wrap(<RoutesScreen navigation={{ ...nav, setParams }} route={{ params: { importGpx: true } }} />);
+  expect(await screen.findByText("Aperçu du GPX")).toBeTruthy();
+  expect(setParams).toHaveBeenCalledWith({ importGpx: undefined });
+});
+
+test("detail of a route still waiting: it says so, and deleting it withdraws the upload and the copy without asking the server", async () => {
+  await addToLibrary("o1", line(60), { name: "Pas encore envoyé", sport: "running", origin: "imported", id: "r-local-0009" });
+  wrap(<RouteDetailScreen navigation={nav} route={{ params: { id: "r-local-0009" } }} />);
+  expect(await screen.findByTestId("route-pending")).toBeTruthy();
+  expect(screen.getByText("Importé")).toBeTruthy();
+  expect(screen.queryByTestId("route-add")).toBeNull();
+  fireEvent.press(screen.getByTestId("route-delete"));
+  expect(await screen.findByText(/Il n’a pas encore été envoyé/)).toBeTruthy();
+  fireEvent.press(screen.getByText("Supprimer"));
+  await waitFor(() => expect(nav.goBack).toHaveBeenCalled());
+  expect(await pendingLibraryRoutes("o1")).toEqual([]);
+  expect(await loadRouteForFollow("o1", "r-local-0009")).toBeNull();
+  expect(mockApi.routeDelete).not.toHaveBeenCalled();
+  expect(mockApi.routeGetV2).not.toHaveBeenCalled();
 });

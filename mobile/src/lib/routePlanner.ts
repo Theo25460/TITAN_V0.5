@@ -66,7 +66,8 @@ export function buildPlanRequest(input: PlanInput): { ok: true; body: PlanBody }
     if (input.profile === "gravel" || input.profile === "mtb" || input.profile === "hike") prefer.unpaved = true;
   }
   // The server accepts a seed from 0 to 99 (0 when absent): « Autre proposition » walks through them.
-  const seed = Number.isInteger(input.seed) && (input.seed as number) > 0 ? { seed: (input.seed as number) % 100 } : {};
+  const turn = Number.isInteger(input.seed) ? (input.seed as number) % 100 : 0;
+  const seed = turn > 0 ? { seed: turn } : {};
   return { ok: true, body: { profile: input.profile, loop: { start: at(input.start), distanceM: Math.round(km * 1000), ...seed }, ...(Object.keys(prefer).length ? { prefer } : {}) } };
 }
 

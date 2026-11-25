@@ -19,7 +19,7 @@ import {
   addPlace, distanceBetween, distanceLabel, lastKnownPosition, listPlaces, LOCATE_FAILURES, locateOnce, parseCoordinates, PLACE_KINDS, PLACES_LOCAL_NOTE, removePlace, syncPlaces, updatePlace,
   type Place, type PlaceKind, type PlacesRemote, type PlacesSync,
 } from "../../lib/places";
-import { fetchPois, POI_KINDS, POI_LABELS, POI_RADII, POI_STATES, poiAsPlace, poiExtras, poiFreshness, poiHours, poiSourceLine, poiTitle, readPoiCache, writePoiCache, type Poi, type PoiAnswer, type PoiFailure, type PoiKind } from "../../lib/poi";
+import { fetchPois, POI_KINDS, POI_LABELS, POI_RADII, POI_STATES, poiAsPlace, poiExtras, poiFreshness, poiHours, poiKindLabel, poiSourceLine, poiTitle, readPoiCache, writePoiCache, type Poi, type PoiAnswer, type PoiFailure, type PoiKind } from "../../lib/poi";
 import type { RootParams } from "../../navigation/types";
 import { space } from "../../theme/tokens";
 
@@ -44,7 +44,7 @@ export function PoiRows({ rows, fetchedAt, saved, onSave }: { rows: { poi: Poi; 
         return (
           <Card key={poi.id} tone="flat" style={{ gap: 4 }} testID={`poi-${poi.id}`}>
             <T variant="bodyStrong">{poiTitle(poi)}</T>
-            <T variant="small" tone="muted">{lead}{poi.name ? ` · ${POI_LABELS[poi.kind as PoiKind] ?? PLACE_KINDS[poi.kind as PlaceKind] ?? "Point utile"}` : ""} · {poiFreshness(poi)}</T>
+            <T variant="small" tone="muted">{lead}{poi.name ? ` · ${poiKindLabel(poi.kind)}` : ""} · {poiFreshness(poi)}</T>
             {hours ? <T variant="small" tone="muted">{hours}</T> : null}
             {extras ? <T variant="small" tone="muted">{extras}</T> : null}
             {saved.has(poi.id)

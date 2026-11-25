@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "240f011a9da9cdae61c9ee98c9d3464441c3c329",
+  "sha": "6f394fe568f49c8d0e68de2250b2692ed93f4597",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "0d089fdb88f819fae61b77f0e47ae7259efc2e9a70cf10d27602254d8425ccc5",
@@ -41,7 +41,7 @@
     "training-block.js": "b4d2acf460f07496769efe9d40d69cb5166152e67dafd8debbac7ba4bc99167c",
     "block-scenario.js": "a1dd220847f860020edd4dc55db1851db31691f3978e337fa026adc9974e761f",
     "discipline-analysis.js": "1171421cb012a394218bfef78ed9afe4c387b17b74598b7abdd959f9e6dd3b3d",
-    "gps-engine.js": "12bb99bb97459f640e060b4245afb6fe4a46594d9a1c0f041f6547bba211dd20",
+    "gps-engine.js": "828fa0c7effb057260a43336541f6010051b45536b6ca2f61c6313732a9679b3",
     "gps-nav.js": "3bef75f3a73c422549d736678bfbdb2a60a09dec5337126ca3cb15fec5a437ec",
     "gps-session.js": "44c75ab55420334520e2efdf263d87573eeaf4ed6795b3ffc4451f07d69a2981"
   }

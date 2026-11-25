@@ -259,4 +259,4 @@ export function distanceBetween(a: { lat: number; lon: number }, b: { lat: numbe
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 /** « 240 m », « 1,2 km », « 14 km ». */
-export const distanceLabel = (m: number) => (m < 1000 ? `${Math.round(m / 10) * 10} m` : m < 10000 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${Math.round(m / 1000)} km`);
+export const distanceLabel = (m: number) => (m < 995 ? `${Math.round(m / 10) * 10} m` : m < 9950 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${Math.round(m / 1000)} km`);

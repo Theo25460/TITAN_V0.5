@@ -21,7 +21,9 @@ test("a previous account's trace is never submitted with the next account's cred
 test("GPS route save and link bind the checked owner's token to the actual request", async () => {
   await (routeSave as unknown as (owner: string, p: typeof payload) => Promise<unknown>)("a", payload);
   expect(mockHeaders.Authorization).toBe("Bearer token-a");
-  expect(mockRpc).toHaveBeenCalledWith("titan_route_save_v1", expect.objectContaining({ p_track: payload.track }));
+  // V1.7.7: a recorded trace is sent to the v2 library first (same owner check, same token); the fallback to v1 on a server
+  // without it is covered in routeApiV2.test.ts.
+  expect(mockRpc).toHaveBeenCalledWith("titan_route_save_v2", expect.objectContaining({ p_track: payload.track, p_origin: "recorded" }));
   await (routeLink as unknown as (owner: string, id: string, event: string) => Promise<unknown>)("a", "route-one", "event-one");
   expect(mockHeaders.Authorization).toBe("Bearer token-a");
   mockOwner = null;

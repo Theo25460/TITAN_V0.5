@@ -6,6 +6,7 @@ import { buildSession, toPayload, type SessionDraft } from "../core/session";
 import type { Goal, Profile, TrainingLog } from "../core/types";
 import { isOnline } from "../lib/network";
 import { flushRoutes } from "../lib/routeSync";
+import { flushLibraryRoutes } from "../lib/routeLibrary";
 import * as api from "./api";
 import { useOwner } from "./auth";
 import { HistoryWindow } from "../core";
@@ -192,6 +193,10 @@ export function syncNow(qc: ReturnType<typeof useQueryClient>, owner: string) {
     if (isOnline()) void flushRoutes(owner, (route) => api.routeSave(owner, route), (id, event) => api.routeLink(owner, id, event)).then(() => {
       qc.invalidateQueries({ queryKey: ["routes", owner] });
       qc.invalidateQueries({ queryKey: ["routes-outbox", owner] });
+    }).catch(() => {});
+    // Imported and planned routes waiting on this phone (V1.7.7) leave with the same synchronisation, not only when « Mes parcours » opens.
+    if (isOnline()) void flushLibraryRoutes(owner, (route) => api.routeSaveV2(owner, route)).then((done) => {
+      if (done.sent > 0) qc.invalidateQueries({ queryKey: ["routes", owner] });
     }).catch(() => {});
     return r;
   });

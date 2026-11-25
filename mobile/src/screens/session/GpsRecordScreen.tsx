@@ -238,7 +238,7 @@ export function GpsRecordScreen({ navigation, route }: NativeStackScreenProps<Ro
       const a = recorder.analysis(rec);
       const draft = draftFromRecording(rec, a);
       // The trace goes to the private route library through a durable outbox (idempotent); the session itself follows the usual path.
-      const pending = buildPending({ track: rec.track, sport: rec.sport, startedAt: a.firstFixAt ?? rec.startedAt, distanceKm: a.distanceKm, activeSeconds: a.effortS, ascent: a.ascentM, id: `gps-${rec.startedAt.toString(36)}` });
+      const pending = buildPending({ track: rec.track, sport: rec.sport, startedAt: a.firstFixAt ?? rec.startedAt, distanceKm: a.distanceKm, activeSeconds: a.effortS, ascent: a.ascentM, id: `gps-${rec.startedAt.toString(36)}`, summary: GpsEngine.digest(a) });
       if (pending) {
         await queueRoute(owner, pending);
         draft.gpsRouteId = pending.clientRouteId;

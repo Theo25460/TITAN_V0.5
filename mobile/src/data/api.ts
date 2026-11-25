@@ -433,8 +433,10 @@ export async function ownerRpc<T>(owner: string, name: string, params: Record<st
   if (error) throw error;
   return data as T;
 }
-export const routeSave = (owner: string, p: { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: unknown }) =>
-  ownerRpc<{ id: string; created: boolean }>(owner, "titan_route_save_v1", { p_client_route_id: p.clientRouteId, p_sport: p.sport, p_started_at: p.startedAt, p_distance_m: p.distanceM, p_duration_s: p.durationS, p_ascent_m: p.ascentM, p_track: p.track });
+/** A recorded trace joins the private library. With the v2 library (V1.7.7) it carries the summary of the GPS engine, so outings on the
+    same route can be compared on moving time; a server that only has v1 keeps the trace without it (same route, same id, no duplicate). */
+export const routeSave = (owner: string, p: { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: unknown; summary?: Record<string, unknown> | null }) =>
+  routeSaveV2(owner, { clientRouteId: p.clientRouteId, sport: p.sport, startedAt: p.startedAt, distanceM: p.distanceM, durationS: p.durationS, ascentM: p.ascentM, track: p.track, origin: "recorded", summary: (p.summary ?? null) as RouteSummary | null });
 export const routeLink = (owner: string, clientRouteId: string, eventId: string) => ownerRpc<boolean>(owner, "titan_route_link_v1", { p_client_route_id: clientRouteId, p_event_id: eventId });
 export const routeForEvent = (owner: string, eventId: string) => ownerRpc<RouteMeta | null>(owner, "titan_route_for_event_v1", { p_event_id: eventId });
 export const routesList = (owner: string) => ownerRpc<RouteMeta[]>(owner, "titan_routes_v1", { p_limit: 100 });

@@ -14,12 +14,13 @@ import { Icon } from "./Icon";
 import { Tap } from "./Pressable";
 import { T } from "./Text";
 
-const KIND: Record<GpsTimeKind, { label: string; color: string }> = {
-  moving: { label: "En mouvement", color: colors.cy },
-  stopped: { label: "À l’arrêt", color: colors.tx3 },
-  paused: { label: "En pause", color: colors.bg4 },
-  interrupted: { label: "Interrompu", color: colors.tx4 },
-  missing: { label: "Sans position", color: colors.am },
+/* Bar colours: cyan is movement, greys fade with how little happened, amber is the time nothing is known about. */
+const KIND: Record<GpsTimeKind, { label: string; tint: string }> = {
+  moving: { label: "En mouvement", tint: colors.cy },
+  stopped: { label: "À l’arrêt", tint: colors.tx2 },
+  paused: { label: "En pause", tint: colors.tx3 },
+  interrupted: { label: "Interrompu", tint: colors.line3 },
+  missing: { label: "Sans position", tint: colors.am },
 };
 const ORDER: GpsTimeKind[] = ["moving", "stopped", "paused", "interrupted", "missing"];
 const WHY: Record<string, string> = { accuracy: "précision insuffisante (plus de 30 m)", speed: "vitesse impossible pour ce sport", order: "horodatage incohérent", invalid: "position invalide", full: "trace pleine" };
@@ -55,12 +56,12 @@ export function GpsTimeBar({ analysis: a }: { analysis: GpsAnalysis }) {
   return (
     <View style={{ gap: space.s2 }} testID="gps-timebar">
       <View style={styles.bar} accessible accessibilityRole="image" accessibilityLabel={`Répartition du temps total : ${parts.map((p) => `${KIND[p.kind].label} ${GpsEngine.clock(p.seconds)}`).join(", ")}`}>
-        {slices.map((s, i) => <View key={i} style={{ flexGrow: Math.max(s.share, 0.002) * 1000, flexBasis: 0, backgroundColor: KIND[s.kind].color }} />)}
+        {slices.map((s, i) => <View key={i} style={{ flexGrow: Math.max(s.share, 0.002) * 1000, flexBasis: 0, backgroundColor: KIND[s.kind].tint }} />)}
       </View>
       <View style={styles.legend}>
         {parts.map((p) => (
           <View key={p.kind} style={styles.legendItem}>
-            <View style={[styles.swatch, { backgroundColor: KIND[p.kind].color }]} />
+            <View style={[styles.swatch, { backgroundColor: KIND[p.kind].tint }]} />
             <T variant="caption" tone="muted">{KIND[p.kind].label} {GpsEngine.clock(p.seconds)}</T>
           </View>
         ))}
