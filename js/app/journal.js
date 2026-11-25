@@ -394,6 +394,65 @@
     return `<section class="jr-detail-block"><p class="asc-eyebrow">Détails</p><dl class="jr-kv">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>${gpxView}</section>`;
   }
 
+  /* V1.7.7 — the GPS bilan of an outing recorded with the position. `details.gps` is the digest the GPS engine wrote when the session
+     was saved (js/core/gps-engine.js): it is read as it is, never recomputed here, and it is the reference. A session without it
+     keeps the display it always had. Foot sports read a pace, the others a speed (js/core/gps-session.js). */
+  const GPS_TIME = [["moving", "En mouvement"], ["stopped", "À l’arrêt"], ["paused", "En pause"], ["missing", "Sans position"], ["interrupted", "Enregistrement interrompu"]];
+  const gpsSpeed = (l, metres, seconds) => {
+    if (!(seconds >= 30) || !(metres >= 50)) return "–";
+    const GS = window.TitanGpsSession, t = GS?.speedText?.(metres / seconds, !!GS.layout?.(l.sport)?.pace);
+    return t ? `${t.value} ${t.unit}` : `${F().number((metres / seconds) * 3.6, 1)} km/h`;
+  };
+  const gpsBar = (parts, clock) => {
+    const shown = parts.filter((p) => p.seconds > 0);
+    return `<div class="rt-timebar" role="img" aria-label="${esc(`Répartition du temps : ${shown.map((p) => `${p.label.toLowerCase()} ${clock(p.seconds)}`).join(", ")}`)}">${shown.map((p) => `<span class="rt-time rt-time-${p.kind}" style="flex-grow:${Math.max(1, Math.round(p.seconds))}"></span>`).join("")}</div>`;
+  };
+  function gpsBilanHtml(l) {
+    const g = l.details?.gps, E = window.TitanGpsEngine;
+    if (!g || typeof g !== "object" || !E?.clock || !(Number(g.elapsedS) > 0)) return "";
+    const n = (v) => Math.max(0, Number(v) || 0);
+    const times = { moving: n(g.movingS), stopped: n(g.stoppedS), paused: n(g.pausedS), missing: n(g.missingS) };
+    const swatch = (kind) => `<span class="rt-swatch rt-time-${kind}" aria-hidden="true"></span>`;
+    const rows = [
+      [`${swatch("moving")}En mouvement`, E.clock(times.moving)], ["Temps total", E.clock(n(g.elapsedS))], [`${swatch("stopped")}À l’arrêt`, E.clock(times.stopped)], [`${swatch("paused")}En pause`, E.clock(times.paused)],
+      ...(times.missing > 0 ? [[`${swatch("missing")}Sans position`, E.clock(times.missing)]] : []),
+      ["Moyenne en mouvement", gpsSpeed(l, n(g.distanceM), times.moving)], ["Moyenne globale", gpsSpeed(l, n(g.distanceM), n(g.elapsedS))],
+      ["Dénivelé positif", g.ascentM === null || g.ascentM === undefined || g.altitude === "unreliable" ? "pas assez fiable" : `${F().number(g.ascentM)} m · altitude du GPS`],
+    ];
+    return `<section class="jr-detail-block rt-bilan" data-gps-bilan aria-label="Bilan GPS"><p class="asc-eyebrow">Bilan GPS</p>
+      ${gpsBar(GPS_TIME.slice(0, 4).map(([kind, label]) => ({ kind, label, seconds: times[kind] })), E.clock)}
+      <dl class="jr-kv rt-bilan-figures">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
+      <p class="asc-small asc-faint">${g.autoPause === false ? "Pause automatique désactivée : la durée de la séance garde les arrêts détectés, pas les pauses ni les trous." : "Durée de la séance = temps en mouvement."}${times.missing > 0 ? " Le temps sans position fiable n’est pas compté comme effort." : ""}</p>
+      <div data-gps-detail-slot></div></section>`;
+  }
+  /** « Voir le détail »: the engine run again on the trace kept in the library, when that trace carries its times. The library trace
+      is thinned (3,000 points at most), so these figures may differ slightly from the saved bilan above, which stays the reference. */
+  function mountGpsDetail(slot, l, linked) {
+    const E = window.TitanGpsEngine;
+    if (!slot || !slot.isConnected || !linked?.timed || !E?.analyse) return;
+    slot.innerHTML = `<button type="button" class="asc-btn asc-btn-secondary rt-tap" data-gps-detail aria-expanded="false">${icon("chart")} Voir le détail</button><div class="asc-stack-sm" data-gps-detail-out hidden></div>`;
+    const button = slot.querySelector("[data-gps-detail]"), out = slot.querySelector("[data-gps-detail-out]");
+    button.addEventListener("click", () => {
+      const open = button.getAttribute("aria-expanded") !== "true";
+      button.setAttribute("aria-expanded", String(open));
+      out.hidden = !open;
+      if (!open || out.dataset.done) return;
+      out.dataset.done = "1";
+      let a = null;
+      try { a = E.analyse({ sport: l.sport, segs: linked.segs }, { autoPause: l.details?.gps?.autoPause !== false }); } catch { a = null; }
+      if (!a || !(a.elapsedS > 0)) { out.innerHTML = '<p class="asc-small asc-muted">Le détail n’a pas pu être calculé sur cette trace.</p>'; return; }
+      const label = Object.fromEntries(GPS_TIME), pieces = a.timeline.slice(0, 400).map((t) => ({ kind: t.kind, label: label[t.kind] || t.kind, seconds: (t.to - t.from) / 1000 }));
+      const totals = GPS_TIME.map(([kind, text]) => ({ kind, label: text, seconds: a.ms[kind] / 1000 })).filter((p) => p.seconds >= 1);
+      out.innerHTML = `<p class="asc-small asc-muted">Détail recalculé sur la trace de ta bibliothèque, allégée (3 000 points au plus) : ces chiffres peuvent différer légèrement du bilan enregistré ci-dessus, qui reste la référence.</p>
+        <p class="asc-eyebrow">Au fil de la sortie</p>
+        <div class="rt-timebar rt-timebar-line" role="img" aria-label="${esc(`Déroulé : ${totals.map((p) => `${p.label.toLowerCase()} ${E.clock(p.seconds)}`).join(", ")}`)}">${pieces.map((p) => `<span class="rt-time rt-time-${esc(p.kind)}" style="flex-grow:${Math.max(1, Math.round(p.seconds))}"></span>`).join("")}</div>
+        <ul class="rt-time-legend asc-small">${totals.map((p) => `<li><span class="rt-swatch rt-time-${esc(p.kind)}" aria-hidden="true"></span>${esc(p.label)} · <span class="asc-num">${esc(E.clock(p.seconds))}</span></li>`).join("")}</ul>
+        <p class="asc-small">${a.stops.length ? `${a.stops.length} arrêt${a.stops.length > 1 ? "s" : ""} détecté${a.stops.length > 1 ? "s" : ""}` : "Aucun arrêt détecté"} · distance recalculée ${esc(F().distance(a.distanceM / 1000))}</p>
+        ${a.splits.length ? `<div class="rt-table-wrap"><table class="rt-table" data-gps-splits><caption class="asc-eyebrow">Kilomètre par kilomètre · temps en mouvement</caption><thead><tr><th scope="col">Km</th><th scope="col">Temps</th><th scope="col">${window.TitanGpsSession?.layout?.(l.sport)?.pace ? "Allure" : "Vitesse"}</th></tr></thead>
+          <tbody>${a.splits.slice(0, 400).map((s) => `<tr><th scope="row">${s.distanceM >= 1000 ? s.index : esc(`${s.index} (${F().number(s.distanceM)} m)`)}</th><td class="asc-num">${esc(E.clock(s.movingS))}</td><td class="asc-num">${esc(gpsSpeed(l, s.distanceM, Math.max(s.movingS, s.distanceM >= 50 ? 30 : 0) === s.movingS ? s.movingS : s.movingS))}</td></tr>`).join("")}</tbody></table></div>` : ""}`;
+    });
+  }
+
   function compareHtml(l) {
     const p = X().previousOf(l);
     if (!p) return "";
@@ -481,6 +540,7 @@
       ${exercisesHtml(l)}
       ${extrasHtml(l)}
       ${l.details?.note ? `<section class="jr-detail-block"><p class="asc-eyebrow">Note</p><p class="jr-note">${esc(l.details.note)}</p></section>` : ""}
+      ${gpsBilanHtml(l)}
       <div data-route-slot></div>
       ${l.archived_at ? "" : compareHtml(l)}
       <div class="jr-actions">
@@ -533,7 +593,8 @@
     body.innerHTML = detailHtml(l);
     const d = window.titanShell.sheet({ title: SP().label(l.sport), eyebrow: `${new Date(l.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · ${F().time(l.date)}`, body });
     guardDialog(d, context);
-    window.TitanRoutes?.mountForSession?.(body.querySelector("[data-route-slot]"), l);
+    const linkedRoute = window.TitanRoutes?.mountForSession?.(body.querySelector("[data-route-slot]"), l);
+    if (l.details?.gps) Promise.resolve(linkedRoute).then((linked) => { if (request === detailRequest && currentAccount(context) && d.open) mountGpsDetail(body.querySelector("[data-gps-detail-slot]"), l, linked); }).catch(() => {});
     window.TitanMatches?.mount(body.querySelector("[data-match-slot]"), l, () => request === detailRequest && currentAccount(context) && d.open);
     mountChanges(body.querySelector("[data-changes-slot]"), l, () => request === detailRequest && currentAccount(context) && d.open);
     body.addEventListener("click", async (e) => {

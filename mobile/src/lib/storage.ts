@@ -29,6 +29,8 @@ export const ownerKey = (scope: string, owner: string) => `titan.${scope}.v1:${o
 const KEPT_ON_SIGN_OUT = [
   "titan.preferences-pending.", "titan.queue.", "titan.draft.", "titan.gps.v1", "titan.routes-outbox.", "titan.routes-links.", "titan.routes-await-session.",
   "titan.pedometer.", "titan.pedometer-on.", "titan.steps-goal.",
+  // V1.7.7: personal points not yet on the account, imported or planned routes waiting to be sent, route names the server cannot keep yet.
+  "titan.places.", "titan.routes-library-outbox.", "titan.route-names.",
 ];
 
 type ErasureListener = (owner: string) => void;

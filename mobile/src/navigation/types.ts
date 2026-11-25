@@ -26,8 +26,14 @@ export type RootParams = {
   GpsRecord: { sport: string; follow?: string };
   LiveSession: { sport: string };
   Camp: undefined;
-  Routes: undefined;
+  /** `importGpx`: opened to import a file at once (from the planner, when no routing service exists). */
+  Routes: { importGpx?: boolean } | undefined;
+  /** `id`: a server route id, or the id made on this phone for a route the server has not confirmed yet. */
   Route: { id: string };
+  /** V1.7.7 — planning a route (`sport` preselects the routing profile). */
+  RoutePlanner: { sport?: string } | undefined;
+  /** V1.7.7 — personal points and the useful points nearby. */
+  Places: undefined;
   SessionResult: { eventId: string; stored?: { owner: string; payload: TrainingPayload } };
   SessionDetail: { id: string };
   SessionEdit: { id: string };

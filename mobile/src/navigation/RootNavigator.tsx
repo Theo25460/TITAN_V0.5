@@ -28,6 +28,8 @@ import { PendingScreen } from "../screens/session/PendingScreen";
 import { SessionDetailScreen } from "../screens/session/SessionDetailScreen";
 import { SessionEditScreen } from "../screens/session/SessionEditScreen";
 import { RouteDetailScreen, RoutesScreen } from "../screens/session/RoutesScreen";
+import { RoutePlannerScreen } from "../screens/session/RoutePlannerScreen";
+import { PlacesScreen } from "../screens/session/PlacesScreen";
 import { WebHubScreen } from "../screens/settings/WebHubScreen";
 import { SourcesScreen } from "../screens/settings/SourcesScreen";
 import { CareerScreen } from "../screens/progress/CareerScreen";
@@ -107,6 +109,8 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
       <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
       <Stack.Screen name="Routes" component={RoutesScreen} options={{ title: "Mes parcours" }} />
       <Stack.Screen name="Route" component={RouteDetailScreen} options={{ title: "Parcours" }} />
+      <Stack.Screen name="RoutePlanner" component={RoutePlannerScreen} options={{ title: "Créer un parcours" }} />
+      <Stack.Screen name="Places" component={PlacesScreen} options={{ title: "Mes points" }} />
       <Stack.Screen name="GpsRecord" component={GpsRecordScreen} options={{ title: "Enregistrement GPS" }} />
       <Stack.Screen name="LiveSession" component={LiveSessionScreen} options={{ title: "Séance live" }} />
       <Stack.Screen name="Camp" component={CampScreen} options={{ title: "Camp de base" }} />

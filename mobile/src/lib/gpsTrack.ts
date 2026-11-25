@@ -1,9 +1,14 @@
 /* Pure GPS track arithmetic for the native recorder: fix filtering, distance, active time, speed, reliable ascent, GPX.
-   No Android API here, so every rule is testable in Node. Positions never leave the phone from this module. */
+   No Android API here, so every rule is testable in Node. Positions never leave the phone from this module.
+   Since V1.7.7 the filter itself is the shared engine (core/web/gps-engine.js, the same file as the website): this module keeps
+   the names the app already uses and the route helpers (GPX, compact encoding, projection, trimming). */
+import { GpsEngine, type GpsWhy } from "../core";
+
 export type Fix = { lat: number; lon: number; alt: number | null; altAcc: number | null; acc: number | null; t: number };
 export type Seg = Fix[];
-/** `every` (ms) appears only once a very long trace has been thinned: fixes closer in time than this are no longer kept. */
-export type Track = { segs: Seg[]; rejected: number; every?: number };
+/** `every` (ms) appears only once a very long trace has been thinned: fixes closer in time than this are no longer kept.
+    `why` counts the refused fixes by reason; `cand` holds the fixes that may prove the last kept one wrong (see the engine's `ingest`). */
+export type Track = { segs: Seg[]; rejected: number; every?: number; why?: GpsWhy; cand?: Fix[] };
 
 const R = 6371008.8;
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -14,20 +19,17 @@ export const haversine = (a: Pick<Fix, "lat" | "lon">, b: Pick<Fix, "lat" | "lon
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 };
 
-/** Limits: a fix less precise than 30 m, or implying more than 28 m/s (100 km/h) between two fixes, is a glitch. */
-export const MAX_ACCURACY_M = 30;
+/** Limits, kept under their former names: a fix less precise than 30 m is not used; 28 m/s (100 km/h) is the widest speed limit
+    (each sport has its own, see the engine's FAMILIES). */
+export const MAX_ACCURACY_M = GpsEngine.MAX_ACCURACY_M;
 export const MAX_SPEED_MS = 28;
 export const MOVING_MS = 0.5; // below 1.8 km/h the athlete is considered stopped
 /* The recording is one value in the phone's key-value store, whose rows cannot be read back above about 2 MB (Android CursorWindow).
    12 000 compact fixes stay near 1.1 MB. A trace that reaches the ceiling is not frozen: it is thinned to one fix in two and goes on
    at twice the spacing (4 s after about 6 h 40 of continuous movement, 8 s after about 13 h), so a 24 h outing keeps recording. */
-export const MAX_POINTS = 12000;
-const THIN_FROM_MS = 2000;
-const THIN_MAX_MS = 16000; // never coarser than this: beyond it the distance of a winding path would be cut short
+export const MAX_POINTS = GpsEngine.MAX_POINTS;
 
 export const emptyTrack = (): Track => ({ segs: [], rejected: 0 });
-
-const valid = (f: Fix) => Number.isFinite(f.lat) && Number.isFinite(f.lon) && Math.abs(f.lat) <= 90 && Math.abs(f.lon) <= 180 && Number.isFinite(f.t) && !(f.lat === 0 && f.lon === 0);
 
 const rounded = (x: number | null, per: number) => (x === null || !Number.isFinite(x) ? null : Math.round(x * per) / per);
 /** What is stored for a fix: about 0.1 m in position, 0.1 m in altitude and accuracy, whole milliseconds. The sensor's raw doubles
@@ -43,39 +45,11 @@ export function compactFix(f: Fix): Fix {
   };
 }
 
-const count = (segs: Seg[]) => segs.reduce((n, s) => n + s.length, 0);
-/** One fix in two of every stretch, keeping its first and last fix (a pause is still never bridged, the ends never move). */
-function thin(segs: Seg[]): Seg[] {
-  return segs.map((s) => (s.length <= 2 ? s : s.filter((_, i) => i === 0 || i === s.length - 1 || i % 2 === 0)));
-}
-
-/** Room for one more fix: the stretches as they are, or thinned once the ceiling is reached; null when even thinning cannot make room. */
-function withRoom(track: Track): { segs: Seg[]; every?: number } | null {
-  if (count(track.segs) < MAX_POINTS) return { segs: track.segs.map((s) => s), every: track.every };
-  const segs = thin(track.segs);
-  return count(segs) < MAX_POINTS ? { segs, every: Math.min(THIN_MAX_MS, (track.every ?? THIN_FROM_MS) * 2) } : null;
-}
-
-/** Adds a fix to the open segment (a new one when `newSegment`), or counts it as rejected. Pure: returns a new track. */
-export function addFix(track: Track, fix: Fix, newSegment = false): Track {
-  const refused = (): Track => ({ ...track, rejected: track.rejected + 1 });
-  if (!valid(fix) || (fix.acc !== null && fix.acc > MAX_ACCURACY_M)) return refused();
-  const open = track.segs[track.segs.length - 1];
-  if (open && !newSegment) {
-    const prev = open[open.length - 1]!;
-    const dt = (fix.t - prev.t) / 1000;
-    if (dt <= 0) return refused();
-    if (haversine(prev, fix) / dt > MAX_SPEED_MS) return refused();
-    // A thinned trace keeps its new spacing: a fix that comes sooner is simply not kept (it is no glitch, so it is not counted as rejected).
-    if (track.every && fix.t - prev.t < track.every * 0.75) return track;
-  }
-  // Only a trace that thinning cannot shrink (thousands of two-fix stretches) refuses a valid fix.
-  const room = withRoom(track);
-  if (!room) return refused();
-  const { segs, every } = room;
-  if (!open || newSegment) segs.push([fix]);
-  else segs[segs.length - 1] = [...segs[segs.length - 1]!, fix];
-  return { segs, rejected: track.rejected, ...(every ? { every } : {}) };
+/** Adds a fix to the open segment (a new one when `newSegment`), or counts it as refused. Pure: returns a new track.
+    The rules are the engine's (`GpsEngine.ingest`): accuracy, a speed limit that depends on the sport, recovery from one wrong
+    fix, a halt kept as two fixes, thinning at the ceiling. Without a sport the widest limit applies (28 m/s, as before V1.7.7). */
+export function addFix(track: Track, fix: Fix, newSegment = false, sport?: string): Track {
+  return GpsEngine.ingest(track, fix, sport ? { sport, newSegment } : { family: "bike", newSegment });
 }
 
 /** Distance in metres. Never bridges a pause: each segment is measured on its own. Stops within GPS jitter add nothing. */
@@ -182,16 +156,10 @@ export function toGpx(track: Track, name: string, opts: { time?: boolean; ele?: 
   return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="TITAN" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${xml(name)}</name>${segs}</trk></gpx>\n`;
 }
 
-/** Sports for which a live GPS recording makes sense (distance-based, outdoors). */
-/** Sports for which a live GPS recording makes sense (distance-based, outdoors). Ids are catalogue ids: the list once named
-    « mtb », a family, not a sport, so mountain biking had no GPS button. Indoor distance sports (treadmill, home trainer,
-    elliptical) are left out on purpose; water and snow sports are in, a phone in a waterproof case records them well. */
-export const GPS_SPORTS = new Set([
-  "running", "trail", "fell_running", "orienteering", "race_walking", "walking", "nordic_walk", "hiking", "trekking", "rucking", "snowshoeing",
-  "cycling", "cycling_road", "mountain_bike", "gravel", "cyclocross", "velotaf", "handbike", "para_cycling",
-  "roller", "inline_speed_skating", "roller_ski", "cross_country_skiing", "ski_touring", "ski_mountaineering",
-  "kayak", "paddle", "rowing", "coastal_rowing", "canoe_sprint", "outrigger_canoe", "surfski",
-]);
+/** Sports for which a live GPS recording makes sense (distance-based, outdoors): the engine's list, shared with the website.
+    Ids are catalogue ids. Indoor distance sports (treadmill, home trainer, elliptical) are left out on purpose; water and snow
+    sports are in, a phone in a waterproof case records them well. */
+export const GPS_SPORTS = new Set<string>(GpsEngine.GPS_SPORTS);
 
 /** The sport the GPS shortcut proposes: the first GPS sport among the favourites, then the most recent sessions, then running. */
 export function gpsShortcutSport(favorites: string[], recent: string[]): string {

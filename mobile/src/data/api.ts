@@ -449,3 +449,109 @@ export async function fetchMyPlan(owner: string): Promise<MyPlan> {
   if (!data || typeof data.own !== "boolean" || typeof data.viaCoach !== "boolean") throw new Error("PLAN_UNREADABLE");
   return { titanPlus: data.titanPlus === true, own: data.own, viaCoach: data.viaCoach };
 }
+
+/* ---------- V1.7.7 route library v2, personal points, outside services ---------- */
+// eslint-disable-next-line import/first -- kept with the block that uses it (several branches add to this file)
+import { SITE_URL } from "../lib/config";
+/** True when the server does not know this function yet (migration not applied): PostgREST answers PGRST202 / HTTP 404.
+    Every V1.7.7 call falls back on it instead of failing: the screens then say what stays on the phone. */
+export function rpcMissing(e: unknown): boolean {
+  const o = (e ?? {}) as { code?: unknown; status?: unknown; message?: unknown };
+  return o.code === "PGRST202" || o.status === 404 || /Could not find the function/i.test(String(o.message ?? ""));
+}
+// A function found missing is not asked again for five minutes: one extra request per reading would be paid on every screen.
+const MISSING_TTL_MS = 5 * 60 * 1000;
+let missingAt = new Map<string, number>();
+/** Test helper: forget which functions were found missing. */
+export const _resetRpcMissing = () => { missingAt = new Map(); };
+async function newerRpc<T>(owner: string, name: string, params: Record<string, unknown>): Promise<{ ok: true; data: T } | { ok: false }> {
+  const seen = missingAt.get(name);
+  if (seen !== undefined && Date.now() - seen < MISSING_TTL_MS) return { ok: false };
+  try {
+    const data = await ownerRpc<T>(owner, name, params);
+    missingAt.delete(name);
+    return { ok: true, data };
+  } catch (e) {
+    if (!rpcMissing(e)) throw e;
+    missingAt.set(name, Date.now());
+    return { ok: false };
+  }
+}
+
+export type RouteOrigin = "recorded" | "imported" | "planned";
+/** The digest of the GPS engine saved with a recorded route (a flat object; every field may be absent on an older row). */
+export type RouteSummary = { v?: number; elapsedS?: number; movingS?: number; stoppedS?: number; pausedS?: number; missingS?: number; distanceM?: number } & Record<string, unknown>;
+/** `origin` is null when the server only has the v1 functions: the phone then knows it from its own notes, else the route was recorded. */
+export type LibraryRoute = RouteMeta & { name: string | null; origin: RouteOrigin | null; summary: RouteSummary | null };
+export type LibraryRouteFull = LibraryRoute & { track: import("../lib/gpsTrack").EncodedTrack };
+export type RouteSaveInput = { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: unknown; name?: string | null; origin?: RouteOrigin; summary?: RouteSummary | null };
+const asLibrary = <R extends RouteMeta>(r: R, legacy: boolean): R & LibraryRoute => {
+  const x = r as R & Partial<LibraryRoute>;
+  return { ...r, name: legacy ? null : (x.name ?? null), origin: legacy ? null : (x.origin ?? "recorded"), summary: legacy ? null : (x.summary ?? null) };
+};
+/** Saves a route with its name, origin and summary. `legacy`: the server only has v1, the route is saved without them. */
+export async function routeSaveV2(owner: string, p: RouteSaveInput): Promise<{ id: string; created: boolean; legacy: boolean }> {
+  const base = { p_client_route_id: p.clientRouteId, p_sport: p.sport, p_started_at: p.startedAt, p_distance_m: p.distanceM, p_duration_s: p.durationS, p_ascent_m: p.ascentM, p_track: p.track };
+  const v2 = await newerRpc<{ id: string; created: boolean }>(owner, "titan_route_save_v2", { ...base, p_name: p.name?.trim() || null, p_origin: p.origin ?? "recorded", p_summary: p.summary ?? null });
+  if (v2.ok) return { ...v2.data, legacy: false };
+  return { ...(await ownerRpc<{ id: string; created: boolean }>(owner, "titan_route_save_v1", base)), legacy: true };
+}
+/** The whole private library (the server gives 100 routes a page and keeps 200 at most: two pages). */
+export async function routesLibrary(owner: string): Promise<{ routes: LibraryRoute[]; legacy: boolean }> {
+  const page = async (before: string | null): Promise<{ rows: LibraryRoute[]; legacy: boolean }> => {
+    const params = { p_limit: 100, p_before: before };
+    const v2 = await newerRpc<LibraryRoute[]>(owner, "titan_routes_v2", params);
+    if (v2.ok) return { rows: (v2.data ?? []).map((r) => asLibrary(r, false)), legacy: false };
+    return { rows: ((await ownerRpc<RouteMeta[]>(owner, "titan_routes_v1", params)) ?? []).map((r) => asLibrary(r, true)), legacy: true };
+  };
+  const first = await page(null);
+  if (first.rows.length < 100) return { routes: first.rows, legacy: first.legacy };
+  const second = await page(first.rows[first.rows.length - 1]!.startedAt);
+  const seen = new Set(first.rows.map((r) => r.id));
+  return { routes: [...first.rows, ...second.rows.filter((r) => !seen.has(r.id))], legacy: first.legacy || second.legacy };
+}
+export async function routeGetV2(owner: string, id: string): Promise<LibraryRouteFull & { legacy: boolean }> {
+  const v2 = await newerRpc<LibraryRouteFull>(owner, "titan_route_get_v2", { p_id: id });
+  if (v2.ok) return { ...asLibrary(v2.data, false), legacy: false };
+  return { ...asLibrary(await ownerRpc<RouteFull>(owner, "titan_route_get_v1", { p_id: id }), true), legacy: true };
+}
+/** "server": renamed on the account. "local": the server cannot rename yet, the caller keeps the name on the phone. */
+export async function routeRename(owner: string, id: string, name: string): Promise<"server" | "local"> {
+  const r = await newerRpc<boolean>(owner, "titan_route_rename_v1", { p_id: id, p_name: name });
+  if (!r.ok) return "local";
+  if (r.data === false) throw Object.assign(new Error("ROUTE_NOT_FOUND"), { code: "ROUTE_NOT_FOUND" });
+  return "server";
+}
+
+export type ServerPlace = { id: string; clientPlaceId: string; name: string; kind: string; lat: number; lon: number; note: string; updatedAt: string };
+/** Personal points on the account. Each answers `null` when the server does not have the function yet: the points then stay on the phone. */
+export async function placesList(owner: string): Promise<ServerPlace[] | null> {
+  const r = await newerRpc<ServerPlace[]>(owner, "titan_places_v1", {});
+  return r.ok ? (r.data ?? []) : null;
+}
+export async function placeSave(owner: string, p: { clientPlaceId: string; name: string; kind: string; lat: number; lon: number; note: string }): Promise<{ id: string; created: boolean } | null> {
+  const r = await newerRpc<{ id: string; created: boolean }>(owner, "titan_place_save_v1", { p_client_place_id: p.clientPlaceId, p_name: p.name, p_kind: p.kind, p_lat: p.lat, p_lon: p.lon, p_note: p.note });
+  return r.ok ? r.data : null;
+}
+export async function placeDelete(owner: string, id: string): Promise<boolean | null> {
+  const r = await newerRpc<boolean>(owner, "titan_place_delete_v1", { p_id: id });
+  return r.ok ? r.data : null;
+}
+
+/** One of TITAN's own server functions on the website (route computation, points of interest), called with the checked owner's token.
+    Never throws for an HTTP status: the caller reads `status` and the JSON body (null when the answer is not JSON, e.g. a function that
+    is not deployed yet). A request that cannot leave or does not come back in time throws (network error). */
+export async function siteFunction(owner: string, name: string, body: unknown, network: typeof fetch = fetch, timeoutMs = 25000): Promise<{ status: number; body: Record<string, unknown> | null }> {
+  const session = await assertOwner(owner);
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), timeoutMs);
+  try {
+    const response = await network(`${SITE_URL}/.netlify/functions/${name}`, {
+      method: "POST", headers: { Authorization: `Bearer ${session!.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(body), signal: abort.signal,
+    });
+    const json = await response.json().catch(() => null);
+    return { status: response.status, body: json && typeof json === "object" ? (json as Record<string, unknown>) : null };
+  } finally {
+    clearTimeout(timer);
+  }
+}

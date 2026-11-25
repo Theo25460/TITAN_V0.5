@@ -34,6 +34,9 @@ export type SessionDraft = {
   gpx?: DraftGpx | null;
   gpxDurationEdited?: boolean;
   gpsRouteId?: string;
+  /** V1.7.7: what TITAN's own GPS recording measured (the engine's digest, the structured session and the goal when there were
+      any). Travels to `details.gps` with the session; holds totals only, never a position. */
+  gps?: Record<string, unknown> | null;
   /** Queue key of a session the server refused, that this draft corrects (« Corriger et renvoyer », V1.6.1). Kept with the draft. */
   replaces?: string;
   /** TITAN LIVE journal of the session, settled by the server after saving (cosmetic world progression only). */
@@ -121,6 +124,7 @@ export function applyGpxImport(draft: SessionDraft, result: AnalysedGpx, now = n
   const next: SessionDraft = {
     ...draft,
     gpsRouteId: undefined,
+    gps: undefined,
     gpx: { movingMinutes, elapsedMinutes, ascent, descent, points, timing, start },
     distance: String(result.distanceKm).replace(".", ","),
   };
@@ -137,7 +141,7 @@ export function applyGpxImport(draft: SessionDraft, result: AnalysedGpx, now = n
 }
 
 export function removeGpxImport(draft: SessionDraft): SessionDraft {
-  return { ...draft, ...(hasDerivedDuration(draft) ? durationFields(null) : {}), gpx: null, gpsRouteId: undefined };
+  return { ...draft, ...(hasDerivedDuration(draft) ? durationFields(null) : {}), gpx: null, gpsRouteId: undefined, gps: undefined };
 }
 
 export function performedAt(d: SessionDraft, now = new Date()): Date | null {
@@ -269,6 +273,8 @@ export function buildSession(d: SessionDraft, now = new Date()): BuildResult {
       const analysed = d.gpx as DraftGpx & { distanceKm?: number | null };
       const fingerprint = SessionMatch.gpxFingerprint({ start: analysed.start ?? null, distanceKm: analysed.distanceKm ?? num(d.distance), points });
       if (fingerprint) data.gpxFingerprint = fingerprint;
+      const gps = gpsDetails(d.gps);
+      if (gps) data.gps = gps;
     }
   } else if (form === "swim") {
     const m = num(d.meters);
@@ -426,6 +432,40 @@ function sanitizeExtras(extras: unknown, sport: string, plus = false): Record<st
   return clean;
 }
 
+const GPS_STEP_KINDS = ["warmup", "work", "recover", "cooldown", "free"];
+/** `details.gps` (V1.7.7), bounded: the engine's digest of a recording made by TITAN, plus the laps of a structured session and the
+    goal when there were any. Whole numbers inside known limits, at most 60 laps, no free text and no position: about 2 kB at the very
+    most, 400 bytes for an ordinary outing. Null when the value is not a digest. */
+export function gpsDetails(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== "object") return null;
+  const g = raw as Record<string, unknown>;
+  if (g.v !== 1 || typeof g.rules !== "string" || typeof g.family !== "string") return null;
+  const int = (v: unknown, max: number) => Math.max(0, Math.min(max, Math.round(Number(v) || 0)));
+  const climb = (v: unknown) => (v === null || v === undefined || !Number.isFinite(Number(v)) ? null : int(v, 30000));
+  const out: Record<string, unknown> = {
+    v: 1, rules: g.rules.slice(0, 24), family: g.family.slice(0, 8), autoPause: g.autoPause !== false,
+    elapsedS: int(g.elapsedS, 172800), movingS: int(g.movingS, 172800), stoppedS: int(g.stoppedS, 172800), pausedS: int(g.pausedS, 172800), missingS: int(g.missingS, 172800),
+    distanceM: int(g.distanceM, 1000000), gapDistanceM: int(g.gapDistanceM, 1000000), ascentM: climb(g.ascentM), descentM: climb(g.descentM),
+    altitude: g.altitude === "gnss" ? "gnss" : "unreliable", points: int(g.points, 20000), rejected: int(g.rejected, 1000000),
+  };
+  const plan = g.plan as { total?: unknown; done?: unknown; laps?: unknown } | null | undefined;
+  if (plan && typeof plan === "object" && Array.isArray(plan.laps)) {
+    const laps = plan.laps.slice(0, 60).flatMap((l) => {
+      const lap = l as { k?: unknown; s?: unknown; m?: unknown; x?: unknown };
+      return lap && GPS_STEP_KINDS.includes(String(lap.k)) ? [{ k: String(lap.k), s: int(lap.s, 86400), m: int(lap.m, 1000000), ...(lap.x ? { x: 1 } : {}) }] : [];
+    });
+    const total = int(plan.total, 60);
+    if (total > 0) out.plan = { total, done: Math.min(total, laps.length), laps };
+  }
+  const goal = g.goal as { kind?: unknown; km?: unknown; minutes?: unknown; at?: unknown; reached?: unknown } | null | undefined;
+  if (goal && typeof goal === "object") {
+    if (goal.kind === "distance" && Number(goal.km) > 0) out.goal = { kind: "distance", km: Math.min(1000, Math.round(Number(goal.km) * 10) / 10), reached: goal.reached === true };
+    else if (goal.kind === "time" && Number(goal.minutes) > 0) out.goal = { kind: "time", minutes: int(goal.minutes, 1440), reached: goal.reached === true };
+    else if (goal.kind === "return" && Number.isFinite(Number(goal.at))) out.goal = { kind: "return", at: Math.round(Number(goal.at)), reached: goal.reached === true };
+  }
+  return out;
+}
+
 export function sanitizeDetails(details: SessionDetails, sport: string, now = Date.now(), plus = false): SessionDetails {
   const out: SessionDetails = { ...details };
   out.val1 = Math.max(0, Math.min(toNumber(details.val1, 0), 1000000));
@@ -454,6 +494,11 @@ export function sanitizeDetails(details: SessionDetails, sport: string, now = Da
       descent: clamp(details.gpxStats.descent, 12000),
       points: Math.min(parseInt(String(details.gpxStats.points || 0), 10) || 0, plus ? 900 : 320),
     };
+  }
+  if ("gps" in details) {
+    const gps = gpsDetails(details.gps);
+    if (gps) out.gps = gps;
+    else delete out.gps;
   }
   return out;
 }

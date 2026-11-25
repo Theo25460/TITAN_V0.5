@@ -134,6 +134,18 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v23 bundle (head 20261123150000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.7.7 — GPS et navigation sportive (25 November 2026): the route library gains a name, an origin and the digest of the GPS
+  // engine (titan_route_save_v2 through v1, titan_routes_v2, titan_route_get_v2, titan_route_rename_v1); personal points
+  // (private.titan_places, 300 per account, private by construction); the per-account quotas of the route-plan and poi-nearby
+  // Netlify functions; points and the new route columns in the account export. NOT APPLIED: owner's approval required. Requires v24.
+  // Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_gps_navigation.sql).
+  v25: {
+    out: "supabase/release-v25", after: "20261123180000", until: "20261125090000",
+    before: { private: [130, "6588576b84de", "263683b3f84f"], public: [332, "fb59f2b689b9", "dca2a744f579"] },
+    expected: { private: [132, "bbccf194ac43", "7a252d3ccf96"], public: [341, "d126eb93aed9", "351dd6eb7e5d"] },
+    beforeNote: "This is the state production reaches at the end of the v24 bundle (head 20261123180000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

@@ -299,6 +299,7 @@ test("privacy: every per-player table added since 17 November 2026 is erased wit
     titan_live_collection: ["trouvailles", "trouvailles"],
     titan_cordee_titles: ["cordées de la Grande Cordée et titres de route obtenus", "tes cordées et tes titres de route"],
     titan_import_batches: ["Imports d’historique : le nom et l’empreinte du fichier importé", "tes imports d’historique et leurs rapports"],
+    titan_places: ["Points personnels : le nom, la catégorie, la position et la note", "tes points personnels"],
   };
   const privacy = page("legal_privacy.html"), deletion = page("supprimer-mon-compte.html");
   const found = [];
@@ -315,8 +316,29 @@ test("privacy: every per-player table added since 17 November 2026 is erased wit
   assert.deepEqual(found.sort(), Object.keys(KNOWN).sort(), "the list of per-player tables of the 17 November migrations");
   // They are part of « Exporter toutes mes données ».
   const exportChain = MIGRATIONS.filter((m) => m >= "20261117").map(sql).join("\n");
-  for (const key of ["cadenceWeekClaims", "timeCapsules", "lifeChapters"]) assert.ok(exportChain.includes(`'${key}'`), `account export: ${key}`);
+  for (const key of ["cadenceWeekClaims", "timeCapsules", "lifeChapters", "places"]) assert.ok(exportChain.includes(`'${key}'`), `account export: ${key}`);
   assert.match(sql("20261117170000_live_in_account_export.sql"), /titan_live_export/);
+});
+
+test("privacy: V1.7.7 GPS — the ceiling of personal points, the route limits and the two outside services are stated as the code applies them", () => {
+  const privacy = page("legal_privacy.html");
+  const gps = sql("20261125090000_gps_navigation.sql");
+  // v2 saves through v1: the two ceilings of the library are still the ones of the routes migration, and the policy still quotes them.
+  assert.match(gps, /v_result := public\.titan_route_save_v1\(p_client_route_id, p_sport, p_started_at, p_distance_m, p_duration_s, p_ascent_m, p_track\);/);
+  assert.doesNotMatch(gps, /ROUTE_LIMIT|TRACK_TOO_LARGE/, "no second ceiling to keep in step");
+  assert.ok(privacy.includes("(3 000 points et 200 parcours au plus). Un parcours peut porter le nom que tu lui donnes, son origine (enregistré, importé ou préparé) et le résumé chiffré de la sortie."));
+  const places = int(gps, /titan_places where user_id = v_uid\) >= (\d+) then raise exception 'PLACE_LIMIT'/, "the personal points of an account");
+  assert.ok(privacy.includes(`${places} points personnels au plus, strictement privés : jamais partagés, supprimables un par un, exportés et supprimés avec ton compte`));
+  assert.match(gps, /create or replace function public\.titan_place_delete_v1\(/, "a point can be deleted one by one, as the policy says");
+  assert.doesNotMatch(gps, /grant [a-z, ]+ on (?:table )?private\.titan_places/, "no API grant on the points: nothing can share them");
+  assert.match(gps, /'places', coalesce\(/, "the points are part of the account export");
+  // Route computation and useful points: sent by the server without the athlete's identity, and said as a condition (nothing is configured).
+  for (const name of ["functions/route-plan.mjs", "functions/poi-nearby.mjs"]) {
+    assert.doesNotMatch(read(name).replace(/^\s*\/\/.*$/gm, ""), /SUPABASE_SECRET_KEY|x-forwarded-for|client-ip|x-nf-client/i, `${name} holds no service key and forwards no address`);
+  }
+  assert.ok(privacy.includes("Calcul d’itinéraire (si la fonction est activée) : les points de départ, d’arrivée et d’étape que tu saisis") && privacy.includes("au fournisseur de calcul d’itinéraire nommé à l’écran, sans ton identité"));
+  assert.ok(privacy.includes("Points utiles (si la fonction est activée) : la zone demandée") && privacy.includes("au service de données OpenStreetMap nommé à l’écran, sans ton identité"));
+  assert.ok(privacy.includes("Parcours GPS, points personnels, pas, lien et activités Garmin Tant que le compte existe ; un parcours ou un point personnel se supprime à l’unité"));
 });
 
 test("privacy: the limits and the device-side features the policy quotes are the ones of the code", () => {
