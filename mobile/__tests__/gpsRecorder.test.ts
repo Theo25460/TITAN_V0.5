@@ -359,7 +359,7 @@ test("v2: a route that is not on the phone leaves the follow state as it is, and
   const r = (await s.rec.load("u1"))!;
   expect(r.follow!.state).toEqual(GpsNav.startFollow());
   expect(r.track.segs.flat()).toHaveLength(20);
-  expect(s.routeReads()).toBe(1); // a missing route is not read again at every batch
+  expect(s.routeReads()).toBeLessThanOrEqual(2); // 4 batches over 38 s: a missing route is looked for again every 30 s at most, not at every batch
   expect((await s.rec.follow("u1", null))!.follow).toBeNull();
 });
 
@@ -488,7 +488,7 @@ test("v2: sortie gravel de 55 km avec un arrêt de 20 minutes — moyenne en mou
   expect(Math.abs((d.gpx!.movingMinutes as number) - 150)).toBeLessThanOrEqual(0.25);
   expect(d.gpx!.elapsedMinutes).toBe(170);
   expect([d.durH, d.durM]).toEqual(["2", a.effortS >= 9000 ? "30" : "29"]);
-  expect(d.distance).toMatch(/^5[45],/);
+  expect(d.distance).toMatch(/^5(4,9\d?|5(,0\d?)?)$/);
   expect(d.gps).toMatchObject({ v: 1, family: "bike", autoPause: true, elapsedS: 10200, goal: { kind: "distance", km: 50, reached: true } });
   // With automatic pause off, the detected stop stays in the duration; a pause or a hole never would.
   const kept = draftFromRecording({ ...done, opts: { ...done.opts, autoPause: false } });

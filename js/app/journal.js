@@ -449,7 +449,7 @@
         <ul class="rt-time-legend asc-small">${totals.map((p) => `<li><span class="rt-swatch rt-time-${esc(p.kind)}" aria-hidden="true"></span>${esc(p.label)} · <span class="asc-num">${esc(E.clock(p.seconds))}</span></li>`).join("")}</ul>
         <p class="asc-small">${a.stops.length ? `${a.stops.length} arrêt${a.stops.length > 1 ? "s" : ""} détecté${a.stops.length > 1 ? "s" : ""}` : "Aucun arrêt détecté"} · distance recalculée ${esc(F().distance(a.distanceM / 1000))}</p>
         ${a.splits.length ? `<div class="rt-table-wrap"><table class="rt-table" data-gps-splits><caption class="asc-eyebrow">Kilomètre par kilomètre · temps en mouvement</caption><thead><tr><th scope="col">Km</th><th scope="col">Temps</th><th scope="col">${window.TitanGpsSession?.layout?.(l.sport)?.pace ? "Allure" : "Vitesse"}</th></tr></thead>
-          <tbody>${a.splits.slice(0, 400).map((s) => `<tr><th scope="row">${s.distanceM >= 1000 ? s.index : esc(`${s.index} (${F().number(s.distanceM)} m)`)}</th><td class="asc-num">${esc(E.clock(s.movingS))}</td><td class="asc-num">${esc(gpsSpeed(l, s.distanceM, Math.max(s.movingS, s.distanceM >= 50 ? 30 : 0) === s.movingS ? s.movingS : s.movingS))}</td></tr>`).join("")}</tbody></table></div>` : ""}`;
+          <tbody>${a.splits.slice(0, 400).map((s) => `<tr><th scope="row">${s.distanceM >= 1000 ? s.index : esc(`${s.index} (${F().number(s.distanceM)} m)`)}</th><td class="asc-num">${esc(E.clock(s.movingS))}</td><td class="asc-num">${esc(gpsSpeed(l, s.distanceM, s.movingS))}</td></tr>`).join("")}</tbody></table></div>` : ""}`;
     });
   }
 
