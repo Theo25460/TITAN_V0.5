@@ -79,11 +79,18 @@ export function upgradeRecording(raw: Recording | RecordingV1 | null): Recording
   return { ...raw, v: 2, endedAt: raw.status === "ended" ? last?.e ?? raw.startedAt : null, stretches, live: null, opts: { ...DEFAULT_OPTIONS }, follow: null, back: null, goal: null, plan: null };
 }
 
+/** The clock, or the last position when the receiver's time runs slightly ahead of the phone's clock (GPS time and system time are
+    two clocks): a stretch read or closed at the bare clock would leave its last positions outside and ignore them. */
+function edgeOf(r: Pick<Recording, "track">, t: number): number {
+  const last = r.track.segs.at(-1)?.at(-1);
+  return last && last.t > t && last.t - t <= 60000 ? last.t : t;
+}
+
 /** The engine's reading of a recording. `at` closes a recording that is still open (running or paused). */
 export function analyseRecording(r: Recording, at: number): GpsAnalysis {
   return GpsEngine.analyse(
     { sport: r.sport, startedAt: r.startedAt, endedAt: r.status === "ended" ? r.endedAt ?? undefined : undefined, segs: r.track.segs, stretches: r.stretches, rejected: r.track.rejected, why: r.track.why, every: r.track.every },
-    { now: at, autoPause: r.opts.autoPause },
+    { now: r.status === "recording" ? edgeOf(r, at) : at, autoPause: r.opts.autoPause },
   );
 }
 
@@ -121,12 +128,7 @@ export function createRecorder(deps: Deps) {
   };
   const lastFix = (r: Recording) => r.track.segs.at(-1)?.at(-1) ?? null;
 
-  /** Where a stretch is closed: the clock, or the last position when the receiver's time runs slightly ahead of the phone's clock
-      (GPS time and system time are two clocks) — otherwise the last positions of the stretch would fall outside it and be ignored. */
-  const edge = (r: Recording, t: number) => {
-    const last = lastFix(r);
-    return last && last.t > t && last.t - t <= 60000 ? last.t : t;
-  };
+  const edge = edgeOf;
 
   /** Time the recording was running (pauses and interruptions excluded) at `at`. */
   const activeMs = (r: Recording, at: number) => r.activeMs + (r.status === "recording" && r.runStart ? Math.max(0, at - r.runStart) : 0);

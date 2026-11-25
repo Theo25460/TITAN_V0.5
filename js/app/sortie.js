@@ -38,6 +38,7 @@
   let hiddenAt = null, notice = null, startError = "";
   let map = null, courseOf = null, bannerKey = "", lastGuide = null, lastStep = null, goalReached = false, lastSignal = "";
   let savedAt = null, saveFailed = false, lastWrite = 0, writeChain = Promise.resolve();
+  let keepTrace = true;
   let savingSession = false, duplicateAccepted = null, bilanStatus = null, expedition = null, expeditionBefore = null;
 
   /* ---------- Storage: the unfinished recording, per account, on this device ---------- */
@@ -427,9 +428,11 @@
       <div class="gps-prep-side">
         <h2 class="asc-h3">Position</h2>
         ${permissionHtml()}
-        <button type="button" class="asc-btn asc-btn-primary asc-btn-block gps-start" data-act="start"${perm === "unsupported" || !draft.sport ? " disabled" : ""}>${icon("play")} Démarrer la sortie</button>
-        <p class="asc-small gps-start-error" role="alert" tabindex="-1" data-start-error>${esc(startError)}</p>
         <p class="asc-small asc-muted">${isGuest() ? "En découverte, la sortie et sa séance restent sur cet appareil." : "La séance part dans ton journal quand tu l’enregistres, à la fin."} Aucune annonce vocale, aucune mesure cardiaque.</p>
+      </div>
+      <div class="gps-go">
+        <p class="asc-small gps-start-error" role="alert" tabindex="-1" data-start-error>${esc(startError)}</p>
+        <button type="button" class="asc-btn asc-btn-primary asc-btn-block gps-start" data-act="start"${perm === "unsupported" || !draft.sport ? " disabled" : ""}>${icon("play")} Démarrer la sortie</button>
       </div>
     </div>`;
   }
@@ -471,8 +474,8 @@
       </div>
       <p class="gps-keep asc-small" data-f="keep"></p>
       <div class="gps-foot">
-        <button type="button" class="asc-btn asc-btn-secondary gps-foot-pause" data-act="${rec.status === "recording" ? "pause" : "resume"}">${rec.status === "recording" ? `${icon("pause")} Pause` : `${icon("play")} Reprendre`}</button>
-        <button type="button" class="asc-btn asc-btn-primary" data-act="finish">${icon("stop")} Terminer</button>
+        <button type="button" class="asc-btn asc-btn-primary gps-foot-pause" data-act="${rec.status === "recording" ? "pause" : "resume"}">${rec.status === "recording" ? `${icon("pause")} Pause` : `${icon("play")} Reprendre`}</button>
+        <button type="button" class="asc-btn asc-btn-secondary" data-act="finish">${icon("stop")} Terminer</button>
         <button type="button" class="asc-btn asc-btn-secondary gps-foot-more" data-act="more" aria-haspopup="dialog">${icon("more")}<span>Plus</span></button>
       </div>
     </section>`;
@@ -509,7 +512,8 @@
       const key = run.finished ? "done" : String(run.cursor.index);
       if (lastStep !== null && key !== lastStep && rec.status === "recording") {
         if (rec.plan.alerts && typeof navigator.vibrate === "function") { try { navigator.vibrate([200, 100, 200]); } catch {} }
-        live.querySelector('[data-banner="step"]')?.setAttribute("data-flash", String(t));
+        const flash = live.querySelector('[data-banner="step"]');
+        if (flash) { flash.removeAttribute("data-flash"); void flash.offsetWidth; flash.setAttribute("data-flash", ""); }
         announce(run.finished ? "Séance structurée terminée." : `Étape : ${run.step.label}.`);
       }
       lastStep = key;
@@ -538,7 +542,7 @@
     for (const el of live.querySelectorAll("[data-banner]")) {
       const kind = el.dataset.banner, put = (k, v) => setText(el.querySelector(`[data-b="${k}"]`), v || "");
       const bar = el.querySelector('[data-b="bar"]');
-      const progress = (ratio) => { bar.hidden = ratio === null || ratio === undefined; if (!bar.hidden) bar.firstElementChild.style.width = `${Math.round(Math.max(0, Math.min(1, ratio)) * 100)}%`; };
+      const progress = (ratio) => { bar.hidden = ratio === null || ratio === undefined; if (!bar.hidden) bar.firstElementChild.style.setProperty("--p", `${Math.round(Math.max(0, Math.min(1, ratio)) * 100)}%`); };
       if (kind === "follow" || kind === "back") {
         const s = g.state || {}, e = s.joined ? eta(s.remainingM || 0) : null;
         el.dataset.tone = s.off ? "off" : s.joined ? "on" : "far";
@@ -621,14 +625,15 @@
       <div class="gps-bilan-actions">
         <p class="asc-small gps-bilan-status" role="status" data-bilan-status></p>
         ${saved ? `<div class="asc-actions"><a class="asc-btn asc-btn-primary" href="/journal">${icon("journal")} Voir le journal</a><button type="button" class="asc-btn asc-btn-secondary" data-act="export">${icon("download")} Exporter la trace GPX</button><button type="button" class="asc-btn asc-btn-ghost" data-act="new">Nouvelle sortie</button></div>`
-          : `<div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary" data-act="save"${d.ok ? "" : " disabled"}>${icon("check")} Enregistrer la séance</button><button type="button" class="asc-btn asc-btn-secondary" data-act="export"${a.points >= 2 ? "" : " disabled"}>${icon("download")} Exporter la trace GPX</button><button type="button" class="asc-btn asc-btn-ghost" data-act="discard">Abandonner</button></div>`}
-        <p class="asc-small asc-muted">${saved ? "" : d.ok ? `La séance enregistrée porte les totaux (${d.unit === "km" ? `${esc(S().km(a.distanceM))} km, ` : ""}${esc(E().clock(a.effortS))} d’effort${a.autoPause ? ", le temps en mouvement" : ", arrêts détectés compris"}) et jamais ta trace. L’XP est décidée par le serveur. ` : `${esc(d.error)} `}Le GPX exporté est complet, avec heures et altitudes : c’est ta trace privée, à ne partager que si tu le veux.</p>
+          : `${canKeepTrace() && a.points >= 2 ? `<label class="gps-toggle"><input type="checkbox" data-keep-trace${keepTrace ? " checked" : ""} /><span>Garder la trace dans Mes parcours (privé)</span></label>` : ""}<div class="asc-actions"><button type="button" class="asc-btn asc-btn-primary" data-act="save"${d.ok ? "" : " disabled"}>${icon("check")} Enregistrer la séance</button><button type="button" class="asc-btn asc-btn-secondary" data-act="export"${a.points >= 2 ? "" : " disabled"}>${icon("download")} Exporter la trace GPX</button><button type="button" class="asc-btn asc-btn-ghost" data-act="discard">Abandonner</button></div>`}
+        <p class="asc-small asc-muted">${saved ? "" : d.ok ? `La séance enregistrée porte les totaux (${d.unit === "km" ? `${esc(S().km(a.distanceM))} km, ` : ""}${esc(E().clock(a.effortS))} d’effort${a.autoPause ? ", le temps en mouvement" : ", arrêts détectés compris"}) et jamais ta trace. ${canKeepTrace() && a.points >= 2 ? "Si tu la gardes, la trace rejoint Mes parcours, ta bibliothèque privée : jamais partagée, supprimable quand tu veux. Sinon elle reste sur cet appareil. " : "La trace reste sur cet appareil. "}L’XP est décidée par le serveur. ` : `${esc(d.error)} `}Le GPX exporté est complet, avec heures et altitudes : c’est ta trace privée, à ne partager que si tu le veux.</p>
       </div>
     </section>`;
     if (a.points >= 2) { map = MAP().create(root.querySelector("[data-map]"), { interactive: false, tiles: false }); map.set({ segs: rec.track.segs, route: rec.follow ? rec.follow.route : null, pos: null, places: [] }); }
     paintBilanStatus();
     paintExpedition();
   }
+  const canKeepTrace = () => !isGuest() && typeof window.TitanRoutes?.saveRecorded === "function" && window.TitanRoutes.gpsEnabled?.() !== false;
   function paintBilanStatus() {
     const el = root?.querySelector("[data-bilan-status]");
     if (!el || !rec) return;
@@ -690,7 +695,7 @@
       const count = window.TitanProgress?.activeLogs ? window.TitanProgress.activeLogs(window.state?.history || []).length : 0;
       if (count === 1 || count === 2) window.TitanAnalytics?.track(count === 1 ? "first_session" : "second_session", { family: SP().familyOf(d.sport) });
       // The trace joins the private library when the library can take it; otherwise it stays here and the screen says so.
-      if (!isGuest() && typeof window.TitanRoutes?.saveRecorded === "function") {
+      if (canKeepTrace() && keepTrace && a.points >= 2) {
         let kept = null;
         try { kept = await window.TitanRoutes.saveRecorded({ segs: rec.track.segs, sport: rec.sport, startedAt: rec.startedAt, eventId: rec.eventId }, a); } catch { kept = null; }
         if (current()) rec = { ...rec, saved: { ...rec.saved, route: kept?.ok ? (kept.local ? "queued" : "saved") : "failed" } };
@@ -1146,6 +1151,7 @@
       const more = e.target.closest("[data-sport-more]");
       if (more && more.value && screen === "prepare") { draft.sport = more.value; savePrefs({ sport: draft.sport }); render(); root.querySelector("[data-sport-more]")?.focus(); }
     });
+    root.addEventListener("change", (e) => { if (e.target.matches("[data-keep-trace]")) keepTrace = e.target.checked; });
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pagehide", () => { if (rec && rec.status !== "ended") persist(true); });
     window.addEventListener("titan:flags-updated", () => { if (screen === "gate" || screen === "prepare") { screen = flagOn() ? "prepare" : "gate"; render(); } });

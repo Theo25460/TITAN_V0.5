@@ -557,6 +557,7 @@ export function RouteDetailScreen({ navigation, route }: NativeStackScreenProps<
   const stop = useRef(false);
   const [others, setOthers] = useState<LibraryRow[] | null>(null);
   const [versus, setVersus] = useState<LibraryRow | null>(null);
+  const [picking, setPicking] = useState(false);
   const [poi, setPoi] = useState<{ answer: PoiAnswer; cached: boolean } | null>(null);
   const [poiFailure, setPoiFailure] = useState<PoiFailure | null>(null);
   const [poiBusy, setPoiBusy] = useState(false);
@@ -745,7 +746,6 @@ export function RouteDetailScreen({ navigation, route }: NativeStackScreenProps<
       toast({ kind: "warn", title: "Bibliothèque indisponible", message: "La liste de tes parcours n’a pas pu être lue. Réessaie avec une connexion." });
     }
   };
-  const [picking, setPicking] = useState(false);
 
   /* ---- Useful points along the line: asked only on a tap ---- */
   const searchPoi = async () => {
