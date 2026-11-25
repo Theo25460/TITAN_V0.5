@@ -1,0 +1,51 @@
+{
+ "scenario": "Coach Lou, 5 athletes followed + 2 paused links; find the case of each athlete, then send Zoé's next proposal from the template « Seuil 3 × 8 min »",
+ "latency_ms_per_answer": 120,
+ "runs": {
+  "before": [
+   {
+    "ms": 3129,
+    "actions": 10,
+    "calls": 59
+   },
+   {
+    "ms": 3166,
+    "actions": 10,
+    "calls": 59
+   },
+   {
+    "ms": 3263,
+    "actions": 10,
+    "calls": 59
+   }
+  ],
+  "after": [
+   {
+    "ms": 1804,
+    "actions": 7,
+    "calls": 27
+   },
+   {
+    "ms": 1774,
+    "actions": 7,
+    "calls": 27
+   },
+   {
+    "ms": 1803,
+    "actions": 7,
+    "calls": 27
+   }
+  ]
+ },
+ "before": {
+  "median_ms": 3166,
+  "actions": 10,
+  "server_calls": 59
+ },
+ "after": {
+  "median_ms": 1803,
+  "actions": 7,
+  "server_calls": 27
+ },
+ "reduction_percent": 43
+}

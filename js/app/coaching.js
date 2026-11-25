@@ -10,6 +10,7 @@
   const I = () => window.TitanInsights;
   const FU = () => window.TitanCoachFollowup;
   const FB = () => window.TitanCoachFeedback;
+  const RV = () => window.TitanCoachReview;
   const DAY = 86400000;
   const owner = () => window.state?.user?.id;
   const guest = () => !owner() || String(owner()).startsWith("guest_");
@@ -28,6 +29,8 @@
   // V1.9.2: feedback on sessions (titan_coach_feedback_v1), only when screens.coach_feedback is open. Map assignment id -> rows, as read now.
   let feedback = null;
   let directFeedback = /^#retour=([0-9a-f-]{36})$/i.exec(location.hash)?.[1] || "";
+  // V1.9.3: the weekly review (titan_coach_review_v1), only when screens.coach_review is open. The week is a Paris Monday; "" = this week.
+  let review = null, reviewError = "", reviewWeek = "", reviewFilter = "actionable", reviewSeq = 0;
   let loading = true;
   let error = "";
   let seq = 0;
@@ -49,9 +52,11 @@
     resetWorkspace();
     ++seq;
     ++detailSeq;
-    snapshot = sessions = assignments = viewContext = follow = queue = feedback = null;
-    queueError = queueAction = queueLink = "";
+    snapshot = sessions = assignments = viewContext = follow = queue = feedback = review = null;
+    queueError = queueAction = queueLink = reviewError = reviewWeek = "";
+    reviewFilter = "actionable";
     ++queueSeq;
+    ++reviewSeq;
     selected = "";
     mode = "athlete";
     fromDate = isoDay(Date.now() - 29 * DAY);
@@ -110,9 +115,9 @@
     INVALID_TRANSITION: "Cette proposition a changé. Actualise son état.",
     ASSIGNMENT_LIMIT: "La limite de propositions de ce suivi est atteinte.",
   };
-  const human = (e) => MESSAGES[e?.message] || FB()?.message?.(e?.message) || FU()?.message?.(e?.message) || (navigator.onLine ? "La demande n’a pas été confirmée. Réessaie." : "Hors ligne : le coaching revient avec le réseau.");
+  const human = (e) => (e?.review && RV()?.message?.(e.message)) || MESSAGES[e?.message] || FB()?.message?.(e?.message) || FU()?.message?.(e?.message) || (navigator.onLine ? "La demande n’a pas été confirmée. Réessaie." : "Hors ligne : le coaching revient avec le réseau.");
 
-  async function rpc(action, data = {}, job = viewContext, fn = "titan_coach_portal") {
+  async function rpc(action, data = {}, job = viewContext, fn = "titan_coach_portal", raw = false) {
     requireContext(job);
     const receipt = await job.client?.auth.getSession();
     requireContext(job);
@@ -127,7 +132,7 @@
     const response = await fetch(`${window.TITAN_SUPABASE_URL}/rest/v1/rpc/${fn}`, {
       method: "POST",
       headers: { apikey: window.TITAN_SUPABASE_ANON_KEY, Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ p_action: action, p_data: data }),
+      body: JSON.stringify(raw ? data : { p_action: action, p_data: data }),
       signal: AbortSignal.timeout(15000),
     });
     const result = await response.json();
@@ -161,6 +166,7 @@
       render();
       if (selected) loadDetail();
       loadQueue();
+      loadReview();
       if (directFeedback && feedbackOn()) { const id = directFeedback; directFeedback = ""; openFeedback(id); }
     } catch (e) {
       if (!sameContext(job)) { if (viewContext === job || (viewContext && !sameContext(viewContext))) invalidate(); return; }
@@ -753,6 +759,166 @@
     } finally { if (btn) btn.disabled = false; }
   }
 
+
+  /* ---------- V1.9.3 · Revue de suivi: the weekly review of the coach ---------- */
+  const RVN = "titan_coach_review_v1";
+  const reviewOn = () => feature("screens.coach_review") && !!RV();
+  const reviewCard = (linkId) => review?.cards?.find((c) => c.link_id === linkId) || null;
+  async function loadReview() {
+    if (mode !== "coach" || !reviewOn() || !snapshot) {
+      ++reviewSeq;
+      review = null; reviewError = "";
+      refreshSlot("[data-co-review-slot]", "");
+      return;
+    }
+    const job = viewContext;
+    if (!activeView()) return;
+    const s = ++reviewSeq;
+    templatesCache = null;
+    try {
+      // Access and capacity are checked by the server at this read: a paused link comes back with its name only, a revoked one not at all.
+      const next = await rpc("week", { week: reviewWeek || undefined, filter: reviewFilter }, job, RVN);
+      if (s !== reviewSeq || !sameContext(job) || mode !== "coach") return;
+      if (next?.owner !== job.owner || !Array.isArray(next.cards)) throw Error("UNAVAILABLE");
+      review = next; reviewError = "";
+    } catch (e) {
+      if (!sameContext(job) || s !== reviewSeq) return;
+      review = null; reviewError = e.message === "FEATURE_DISABLED" ? "" : human(e);
+    }
+    refreshSlot("[data-co-review-slot]", reviewHtml());
+  }
+  function reviewItem(card) {
+    const v = RV().forCoach(card), id = esc(card.link_id), d = card.dossier;
+    const b = [];
+    if (v.can.includes("feedback") && feedbackOn() && d?.id) b.push(`<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-rv-feedback="${esc(d.id)}">${icon("edit")} Laisser un retour</button>`);
+    if (v.can.includes("resume")) b.push(`<button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-rv-prepare="${id}">${icon("check")} Reprendre la proposition préparée</button>`);
+    if (v.can.includes("prepare")) b.push(`<button type="button" class="asc-btn ${card.next === "prepare" ? "asc-btn-primary" : "asc-btn-secondary"} asc-btn-sm" data-rv-prepare="${id}">${icon("plus")} Préparer la suite</button>`);
+    if (v.can.includes("open") && followOn() && d?.id) b.push(`<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-rv-open="${esc(d.id)}">${icon("eye")} Ouvrir le dossier</button>`);
+    return `<li class="co-queue-item co-review-item" data-tone="${esc(v.tone)}" data-rv-card="${id}" data-rv-next="${esc(v.next)}">
+      <div class="asc-between"><strong>${esc(v.name)}</strong><span class="asc-chip" data-next="${esc(v.next)}">${esc(v.label)}</span></div>
+      <p class="asc-small" data-rv-dossier>${esc(v.text)}</p>
+      ${v.source ? `<p class="asc-small asc-muted" data-rv-source><strong>Source</strong> · ${esc(v.source)}</p>` : ""}
+      ${v.checkin ? `<p class="asc-small" data-rv-checkin>${icon("info")} Check-in partagé · ${esc(v.checkin)}</p>` : ""}
+      ${v.previous.length ? `<p class="asc-small" data-rv-previous><strong>Décision sur la revue précédente</strong> · ${v.previous.map(esc).join(" ; ")}</p>` : ""}
+      ${v.sent.length ? `<p class="asc-small" data-rv-sent>${icon("check")} ${v.sent.map(esc).join(" ; ")}</p>` : ""}
+      ${b.length ? `<div class="asc-row-flex">${b.join("")}</div>` : ""}</li>`;
+  }
+  function reviewHtml() {
+    if (mode !== "coach" || !reviewOn() || !snapshot) return "";
+    const week = review?.week || reviewWeek, cur = review?.current_week;
+    const head = `<div class="asc-between"><h2 id="co-review-title" class="asc-h3">Revue de la semaine</h2>${review ? `<span class="asc-small asc-muted" role="status" data-rv-status>${esc(RV().summary(review.counts))}</span>` : ""}</div>`;
+    if (!review) return `<section class="co-card co-queue asc-stack" data-co-review aria-labelledby="co-review-title">${head}${reviewError ? `<p class="asc-note err">${icon("alert")}<span>${esc(reviewError)}</span></p>` : '<div class="asc-skeleton" style="height:64px"></div>'}</section>`;
+    const c = review.counts || {};
+    const nav = `<div class="asc-row-flex co-calendar-nav" role="group" aria-label="Changer de semaine">
+        <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-rv-week="${esc(RV().addDays(week, -7))}"${RV().addDays(week, -7) < RV().addDays(cur, -56) ? " disabled" : ""}>${icon("chevronLeft")} Semaine précédente</button>
+        <span class="co-rv-week" aria-live="polite" data-rv-week-label>${esc(RV().weekLabel(week))}</span>
+        ${week !== cur ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-rv-week="">Cette semaine</button>` : ""}
+        <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-rv-week="${esc(RV().addDays(week, 7))}"${RV().addDays(week, 7) > RV().addDays(cur, 7) ? " disabled" : ""}>Semaine suivante ${icon("chevron")}</button></div>`;
+    const filters = `<div class="co-queue-filters asc-row-flex" role="group" aria-label="Filtrer la revue">${[["actionable", "À traiter", c.actionable || 0], ["all", "Tous les sportifs", c.athletes || 0]].map(([k, l, n]) => `<button type="button" id="co-rv-f-${k}" class="asc-btn asc-btn-sm ${reviewFilter === k ? "asc-btn-primary" : "asc-btn-secondary"}" data-rv-filter="${k}" aria-pressed="${reviewFilter === k}">${esc(l)} · ${n}</button>`).join("")}</div>`;
+    const active = review.cards.filter((x) => x.link_state !== "paused"), paused = review.cards.filter((x) => x.link_state === "paused");
+    const empty = !c.athletes ? "Aucun sportif suivi pour l’instant : crée une invitation pour commencer. La revue reste disponible." : reviewFilter === "actionable" ? `Rien à traiter de ton côté${c.wait ? ` : ${c.wait} réponse(s) attendue(s) du sportif` : ""}. « Tous les sportifs » montre chaque dossier.` : "Rien à traiter cette semaine.";
+    return `<section class="co-card co-queue asc-stack" data-co-review aria-labelledby="co-review-title">${head}
+      <p class="asc-small asc-muted">Pour chaque sportif : le dossier à traiter, l’action suivante et sa source. Une proposition préparée ne part qu’avec ton envoi ; le sportif répond dans son espace et sa décision revient dans la revue suivante.</p>
+      ${nav}${filters}
+      ${active.length ? `<ul class="co-queue-list" data-rv-list>${active.map(reviewItem).join("")}</ul>` : `<p class="asc-small asc-muted" data-rv-empty>${esc(empty)}</p>`}
+      ${paused.length ? `<p class="asc-small" data-rv-paused>${icon("info")} En pause, faute de place dans ton offre : ${paused.map((x) => esc(x.name || "Compte TITAN")).join(", ")}. Rien n’est lu ni envoyé ; rien n’est supprimé.</p>` : ""}
+      <p class="asc-small asc-faint">L’accès et les places de ton offre sont revérifiés à chaque lecture et à chaque envoi. La revue n’écrit jamais dans le journal du sportif.</p></section>`;
+  }
+  let templatesCache = null;
+  async function reviewTemplates(job) {
+    if (templatesCache?.owner === job.owner) return templatesCache.rows;
+    const rows = await rpc("", {}, job, "titan_coach_templates_v1", true).catch(() => []);
+    templatesCache = { owner: job.owner, rows: Array.isArray(rows) ? rows : [] };
+    return templatesCache.rows;
+  }
+  // Step 1: choose the basis (a template, the last proposal, a blank page) and the date; or edit a prepared draft.
+  async function openPrepare(card, btn) {
+    const job = viewContext;
+    if (!activeView() || !reviewOn() || !card || card.link_state === "paused") return;
+    if (card.draft && !btn?.dataset.rvEdit) return openPreview(card, card.draft);
+    if (btn) btn.disabled = true;
+    let templates = [];
+    try { templates = await reviewTemplates(job); } finally { if (btn) btn.disabled = false; }
+    if (!sameContext(job)) return;
+    const draft = card.draft, cur = draft?.content || {};
+    const last = card.source?.kind === "proposal" ? card.dossier : null;
+    const options = [...templates.map((t) => [`template:${t.id}`, `Modèle · ${t.title}`]), ...(last ? [[`proposal:${last.id}`, `Reprendre « ${last.title} »`]] : []), ["blank", "Page blanche"]];
+    const selectedBasis = draft ? (draft.basis?.kind === "blank" ? "blank" : `${draft.basis?.kind}:${draft.basis?.id}`) : options[0][0];
+    const tplFor = (v) => templates.find((t) => `template:${t.id}` === v);
+    const first = draft ? cur : (tplFor(selectedBasis) || (last && selectedBasis === `proposal:${last.id}` ? last : {}));
+    const name = card.name || "le sportif";
+    const d = formSheet({
+      title: draft ? "Modifier la proposition préparée" : `Préparer la suite pour ${name}`,
+      eyebrow: `Revue · ${RV().weekLabel(review?.week)}`,
+      body: `<p class="asc-small" data-rv-prepare-source>${card.source ? `Source · ${esc(RV().sourceText(card))}` : ""}</p>
+        ${card.checkin ? `<p class="asc-small">${icon("info")} Check-in partagé · ${esc(RV().checkinText(card.checkin))}</p>` : ""}
+        <label class="asc-field"><span>Partir de</span><select name="basis" data-rv-basis>${options.map(([v, l]) => `<option value="${esc(v)}"${v === selectedBasis ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
+        <label class="asc-field"><span>Nom</span><input class="asc-input" name="title" maxlength="100" required value="${esc(first.title || "")}"></label>
+        <div class="asc-form-grid"><label class="asc-field"><span>Sport</span><select name="sport" required>${sportOptions(first.sport || card.scope?.sport || "running")}</select></label>
+        <label class="asc-field"><span>Date prévue</span><input class="asc-input" type="date" name="planned_date" value="${esc(cur.planned_date || "")}" min="${isoDay()}" max="${isoDay(Date.now() + 366 * DAY)}" required></label></div>
+        <label class="asc-field"><span>Consignes</span><textarea name="instructions" maxlength="2000">${esc(first.instructions || "")}</textarea></label>
+        <p class="asc-small asc-muted">Rien n’est envoyé à cette étape : tu verras l’aperçu des changements avant d’envoyer. La proposition préparée est gardée si tu es interrompu.</p>`,
+      submit: "Voir l’aperçu",
+      onSubmit: async (f, _dialog, j) => {
+        const basis = String(f.get("basis") || "blank");
+        const data = { link_id: card.link_id, week: review?.week, title: String(f.get("title") || ""), sport: String(f.get("sport") || ""), planned_date: String(f.get("planned_date") || ""), instructions: String(f.get("instructions") || "") };
+        if (draft) data.revision = draft.revision;
+        if (!draft || basis !== selectedBasis) {
+          if (basis.startsWith("template:")) data.template_id = basis.slice(9);
+          else if (basis.startsWith("proposal:")) data.from_id = basis.slice(9);
+        }
+        const r = await rpc("prepare", data, j, RVN).catch((e) => { throw Object.assign(Error(e.message), { review: true }); });
+        if (r?.draft) setTimeout(() => { if (sameContext(j)) openPreview(card, r.draft, r.resumed); }, 0);
+        return r;
+      },
+    });
+    // Choosing another basis fills the form from it (the coach may still change everything before the preview).
+    d?.querySelector("[data-rv-basis]")?.addEventListener("change", (e) => {
+      const v = e.target.value, src = tplFor(v) || (last && v === `proposal:${last.id}` ? last : null);
+      if (!src) return;
+      const form = d.querySelector("form");
+      form.elements.title.value = src.title || "";
+      form.elements.sport.value = src.sport || form.elements.sport.value;
+      form.elements.instructions.value = src.instructions || "";
+    });
+  }
+  // Step 2: what the athlete will receive and what differs from the basis. Sending is the coach's explicit action, once.
+  function openPreview(card, draft, resumed = false) {
+    const job = viewContext;
+    if (!activeView()) return;
+    const p = RV().preview(draft), name = card.name || "le sportif";
+    const d = formSheet({
+      title: `Aperçu pour ${name}`,
+      eyebrow: `Revue · ${RV().weekLabel(draft.week)}`,
+      body: `<div class="asc-stack" data-rv-preview="${esc(draft.id)}">${resumed ? `<p class="asc-note" data-rv-resumed>${icon("info")}<span>Proposition préparée retrouvée : rien n’a été envoyé.</span></p>` : ""}
+        <p class="asc-small">Partie de · <strong>${esc(p.basis)}</strong></p>
+        <section><h3 class="asc-h3">Ce que ${esc(name)} recevra</h3><dl class="co-version" data-rv-receive>${p.receive.map((x) => `<div data-field="${esc(x.field)}"><dt>${esc(x.label)}</dt><dd${x.field === "instructions" ? ' class="co-instructions"' : ""}>${esc(x.text)}</dd></div>`).join("")}</dl></section>
+        ${p.changes.length ? `<table class="co-diff" data-rv-changes><caption>Changements par rapport au point de départ</caption><thead><tr><th scope="col">Élément</th><th scope="col">Avant</th><th scope="col">Après</th></tr></thead><tbody>${p.changes.map((x) => `<tr data-field="${esc(x.field)}"><th scope="row">${esc(x.label)}</th><td>${esc(x.before)}</td><td>${esc(x.after)}</td></tr>`).join("")}</tbody></table>` : `<p class="asc-small asc-muted" data-rv-changes>Identique au point de départ.</p>`}
+        <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-rv-edit>${icon("edit")} Modifier</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-rv-discard>Abandonner</button></div>
+        <p class="asc-small asc-muted">${esc(name)} accepte ou décline dans son espace. Le partage et les places de ton offre sont revérifiés à l’envoi.</p></div>`,
+      submit: `Envoyer à ${name}`,
+      onSubmit: async (_f, _dialog, j) => {
+        // Retrying after a lost answer sends the same draft and revision: the server answers « already », never a second proposal.
+        const r = await rpc("send", { id: draft.id, revision: draft.revision }, j, RVN).catch((e) => {
+          if (["SHARING_UNAVAILABLE", "COACH_CAPACITY_PAUSED", "COACH_CONFLICT"].includes(e.message)) loadReview();
+          throw Object.assign(Error(e.message), { review: true });
+        });
+        if (sameContext(j)) window.titanShell.toast({ type: "ok", title: r?.already ? "Déjà envoyée" : "Proposition envoyée", message: `${name} répond dans son espace ; sa décision reviendra dans la revue.` });
+        return r;
+      },
+    });
+    d?.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b || !d.contains(b)) return;
+      if (b.hasAttribute("data-rv-edit")) { d.close(); openPrepare({ ...card, draft }, { dataset: { rvEdit: "1" } }); }
+      if (b.hasAttribute("data-rv-discard")) {
+        d.close();
+        confirm({ title: "Abandonner cette proposition préparée ?", message: "Rien n’a été envoyé au sportif. Tu pourras en préparer une autre.", confirmLabel: "Abandonner",
+          action: (j) => rpc("discard", { id: draft.id, revision: draft.revision }, j, RVN).then(() => { if (sameContext(j)) return loadReview(); }).catch((err) => { throw new Error(human(err)); }) });
+      }
+    });
+    void job;
+  }
   /* ---------- Rendering ---------- */
   function comparisonHtml() {
     const c = window.TitanCoachAnalysis?.compare({sessions, assignments, from:fromDate, to:toDate});
@@ -876,6 +1042,7 @@
         <button type="button" class="asc-btn asc-btn-primary asc-btn-sm" data-${mode === "coach" ? "invite" : "join"}>${icon("plus")} ${mode === "coach" ? "Créer une invitation" : "J’ai reçu un code"}</button></div>
         ${mode === "coach" && snapshot.invites?.length ? `<details class="co-invites"><summary>${snapshot.invites.length} invitation(s) en attente</summary>${snapshot.invites.map((v) => `<div class="asc-between"><span class="asc-small">Créée le ${esc(date(v.created_at))} · expire le ${esc(date(v.expires_at))}</span><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cancel-invite="${esc(v.id)}">Annuler</button></div>`).join("")}</details>` : ""}
       </section>
+      <div data-co-review-slot>${reviewHtml()}</div>
       <div data-co-queue-slot>${queueHtml()}</div>
       <div data-co-roster-slot>${rosterHtml()}</div>
       ${list.length ? `<div class="co-layout${list.length === 1 || mode === "coach" && feature("screens.coachworkspace") ? " is-single" : ""}">
@@ -946,8 +1113,14 @@
       render();
       if (selected) loadDetail();
       loadQueue();
+      loadReview();
       return;
     }
+    if (b.dataset.rvWeek !== undefined && root.querySelector("[data-co-review]")?.contains(b)) { reviewWeek = b.dataset.rvWeek; return loadReview(); }
+    if (b.dataset.rvFilter && root.querySelector("[data-co-review]")?.contains(b)) { reviewFilter = b.dataset.rvFilter; return loadReview(); }
+    if (b.dataset.rvPrepare) return openPrepare(reviewCard(b.dataset.rvPrepare), b);
+    if (b.dataset.rvOpen) return openDossier(b.dataset.rvOpen, b);
+    if (b.dataset.rvFeedback) return openCompose(b.dataset.rvFeedback, b);
     if (b.dataset.queueAction !== undefined && root.querySelector("[data-co-queue]")?.contains(b)) { queueAction = b.dataset.queueAction; return loadQueue(); }
     if (b.dataset.fuOpen) return openDossier(b.dataset.fuOpen, b);
     if (b.dataset.fuSeen) return fuAction("seen", fuRow(b.dataset.fuSeen));
@@ -1037,7 +1210,7 @@
     load();
   }
   window.addEventListener("titan:account-changing", () => booted && invalidate());
-  window.addEventListener("titan:flags-updated", () => {if(booted){refreshAnalysis();refreshWorkspace();loadQueue();}});
+  window.addEventListener("titan:flags-updated", () => {if(booted){refreshAnalysis();refreshWorkspace();loadQueue();loadReview();}});
   window.addEventListener("titan:account-changed", () => booted && load());
   window.addEventListener("online", () => booted && load());
   document.addEventListener("visibilitychange", () => {
