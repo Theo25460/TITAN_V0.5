@@ -22,7 +22,8 @@ export type RootParams = {
   Tabs: NavigatorScreenParams<TabParams> | undefined;
   /** `replaces`: queue key of a refused session this form corrects (« Corriger et renvoyer », V1.6.1). */
   SessionForm: { sport: string; duplicateOf?: string; quickMinutes?: number; replaces?: string } ;
-  GpsRecord: { sport: string };
+  /** `follow`: id of a route of the private library to follow during this outing (kept on the phone for offline use). */
+  GpsRecord: { sport: string; follow?: string };
   LiveSession: { sport: string };
   Camp: undefined;
   Routes: undefined;

@@ -52,6 +52,9 @@ export const MODULES = [
   "js/core/training-block.js",
   "js/core/block-scenario.js",
   "js/core/discipline-analysis.js",
+  "js/core/gps-engine.js",
+  "js/core/gps-nav.js",
+  "js/core/gps-session.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

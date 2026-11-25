@@ -32,6 +32,9 @@ require("./web/week-review.js");
 require("./web/training-block.js");
 require("./web/block-scenario.js");
 require("./web/discipline-analysis.js");
+require("./web/gps-engine.js");
+require("./web/gps-nav.js");
+require("./web/gps-session.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -571,4 +574,91 @@ export const DisciplineAnalysis = g.TitanDisciplineAnalysis as {
   view(logs: Partial<TrainingLog>[], opts: { discipline: AnalysisDiscipline; sport?: string; group?: string; now?: Date; weeks?: number; reference?: AnalysisReference }): AnalysisView | null;
   reading(view: AnalysisView | null): string[];
   dateText(t: number, now?: number): string;
+};
+
+/* ---- V1.7.7 GPS: recording engine, route geometry, session rules (js/core/gps-*.js, same files as the website) ---- */
+export type GpsFix = { lat: number; lon: number; alt: number | null; altAcc: number | null; acc: number | null; t: number };
+export type GpsWhy = { accuracy: number; speed: number; order: number; invalid: number; full: number };
+export type GpsTrackState = { segs: GpsFix[][]; rejected: number; every?: number; why?: GpsWhy; cand?: GpsFix[] };
+export type GpsStretch = { s: number; e: number | null; why: "pause" | "interrupted" | "finish" };
+export type GpsFamily = "walk" | "run" | "bike" | "mtb" | "roll" | "snow" | "water";
+export type GpsTimeKind = "moving" | "stopped" | "paused" | "interrupted" | "missing";
+export type GpsSplit = { index: number; distanceM: number; movingS: number };
+export type GpsAnalysis = {
+  rules: string; family: GpsFamily; autoPause: boolean;
+  params: { stopDelayS: number; stopSpeedMs: number; stopRadiusM: number; gapS: number; maxAccuracyM: number; maxSpeedMs: number };
+  ms: Record<GpsTimeKind | "elapsed", number>;
+  elapsedS: number; movingS: number; stoppedS: number; pausedS: number; interruptedS: number; missingS: number; recordingS: number; effortS: number;
+  distanceM: number; distanceKm: number; gapDistanceM: number; avgMovingKmh: number | null; avgOverallKmh: number | null;
+  ascentM: number | null; descentM: number | null;
+  altitude: { source: "gnss"; method: string; coverage: number; reliable: boolean; gain: number | null; loss: number | null; min: number | null; max: number | null };
+  stops: { at: number; seconds: number; distanceM: number }[]; gaps: { at: number; seconds: number; straightM: number; distanceM: number }[];
+  splits: GpsSplit[]; timeline: { from: number; to: number; kind: GpsTimeKind }[];
+  points: number; rejected: number; why: GpsWhy; accuracyM: number | null; start: number | null; end: number | null; firstFixAt: number | null; lastFixAt: number | null; thinnedEveryMs: number | null;
+};
+export type GpsDigest = { v: 1; rules: string; family: GpsFamily; autoPause: boolean; elapsedS: number; movingS: number; stoppedS: number; pausedS: number; missingS: number; distanceM: number; gapDistanceM: number; ascentM: number | null; descentM: number | null; altitude: "gnss" | "unreliable"; points: number; rejected: number };
+export type GpsLive = { t: number; lat?: number; lon?: number; acc?: number | null; spd?: number | null; hdg?: number | null; alt?: number | null };
+export type GpsSignal = { state: "searching" | "lost" | "weak" | "fair" | "good"; label: string; accuracyM: number | null };
+export const GpsEngine = g.TitanGpsEngine as {
+  RULES_VERSION: string; GPS_SPORTS: string[]; MAX_ACCURACY_M: number; GAP_S: number; DWELL_M: number; MAX_POINTS: number;
+  FAMILIES: Record<GpsFamily, { label: string; stopDelayS: number; stopSpeedMs: number; stopRadiusM: number; maxSpeedMs: number; minSpeedMs: number; offRouteM: number }>;
+  haversine(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number;
+  isGpsSport(sport: string): boolean; familyOf(sport: string): GpsFamily; validFix(f: GpsFix): boolean;
+  ingest(track: GpsTrackState, fix: GpsFix, opts?: { sport?: string; family?: GpsFamily; newSegment?: boolean; maxPoints?: number }): GpsTrackState;
+  analyse(rec: { sport: string; startedAt?: number | null; endedAt?: number | null; segs: GpsFix[][]; stretches?: GpsStretch[]; rejected?: number; why?: GpsWhy; every?: number }, opts?: { now?: number; autoPause?: boolean }): GpsAnalysis;
+  currentSpeed(segs: GpsFix[][], now: number, live?: GpsLive | null): number | null;
+  signal(live: GpsLive | null | undefined, now: number): GpsSignal;
+  digest(a: GpsAnalysis): GpsDigest; explain(a: GpsAnalysis): string[]; clock(seconds: number): string;
+};
+
+export type NavPoint = { lat: number; lon: number; ele?: number | null; t?: number };
+export type NavRoute = { v: 1; name: string; sport: string | null; origin: "imported" | "recorded" | "planned" | "backtrack"; segs: NavPoint[][]; distanceM: number; ascentM: number | null; descentM: number | null; points: number };
+export type NavEncoded = { v: 1; t0: number; segs: (number | null)[][][] };
+export type NavCourse = { pts: { lat: number; lon: number; ele: number | null; cum: number; seg: number }[]; totalM: number; start: NavPoint | null; end: NavPoint | null };
+export type NavFollow = { edge: number; alongM: number; offM: number | null; marginM?: number; joined: boolean; off: boolean; offSince: number | null; offCount: number; remainingM?: number; progress?: number; done: boolean; bearingNext?: number };
+export type NavEta = { seconds: number; lowS: number; highS: number; speedMs: number; basis: string; note: string };
+export type NavEffort = { id: string; date?: string; movingS: number; elapsedS?: number; missingS?: number; distanceM: number; direction?: "same" | "reverse" | "unknown" | null };
+export const GpsNav = g.TitanGpsNav as {
+  MAX_ROUTE_POINTS: number; SHARE_TRIM_M: number; SAME: { corridorM: number; stepM: number; coverage: number; length: number; text: string };
+  bearing(a: NavPoint, b: NavPoint): number; cardinal(deg: number): string; simplify<T extends NavPoint>(points: T[], tolM: number): T[]; lengthOf(points: NavPoint[]): number;
+  makeRoute(segs: NavPoint[][], meta?: { name?: string; sport?: string | null; origin?: NavRoute["origin"] }): NavRoute | null;
+  importGpx(text: string, gpx: unknown, meta?: { name?: string; sport?: string | null }): { ok: false; error: string } | { ok: true; route: NavRoute; facts: { points: number; ignoredPoints: number; segments: number; kind: string; hasTime: boolean; hasAltitude: boolean; cut: number } };
+  fit(route: NavRoute, max?: number): NavRoute; encode(route: NavRoute, t0?: number): NavEncoded; decode(doc: NavEncoded, meta?: { name?: string; sport?: string | null; origin?: NavRoute["origin"] }): NavRoute | null;
+  fromFixes(segs: GpsFix[][], meta?: { name?: string; sport?: string | null }): NavRoute | null;
+  toGpx(segs: (NavPoint | GpsFix)[][], name: string, opts?: { time?: boolean; ele?: boolean }): string; trimEnds<T extends NavPoint>(segs: T[][], meters?: number): T[][] | null;
+  course(route: NavRoute): NavCourse; startFollow(): NavFollow; follow(c: NavCourse, state: NavFollow | null, fix: { lat: number; lon: number; acc?: number | null; t: number }, opts?: { sport?: string; family?: GpsFamily }): NavFollow;
+  backtrack(segs: GpsFix[][], opts?: { sport?: string; toleranceM?: number }): { route: NavRoute; start: { lat: number; lon: number } | null; holes: number; holesStraightM: number } | null;
+  straight(from: NavPoint, to: NavPoint): { distanceM: number; bearing: number; cardinal: string };
+  eta(distanceM: number, a: Pick<GpsAnalysis, "movingS" | "distanceM"> & { splits?: GpsSplit[] }): NavEta | null;
+  sameRoute(a: NavRoute | null, b: NavRoute | null): { match: boolean; direction: "same" | "reverse" | "unknown" | null; coverageAB?: number; coverageBA?: number; lengthGap?: number; reason: string };
+  compareEfforts(routeDistanceM: number, efforts: NavEffort[]): { comparable: (NavEffort & { speedKmh: number })[]; excluded: (NavEffort & { reason: string })[]; best: (NavEffort & { speedKmh: number }) | null; criteria: string; note: string };
+  profile(route: NavRoute, n?: number): { km: number; ele: number }[];
+  nearRoute<T extends { lat: number; lon: number }>(pois: T[], route: NavRoute, maxM: number): (T & { offM: number; alongM: number })[];
+};
+
+export type GpsFieldKey = "moving" | "elapsed" | "stopped" | "distance" | "speed" | "avgMoving" | "avgOverall" | "ascent" | "altitude" | "remaining" | "clock";
+export type GpsCell = { key: string; label: string; value: string; unit: string; note?: string };
+export type GpsGoal = { kind: "distance"; km: number } | { kind: "time"; minutes: number } | { kind: "return"; at: number };
+export type GpsGoalView = { kind: GpsGoal["kind"]; title: string; ratio: number | null; reached: boolean; line: string; estimate: string | null; note: string | null; status?: "ok" | "tight" | "late" | "unknown"; marginS?: number };
+export type GpsStep = { kind: "warmup" | "work" | "recover" | "cooldown" | "free"; by: "time" | "distance" | "manual"; value: number; label: string };
+export type GpsLap = { index: number; kind: GpsStep["kind"]; label: string; seconds: number; metres: number; manual: boolean };
+export type GpsCursor = { index: number; fromS: number; fromM: number; laps: GpsLap[] };
+export type GpsPlanView = { finished: boolean; step: GpsStep | null; next: GpsStep | null; remaining: { value: string; unit: string; manual?: boolean } | null; ratio: number | null; position: string };
+export type GpsStepInput = { by: "time" | "distance" | "manual"; value?: number };
+export type GpsExpedition = { world: string; title: string; line: string; opened: { ordinal: number; kind: string; text: string }[]; next: string; note: string };
+export const GpsSession = g.TitanGpsSession as {
+  FIELDS: Record<GpsFieldKey, { label: string; short: string; kind: string }>; STEP_KINDS: Record<GpsStep["kind"], string>; WORLD_NAMES: Record<string, string>;
+  layout(sport: string, chosen?: string[] | null): { pace: boolean; main: GpsFieldKey[]; more: GpsFieldKey[]; options: GpsFieldKey[] };
+  cell(key: GpsFieldKey, a: GpsAnalysis, live: { speedMs?: number | null; altitudeM?: number | null; remainingM?: number | null; now?: number } | null, pace: boolean): GpsCell;
+  chrono(seconds: number): string; km(m: number): string; speedText(ms: number | null, pace: boolean): { value: string; unit: string }; span(seconds: number): string; hhmm(t: number): string;
+  goalOf(g: unknown): GpsGoal | null;
+  goalProgress(goal: GpsGoal | null, a: GpsAnalysis, ctx: { now?: number; eta?: (distanceM: number) => NavEta | null; backM?: number | null }): GpsGoalView | null;
+  plannedGoal(weekView: unknown, sport: string): { goal: GpsGoal; occurrence: string; label: string } | null;
+  stepOf(s: unknown): GpsStep | null; buildPlan(f: { warmup?: GpsStepInput | null; reps?: number; work?: GpsStepInput | null; recover?: GpsStepInput | null; cooldown?: GpsStepInput | null }): GpsStep[];
+  planOf(steps: unknown): GpsStep[]; startPlan(): GpsCursor;
+  runPlan(steps: GpsStep[], cursor: GpsCursor | null, a: Pick<GpsAnalysis, "recordingS" | "distanceM">): GpsPlanView & { cursor: GpsCursor; changed: boolean };
+  skipStep(steps: GpsStep[], cursor: GpsCursor | null, a: Pick<GpsAnalysis, "recordingS" | "distanceM">): GpsCursor;
+  planSummary(steps: GpsStep[], cursor: GpsCursor | null): { total: number; done: number; complete: boolean; laps: (GpsLap & { text: string })[]; missed: string[] };
+  describeStep(s: GpsStep): string;
+  expedition(world: string, before: unknown, after: unknown): GpsExpedition | null;
 };
