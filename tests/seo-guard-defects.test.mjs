@@ -66,6 +66,9 @@ describe("staged defects are caught", { concurrency: 4 }, () => {
     const r = await scenario({ mutate: (d) => edit(d, "fonctionnalites.html", (h) => h.replace("</head>", '<script src="/js/vendor/supabase-2.111.0.js" defer></script></head>')) });
     has(r, "P1", "scripts-added", "/fonctionnalites");
     has(r, "P1", "weight-regression", "/fonctionnalites");
+    // The snippets Netlify injects itself (rum in production, cdp on previews) are not the site's code.
+    const platform = await scenario({ mutate: (d) => edit(d, "fonctionnalites.html", (h) => h.replace("</head>", '<script src="/.netlify/scripts/cdp" async></script><script src="/.netlify/scripts/rum" defer></script></head>')) });
+    assert.ok(!open(platform).includes("scripts-added /fonctionnalites"), JSON.stringify(open(platform)));
   });
   test("a network timeout is diagnosed as inconclusive, within bounded time, never as a pass", async () => {
     const fetchImpl = (url, init) => (new URL(url).pathname === "/fonctionnalites" ? new Promise((_, reject) => init.signal.addEventListener("abort", () => reject(init.signal.reason))) : fetch(url, init));

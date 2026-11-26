@@ -154,8 +154,9 @@ function finding(list, severity, rule, url, assertion, expected, actual, hint, e
   list.push({ severity, rule, url, assertion, expected, actual, hint, ...extra });
 }
 
-// The showcase scripts, plus Netlify's Real User Monitoring snippet that the platform injects into production HTML (field metrics).
-const SCRIPT_ALLOW = [/^\/js\/pwa\.js/, /^\/js\/passage\.js/, /^\/js\/ga4-consent\.js/, /^\/js\/play-store\.js/, /^\/\.netlify\/scripts\/rum$/];
+// The showcase scripts, plus the snippets Netlify itself injects into the served HTML (measured 26/11/2026): /.netlify/scripts/rum on
+// production (Real User Monitoring, field metrics) and /.netlify/scripts/cdp on Deploy Previews (review toolbar). The site does not ship them.
+const SCRIPT_ALLOW = [/^\/js\/pwa\.js/, /^\/js\/passage\.js/, /^\/js\/ga4-consent\.js/, /^\/js\/play-store\.js/, /^\/\.netlify\/scripts\/[a-z]+$/];
 
 /**
  * Runs the whole guard against one target.
