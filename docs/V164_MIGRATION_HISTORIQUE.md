@@ -2,7 +2,7 @@
 
 Lecture des fichiers : `js/core/history-migration.js`, copié tel quel dans Android (`mobile/src/core/web/history-migration.js`,
 manifeste de hachages vérifié par les tests). Serveur : `supabase/migrations/20261130100300_history_migration.sql` (paquet
-`supabase/release-v23`, **non appliqué**). Web : « Journal › Importer un historique » (`js/app/migration.js`). Android :
+`supabase/release-v2-01` (ancien paquet du lot `release-v23`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`), **non appliqué**). Web : « Journal › Importer un historique » (`js/app/migration.js`). Android :
 « Profil › Sources › Importer mon historique » (`mobile/src/screens/settings/HistoryImportScreen.tsx`).
 
 ## Les deux formats pilotes

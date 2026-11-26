@@ -4,7 +4,7 @@ Un coach prépare un cycle de plusieurs semaines depuis un modèle versionné, l
 ont été acceptées, déclinées ou sont à discuter, puis révise une séance, une semaine ou la suite du cycle sans perdre ce qui avait été
 accepté ni réécrire les semaines jouées. Coach Web ; sportif Web et Android (« Mes suivis de coaching »). Drapeau serveur
 `screens.coach_programs` (fermé par défaut, vérifié par le serveur ; à ouvrir après `screens.coach_followup`, `screens.coach_feedback` et
-`screens.coach_review`). Migration `20261130101400`, paquet `supabase/release-v194` (après v191, v192 et v193).
+`screens.coach_review`). Migration `20261130101400`, paquet `supabase/release-v2-03` (ancien paquet du lot `release-v194`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`) (après v191, v192 et v193).
 
 ## Ce qui est réutilisé
 

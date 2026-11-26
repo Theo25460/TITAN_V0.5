@@ -3,7 +3,7 @@
 Un coach part d’un même programme pour un groupe, l’adapte à chaque sportif, vérifie qui recevra quelle version, envoie, reprend les envois
 incomplets et voit qui a besoin d’un retour. Coach : Web. Sportif : il reçoit un programme V1.9.4 ordinaire (Web et Android), sans jamais voir
 le groupe ni les autres. Drapeau serveur `screens.coach_groups` (fermé par défaut, vérifié par le serveur ; à ouvrir après
-`screens.coach_programs` et `screens.coach_cycle_report`). Migration `20261130101600`, paquet `supabase/release-v196` (après v191 à v195).
+`screens.coach_programs` et `screens.coach_cycle_report`). Migration `20261130101600`, paquet `supabase/release-v2-03` (ancien paquet du lot `release-v196`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`) (après v191 à v195).
 
 ## Ce qui est réutilisé
 

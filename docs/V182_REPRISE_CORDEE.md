@@ -2,7 +2,7 @@
 
 Le groupe continue quand un membre est indisponible ou quitte la Cordée. Tout reste sur la Grande Cordée et sur « Le relais de la
 Sentinelle » (V1.8.1, `docs/V181_RELAIS_CORDEE.md`) : aucun nouveau groupe, aucun nouveau compte de longueurs. Migration
-`supabase/migrations/20261130104200_cordee_reprise.sql` (paquet `supabase/release-v22`, **non appliqué**), drapeau serveur
+`supabase/migrations/20261130104200_cordee_reprise.sql` (paquet `supabase/release-v2-06` (ancien paquet du lot `release-v22`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`), **non appliqué**), drapeau serveur
 `screens.cordee_reprise` (absent = fermé, déploiement par compte) pour la prise en charge et la passation.
 
 ## Règles

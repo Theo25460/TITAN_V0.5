@@ -133,7 +133,7 @@ La décision prise avant cette étude tient, avec **trois réserves** que la rec
 | 1 | Lire les conditions d’utilisation et la page des plans d’openrouteservice (réserves A et B) | openrouteservice.org | 0 | — |
 | 2 | Créer un compte openrouteservice (HeiGIT) et une clé | tableau de bord openrouteservice | 0 sur le plan gratuit | `ROUTING_PROVIDER=openrouteservice`, `ROUTING_API_KEY=<clé>` (secret) |
 | 3 | Choisir l’instance Overpass | une adresse https | 0 sur une instance publique, sans garantie | `POI_OVERPASS_URL=https://overpass-api.de/api/interpreter` (ou une autre) |
-| 4 | Appliquer le paquet `supabase/release-v25` (quotas, bibliothèque v2, points personnels), après accord | Supabase | 0 | — |
+| 4 | Appliquer le paquet `supabase/release-v2-04` (ancien paquet du lot `release-v25`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`) (quotas, bibliothèque v2, points personnels), après accord | Supabase | 0 | — |
 | 5 | Vérifier que `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY` sont posées côté fonctions | Netlify | 0 | déjà utilisées par l’assistance |
 | 6 | Créer le drapeau `screens.gps` | centre de contrôle › Drapeaux | 0 | — |
 | 7 | *Facultatif, plus tard* : un plan payant de fond de carte, ou un extrait Protomaps hébergé | fournisseur choisi | 25 à 30 $ par mois (MapTiler, à confirmer) ou un hébergement de fichier | variables du client (`TITAN_TILES_URL`, `TITAN_TILES_ATTRIBUTION` côté Android) + CSP + inventaire |

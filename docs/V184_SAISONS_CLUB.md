@@ -3,7 +3,7 @@
 Un club lance une saison privée où chacun contribue à son rythme, et l’équipe voit ce qu’elle a accompli semaine après semaine. La saison
 s’adosse aux briques existantes : l’espace Club et ses rôles (`20261030090000`), l’objectif commun de la semaine et son seuil de 3
 (`20261120100000`), les séances confirmées et la règle de la longueur de la Cordée (`20261120110000`). Migration
-`supabase/migrations/20261130104400_club_season.sql` (paquet `supabase/release-v24`, **non appliqué**), drapeau serveur
+`supabase/migrations/20261130104400_club_season.sql` (paquet `supabase/release-v2-06` (ancien paquet du lot `release-v24`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`), **non appliqué**), drapeau serveur
 `screens.club_season` (absent = fermé, déploiement par compte).
 
 ## Règles

@@ -2,7 +2,7 @@
 
 Un groupe qui termine une Cordée propose un nouvel itinéraire privé et repart avec les membres qui acceptent. Tout reste la Grande
 Cordée : la nouvelle ascension est une cordée ordinaire (`titan_challenges`, `kind = 'cordee'`), ses membres des membres de défi, ses
-comptes ceux de la Cordée. Migration `supabase/migrations/20261130104300_cordee_suite.sql` (paquet `supabase/release-v23`, **non
+comptes ceux de la Cordée. Migration `supabase/migrations/20261130104300_cordee_suite.sql` (paquet `supabase/release-v2-06` (ancien paquet du lot `release-v23`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`), **non
 appliqué**), drapeau serveur `screens.cordee_suite` (absent = fermé, déploiement par compte) pour proposer et répondre.
 
 ## Règles

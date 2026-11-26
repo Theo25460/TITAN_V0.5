@@ -4,7 +4,7 @@ Une revue hebdomadaire pour le coach : pour chaque sportif, le dossier à traite
 proposition préparée depuis un modèle existant, relue dans un aperçu des changements et envoyée seulement par le coach. Coach Web ; le
 sportif répond dans son espace habituel (Web, Android « Mes suivis de coaching »). Drapeau serveur `screens.coach_review` (fermé par défaut,
 vérifié par le serveur ; à ouvrir après `screens.coach_followup` et `screens.coach_feedback`). Migration `20261130101300`, paquet
-`supabase/release-v193` (après v191 et v192).
+`supabase/release-v2-03` (ancien paquet du lot `release-v193`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`) (après v191 et v192).
 
 ## Ce qui est réutilisé
 

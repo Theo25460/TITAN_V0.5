@@ -41,7 +41,7 @@ sur la carte.
 | Export Android | `mobile/src/lib/storyExport.ts` | PNG 1080 × 1920, `expo-sharing` en `image/png` ; enregistrement par le sélecteur de dossier (SAF) : **aucune permission** ajoutée |
 | Rendu et aperçu Web | `js/app/story.js`, `TitanRoutes.shapeForSession` (`js/app/parcours.js`) | Mêmes opérations sur canvas ; `navigator.share({ files })` seulement si `canShare` l'accepte, sinon téléchargement ; annulation ≠ erreur |
 | Entrées | Android : fin de séance, détail du journal, Records, jalon du QG. Web : fin de séance, feuille du journal, détail d'un record | « Partager » / « Partager en story » |
-| Analytics Web | `js/app/analytics.js`, doc, snapshot, migration `20261130105100_analytics_share_story.sql`, paquet `supabase/release-partage/` | 4 événements, seule propriété `kind` ; non appliqué en production |
+| Analytics Web | `js/app/analytics.js`, doc, snapshot, migration `20261130105100_analytics_share_story.sql`, paquet `supabase/release-v2-07/` (ancien paquet du lot `release-partage`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`) | 4 événements, seule propriété `kind` ; non appliqué en production |
 
 Choix de contenu :
 
@@ -99,7 +99,7 @@ télécharge `titan-seance.png` ; le tracé n'apparaît que si la fonction `scre
   `docs/V13_ASSET_REGISTRY.json`).
 - Les tracés restent privés : lus seulement par le propriétaire (fonctions existantes), transformés sur l'appareil en forme sans
   coordonnées ; aucun serveur de cartes contacté.
-- Migration SQL additive **non appliquée** (`supabase/release-partage/README.md`).
+- Migration SQL additive **non appliquée** (`supabase/release-v2-07/README.md` (ancien paquet du lot `release-partage`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`)).
 
 ## 6. Interactions et conflits à réconcilier à la fusion V2.0 (après V1.9)
 

@@ -16,7 +16,7 @@ Mesures avant/après et contrôle des agrégats : `docs/v166/` (fichiers JSON pr
 | Liste du journal Web | jusqu'à environ 400 lignes puis « affine la recherche » (le reste était inaccessible sans filtre) | 100 lignes, puis « Afficher 100 séances de plus » ; chaque ligne est accessible ; l'en-tête d'un mois garde le total du mois filtré |
 | Filtres Web | tri de tout l'historique à chaque puce et à chaque frappe | index trié une fois par changement d'historique, filtre en une passe |
 | Records | regroupement des exercices quadratique (recherche linéaire par séance), clé d'exercice recalculée à chaque série | table par séance et clé mémorisée : résultat identique (vérifié sur les 10 000 séances), 172 → 51 ms sous Node |
-| Dénivelé | non corrigeable (ni formulaire, ni serveur) | champ « Dénivelé positif » de « Corriger la séance » (Web et Android) pour une séance en km d'un sport qui le demande ; serveur : migration `20261130100400`, paquet `supabase/release-v24` (non appliqué) |
+| Dénivelé | non corrigeable (ni formulaire, ni serveur) | champ « Dénivelé positif » de « Corriger la séance » (Web et Android) pour une séance en km d'un sport qui le demande ; serveur : migration `20261130100400`, paquet `supabase/release-v2-01` (ancien paquet du lot `release-v24`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`) (non appliqué) |
 
 ## Mesures (23 novembre 2026, 3 passes par cas)
 
@@ -69,7 +69,7 @@ Le manifeste est lu par `id` croissant, 1 000 lignes par page. Une ligne citée 
 - `js/core/history-window.js` (partagé, copié tel quel dans `mobile/src/core/web/`) : lecture par clé, manifeste, fusion, réconciliation par révision, couverture et sa phrase, index du journal.
 - Web : `js/state.js` (lecture du compte), `js/main.js` (copie de l'appareil avec sa couverture), `js/training-store.js` (blocs IndexedDB, version 3 de la base `titan-training`, registre de couverture par compte), `js/app/journal.js` (index, pagination, couverture, champ dénivelé), `js/app/records.js` (couverture), `js/app/sessions.js` (dénivelé, messages), `js/core/history-ledger.js` (changement « Dénivelé »), `js/sport-insights.js` (records linéaires), les 17 pages qui chargent `training-store.js`.
 - Android : `src/data/hooks.ts` (`useLogs`), `src/data/api.ts` (`refreshLogs`), `src/data/logsCache.ts` (blocs triés, couverture), `src/data/historyCoverage.ts`, `src/data/auth.tsx`, `src/components/CoverageNote.tsx`, `src/screens/progress/JournalScreen.tsx`, `RecordsScreen.tsx`, `src/screens/session/SessionEditScreen.tsx`, `src/lib/errors.ts`.
-- Serveur : `supabase/migrations/20261130100400_journal_long_duration.sql`, `supabase/release-v24/`, `sql/tests/300_journal_long_duration.sql`.
+- Serveur : `supabase/migrations/20261130100400_journal_long_duration.sql`, `supabase/release-v2-01/` (ancien paquet du lot `release-v24`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`), `sql/tests/300_journal_long_duration.sql`.
 - Preuves : `tools/journal-profile/` (jeu de 10 000 séances, faux PostgREST et modèle de réseau, banc navigateur, banc des calculs, contrôle des agrégats), `tests/history-window.test.mjs`, `tests/e2e/journal-long-duration.e2e.mjs`, `mobile/__tests__/journalLongDuration.test.tsx`.
 
 ## Rejouer les preuves

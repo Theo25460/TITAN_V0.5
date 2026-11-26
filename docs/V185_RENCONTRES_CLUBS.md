@@ -4,7 +4,7 @@ Deux clubs de tailles et de disciplines différentes se lancent un défi privé 
 **d’abord en coopération**. La rencontre s’adosse aux briques existantes : l’espace Club et ses rôles (`20261030090000`), le seuil de
 confidentialité de 3 de l’objectif de la semaine (`20261120100000`), les séances confirmées et la règle du jour actif de la Cordée
 (`20261120110000`), l’adhésion explicite et révocable de la saison de club (`20261130104400`, V1.8.4). Migration
-`supabase/migrations/20261130104500_club_match.sql` (paquet `supabase/release-v25`, **non appliqué**), drapeaux serveur
+`supabase/migrations/20261130104500_club_match.sql` (paquet `supabase/release-v2-06` (ancien paquet du lot `release-v25`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`), **non appliqué**), drapeaux serveur
 `screens.club_match` (coopération) et `screens.club_match_versus` (format comparatif, **fermé**).
 
 ## Le modèle de score

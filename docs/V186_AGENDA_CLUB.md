@@ -5,7 +5,7 @@ membre répond, et après coup chacun peut dire qu’il y était et associer **s
 briques existantes : l’espace Club et ses rôles (`20261030090000`, administrateur et membre, droits validés par V1.8.4), le seuil de
 confidentialité de 3 des clubs, les séances confirmées (`private.titan_confirmed_sessions`, `20261120110000`) et le récap « Depuis ta
 dernière visite » (`titan_social_digest_v1`, version `20261130104300`). Migration `supabase/migrations/20261130104600_club_agenda.sql`
-(paquet `supabase/release-v26`, **non appliqué**), drapeau serveur `screens.club_agenda` (absent = fermé, déploiement par compte). Une
+(paquet `supabase/release-v2-06` (ancien paquet du lot `release-v26`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`), **non appliqué**), drapeau serveur `screens.club_agenda` (absent = fermé, déploiement par compte). Une
 rencontre interclubs (V1.8.5) n’est pas nécessaire.
 
 ## Règles

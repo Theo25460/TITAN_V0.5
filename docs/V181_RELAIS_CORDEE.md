@@ -38,7 +38,7 @@ relais confirmés par un autre membre.
 
 ## Fichiers
 
-`supabase/migrations/20261130104100_cordee_relay.sql`, `supabase/release-v21/`, `sql/tests/300_cordee_relay.sql`,
+`supabase/migrations/20261130104100_cordee_relay.sql`, `supabase/release-v2-06/` (ancien paquet du lot `release-v21`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`), `sql/tests/300_cordee_relay.sql`,
 `tools/db/test-cordee-relay-concurrency.sh`, `js/core/cordee.js`, `js/app/cordee.js`, `css/one-communaute.css`,
 `tests/cordee.test.mjs`, `tests/e2e/cordee-relay.e2e.mjs`, `docs/v181/*.png` ; Android : `mobile/src/core/web/cordee.js`,
 `mobile/src/screens/community/CordeePanel.tsx`, `mobile/src/screens/community/ChallengeLinkCard.tsx`, `mobile/src/navigation/linking.ts`,

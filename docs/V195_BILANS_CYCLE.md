@@ -3,7 +3,7 @@
 En fin de cycle (un programme V1.9.4 envoyé ou clos), le coach prépare un bilan sourcé ; le sportif choisit ce qu’il partage et le valide ;
 les décisions qu’il approuve deviennent les objectifs du cycle suivant, avec leur origine. Coach Web ; sportif Web et Android (« Mes suivis
 de coaching »). Drapeau serveur `screens.coach_cycle_report` (fermé par défaut, vérifié par le serveur ; à ouvrir après
-`screens.coach_programs`). Migration `20261130101500`, paquet `supabase/release-v195` (après v191 à v194).
+`screens.coach_programs`). Migration `20261130101500`, paquet `supabase/release-v2-03` (ancien paquet du lot `release-v195`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`) (après v191 à v194).
 
 ## Ce qui est réutilisé
 

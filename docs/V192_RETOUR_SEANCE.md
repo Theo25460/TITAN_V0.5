@@ -2,7 +2,7 @@
 
 Un retour du coach reste relié à la proposition et à la séance qu’il commente, et une consigne pour la suite devient une proposition que
 le sportif accepte ou décline. Coach Web, sportif Web et Android. Drapeau serveur `screens.coach_feedback` (fermé par défaut, vérifié par le
-serveur ; à ouvrir après `screens.coach_followup`). Migration `20261130101200`, paquet `supabase/release-v192` (après le paquet v191).
+serveur ; à ouvrir après `screens.coach_followup`). Migration `20261130101200`, paquet `supabase/release-v2-03` (ancien paquet du lot `release-v192`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`) (après le paquet v191).
 
 ## Ce qui est réutilisé
 

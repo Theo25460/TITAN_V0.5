@@ -2,7 +2,7 @@
 
 Rendre les propositions du coach réellement suivables : savoir lesquelles demandent une décision, de qui et pourquoi, surtout après un
 changement de date ou de contenu. Sportif Android et coach Web. Les données de séance viennent toujours du journal du sportif.
-Drapeau serveur `screens.coach_followup` (fermé par défaut, vérifié par le serveur). Migration `20261130101100`, paquet `supabase/release-v191`.
+Drapeau serveur `screens.coach_followup` (fermé par défaut, vérifié par le serveur). Migration `20261130101100`, paquet `supabase/release-v2-03` (ancien paquet du lot `release-v191`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`).
 
 ## Ce qui est réutilisé
 

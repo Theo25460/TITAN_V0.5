@@ -2,7 +2,7 @@
 
 Écrit le 23 novembre 2026. Promesse : le sportif sait ce que chaque source fournit, où elle s'est arrêtée et comment reprendre.
 Source exécutable : `js/core/source-center.js` (copiée telle quelle dans Android). Serveur : migration
-`20261130100500_source_center.sql`, paquet `supabase/release-v24` (**non appliqué**, décision du propriétaire).
+`20261130100500_source_center.sql`, paquet `supabase/release-v2-02` (ancien paquet du lot `release-v24`, remplacé par la séquence canonique V2.0, voir `docs/v2/MIGRATIONS_V2.md`) (**non appliqué**, décision du propriétaire).
 
 ## Contrat réel de chaque source
 
