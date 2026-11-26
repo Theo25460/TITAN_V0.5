@@ -13,6 +13,7 @@
   const settleKey = () => `titan_live_settle_v1:${owner()}`;
   const flagOn = () => window.titanFlags?.enabled?.("screens.live", false) === true;
 
+  let consequences = null;
   let root = null, state = null, prep = null, tab = "seance", viewMode = "sport", cue = null, offer = null, interrupted = null;
   let tick = null, lastSave = 0, wake = null, world = null, worldError = null, report = {}, rpe = null, booted = false;
 
@@ -167,8 +168,14 @@
     }
     write(settleKey(), [...keep, ...list.slice(10)].filter((p) => Date.now() - p.addedAt < 3 * 86400000));
   }
+  /* V1.5.2: the Camp is the return point of the Vallée. What the Veilleur's outcome opened is read from the adventure server,
+     never from the LIVE world: it needs no coin, no find and no live session. */
+  async function loadConsequences() {
+    try { consequences = await window.TitanConsequencePanel?.load({ fresh: true }) || null; } catch { consequences = null; }
+  }
   async function loadWorld() {
     if (!window.titanClient || !owner() || String(owner()).startsWith("guest_")) { worldError = "Le Camp de base se rebâtit avec un compte : connecte-toi pour le retrouver."; render(); return; }
+    void loadConsequences().then(() => { if (tab === "camp") render(); });
     try {
       const { data, error } = await window.titanClient.rpc("titan_live_world_v1");
       if (error) throw error;
@@ -396,11 +403,12 @@
     </section>`;
   }
 
+  const retourHtml = () => window.TitanConsequencePanel?.campHtml(consequences) || "";
   function campHtml() {
     // The Camp is the foot of the same ascent: while it loads or when it cannot be read, the scene stays and says so.
     const campScene = (beats) => sceneSvg({ beats, planCount: 10, echo: null, goal: null, elan: { value: 0, max: 90 }, label: `La Cordée : ${beats} chapitre${beats > 1 ? "s" : ""} sur 10` }, { sport: "camp", family: "mobilite", voieName: "Le Camp de base" });
     if (worldError) return `<section class="live-flow live-campv">${stage(campScene(0), `<p class="asc-eyebrow cy">Le Camp de base</p><h1 class="asc-h1">Le camp ne répond pas</h1>`)}
-      <div class="sig-empty"><h3>Rien n’est perdu</h3><p>${esc(/compte/.test(worldError) ? worldError : "Le Camp de base n’a pas pu être lu. Tes séances et ce que tu as bâti sont conservés.")}</p><button type="button" class="asc-btn asc-btn-secondary" data-act="reload-world">Réessayer</button></div></section>`;
+      <div class="sig-empty"><h3>Rien n’est perdu</h3><p>${esc(/compte/.test(worldError) ? worldError : "Le Camp de base n’a pas pu être lu. Tes séances et ce que tu as bâti sont conservés.")}</p><button type="button" class="asc-btn asc-btn-secondary" data-act="reload-world">Réessayer</button></div>${retourHtml()}</section>`;
     if (!world) return `<section class="live-flow live-campv" aria-busy="true">${stage(campScene(0), `<p class="asc-eyebrow cy">Le Camp de base</p><h1 class="asc-h1">Le camp se prépare…</h1>`)}<div class="asc-skeleton live-skeleton"></div></section>`;
     const w = world;
     const cordee = W().cordee({ days: w.days, voies: w.distinctVoies });
@@ -409,6 +417,7 @@
     return `<section class="live-flow live-campv">
       ${stage(campScene(cordee.unlocked), `<p class="asc-eyebrow cy">Le Camp de base</p><h1 class="asc-h1">${esc(cordee.unlocked ? cordee.chapters[cordee.chapters.length - 1].title : "Le camp sous la neige")}</h1>`)}
       <p class="live-signature">Tes séances live retressent la Cordée. Rien ici ne s’achète et rien ne se perd.</p>
+      ${retourHtml()}
       <div class="live-res">${res.map(([l, n, f]) => `<div class="live-res-item" data-family="${esc(f)}"><span class="asc-small asc-muted">${esc(l)}</span><strong class="asc-num">${Number(n)}</strong></div>`).join("")}</div>
       <div class="live-camp-cols">
         <div class="live-block live-horizon"><h2 class="asc-h3">Ce qui vient</h2>${W().horizon(w).map((h) => `<div class="live-next${h.ready ? " ready" : ""}"><strong>${esc(h.title)}</strong><span class="asc-small asc-muted">${esc(h.text)}</span>${h.ready ? `<span class="sig-state is-worn">Prêt</span>` : ""}</div>`).join("")}<p class="asc-small asc-muted">Rien n’expire : ces repères avancent quand tu reviens, à ton rythme.</p></div>
@@ -513,7 +522,7 @@
 
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && state?.status === "active") { send({ type: "tick" }); keepAwake(true); } });
   window.addEventListener("titan:flags-updated", () => { if (booted) render(); });
-  window.addEventListener("titan:account-changing", () => { clearInterval(tick); state = null; prep = null; world = null; booted = false; keepAwake(false); if (root) root.innerHTML = '<p class="asc-small asc-muted" role="status">Synchronisation du compte…</p>'; });
+  window.addEventListener("titan:account-changing", () => { clearInterval(tick); state = null; prep = null; world = null; consequences = null; booted = false; keepAwake(false); if (root) root.innerHTML = '<p class="asc-small asc-muted" role="status">Synchronisation du compte…</p>'; });
   window.addEventListener("titan:account-changed", () => { if (!booted) boot(); });
   window.addEventListener("titan:history-updated", () => { if (!booted) boot(); });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(boot, 0));

@@ -372,10 +372,10 @@
         "file": "20261130103100_adventure_branches_v1.sql",
         "version": "20261130103100",
         "package": "supabase/release-v2-05",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "6ff7cb3a95eb114aa59e353cf55dc764b8b6871fffe687c51ace124f0060af97"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -393,10 +393,10 @@
         "file": "20261130103200_adventure_guardian_v1.sql",
         "version": "20261130103200",
         "package": "supabase/release-v2-05",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "5da164f151b6456611011e8f60de5e4405777c80616e7bb139d04c08f02cd54c"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -414,10 +414,10 @@
         "file": "20261130103300_adventure_consequence_v1.sql",
         "version": "20261130103300",
         "package": "supabase/release-v2-05",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "5f2f1e516ee8923c62422b87e276b64687856079fbea3e14c1618daa0d249f0b"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -435,10 +435,10 @@
         "file": "20261130103400_adventure_campaigns_v1.sql",
         "version": "20261130103400",
         "package": "supabase/release-v2-05",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "7160112924e03b1010461db52483609680b84186b7bac9bf456df2b3ec388ce1"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -456,10 +456,10 @@
         "file": "20261130103500_adventure_quest_chains_v1.sql",
         "version": "20261130103500",
         "package": "supabase/release-v2-05",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "0608f2531a5606b99abe8f3f3d302ed321fc6f9dfa9e4005841e203b78f2aa79"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -477,10 +477,10 @@
         "file": "20261130103600_adventure_chronicles_v1.sql",
         "version": "20261130103600",
         "package": "supabase/release-v2-05",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "301467bec121dbe2406b9dfa5a6af78b798dc602a9f8cd9b57e53ca6e3f93d5a"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {

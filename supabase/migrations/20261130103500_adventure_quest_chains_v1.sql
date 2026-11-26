@@ -1,0 +1,294 @@
+-- V1.5.4 — Quêtes entre les mondes. Two optional chains of quests that link a world to another one through a clue the
+-- player already acquired in the canonical state of an existing arc. Additive and idempotent. NEVER changes XP, credits,
+-- active days, campaign objectives, beacons, rewards, the v300 effort, the LIVE economy, nor any contract of V1.5.0 to V1.5.3
+-- (aube-arc1, veilleur, veilleur-retour, marees-arc1, forge-arc1, aurores-arc1, all v1), which are only read.
+--
+-- Clues are NOT stored: a clue is a fact the server already holds, read here from the arc that produced it, so replaying a
+-- confirmation, a resolution, a discovery or a sync can never duplicate one.
+--   fact "consequence"  the V1.5.2 access discovered (private.adventure_consequences.discovered_at) for one outcome;
+--   fact "outcome"      the guardian outcome written once (private.adventure_guardian_encounters.resolved_at), V1.5.1/V1.5.3;
+--   fact "chain"        the outcome of another chain (private.adventure_quests.resolved_at), for a later chain.
+--
+--   atelier-oublie (Vallée de l'Aube -> Forge des Titans)
+--     symbole-cerf   ruines,   serment_restitue + the annex room discovered  -> the deer's antlers engraved in the Forge
+--     cairn-fendu    corniche, passage_rouvert  + the shortcut discovered    -> the stone with the hammer (alternative route)
+--     manners: cle (the passeurs' key, cle_forgee) | motifs (the book of motifs copied, motifs_transmis)
+--   feux-cote (Îles des Marées -> Hauts des Aurores)
+--     feu-chenal     carte,     chenal_ouvert  -> the lighthouse beacon
+--     couplet-etoile gardienne, large_franchi  -> the beacon of the fixed star (alternative route)
+--     manners: lanterne (feu_rallume) | livre (route_consignee)
+--
+-- One chain: start (explicit, with the clue found) -> link the clue to one mark of the destination (the V1.5.3 primitive
+-- "pick", a wrong answer is recorded and corrected without effort) -> choose a manner of using what was learnt (definitive,
+-- one per account) -> the next encounter: its scene depends on the manner and opens after one active day confirmed after the
+-- choice (any sport, any hour; read only, never attributed to a world) -> resolve. The reward is the discovery and the story:
+-- a page of the notebook and a scene. Nothing is earned elsewhere, and the main campaigns stay completable without any chain.
+--
+-- Versions: a started chain keeps the version it started with, and its entry clue is stored, so a later version (which may
+-- add clues, never remove one: checked by audit()) never takes away an access already engaged.
+--
+-- What is new:
+--   private.adventure_quests                          one row per account and chain (version, entry clue, attempts, last answer,
+--                                                      linked_at, manner, chosen_at, outcome, resolved_at). FK to the journey of
+--                                                      the clue's origin: deleting that journey removes the chain, as V1.5.2.
+--   private.titan_adventure_quest_config(id,version)  the versioned contract, same JSON as js/core/adventure-quests.js.
+--   private.titan_adventure_quest_current(id) / _catalog()
+--   private.titan_adventure_quest_fact(uid,origin)    when the canonical fact of a clue happened (null: not acquired).
+--   private.titan_adventure_quest_state(uid,chain)    server facts only; the expected mark never leaves the server.
+--   public.titan_adventure_quests_v1()                the notebook: every chain and every clue found, with origin, state and
+--                                                      destination.
+--   public.titan_adventure_quest_action_v1(chain,action,answer,manner)   start | link | choose | resolve.
+--   private.titan_adventure_quest_metrics_v1()        per chain and clue: accounts with the clue, started, linked, chosen,
+--                                                      resolved. Aggregated counts only, owner/service.
+--
+-- Rollback: drop the two public functions; restore private.titan_export_extras_v1 from titan_export_extras_before_quests_v1.
+-- The table can stay (no reader left).
+
+create table if not exists private.adventure_quests (
+  user_id uuid not null,
+  chain text not null check (chain ~ '^[a-z0-9-]{1,40}$'),
+  version integer not null check (version between 1 and 1000),
+  clue text not null check (clue ~ '^[a-z0-9-]{1,40}$'),
+  source_world text not null,
+  started_at timestamptz not null default clock_timestamp(),
+  attempts integer not null default 0 check (attempts between 0 and 1000),
+  last_answer text[] check (last_answer is null or (cardinality(last_answer) between 1 and 4 and array_position(last_answer, null) is null)),
+  linked_at timestamptz,
+  manner text check (manner ~ '^[a-z0-9-]{1,40}$'),
+  chosen_at timestamptz,
+  outcome text check (outcome ~ '^[a-z0-9_]{1,40}$'),
+  resolved_at timestamptz,
+  primary key (user_id, chain),
+  foreign key (user_id, source_world) references private.adventure_journeys(user_id, world_id) on delete cascade,
+  check ((manner is null) = (chosen_at is null)),
+  check (manner is null or linked_at is not null),
+  check ((outcome is null) = (resolved_at is null)),
+  check (outcome is null or manner is not null)
+);
+create index if not exists adventure_quests_chain on private.adventure_quests(chain, clue);
+alter table private.adventure_quests enable row level security;
+revoke all on private.adventure_quests from public, anon, authenticated;
+
+-- Versioned contract. A new version is ADDED here (never edited) and becomes current in titan_adventure_quest_current.
+create or replace function private.titan_adventure_quest_config(p_id text, p_version integer)
+returns jsonb language sql immutable security invoker set search_path = '' as $$
+  select case
+    when p_id = 'atelier-oublie' and p_version = 1 then
+      $cfg${"id":"atelier-oublie","version":1,"from":"aube","to":"forge","place":"atelier","clues":[{"id":"symbole-cerf","origin":{"fact":"consequence","world":"aube","arc":"aube-arc1","route":"ruines","outcome":"serment_restitue","consequence":"veilleur-retour"},"answer":"cerf"},{"id":"cairn-fendu","origin":{"fact":"consequence","world":"aube","arc":"aube-arc1","route":"corniche","outcome":"passage_rouvert","consequence":"veilleur-retour"},"answer":"cairn"}],"link":{"primitive":"pick","slot":"gravure","pool":["cerf","cairn","roue","vague"]},"manners":[{"id":"cle","outcome":"cle_forgee"},{"id":"motifs","outcome":"motifs_transmis"}],"encounter":{"daysTarget":1}}$cfg$::jsonb
+    when p_id = 'feux-cote' and p_version = 1 then
+      $cfg${"id":"feux-cote","version":1,"from":"marees","to":"aurores","place":"balise","clues":[{"id":"feu-chenal","origin":{"fact":"outcome","world":"marees","arc":"marees-arc1","route":"carte","outcome":"chenal_ouvert","guardian":"gardienne"},"answer":"phare"},{"id":"couplet-etoile","origin":{"fact":"outcome","world":"marees","arc":"marees-arc1","route":"gardienne","outcome":"large_franchi","guardian":"gardienne"},"answer":"etoile"}],"link":{"primitive":"pick","slot":"balise","pool":["phare","etoile","lac","cairn"]},"manners":[{"id":"lanterne","outcome":"feu_rallume"},{"id":"livre","outcome":"route_consignee"}],"encounter":{"daysTarget":1}}$cfg$::jsonb
+  end;
+$$;
+create or replace function private.titan_adventure_quest_current(p_id text)
+returns jsonb language sql immutable security invoker set search_path = '' as $$
+  select case p_id
+    when 'atelier-oublie' then private.titan_adventure_quest_config('atelier-oublie', 1)
+    when 'feux-cote' then private.titan_adventure_quest_config('feux-cote', 1)
+  end;
+$$;
+create or replace function private.titan_adventure_quest_catalog()
+returns text[] language sql immutable security invoker set search_path = '' as $$
+  select array['atelier-oublie', 'feux-cote'];
+$$;
+revoke all on function private.titan_adventure_quest_config(text, integer), private.titan_adventure_quest_current(text),
+  private.titan_adventure_quest_catalog() from public, anon, authenticated;
+
+-- When the canonical fact of a clue happened for this account, read from the arc that produced it (null: not acquired).
+create or replace function private.titan_adventure_quest_fact(p_uid uuid, p_origin jsonb)
+returns timestamptz language sql stable security definer set search_path = '' as $$
+  select case p_origin->>'fact'
+    when 'outcome' then (select g.resolved_at from private.adventure_guardian_encounters g
+      where g.user_id = p_uid and g.world_id = p_origin->>'world' and g.guardian = p_origin->>'guardian'
+        and g.route = p_origin->>'route' and g.outcome = p_origin->>'outcome')
+    when 'consequence' then (select c.discovered_at from private.adventure_consequences c
+      where c.user_id = p_uid and c.world_id = p_origin->>'world' and c.consequence = p_origin->>'consequence'
+        and c.outcome = p_origin->>'outcome' and c.discovered_at is not null)
+    when 'chain' then (select q.resolved_at from private.adventure_quests q
+      where q.user_id = p_uid and q.chain = p_origin->>'chain' and q.outcome = p_origin->>'outcome')
+  end;
+$$;
+revoke all on function private.titan_adventure_quest_fact(uuid, jsonb) from public, anon, authenticated;
+
+create or replace function private.titan_adventure_quest_state(p_uid uuid, p_chain text)
+returns jsonb language plpgsql stable security definer set search_path = '' as $$
+declare
+  cfg jsonb := private.titan_adventure_quest_current(p_chain);
+  q private.adventure_quests%rowtype;
+  v_clues jsonb; v_entry jsonb; v_check jsonb; v_days integer := 0; v_state text; v_target integer;
+begin
+  select * into q from private.adventure_quests where user_id = p_uid and chain = p_chain;
+  -- A started chain keeps the version it started with, whatever the current version is.
+  if q.user_id is not null then cfg := private.titan_adventure_quest_config(q.chain, q.version); end if;
+  if cfg is null then
+    if q.user_id is null then return jsonb_build_object('id', p_chain, 'state', 'none'); end if;
+    return jsonb_build_object('id', q.chain, 'version', q.version, 'state', 'unknown', 'clue', q.clue);
+  end if;
+  select coalesce(jsonb_agg(jsonb_build_object('id', c->>'id', 'origin', c->'origin',
+           'foundAt', private.titan_adventure_quest_fact(p_uid, c->'origin')) order by n), '[]'::jsonb)
+    into v_clues from jsonb_array_elements(cfg->'clues') with ordinality x(c, n);
+  if q.user_id is null then
+    -- Not started: the first clue the account holds opens the chain (one route per arc, so at most one in practice).
+    select c into v_entry from jsonb_array_elements(v_clues) with ordinality x(c, n) where c->>'foundAt' is not null order by n limit 1;
+    return jsonb_build_object('id', cfg->>'id', 'version', (cfg->>'version')::integer, 'from', cfg->>'from', 'to', cfg->>'to',
+      'state', case when v_entry is null then 'locked' else 'available' end, 'clue', v_entry->>'id', 'clues', v_clues,
+      'attempts', 0, 'daysTarget', (cfg->'encounter'->>'daysTarget')::integer);
+  end if;
+  v_target := (cfg->'encounter'->>'daysTarget')::integer;
+  if q.chosen_at is not null then
+    -- The next encounter: active days confirmed after the choice, any sport and any hour (same filters as the V1.5.0 steps).
+    -- Read only: the session stays attributed to whatever world (or none) it already was.
+    select count(distinct (t.date at time zone 'UTC')::date) into v_days
+      from public.training_logs t
+     where t.user_id = p_uid and t.created_at >= q.chosen_at and t.date >= q.chosen_at
+       and t.archived_at is null and t.is_suspicious is not true and t.status not in ('rejected', 'flagged', 'pending_review')
+       and t.details->>'serverReward' = 'true' and coalesce(t.details->>'historical', 'false') <> 'true';
+  end if;
+  if q.last_answer is not null then
+    select c into v_entry from jsonb_array_elements(cfg->'clues') c where c->>'id' = q.clue;
+    v_check := private.titan_adventure_mechanic_check(cfg->'link'->>'primitive',
+      jsonb_build_object('slots', jsonb_build_array(jsonb_build_object('id', cfg->'link'->>'slot', 'pool', cfg->'link'->'pool')),
+        'answer', jsonb_build_array(v_entry->'answer')), q.last_answer);
+  end if;
+  v_state := case
+    when q.linked_at is null then 'link'
+    when q.manner is null then 'choose'
+    when q.outcome is not null then 'resolved'
+    when v_days >= v_target then 'ready'
+    else 'waiting' end;
+  return jsonb_build_object('id', cfg->>'id', 'version', (cfg->>'version')::integer, 'from', cfg->>'from', 'to', cfg->>'to',
+    'state', v_state, 'clue', q.clue, 'clues', v_clues, 'startedAt', q.started_at,
+    'attempts', q.attempts, 'lastAnswer', to_jsonb(q.last_answer), 'lastCorrect', v_check->'correct', 'linkedAt', q.linked_at,
+    'manner', q.manner, 'chosenAt', q.chosen_at, 'days', least(v_days, v_target), 'daysTarget', v_target,
+    'outcome', q.outcome, 'resolvedAt', q.resolved_at);
+end $$;
+revoke all on function private.titan_adventure_quest_state(uuid, text) from public, anon, authenticated;
+
+create or replace function public.titan_adventure_quests_v1()
+returns jsonb language plpgsql stable security definer set search_path = '' set statement_timeout = '5s' as $$
+declare u uuid := auth.uid(); v_chains jsonb;
+begin
+  if u is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if not exists (select 1 from public.profiles where id = u and is_suspended is not true) then
+    raise exception 'ACCOUNT_UNAVAILABLE' using errcode = '42501';
+  end if;
+  select coalesce(jsonb_agg(s order by n), '[]'::jsonb) into v_chains
+    from unnest(private.titan_adventure_quest_catalog()) with ordinality x(id, n)
+   cross join lateral private.titan_adventure_quest_state(u, x.id) s;
+  -- Every clue found, with its origin (the arc that produced it), its state and its destination (the chain it opens).
+  return jsonb_build_object('contract', 1, 'owner', u, 'chains', v_chains, 'clues', coalesce((
+    select jsonb_agg(jsonb_build_object('id', c->>'id', 'chain', ch->>'id', 'version', (ch->>'version')::integer,
+        'origin', c->'origin', 'foundAt', c->'foundAt', 'destination', ch->>'to',
+        'state', case when ch->>'clue' is distinct from c->>'id' or ch->>'state' in ('locked', 'available') then 'found'
+                      when ch->>'state' = 'resolved' then 'used' when ch->>'state' = 'link' then 'followed' else 'linked' end)
+      order by (c->>'foundAt')::timestamptz, c->>'id')
+      from jsonb_array_elements(v_chains) ch cross join lateral jsonb_array_elements(coalesce(ch->'clues', '[]'::jsonb)) c
+     where c->>'foundAt' is not null), '[]'::jsonb));
+end $$;
+revoke all on function public.titan_adventure_quests_v1() from public, anon;
+grant execute on function public.titan_adventure_quests_v1() to authenticated;
+
+create or replace function public.titan_adventure_quest_action_v1(
+  p_chain text, p_action text, p_answer text[] default null, p_manner text default null)
+returns jsonb language plpgsql security definer set search_path = '' set statement_timeout = '10s' as $$
+declare u uuid := auth.uid(); s jsonb; cfg jsonb; v_clue jsonb; v_check jsonb; v_manner jsonb;
+begin
+  if u is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  -- Same per-account serialization as every adventure action: two devices answering at once queue here.
+  perform 1 from public.profiles where id = u and is_suspended is not true for update;
+  if not found then raise exception 'ACCOUNT_UNAVAILABLE' using errcode = '42501'; end if;
+  if p_action is null or p_action not in ('start', 'link', 'choose', 'resolve') then raise exception 'INVALID_ACTION'; end if;
+  s := private.titan_adventure_quest_state(u, p_chain);
+  if p_chain is null or s->>'state' = 'none' then raise exception 'QUEST_UNAVAILABLE'; end if;
+  if s->>'state' = 'unknown' then raise exception 'QUEST_INCOMPATIBLE'; end if;
+  if s->>'state' = 'locked' then raise exception 'QUEST_LOCKED'; end if;
+  cfg := private.titan_adventure_quest_config(s->>'id', (s->>'version')::integer);
+  if p_action = 'start' then
+    -- Stable: a second start (another device, a replay) finds the chain and changes nothing.
+    if s->>'state' = 'available' then
+      select c into v_clue from jsonb_array_elements(cfg->'clues') c where c->>'id' = s->>'clue';
+      insert into private.adventure_quests(user_id, chain, version, clue, source_world)
+      values (u, cfg->>'id', (cfg->>'version')::integer, v_clue->>'id', v_clue->'origin'->>'world') on conflict do nothing;
+    end if;
+    return public.titan_adventure_quests_v1();
+  end if;
+  if s->>'state' = 'available' then raise exception 'QUEST_NOT_STARTED'; end if;
+  if p_action = 'link' then
+    -- Stable once linked: a later or concurrent answer never undoes it and is not counted.
+    if s->>'state' <> 'link' then return public.titan_adventure_quests_v1(); end if;
+    select c into v_clue from jsonb_array_elements(cfg->'clues') c where c->>'id' = s->>'clue';
+    v_check := private.titan_adventure_mechanic_check(cfg->'link'->>'primitive',
+      jsonb_build_object('slots', jsonb_build_array(jsonb_build_object('id', cfg->'link'->>'slot', 'pool', cfg->'link'->'pool')),
+        'answer', jsonb_build_array(v_clue->'answer')), p_answer);
+    -- A malformed answer (none, two marks, an unknown mark) is refused and not counted.
+    if not (v_check->>'valid')::boolean then raise exception 'INVALID_ANSWER'; end if;
+    update private.adventure_quests
+       set attempts = least(1000, attempts + 1), last_answer = p_answer,
+           linked_at = case when (v_check->>'correct')::boolean then clock_timestamp() end
+     where user_id = u and chain = cfg->>'id' and linked_at is null;
+    return public.titan_adventure_quests_v1();
+  end if;
+  if s->>'state' = 'link' then raise exception 'QUEST_NOT_LINKED'; end if;
+  if p_action = 'choose' then
+    select m into v_manner from jsonb_array_elements(cfg->'manners') m where m->>'id' = p_manner;
+    if v_manner is null then raise exception 'INVALID_MANNER'; end if;
+    -- Definitive: a later or concurrent choice returns the canonical manner unchanged (the client shows the conflict).
+    if s->>'state' <> 'choose' then return public.titan_adventure_quests_v1(); end if;
+    update private.adventure_quests set manner = v_manner->>'id', chosen_at = clock_timestamp()
+     where user_id = u and chain = cfg->>'id' and manner is null and linked_at is not null;
+    return public.titan_adventure_quests_v1();
+  end if;
+  -- resolve: one outcome per account, the scene of the chosen manner. Nothing else is earned.
+  if s->>'state' = 'resolved' then return public.titan_adventure_quests_v1(); end if;
+  if s->>'state' = 'choose' then raise exception 'QUEST_NOT_CHOSEN'; end if;
+  if s->>'state' = 'waiting' then raise exception 'ENCOUNTER_INCOMPLETE'; end if;
+  select m into v_manner from jsonb_array_elements(cfg->'manners') m where m->>'id' = s->>'manner';
+  update private.adventure_quests set outcome = v_manner->>'outcome', resolved_at = clock_timestamp()
+   where user_id = u and chain = cfg->>'id' and outcome is null and manner is not null;
+  return public.titan_adventure_quests_v1();
+end $$;
+revoke all on function public.titan_adventure_quest_action_v1(text, text, text[], text) from public, anon;
+grant execute on function public.titan_adventure_quest_action_v1(text, text, text[], text) to authenticated;
+
+-- Measurement: from a clue found to a chain started, linked, chosen, then resolved, per chain and entry clue. Aggregated
+-- counts only, never an identity. Owner/service only.
+create or replace function private.titan_adventure_quest_metrics_v1()
+returns table(chain text, clue text, found_accounts bigint, started_accounts bigint, linked_accounts bigint,
+  chosen_accounts bigint, resolved_accounts bigint)
+language sql stable security definer set search_path = '' as $$
+  with clues as (
+    select x.id as chain, c->>'id' as clue, c->'origin' as origin, n
+      from unnest(private.titan_adventure_quest_catalog()) with ordinality x(id, k)
+     cross join lateral jsonb_array_elements(private.titan_adventure_quest_current(x.id)->'clues') with ordinality y(c, n)
+  ), holders as (
+    select k.chain, k.clue, g.user_id from clues k join private.adventure_guardian_encounters g
+      on k.origin->>'fact' = 'outcome' and g.world_id = k.origin->>'world' and g.guardian = k.origin->>'guardian'
+     and g.route = k.origin->>'route' and g.outcome = k.origin->>'outcome'
+    union
+    select k.chain, k.clue, c.user_id from clues k join private.adventure_consequences c
+      on k.origin->>'fact' = 'consequence' and c.world_id = k.origin->>'world' and c.consequence = k.origin->>'consequence'
+     and c.outcome = k.origin->>'outcome' and c.discovered_at is not null
+    union
+    select k.chain, k.clue, q.user_id from clues k join private.adventure_quests q
+      on k.origin->>'fact' = 'chain' and q.chain = k.origin->>'chain' and q.outcome = k.origin->>'outcome'
+  )
+  select k.chain, k.clue,
+    (select count(distinct h.user_id) from holders h where h.chain = k.chain and h.clue = k.clue),
+    count(q.user_id), count(q.linked_at), count(q.chosen_at), count(q.resolved_at)
+  from clues k left join private.adventure_quests q on q.chain = k.chain and q.clue = k.clue
+  group by k.chain, k.clue, k.n order by k.chain, k.n;
+$$;
+revoke all on function private.titan_adventure_quest_metrics_v1() from public, anon, authenticated;
+
+-- Account export keeps every previous section and adds the chains.
+do $$ begin
+  if to_regprocedure('private.titan_export_extras_before_quests_v1(uuid)') is null then
+    alter function private.titan_export_extras_v1(uuid) rename to titan_export_extras_before_quests_v1;
+  end if;
+end $$;
+create or replace function private.titan_export_extras_v1(p_uid uuid)
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select private.titan_export_extras_before_quests_v1(p_uid) || jsonb_build_object('adventureQuests',
+    coalesce((select jsonb_agg(to_jsonb(q) - 'user_id' order by q.started_at) from private.adventure_quests q where q.user_id = p_uid), '[]'));
+$$;
+revoke all on function private.titan_export_extras_before_quests_v1(uuid), private.titan_export_extras_v1(uuid) from public, anon, authenticated;
+notify pgrst, 'reload schema';

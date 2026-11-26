@@ -1,0 +1,200 @@
+-- V1.5.2 — Camp et conséquences. The canonical outcome of the Veilleur (V1.5.1, private.adventure_guardian_encounters)
+-- becomes a lasting access in the Vallée de l'Aube, linked from one existing return point: le Camp de base.
+-- Additive and idempotent. NEVER changes XP, credits, active days, campaign objectives, beacons, rewards, the v300 effort,
+-- the LIVE wallet, buildings or finds, the V1.5.0 branch contract or the V1.5.1 guardian contract.
+--
+--   passage_rouvert (la corniche)   at the belvédère the player aligns two landmarks of their sketch (cairn + pin among four):
+--                                   a shortcut between two sectors already open (la clairière des lucioles, le passage du
+--                                   Veilleur), taken again at each later visit.
+--   serment_restitue (les ruines)   in the archive the player brings the oath fragment to one of four engravings of the map
+--                                   (the deer's antlers): its symbol opens an annex room, visited again later.
+--
+-- A wrong answer is recorded with its attempt count and corrected, without effort. The right one stamps discovered_at, once:
+-- a later or simultaneous answer never undoes it (per-account profile lock, as every adventure action). Nothing is earned:
+-- the access is the consequence itself. An account without a resolved pilot guardian (no pilot, legacy, not yet resolved)
+-- sees no consequence at all.
+--
+-- What is new:
+--   private.adventure_consequences          one row per account and consequence: version, outcome, attempts, last answer,
+--                                            discovered_at, visits, last_visit_at. A running consequence keeps its version.
+--   private.adventure_consequence_events    attempt / discover / visit timestamps (2 000 per account at most), to measure the
+--                                            visits and interactions in the 14 days after the resolution.
+--   private.titan_adventure_consequence_config(id,version)   versioned contract, same JSON as js/core/adventure-consequence.js.
+--   private.titan_adventure_consequence_state(uid,world)     server facts only.
+--   public.titan_adventure_consequences_v1()                 every linked consequence of the caller (read by the Camp).
+--   public.titan_adventure_consequence_action_v1(world,action,marks)   discover | visit.
+--   private.titan_adventure_consequence_metrics_v1(days)     aggregated counts, no identity, for the owner only.
+--
+-- Rollback: drop the two public functions; restore private.titan_export_extras_v1 from
+-- titan_export_extras_before_consequence_v1. The tables can stay (no reader left).
+
+create table if not exists private.adventure_consequences (
+  user_id uuid not null,
+  world_id text not null,
+  consequence text not null check (consequence ~ '^[a-z0-9-]{1,40}$'),
+  version integer not null check (version between 1 and 1000),
+  outcome text not null check (outcome ~ '^[a-z0-9_]{1,40}$'),
+  attempts integer not null default 0 check (attempts between 0 and 1000),
+  last_answer text[] check (last_answer is null or cardinality(last_answer) between 1 and 4),
+  discovered_at timestamptz,
+  visits integer not null default 0 check (visits between 0 and 100000),
+  last_visit_at timestamptz,
+  created_at timestamptz not null default clock_timestamp(),
+  primary key (user_id, world_id, consequence),
+  foreign key (user_id, world_id) references private.adventure_journeys(user_id, world_id) on delete cascade,
+  check (visits = 0 or discovered_at is not null),
+  check ((visits = 0) = (last_visit_at is null))
+);
+alter table private.adventure_consequences enable row level security;
+revoke all on private.adventure_consequences from public, anon, authenticated;
+
+create table if not exists private.adventure_consequence_events (
+  id bigint generated always as identity primary key,
+  user_id uuid not null,
+  world_id text not null,
+  consequence text not null,
+  kind text not null check (kind in ('attempt', 'discover', 'visit')),
+  at timestamptz not null default clock_timestamp(),
+  foreign key (user_id, world_id, consequence) references private.adventure_consequences(user_id, world_id, consequence) on delete cascade
+);
+create index if not exists adventure_consequence_events_user on private.adventure_consequence_events(user_id, world_id, consequence, at);
+alter table private.adventure_consequence_events enable row level security;
+revoke all on private.adventure_consequence_events from public, anon, authenticated;
+
+-- Versioned contract. A new version is ADDED here (never edited) and becomes current in titan_adventure_consequence_current.
+create or replace function private.titan_adventure_consequence_config(p_id text, p_version integer)
+returns jsonb language sql immutable security invoker set search_path = '' as $$
+  select case when p_id = 'veilleur-retour' and p_version = 1 then
+    $cfg${"id":"veilleur-retour","version":1,"world":"aube","guardian":"veilleur","guardianVersions":[1],"returnPoint":"camp","outcomes":[{"outcome":"passage_rouvert","route":"corniche","kind":"shortcut","item":"croquis","marks":["cairn","pin","tour","cascade"],"answer":["cairn","pin"],"from":"clairiere","to":"passage"},{"outcome":"serment_restitue","route":"ruines","kind":"annex","item":"fragment","marks":["cerf","soleil","spirale","vague"],"answer":["cerf"],"from":"archive","to":"salle-annexe"}]}$cfg$::jsonb
+  end;
+$$;
+create or replace function private.titan_adventure_consequence_current(p_world text)
+returns jsonb language sql immutable security invoker set search_path = '' as $$
+  select case when p_world = 'aube' then private.titan_adventure_consequence_config('veilleur-retour', 1) end;
+$$;
+revoke all on function private.titan_adventure_consequence_config(text, integer), private.titan_adventure_consequence_current(text)
+  from public, anon, authenticated;
+
+create or replace function private.titan_adventure_consequence_state(p_uid uuid, p_world text)
+returns jsonb language plpgsql stable security definer set search_path = '' as $$
+declare
+  cfg jsonb := private.titan_adventure_consequence_current(p_world);
+  c private.adventure_consequences%rowtype;
+  g private.adventure_guardian_encounters%rowtype;
+  o jsonb;
+begin
+  if cfg is null then return jsonb_build_object('state', 'none', 'world', p_world); end if;
+  select * into c from private.adventure_consequences where user_id = p_uid and world_id = p_world and consequence = cfg->>'id';
+  -- A running consequence keeps the version it started with, whatever the current version is.
+  if c.user_id is not null then cfg := private.titan_adventure_consequence_config(c.consequence, c.version); end if;
+  if cfg is null then return jsonb_build_object('state', 'unknown', 'world', p_world, 'id', c.consequence, 'version', c.version); end if;
+  -- The canonical outcome written once by the V1.5.1 resolution. No outcome (no pilot, legacy, not resolved): no consequence.
+  select * into g from private.adventure_guardian_encounters
+   where user_id = p_uid and world_id = p_world and guardian = cfg->>'guardian' and outcome is not null;
+  if g.user_id is null or not (cfg->'guardianVersions' @> to_jsonb(g.version)) then
+    return jsonb_build_object('state', 'none', 'world', p_world);
+  end if;
+  select x into o from jsonb_array_elements(cfg->'outcomes') x where x->>'outcome' = g.outcome;
+  if o is null then return jsonb_build_object('state', 'unknown', 'world', p_world, 'id', cfg->>'id', 'version', (cfg->>'version')::integer); end if;
+  return jsonb_build_object('state', case when c.discovered_at is null then 'discover' else 'open' end,
+    'world', p_world, 'id', cfg->>'id', 'version', (cfg->>'version')::integer, 'returnPoint', cfg->>'returnPoint',
+    'outcome', g.outcome, 'route', o->>'route', 'kind', o->>'kind', 'resolvedAt', g.resolved_at,
+    'attempts', coalesce(c.attempts, 0), 'lastAnswer', to_jsonb(c.last_answer),
+    'lastCorrect', case when c.last_answer is null then null
+      else c.last_answer = array(select x from jsonb_array_elements_text(o->'answer') x order by x) end,
+    'discoveredAt', c.discovered_at, 'visits', coalesce(c.visits, 0), 'lastVisitAt', c.last_visit_at);
+end $$;
+revoke all on function private.titan_adventure_consequence_state(uuid, text) from public, anon, authenticated;
+
+create or replace function public.titan_adventure_consequences_v1()
+returns jsonb language plpgsql stable security definer set search_path = '' set statement_timeout = '5s' as $$
+declare u uuid := auth.uid();
+begin
+  if u is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if not exists (select 1 from public.profiles where id = u and is_suspended is not true) then
+    raise exception 'ACCOUNT_UNAVAILABLE' using errcode = '42501';
+  end if;
+  return jsonb_build_object('contract', 1, 'owner', u, 'items', coalesce((
+    select jsonb_agg(s order by w.id) from public.adventure_worlds w
+     cross join lateral private.titan_adventure_consequence_state(u, w.id) s
+     where s->>'state' <> 'none'), '[]'::jsonb));
+end $$;
+revoke all on function public.titan_adventure_consequences_v1() from public, anon;
+grant execute on function public.titan_adventure_consequences_v1() to authenticated;
+
+create or replace function public.titan_adventure_consequence_action_v1(p_world text, p_action text, p_marks text[] default null)
+returns jsonb language plpgsql security definer set search_path = '' set statement_timeout = '10s' as $$
+declare u uuid := auth.uid(); s jsonb; cfg jsonb; o jsonb; v_marks text[]; v_answer text[];
+begin
+  if u is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  -- Same per-account serialization as the other adventure actions: two devices answering at once queue here.
+  perform 1 from public.profiles where id = u and is_suspended is not true for update;
+  if not found then raise exception 'ACCOUNT_UNAVAILABLE' using errcode = '42501'; end if;
+  if p_action is null or p_action not in ('discover', 'visit') then raise exception 'INVALID_ACTION'; end if;
+  if not exists (select 1 from public.adventure_worlds where id = p_world) then raise exception 'INVALID_WORLD'; end if;
+  s := private.titan_adventure_consequence_state(u, p_world);
+  if s->>'state' = 'none' then raise exception 'CONSEQUENCE_UNAVAILABLE'; end if;
+  if s->>'state' = 'unknown' then raise exception 'CONSEQUENCE_INCOMPATIBLE'; end if;
+  cfg := private.titan_adventure_consequence_config(s->>'id', (s->>'version')::integer);
+  select x into o from jsonb_array_elements(cfg->'outcomes') x where x->>'outcome' = s->>'outcome';
+  insert into private.adventure_consequences(user_id, world_id, consequence, version, outcome)
+  values (u, p_world, cfg->>'id', (cfg->>'version')::integer, o->>'outcome') on conflict do nothing;
+  if p_action = 'discover' then
+    -- Stable after discovery: a later or concurrent answer never undoes it and is not counted.
+    if s->>'state' = 'open' then return public.titan_adventure_consequences_v1(); end if;
+    v_answer := array(select x from jsonb_array_elements_text(o->'answer') x order by x);
+    v_marks := array(select distinct x from unnest(p_marks) x order by x);
+    if p_marks is null or cardinality(p_marks) <> cardinality(v_answer) or cardinality(v_marks) <> cardinality(p_marks)
+       or exists (select 1 from unnest(v_marks) x where x is null or not (o->'marks' ? x)) then
+      raise exception 'INVALID_MARKS';
+    end if;
+    update private.adventure_consequences
+       set attempts = least(1000, attempts + 1), last_answer = v_marks,
+           discovered_at = case when v_marks = v_answer then clock_timestamp() end
+     where user_id = u and world_id = p_world and consequence = cfg->>'id' and discovered_at is null;
+    insert into private.adventure_consequence_events(user_id, world_id, consequence, kind)
+    select u, p_world, cfg->>'id', k from unnest(case when v_marks = v_answer then array['attempt', 'discover'] else array['attempt'] end) k
+     where (select count(*) from private.adventure_consequence_events e where e.user_id = u) < 2000;
+    return public.titan_adventure_consequences_v1();
+  end if;
+  -- visit: the shortcut taken again, the annex room entered again. Nothing is earned.
+  if s->>'state' <> 'open' then raise exception 'CONSEQUENCE_NOT_DISCOVERED'; end if;
+  update private.adventure_consequences set visits = least(100000, visits + 1), last_visit_at = clock_timestamp()
+   where user_id = u and world_id = p_world and consequence = cfg->>'id';
+  insert into private.adventure_consequence_events(user_id, world_id, consequence, kind)
+  select u, p_world, cfg->>'id', 'visit' where (select count(*) from private.adventure_consequence_events e where e.user_id = u) < 2000;
+  return public.titan_adventure_consequences_v1();
+end $$;
+revoke all on function public.titan_adventure_consequence_action_v1(text, text, text[]) from public, anon;
+grant execute on function public.titan_adventure_consequence_action_v1(text, text, text[]) to authenticated;
+
+-- Measurement in the 14 days after the resolution: aggregated counts per outcome, never an identity. Owner/service only.
+create or replace function private.titan_adventure_consequence_metrics_v1(p_days integer default 14)
+returns table(outcome text, resolved_accounts bigint, discovered_accounts bigint, visiting_accounts bigint, attempts bigint, visits bigint)
+language sql stable security definer set search_path = '' as $$
+  select g.outcome, count(distinct g.user_id),
+    count(distinct e.user_id) filter (where e.kind = 'discover'),
+    count(distinct e.user_id) filter (where e.kind = 'visit'),
+    count(e.id) filter (where e.kind = 'attempt'), count(e.id) filter (where e.kind = 'visit')
+  from private.adventure_guardian_encounters g
+  left join private.adventure_consequence_events e on e.user_id = g.user_id and e.world_id = g.world_id
+   and e.at >= g.resolved_at and e.at < g.resolved_at + make_interval(days => greatest(1, least(p_days, 365)))
+  where g.outcome is not null
+  group by g.outcome order by g.outcome;
+$$;
+revoke all on function private.titan_adventure_consequence_metrics_v1(integer) from public, anon, authenticated;
+
+-- Account export keeps every previous section and adds the consequences and their events.
+do $$ begin
+  if to_regprocedure('private.titan_export_extras_before_consequence_v1(uuid)') is null then
+    alter function private.titan_export_extras_v1(uuid) rename to titan_export_extras_before_consequence_v1;
+  end if;
+end $$;
+create or replace function private.titan_export_extras_v1(p_uid uuid)
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select private.titan_export_extras_before_consequence_v1(p_uid) || jsonb_build_object(
+    'adventureConsequences', coalesce((select jsonb_agg(to_jsonb(c) - 'user_id' order by c.created_at) from private.adventure_consequences c where c.user_id = p_uid), '[]'),
+    'adventureConsequenceEvents', coalesce((select jsonb_agg(to_jsonb(e) - 'user_id' - 'id' order by e.at, e.id) from private.adventure_consequence_events e where e.user_id = p_uid), '[]'));
+$$;
+revoke all on function private.titan_export_extras_before_consequence_v1(uuid), private.titan_export_extras_v1(uuid) from public, anon, authenticated;
+notify pgrst, 'reload schema';

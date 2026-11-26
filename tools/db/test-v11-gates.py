@@ -63,6 +63,15 @@ if '20261105213712' in all_versions:
 # V2.0 (A2): the GPS package (canonical 20261130102100) wraps the export once more.
 if '20261130102100' in all_versions:
     negative("create or replace function private.titan_export_extras_before_gps_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé')
+if '20261130103100' in all_versions:
+    negative("create or replace function private.titan_export_extras_before_branches_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé')
+    negative("create or replace function private.titan_export_extras_before_guardian_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé')
+if '20261130103300' in all_versions:
+    negative("create or replace function private.titan_export_extras_before_consequence_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé')
+if '20261130103500' in all_versions:
+    negative("create or replace function private.titan_export_extras_before_quests_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé')
+if '20261130103600' in all_versions:
+    negative("create or replace function private.titan_export_extras_before_chronicles_v1(p_uid uuid) returns jsonb language sql stable security definer set search_path='' as $$select '{}'::jsonb;$$;", 'export:RPG conservé')
 negative('grant select on private.titan_source_consents to authenticated;', 'private.titan_source_consents:API grants')
 negative('alter table private.titan_daily_activity disable row level security;', 'private.titan_daily_activity:RLS')
 negative('grant execute on function public.titan_import_activity_v1(text,text,text,timestamptz,numeric,numeric) to anon;', 'titan_import_activity_v1')

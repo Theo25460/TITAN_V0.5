@@ -104,6 +104,46 @@ fi
 [[ "$guard" == "Refused: adventure concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 echo "  · adventure non-test database refused before fixtures"
 python3 "$ROOT/tools/db/test-adventure-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Branch decision concurrency contract (V1.5.0, two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-branch-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "branch runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: branch concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · branch non-test database refused before fixtures"
+python3 "$ROOT/tools/db/test-branch-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Guardian resolution concurrency contract (V1.5.1, two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-guardian-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "guardian runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: guardian concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · guardian non-test database refused before fixtures"
+python3 "$ROOT/tools/db/test-guardian-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Campaign mechanic concurrency contract (V1.5.3, two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-campaign-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "campaign runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: campaign concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · campaign non-test database refused before fixtures"
+python3 "$ROOT/tools/db/test-campaign-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Consequence discovery concurrency contract (V1.5.2, two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-consequence-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "consequence runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: consequence concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+echo "  · consequence non-test database refused before fixtures"
+python3 "$ROOT/tools/db/test-consequence-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Quest chain concurrency contract (V1.5.4, two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-quest-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: quest concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+python3 "$ROOT/tools/db/test-quest-concurrency.py" "${PSQL[@]}" -d "$DB"
+echo "Chronicle concurrency contract (V1.5.5, two real connections)"
+if guard=$(python3 "$ROOT/tools/db/test-chronicle-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: chronicle concurrency tests require a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+python3 "$ROOT/tools/db/test-chronicle-concurrency.py" "${PSQL[@]}" -d "$DB"
 echo "Training rate concurrency contracts (two real connections)"
 if guard=$(python3 "$ROOT/tools/db/test-training-rate-concurrency.py" "${PSQL[@]}" -d postgres 2>&1); then
   echo "training rate runner accepted a non-test database"; exit 1

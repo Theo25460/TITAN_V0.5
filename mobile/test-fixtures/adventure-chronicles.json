@@ -1,0 +1,2057 @@
+{
+    "empty": {
+        "arcs": [
+        ],
+        "owner": "d68cb5b9-1e82-4c94-b1ca-6a52e788622c",
+        "rules": 1,
+        "contract": 1
+    },
+    "choose": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": "serment",
+                        "kind": "pilot",
+                        "route": "ruines",
+                        "state": "completed",
+                        "choice": 1,
+                        "quests": [
+                            {
+                                "clue": "symbole-cerf",
+                                "chain": "atelier-oublie",
+                                "manner": null,
+                                "outcome": null,
+                                "version": 1,
+                                "chosenAt": null,
+                                "linkedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "startedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "resolvedAt": null
+                            }
+                        ],
+                        "outcome": "serment_restitue",
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": {
+                            "id": "veilleur",
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "attempts": 1,
+                            "preparedAt": "2026-11-17T21:17:04.321037+00:00",
+                            "resolvedAt": "2026-11-17T22:17:04.321037+00:00"
+                        },
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 1,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-11-17T20:57:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-11-17T21:07:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-11-17T21:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": "2026-11-17T22:17:04.321037+00:00",
+                        "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                        "consequence": {
+                            "id": "veilleur-retour",
+                            "visits": 0,
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "discoveredAt": "2026-11-17T23:17:04.321037+00:00"
+                        },
+                        "guardianLegacy": false
+                    },
+                    {
+                        "arc": "aube-arc1",
+                        "run": 2,
+                        "clue": null,
+                        "kind": "replay",
+                        "ready": null,
+                        "route": null,
+                        "rules": 1,
+                        "state": "choose",
+                        "steps": [
+                            {
+                                "at": null,
+                                "kind": "scene",
+                                "ready": false,
+                                "daysTarget": 1,
+                                "effortTarget": 15
+                            },
+                            {
+                                "at": null,
+                                "kind": "clue",
+                                "ready": false,
+                                "daysTarget": 2,
+                                "effortTarget": 30
+                            },
+                            {
+                                "at": null,
+                                "kind": "observe",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 45
+                            },
+                            {
+                                "at": null,
+                                "kind": "prepare",
+                                "ready": true,
+                                "daysTarget": null,
+                                "effortTarget": null
+                            },
+                            {
+                                "at": null,
+                                "kind": "resolve",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 60
+                            }
+                        ],
+                        "outcome": null,
+                        "version": 1,
+                        "chosenAt": null,
+                        "mechanic": null,
+                        "daysSince": 0,
+                        "startedAt": "2026-11-23T08:17:04.609559+00:00",
+                        "resolvedAt": null,
+                        "abandonedAt": null,
+                        "effortSince": 0
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 2,
+                "activeRun": 2,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": false,
+                        "route": "corniche",
+                        "scene": false,
+                        "outcome": false
+                    },
+                    {
+                        "clue": true,
+                        "route": "ruines",
+                        "scene": true,
+                        "outcome": true
+                    }
+                ],
+                "replayable": false,
+                "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                "activeOutcome": {
+                    "at": "2026-11-17T22:17:04.321037+00:00",
+                    "run": 1,
+                    "route": "ruines",
+                    "outcome": "serment_restitue"
+                }
+            }
+        ],
+        "owner": "a5fc4cf3-ac7e-4798-9154-1cdc38531984",
+        "rules": 1,
+        "contract": 1
+    },
+    "legacy": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": null,
+                        "kind": "legacy",
+                        "route": null,
+                        "state": "completed",
+                        "choice": 1,
+                        "quests": [
+                        ],
+                        "outcome": null,
+                        "version": null,
+                        "chosenAt": null,
+                        "guardian": null,
+                        "enteredAt": null,
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-10-26T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-10-27T08:17:04.321037+00:00",
+                                "choice": 1,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-10-28T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-10-29T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-10-30T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-10-31T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": null,
+                        "completedAt": "2026-10-31T08:17:04.321037+00:00",
+                        "consequence": null,
+                        "guardianLegacy": false
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 1,
+                "activeRun": null,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": null,
+                        "route": "corniche",
+                        "scene": null,
+                        "outcome": false
+                    },
+                    {
+                        "clue": null,
+                        "route": "ruines",
+                        "scene": null,
+                        "outcome": false
+                    }
+                ],
+                "replayable": true,
+                "completedAt": "2026-10-31T08:17:04.321037+00:00",
+                "activeOutcome": null
+            }
+        ],
+        "owner": "843384f1-e7ae-471b-a880-f625039d4090",
+        "rules": 1,
+        "contract": 1
+    },
+    "playing": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": "serment",
+                        "kind": "pilot",
+                        "route": "ruines",
+                        "state": "playing",
+                        "choice": 1,
+                        "quests": [
+                        ],
+                        "outcome": null,
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": null,
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 1,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            }
+                        ],
+                        "resolvedAt": null,
+                        "completedAt": null,
+                        "consequence": null,
+                        "guardianLegacy": false
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 1,
+                "activeRun": null,
+                "completed": false,
+                "discovered": [
+                    {
+                        "clue": false,
+                        "route": "corniche",
+                        "scene": false,
+                        "outcome": false
+                    },
+                    {
+                        "clue": false,
+                        "route": "ruines",
+                        "scene": true,
+                        "outcome": false
+                    }
+                ],
+                "replayable": false,
+                "completedAt": null,
+                "activeOutcome": null
+            }
+        ],
+        "owner": "06039a09-ab27-4cf3-a40c-682de3c861c0",
+        "rules": 1,
+        "contract": 1
+    },
+    "original": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": "serment",
+                        "kind": "pilot",
+                        "route": "ruines",
+                        "state": "completed",
+                        "choice": 1,
+                        "quests": [
+                            {
+                                "clue": "symbole-cerf",
+                                "chain": "atelier-oublie",
+                                "manner": null,
+                                "outcome": null,
+                                "version": 1,
+                                "chosenAt": null,
+                                "linkedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "startedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "resolvedAt": null
+                            }
+                        ],
+                        "outcome": "serment_restitue",
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": {
+                            "id": "veilleur",
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "attempts": 1,
+                            "preparedAt": "2026-11-17T21:17:04.321037+00:00",
+                            "resolvedAt": "2026-11-17T22:17:04.321037+00:00"
+                        },
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 1,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-11-17T20:57:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-11-17T21:07:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-11-17T21:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": "2026-11-17T22:17:04.321037+00:00",
+                        "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                        "consequence": {
+                            "id": "veilleur-retour",
+                            "visits": 0,
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "discoveredAt": "2026-11-17T23:17:04.321037+00:00"
+                        },
+                        "guardianLegacy": false
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 1,
+                "activeRun": null,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": false,
+                        "route": "corniche",
+                        "scene": false,
+                        "outcome": false
+                    },
+                    {
+                        "clue": true,
+                        "route": "ruines",
+                        "scene": true,
+                        "outcome": true
+                    }
+                ],
+                "replayable": true,
+                "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                "activeOutcome": {
+                    "at": "2026-11-17T22:17:04.321037+00:00",
+                    "run": 1,
+                    "route": "ruines",
+                    "outcome": "serment_restitue"
+                }
+            }
+        ],
+        "owner": "a5fc4cf3-ac7e-4798-9154-1cdc38531984",
+        "rules": 1,
+        "contract": 1
+    },
+    "resolved": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": "serment",
+                        "kind": "pilot",
+                        "route": "ruines",
+                        "state": "completed",
+                        "choice": 1,
+                        "quests": [
+                            {
+                                "clue": "symbole-cerf",
+                                "chain": "atelier-oublie",
+                                "manner": null,
+                                "outcome": null,
+                                "version": 1,
+                                "chosenAt": null,
+                                "linkedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "startedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "resolvedAt": null
+                            }
+                        ],
+                        "outcome": "serment_restitue",
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": {
+                            "id": "veilleur",
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "attempts": 1,
+                            "preparedAt": "2026-11-17T21:17:04.321037+00:00",
+                            "resolvedAt": "2026-11-17T22:17:04.321037+00:00"
+                        },
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 1,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-11-17T20:57:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-11-17T21:07:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-11-17T21:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": "2026-11-17T22:17:04.321037+00:00",
+                        "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                        "consequence": {
+                            "id": "veilleur-retour",
+                            "visits": 0,
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "discoveredAt": "2026-11-17T23:17:04.321037+00:00"
+                        },
+                        "guardianLegacy": false
+                    },
+                    {
+                        "arc": "aube-arc1",
+                        "run": 2,
+                        "clue": "prise",
+                        "kind": "replay",
+                        "ready": null,
+                        "route": "corniche",
+                        "rules": 1,
+                        "state": "resolved",
+                        "steps": [
+                            {
+                                "at": "2026-11-23T08:17:04.707533+00:00",
+                                "kind": "scene",
+                                "ready": false,
+                                "daysTarget": 1,
+                                "effortTarget": 15
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.714703+00:00",
+                                "kind": "clue",
+                                "ready": false,
+                                "daysTarget": 2,
+                                "effortTarget": 30
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.721622+00:00",
+                                "kind": "observe",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 45
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.737459+00:00",
+                                "kind": "prepare",
+                                "ready": true,
+                                "daysTarget": null,
+                                "effortTarget": null
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.8402+00:00",
+                                "kind": "resolve",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 60
+                            }
+                        ],
+                        "outcome": "passage_rouvert",
+                        "version": 1,
+                        "chosenAt": "2026-11-18T08:17:04.321037+00:00",
+                        "mechanic": {
+                            "slots": [
+                                {
+                                    "id": "signe",
+                                    "pool": [
+                                        "fissure",
+                                        "gravure",
+                                        "mousse"
+                                    ]
+                                }
+                            ],
+                            "solved": true,
+                            "attempts": 2,
+                            "primitive": "pick",
+                            "firstWrong": null,
+                            "lastAnswer": [
+                                "fissure"
+                            ],
+                            "lastCorrect": true
+                        },
+                        "daysSince": 0,
+                        "startedAt": "2026-11-18T07:17:04.321037+00:00",
+                        "resolvedAt": "2026-11-23T08:17:04.8402+00:00",
+                        "abandonedAt": null,
+                        "effortSince": 0
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 2,
+                "activeRun": null,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": true,
+                        "route": "corniche",
+                        "scene": true,
+                        "outcome": true
+                    },
+                    {
+                        "clue": true,
+                        "route": "ruines",
+                        "scene": true,
+                        "outcome": true
+                    }
+                ],
+                "replayable": true,
+                "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                "activeOutcome": {
+                    "at": "2026-11-17T22:17:04.321037+00:00",
+                    "run": 1,
+                    "route": "ruines",
+                    "outcome": "serment_restitue"
+                }
+            },
+            {
+                "arc": "marees-arc1",
+                "runs": [
+                    {
+                        "arc": "marees-arc1",
+                        "run": 1,
+                        "clue": null,
+                        "kind": "journal",
+                        "route": null,
+                        "state": "playing",
+                        "choice": null,
+                        "quests": [
+                        ],
+                        "outcome": null,
+                        "version": null,
+                        "chosenAt": null,
+                        "guardian": null,
+                        "enteredAt": null,
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                        ],
+                        "resolvedAt": null,
+                        "completedAt": null,
+                        "consequence": null,
+                        "guardianLegacy": false
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "marees",
+                "version": 1,
+                "runCount": 1,
+                "activeRun": null,
+                "completed": false,
+                "discovered": [
+                    {
+                        "clue": false,
+                        "route": "carte",
+                        "scene": false,
+                        "outcome": false
+                    },
+                    {
+                        "clue": false,
+                        "route": "gardienne",
+                        "scene": false,
+                        "outcome": false
+                    }
+                ],
+                "replayable": false,
+                "completedAt": null,
+                "activeOutcome": null
+            }
+        ],
+        "owner": "a5fc4cf3-ac7e-4798-9154-1cdc38531984",
+        "rules": 1,
+        "contract": 1
+    },
+    "abandoned": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": "prise",
+                        "kind": "pilot",
+                        "route": "corniche",
+                        "state": "completed",
+                        "choice": 0,
+                        "quests": [
+                        ],
+                        "outcome": "passage_rouvert",
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": {
+                            "id": "veilleur",
+                            "outcome": "passage_rouvert",
+                            "version": 1,
+                            "attempts": 1,
+                            "preparedAt": "2026-11-17T21:17:04.321037+00:00",
+                            "resolvedAt": "2026-11-17T22:17:04.321037+00:00"
+                        },
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 0,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-11-17T20:57:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-11-17T21:07:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-11-17T21:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": "2026-11-17T22:17:04.321037+00:00",
+                        "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                        "consequence": null,
+                        "guardianLegacy": false
+                    },
+                    {
+                        "arc": "aube-arc1",
+                        "run": 2,
+                        "clue": "serment",
+                        "kind": "replay",
+                        "ready": null,
+                        "route": "ruines",
+                        "rules": 1,
+                        "state": "abandoned",
+                        "steps": [
+                            {
+                                "at": null,
+                                "kind": "scene",
+                                "ready": false,
+                                "daysTarget": 1,
+                                "effortTarget": 15
+                            },
+                            {
+                                "at": null,
+                                "kind": "clue",
+                                "ready": false,
+                                "daysTarget": 2,
+                                "effortTarget": 30
+                            },
+                            {
+                                "at": null,
+                                "kind": "observe",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 45
+                            },
+                            {
+                                "at": null,
+                                "kind": "prepare",
+                                "ready": true,
+                                "daysTarget": null,
+                                "effortTarget": null
+                            },
+                            {
+                                "at": null,
+                                "kind": "resolve",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 60
+                            }
+                        ],
+                        "outcome": null,
+                        "version": 1,
+                        "chosenAt": "2026-11-23T08:17:04.894984+00:00",
+                        "mechanic": {
+                            "slots": [
+                                {
+                                    "id": "signe",
+                                    "pool": [
+                                        "fissure",
+                                        "gravure",
+                                        "mousse"
+                                    ]
+                                }
+                            ],
+                            "solved": false,
+                            "attempts": 0,
+                            "primitive": "pick",
+                            "firstWrong": null,
+                            "lastAnswer": null,
+                            "lastCorrect": null
+                        },
+                        "daysSince": 0,
+                        "startedAt": "2026-11-23T08:17:04.892687+00:00",
+                        "resolvedAt": null,
+                        "abandonedAt": "2026-11-23T08:17:04.897938+00:00",
+                        "effortSince": 0
+                    },
+                    {
+                        "arc": "aube-arc1",
+                        "run": 3,
+                        "clue": null,
+                        "kind": "replay",
+                        "ready": null,
+                        "route": null,
+                        "rules": 1,
+                        "state": "choose",
+                        "steps": [
+                            {
+                                "at": null,
+                                "kind": "scene",
+                                "ready": false,
+                                "daysTarget": 1,
+                                "effortTarget": 15
+                            },
+                            {
+                                "at": null,
+                                "kind": "clue",
+                                "ready": false,
+                                "daysTarget": 2,
+                                "effortTarget": 30
+                            },
+                            {
+                                "at": null,
+                                "kind": "observe",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 45
+                            },
+                            {
+                                "at": null,
+                                "kind": "prepare",
+                                "ready": true,
+                                "daysTarget": null,
+                                "effortTarget": null
+                            },
+                            {
+                                "at": null,
+                                "kind": "resolve",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 60
+                            }
+                        ],
+                        "outcome": null,
+                        "version": 1,
+                        "chosenAt": null,
+                        "mechanic": null,
+                        "daysSince": 0,
+                        "startedAt": "2026-11-23T08:17:04.902751+00:00",
+                        "resolvedAt": null,
+                        "abandonedAt": null,
+                        "effortSince": 0
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 3,
+                "activeRun": 3,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": true,
+                        "route": "corniche",
+                        "scene": true,
+                        "outcome": true
+                    },
+                    {
+                        "clue": false,
+                        "route": "ruines",
+                        "scene": false,
+                        "outcome": false
+                    }
+                ],
+                "replayable": false,
+                "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                "activeOutcome": {
+                    "at": "2026-11-17T22:17:04.321037+00:00",
+                    "run": 1,
+                    "route": "corniche",
+                    "outcome": "passage_rouvert"
+                }
+            }
+        ],
+        "owner": "7f482913-da6a-417f-88a8-621d592a25d2",
+        "rules": 1,
+        "contract": 1
+    },
+    "scene-ready": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": "serment",
+                        "kind": "pilot",
+                        "route": "ruines",
+                        "state": "completed",
+                        "choice": 1,
+                        "quests": [
+                            {
+                                "clue": "symbole-cerf",
+                                "chain": "atelier-oublie",
+                                "manner": null,
+                                "outcome": null,
+                                "version": 1,
+                                "chosenAt": null,
+                                "linkedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "startedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "resolvedAt": null
+                            }
+                        ],
+                        "outcome": "serment_restitue",
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": {
+                            "id": "veilleur",
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "attempts": 1,
+                            "preparedAt": "2026-11-17T21:17:04.321037+00:00",
+                            "resolvedAt": "2026-11-17T22:17:04.321037+00:00"
+                        },
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 1,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-11-17T20:57:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-11-17T21:07:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-11-17T21:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": "2026-11-17T22:17:04.321037+00:00",
+                        "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                        "consequence": {
+                            "id": "veilleur-retour",
+                            "visits": 0,
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "discoveredAt": "2026-11-17T23:17:04.321037+00:00"
+                        },
+                        "guardianLegacy": false
+                    },
+                    {
+                        "arc": "aube-arc1",
+                        "run": 2,
+                        "clue": "prise",
+                        "kind": "replay",
+                        "ready": true,
+                        "route": "corniche",
+                        "rules": 1,
+                        "state": "scene",
+                        "steps": [
+                            {
+                                "at": null,
+                                "kind": "scene",
+                                "ready": true,
+                                "daysTarget": 1,
+                                "effortTarget": 15
+                            },
+                            {
+                                "at": null,
+                                "kind": "clue",
+                                "ready": true,
+                                "daysTarget": 2,
+                                "effortTarget": 30
+                            },
+                            {
+                                "at": null,
+                                "kind": "observe",
+                                "ready": true,
+                                "daysTarget": 3,
+                                "effortTarget": 45
+                            },
+                            {
+                                "at": null,
+                                "kind": "prepare",
+                                "ready": true,
+                                "daysTarget": null,
+                                "effortTarget": null
+                            },
+                            {
+                                "at": null,
+                                "kind": "resolve",
+                                "ready": true,
+                                "daysTarget": 3,
+                                "effortTarget": 60
+                            }
+                        ],
+                        "outcome": null,
+                        "version": 1,
+                        "chosenAt": "2026-11-18T08:17:04.321037+00:00",
+                        "mechanic": {
+                            "slots": [
+                                {
+                                    "id": "signe",
+                                    "pool": [
+                                        "fissure",
+                                        "gravure",
+                                        "mousse"
+                                    ]
+                                }
+                            ],
+                            "solved": false,
+                            "attempts": 0,
+                            "primitive": "pick",
+                            "firstWrong": null,
+                            "lastAnswer": null,
+                            "lastCorrect": null
+                        },
+                        "daysSince": 4,
+                        "startedAt": "2026-11-18T07:17:04.321037+00:00",
+                        "resolvedAt": null,
+                        "abandonedAt": null,
+                        "effortSince": 80
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 2,
+                "activeRun": 2,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": false,
+                        "route": "corniche",
+                        "scene": false,
+                        "outcome": false
+                    },
+                    {
+                        "clue": true,
+                        "route": "ruines",
+                        "scene": true,
+                        "outcome": true
+                    }
+                ],
+                "replayable": false,
+                "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                "activeOutcome": {
+                    "at": "2026-11-17T22:17:04.321037+00:00",
+                    "run": 1,
+                    "route": "ruines",
+                    "outcome": "serment_restitue"
+                }
+            },
+            {
+                "arc": "marees-arc1",
+                "runs": [
+                    {
+                        "arc": "marees-arc1",
+                        "run": 1,
+                        "clue": null,
+                        "kind": "journal",
+                        "route": null,
+                        "state": "playing",
+                        "choice": null,
+                        "quests": [
+                        ],
+                        "outcome": null,
+                        "version": null,
+                        "chosenAt": null,
+                        "guardian": null,
+                        "enteredAt": null,
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                        ],
+                        "resolvedAt": null,
+                        "completedAt": null,
+                        "consequence": null,
+                        "guardianLegacy": false
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "marees",
+                "version": 1,
+                "runCount": 1,
+                "activeRun": null,
+                "completed": false,
+                "discovered": [
+                    {
+                        "clue": false,
+                        "route": "carte",
+                        "scene": false,
+                        "outcome": false
+                    },
+                    {
+                        "clue": false,
+                        "route": "gardienne",
+                        "scene": false,
+                        "outcome": false
+                    }
+                ],
+                "replayable": false,
+                "completedAt": null,
+                "activeOutcome": null
+            }
+        ],
+        "owner": "a5fc4cf3-ac7e-4798-9154-1cdc38531984",
+        "rules": 1,
+        "contract": 1
+    },
+    "prepare-wrong": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": "serment",
+                        "kind": "pilot",
+                        "route": "ruines",
+                        "state": "completed",
+                        "choice": 1,
+                        "quests": [
+                            {
+                                "clue": "symbole-cerf",
+                                "chain": "atelier-oublie",
+                                "manner": null,
+                                "outcome": null,
+                                "version": 1,
+                                "chosenAt": null,
+                                "linkedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "startedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "resolvedAt": null
+                            }
+                        ],
+                        "outcome": "serment_restitue",
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": {
+                            "id": "veilleur",
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "attempts": 1,
+                            "preparedAt": "2026-11-17T21:17:04.321037+00:00",
+                            "resolvedAt": "2026-11-17T22:17:04.321037+00:00"
+                        },
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 1,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-11-17T20:57:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-11-17T21:07:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-11-17T21:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": "2026-11-17T22:17:04.321037+00:00",
+                        "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                        "consequence": {
+                            "id": "veilleur-retour",
+                            "visits": 0,
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "discoveredAt": "2026-11-17T23:17:04.321037+00:00"
+                        },
+                        "guardianLegacy": false
+                    },
+                    {
+                        "arc": "aube-arc1",
+                        "run": 2,
+                        "clue": "prise",
+                        "kind": "replay",
+                        "ready": true,
+                        "route": "corniche",
+                        "rules": 1,
+                        "state": "prepare",
+                        "steps": [
+                            {
+                                "at": "2026-11-23T08:17:04.707533+00:00",
+                                "kind": "scene",
+                                "ready": true,
+                                "daysTarget": 1,
+                                "effortTarget": 15
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.714703+00:00",
+                                "kind": "clue",
+                                "ready": true,
+                                "daysTarget": 2,
+                                "effortTarget": 30
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.721622+00:00",
+                                "kind": "observe",
+                                "ready": true,
+                                "daysTarget": 3,
+                                "effortTarget": 45
+                            },
+                            {
+                                "at": null,
+                                "kind": "prepare",
+                                "ready": true,
+                                "daysTarget": null,
+                                "effortTarget": null
+                            },
+                            {
+                                "at": null,
+                                "kind": "resolve",
+                                "ready": true,
+                                "daysTarget": 3,
+                                "effortTarget": 60
+                            }
+                        ],
+                        "outcome": null,
+                        "version": 1,
+                        "chosenAt": "2026-11-18T08:17:04.321037+00:00",
+                        "mechanic": {
+                            "slots": [
+                                {
+                                    "id": "signe",
+                                    "pool": [
+                                        "fissure",
+                                        "gravure",
+                                        "mousse"
+                                    ]
+                                }
+                            ],
+                            "solved": false,
+                            "attempts": 1,
+                            "primitive": "pick",
+                            "firstWrong": 1,
+                            "lastAnswer": [
+                                "gravure"
+                            ],
+                            "lastCorrect": false
+                        },
+                        "daysSince": 4,
+                        "startedAt": "2026-11-18T07:17:04.321037+00:00",
+                        "resolvedAt": null,
+                        "abandonedAt": null,
+                        "effortSince": 80
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 2,
+                "activeRun": 2,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": true,
+                        "route": "corniche",
+                        "scene": true,
+                        "outcome": false
+                    },
+                    {
+                        "clue": true,
+                        "route": "ruines",
+                        "scene": true,
+                        "outcome": true
+                    }
+                ],
+                "replayable": false,
+                "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                "activeOutcome": {
+                    "at": "2026-11-17T22:17:04.321037+00:00",
+                    "run": 1,
+                    "route": "ruines",
+                    "outcome": "serment_restitue"
+                }
+            },
+            {
+                "arc": "marees-arc1",
+                "runs": [
+                    {
+                        "arc": "marees-arc1",
+                        "run": 1,
+                        "clue": null,
+                        "kind": "journal",
+                        "route": null,
+                        "state": "playing",
+                        "choice": null,
+                        "quests": [
+                        ],
+                        "outcome": null,
+                        "version": null,
+                        "chosenAt": null,
+                        "guardian": null,
+                        "enteredAt": null,
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                        ],
+                        "resolvedAt": null,
+                        "completedAt": null,
+                        "consequence": null,
+                        "guardianLegacy": false
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "marees",
+                "version": 1,
+                "runCount": 1,
+                "activeRun": null,
+                "completed": false,
+                "discovered": [
+                    {
+                        "clue": false,
+                        "route": "carte",
+                        "scene": false,
+                        "outcome": false
+                    },
+                    {
+                        "clue": false,
+                        "route": "gardienne",
+                        "scene": false,
+                        "outcome": false
+                    }
+                ],
+                "replayable": false,
+                "completedAt": null,
+                "activeOutcome": null
+            }
+        ],
+        "owner": "a5fc4cf3-ac7e-4798-9154-1cdc38531984",
+        "rules": 1,
+        "contract": 1
+    },
+    "resolve-ready": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": "serment",
+                        "kind": "pilot",
+                        "route": "ruines",
+                        "state": "completed",
+                        "choice": 1,
+                        "quests": [
+                            {
+                                "clue": "symbole-cerf",
+                                "chain": "atelier-oublie",
+                                "manner": null,
+                                "outcome": null,
+                                "version": 1,
+                                "chosenAt": null,
+                                "linkedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "startedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "resolvedAt": null
+                            }
+                        ],
+                        "outcome": "serment_restitue",
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": {
+                            "id": "veilleur",
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "attempts": 1,
+                            "preparedAt": "2026-11-17T21:17:04.321037+00:00",
+                            "resolvedAt": "2026-11-17T22:17:04.321037+00:00"
+                        },
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 1,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-11-17T20:57:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-11-17T21:07:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-11-17T21:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": "2026-11-17T22:17:04.321037+00:00",
+                        "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                        "consequence": {
+                            "id": "veilleur-retour",
+                            "visits": 0,
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "discoveredAt": "2026-11-17T23:17:04.321037+00:00"
+                        },
+                        "guardianLegacy": false
+                    },
+                    {
+                        "arc": "aube-arc1",
+                        "run": 2,
+                        "clue": "prise",
+                        "kind": "replay",
+                        "ready": true,
+                        "route": "corniche",
+                        "rules": 1,
+                        "state": "resolve",
+                        "steps": [
+                            {
+                                "at": "2026-11-23T08:17:04.707533+00:00",
+                                "kind": "scene",
+                                "ready": true,
+                                "daysTarget": 1,
+                                "effortTarget": 15
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.714703+00:00",
+                                "kind": "clue",
+                                "ready": true,
+                                "daysTarget": 2,
+                                "effortTarget": 30
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.721622+00:00",
+                                "kind": "observe",
+                                "ready": true,
+                                "daysTarget": 3,
+                                "effortTarget": 45
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.737459+00:00",
+                                "kind": "prepare",
+                                "ready": true,
+                                "daysTarget": null,
+                                "effortTarget": null
+                            },
+                            {
+                                "at": null,
+                                "kind": "resolve",
+                                "ready": true,
+                                "daysTarget": 3,
+                                "effortTarget": 60
+                            }
+                        ],
+                        "outcome": null,
+                        "version": 1,
+                        "chosenAt": "2026-11-18T08:17:04.321037+00:00",
+                        "mechanic": {
+                            "slots": [
+                                {
+                                    "id": "signe",
+                                    "pool": [
+                                        "fissure",
+                                        "gravure",
+                                        "mousse"
+                                    ]
+                                }
+                            ],
+                            "solved": true,
+                            "attempts": 2,
+                            "primitive": "pick",
+                            "firstWrong": null,
+                            "lastAnswer": [
+                                "fissure"
+                            ],
+                            "lastCorrect": true
+                        },
+                        "daysSince": 4,
+                        "startedAt": "2026-11-18T07:17:04.321037+00:00",
+                        "resolvedAt": null,
+                        "abandonedAt": null,
+                        "effortSince": 80
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 2,
+                "activeRun": 2,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": true,
+                        "route": "corniche",
+                        "scene": true,
+                        "outcome": false
+                    },
+                    {
+                        "clue": true,
+                        "route": "ruines",
+                        "scene": true,
+                        "outcome": true
+                    }
+                ],
+                "replayable": false,
+                "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                "activeOutcome": {
+                    "at": "2026-11-17T22:17:04.321037+00:00",
+                    "run": 1,
+                    "route": "ruines",
+                    "outcome": "serment_restitue"
+                }
+            },
+            {
+                "arc": "marees-arc1",
+                "runs": [
+                    {
+                        "arc": "marees-arc1",
+                        "run": 1,
+                        "clue": null,
+                        "kind": "journal",
+                        "route": null,
+                        "state": "playing",
+                        "choice": null,
+                        "quests": [
+                        ],
+                        "outcome": null,
+                        "version": null,
+                        "chosenAt": null,
+                        "guardian": null,
+                        "enteredAt": null,
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                        ],
+                        "resolvedAt": null,
+                        "completedAt": null,
+                        "consequence": null,
+                        "guardianLegacy": false
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "marees",
+                "version": 1,
+                "runCount": 1,
+                "activeRun": null,
+                "completed": false,
+                "discovered": [
+                    {
+                        "clue": false,
+                        "route": "carte",
+                        "scene": false,
+                        "outcome": false
+                    },
+                    {
+                        "clue": false,
+                        "route": "gardienne",
+                        "scene": false,
+                        "outcome": false
+                    }
+                ],
+                "replayable": false,
+                "completedAt": null,
+                "activeOutcome": null
+            }
+        ],
+        "owner": "a5fc4cf3-ac7e-4798-9154-1cdc38531984",
+        "rules": 1,
+        "contract": 1
+    },
+    "scene-waiting": {
+        "arcs": [
+            {
+                "arc": "aube-arc1",
+                "runs": [
+                    {
+                        "arc": "aube-arc1",
+                        "run": 1,
+                        "clue": "serment",
+                        "kind": "pilot",
+                        "route": "ruines",
+                        "state": "completed",
+                        "choice": 1,
+                        "quests": [
+                            {
+                                "clue": "symbole-cerf",
+                                "chain": "atelier-oublie",
+                                "manner": null,
+                                "outcome": null,
+                                "version": 1,
+                                "chosenAt": null,
+                                "linkedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "startedAt": "2026-11-18T00:17:04.321037+00:00",
+                                "resolvedAt": null
+                            }
+                        ],
+                        "outcome": "serment_restitue",
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": {
+                            "id": "veilleur",
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "attempts": 1,
+                            "preparedAt": "2026-11-17T21:17:04.321037+00:00",
+                            "resolvedAt": "2026-11-17T22:17:04.321037+00:00"
+                        },
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 1,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-11-17T20:57:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-11-17T21:07:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-11-17T21:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": "2026-11-17T22:17:04.321037+00:00",
+                        "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                        "consequence": {
+                            "id": "veilleur-retour",
+                            "visits": 0,
+                            "outcome": "serment_restitue",
+                            "version": 1,
+                            "discoveredAt": "2026-11-17T23:17:04.321037+00:00"
+                        },
+                        "guardianLegacy": false
+                    },
+                    {
+                        "arc": "aube-arc1",
+                        "run": 2,
+                        "clue": "prise",
+                        "kind": "replay",
+                        "ready": false,
+                        "route": "corniche",
+                        "rules": 1,
+                        "state": "scene",
+                        "steps": [
+                            {
+                                "at": null,
+                                "kind": "scene",
+                                "ready": false,
+                                "daysTarget": 1,
+                                "effortTarget": 15
+                            },
+                            {
+                                "at": null,
+                                "kind": "clue",
+                                "ready": false,
+                                "daysTarget": 2,
+                                "effortTarget": 30
+                            },
+                            {
+                                "at": null,
+                                "kind": "observe",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 45
+                            },
+                            {
+                                "at": null,
+                                "kind": "prepare",
+                                "ready": true,
+                                "daysTarget": null,
+                                "effortTarget": null
+                            },
+                            {
+                                "at": null,
+                                "kind": "resolve",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 60
+                            }
+                        ],
+                        "outcome": null,
+                        "version": 1,
+                        "chosenAt": "2026-11-23T08:17:04.621668+00:00",
+                        "mechanic": {
+                            "slots": [
+                                {
+                                    "id": "signe",
+                                    "pool": [
+                                        "fissure",
+                                        "gravure",
+                                        "mousse"
+                                    ]
+                                }
+                            ],
+                            "solved": false,
+                            "attempts": 0,
+                            "primitive": "pick",
+                            "firstWrong": null,
+                            "lastAnswer": null,
+                            "lastCorrect": null
+                        },
+                        "daysSince": 0,
+                        "startedAt": "2026-11-23T08:17:04.609559+00:00",
+                        "resolvedAt": null,
+                        "abandonedAt": null,
+                        "effortSince": 0
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "aube",
+                "version": 1,
+                "runCount": 2,
+                "activeRun": 2,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": false,
+                        "route": "corniche",
+                        "scene": false,
+                        "outcome": false
+                    },
+                    {
+                        "clue": true,
+                        "route": "ruines",
+                        "scene": true,
+                        "outcome": true
+                    }
+                ],
+                "replayable": false,
+                "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                "activeOutcome": {
+                    "at": "2026-11-17T22:17:04.321037+00:00",
+                    "run": 1,
+                    "route": "ruines",
+                    "outcome": "serment_restitue"
+                }
+            }
+        ],
+        "owner": "a5fc4cf3-ac7e-4798-9154-1cdc38531984",
+        "rules": 1,
+        "contract": 1
+    },
+    "resolved-marees": {
+        "arcs": [
+            {
+                "arc": "marees-arc1",
+                "runs": [
+                    {
+                        "arc": "marees-arc1",
+                        "run": 1,
+                        "clue": "releve",
+                        "kind": "pilot",
+                        "route": "carte",
+                        "state": "completed",
+                        "choice": 0,
+                        "quests": [
+                        ],
+                        "outcome": "chenal_ouvert",
+                        "version": 1,
+                        "chosenAt": "2026-11-08T08:17:04.321037+00:00",
+                        "guardian": {
+                            "id": "gardienne",
+                            "outcome": "chenal_ouvert",
+                            "version": 1,
+                            "attempts": 1,
+                            "preparedAt": "2026-11-17T21:17:04.321037+00:00",
+                            "resolvedAt": "2026-11-17T22:17:04.321037+00:00"
+                        },
+                        "enteredAt": "2026-11-07T08:17:04.321037+00:00",
+                        "startedAt": "2026-10-24T08:17:04.321037+00:00",
+                        "milestones": [
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 1
+                            },
+                            {
+                                "at": "2026-11-08T08:17:04.321037+00:00",
+                                "choice": 0,
+                                "ordinal": 2
+                            },
+                            {
+                                "at": "2026-11-17T20:47:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 3
+                            },
+                            {
+                                "at": "2026-11-17T20:57:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 4
+                            },
+                            {
+                                "at": "2026-11-17T21:07:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 5
+                            },
+                            {
+                                "at": "2026-11-17T21:17:04.321037+00:00",
+                                "choice": null,
+                                "ordinal": 6
+                            }
+                        ],
+                        "resolvedAt": "2026-11-17T22:17:04.321037+00:00",
+                        "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                        "consequence": null,
+                        "guardianLegacy": false
+                    },
+                    {
+                        "arc": "marees-arc1",
+                        "run": 2,
+                        "clue": "chant",
+                        "kind": "replay",
+                        "ready": null,
+                        "route": "gardienne",
+                        "rules": 1,
+                        "state": "resolved",
+                        "steps": [
+                            {
+                                "at": "2026-11-23T08:17:04.756987+00:00",
+                                "kind": "scene",
+                                "ready": false,
+                                "daysTarget": 1,
+                                "effortTarget": 15
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.769671+00:00",
+                                "kind": "clue",
+                                "ready": false,
+                                "daysTarget": 2,
+                                "effortTarget": 30
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.782216+00:00",
+                                "kind": "observe",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 45
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.810541+00:00",
+                                "kind": "prepare",
+                                "ready": true,
+                                "daysTarget": null,
+                                "effortTarget": null
+                            },
+                            {
+                                "at": "2026-11-23T08:17:04.856057+00:00",
+                                "kind": "resolve",
+                                "ready": false,
+                                "daysTarget": 3,
+                                "effortTarget": 60
+                            }
+                        ],
+                        "outcome": "large_franchi",
+                        "version": 1,
+                        "chosenAt": "2026-11-18T08:17:04.321037+00:00",
+                        "mechanic": {
+                            "slots": [
+                                {
+                                    "id": "nord",
+                                    "pool": [
+                                        "est",
+                                        "ouest",
+                                        "calme"
+                                    ]
+                                },
+                                {
+                                    "id": "sud",
+                                    "pool": [
+                                        "est",
+                                        "ouest",
+                                        "calme"
+                                    ]
+                                },
+                                {
+                                    "id": "passage",
+                                    "pool": [
+                                        "chenal",
+                                        "recifs",
+                                        "large"
+                                    ]
+                                }
+                            ],
+                            "solved": true,
+                            "attempts": 2,
+                            "primitive": "chart",
+                            "firstWrong": null,
+                            "lastAnswer": [
+                                "calme",
+                                "est",
+                                "large"
+                            ],
+                            "lastCorrect": true
+                        },
+                        "daysSince": 0,
+                        "startedAt": "2026-11-18T07:17:04.321037+00:00",
+                        "resolvedAt": "2026-11-23T08:17:04.856057+00:00",
+                        "abandonedAt": null,
+                        "effortSince": 0
+                    }
+                ],
+                "reads": 0,
+                "rules": 1,
+                "world": "marees",
+                "version": 1,
+                "runCount": 2,
+                "activeRun": null,
+                "completed": true,
+                "discovered": [
+                    {
+                        "clue": true,
+                        "route": "carte",
+                        "scene": true,
+                        "outcome": true
+                    },
+                    {
+                        "clue": true,
+                        "route": "gardienne",
+                        "scene": true,
+                        "outcome": true
+                    }
+                ],
+                "replayable": true,
+                "completedAt": "2026-11-17T21:17:04.321037+00:00",
+                "activeOutcome": {
+                    "at": "2026-11-17T22:17:04.321037+00:00",
+                    "run": 1,
+                    "route": "carte",
+                    "outcome": "chenal_ouvert"
+                }
+            }
+        ],
+        "owner": "9b7f7506-2add-4d69-a329-2351f13b58bc",
+        "rules": 1,
+        "contract": 1
+    }
+}

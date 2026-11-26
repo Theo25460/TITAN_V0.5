@@ -1,0 +1,458 @@
+-- V1.5.5 — Chroniques et aventures rejouables. A personal chronology of the first arc of each world (decisions, clues, outcomes,
+-- read from the facts the server already holds) and a new, versioned playthrough of a first arc already achieved, kept beside the
+-- first one. Additive and idempotent. NEVER changes XP, credits, active days, campaign objectives, beacons, rewards, the v300
+-- effort, the effort ledger attribution, the LIVE economy, nor any contract of V1.5.0 to V1.5.4 (aube-arc1, veilleur,
+-- veilleur-retour, marees-arc1, forge-arc1, aurores-arc1, atelier-oublie, feux-cote, all v1), which are only read.
+--
+-- Run 1 is the original playthrough. It is NOT copied: it is read on demand from the encounter rewards (ordinals 1 to 6), the
+-- V1.5.0 entry, the V1.5.1/V1.5.3 guardian encounter, the V1.5.2 access and the V1.5.4 chains whose clue comes from this world.
+-- Its outcome stays the one active in the world: the access of the Camp, the clues of the notebook and the campaign rewards keep
+-- following it. A campaign that passed the choice before V1.5.0 is shown as it was played ("legacy", v1 journal); a journey that
+-- never entered the arc is shown as a v1 journal too.
+--
+-- Runs 2 and more are new playthroughs of an arc whose mini-boss (ordinal 6) is earned, legacy campaigns included. One active
+-- run per account and arc (a partial unique index and the per-account profile lock): a second or simultaneous start returns
+-- the run already active. A run keeps the arc version and the replay rules it started with.
+--   choose    one route of the arc version, definitive for this run (either route: the one already played or the other one)
+--   scene     1 x the journey's frozen target, 1 active day     \
+--   clue      2 x target, 2 active days                          |  effort and distinct active days of the existing ledger of
+--   observe   3 x target, 3 active days                          |  THIS world, from sessions both created and dated at or after
+--   prepare   the world's mechanic (V1.5.3 primitive), no effort |  the run's choice (same eligibility filters as V1.5.0). The
+--   resolve   4 x target, 3 active days                         /   same effort as the original arc after its decision.
+--   abandon   the active run is closed; it stays readable, a new run can start.
+-- A session dated or created before the run's choice never counts for it. Nothing is earned by a run: no encounter reward, no
+-- family title, no XP, no credit, no beacon, no trigger. The ledger is only read (a sync imports sessions as the engine always
+-- did). The reward of a run is its story, kept in the chronicle.
+--
+-- What is new:
+--   private.adventure_arc_runs                      runs 2..100 of an arc (version, rules, route, step stamps, mechanic attempts,
+--                                                    outcome, abandoned_at). FK to the journey: deleting it removes the runs.
+--   private.adventure_chronicle_events              read / start / resolve / abandon timestamps (2 000 per account at most).
+--   private.titan_adventure_chronicle_config(v)     the replay rules, same JSON as js/core/adventure-chronicles.js (RULES).
+--   private.titan_adventure_chronicle_arc_config(arc,version)   the branch and guardian contracts of one arc version.
+--   private.titan_adventure_chronicle_original(uid,world)       run 1, read from the existing facts.
+--   private.titan_adventure_chronicle_run(uid,run,target)       one replay run, server facts only (never the expected answer).
+--   private.titan_adventure_chronicle_arc(uid,world)            the arc: runs, scenes discovered, outcome active in the world.
+--   public.titan_adventure_chronicles_v1()                      every arc of the caller.
+--   public.titan_adventure_chronicle_action_v1(world,action,run,route,step,answer)
+--                                                    start | choose | advance | solve | resolve | abandon | read | sync.
+--   private.titan_adventure_chronicle_metrics_v1()  per arc: accounts that achieved it, came back to their chronicle, started,
+--                                                    finished, finished another resolution, abandoned. Aggregated, owner only.
+--
+-- Rollback: drop the two public functions; restore private.titan_export_extras_v1 from
+-- titan_export_extras_before_chronicles_v1. The tables can stay (no reader left).
+
+create table if not exists private.adventure_arc_runs (
+  user_id uuid not null,
+  world_id text not null,
+  arc text not null check (arc ~ '^[a-z0-9-]{1,40}$'),
+  run integer not null check (run between 2 and 100),
+  version integer not null check (version between 1 and 1000),
+  rules integer not null check (rules between 1 and 1000),
+  started_at timestamptz not null default clock_timestamp(),
+  route text check (route ~ '^[a-z0-9-]{1,40}$'),
+  chosen_at timestamptz,
+  scene_at timestamptz,
+  clue_at timestamptz,
+  observed_at timestamptz,
+  attempts integer not null default 0 check (attempts between 0 and 1000),
+  last_answer text[] check (last_answer is null or (cardinality(last_answer) between 1 and 12 and array_position(last_answer, null) is null)),
+  prepared_at timestamptz,
+  outcome text check (outcome ~ '^[a-z0-9_]{1,40}$'),
+  resolved_at timestamptz,
+  abandoned_at timestamptz,
+  primary key (user_id, world_id, arc, run),
+  foreign key (user_id, world_id) references private.adventure_journeys(user_id, world_id) on delete cascade,
+  check ((route is null) = (chosen_at is null)),
+  check (scene_at is null or chosen_at is not null),
+  check (clue_at is null or scene_at is not null),
+  check (observed_at is null or clue_at is not null),
+  check (prepared_at is null or observed_at is not null),
+  check ((outcome is null) = (resolved_at is null)),
+  check (outcome is null or prepared_at is not null),
+  check (resolved_at is null or abandoned_at is null)
+);
+-- One active run per account and arc, whatever the device or the timing.
+create unique index if not exists adventure_arc_runs_one_active on private.adventure_arc_runs(user_id, world_id, arc)
+  where resolved_at is null and abandoned_at is null;
+alter table private.adventure_arc_runs enable row level security;
+revoke all on private.adventure_arc_runs from public, anon, authenticated;
+
+create table if not exists private.adventure_chronicle_events (
+  id bigint generated always as identity primary key,
+  user_id uuid not null,
+  world_id text not null,
+  arc text not null check (arc ~ '^[a-z0-9-]{1,40}$'),
+  run integer not null check (run between 1 and 100),
+  kind text not null check (kind in ('read', 'start', 'resolve', 'abandon')),
+  at timestamptz not null default clock_timestamp(),
+  foreign key (user_id, world_id) references private.adventure_journeys(user_id, world_id) on delete cascade
+);
+create index if not exists adventure_chronicle_events_user on private.adventure_chronicle_events(user_id, world_id, arc, at);
+alter table private.adventure_chronicle_events enable row level security;
+revoke all on private.adventure_chronicle_events from public, anon, authenticated;
+
+-- Versioned replay rules. A new version is ADDED here (never edited) and becomes current in titan_adventure_chronicle_current.
+create or replace function private.titan_adventure_chronicle_config(p_version integer)
+returns jsonb language sql immutable security invoker set search_path = '' as $$
+  select case when p_version = 1 then
+    $cfg${"id":"chroniques","version":1,"arcs":["aube-arc1","marees-arc1","forge-arc1","aurores-arc1"],"maxRuns":100,"steps":[{"kind":"scene","effortTargets":1,"daysTarget":1},{"kind":"clue","effortTargets":2,"daysTarget":2},{"kind":"observe","effortTargets":3,"daysTarget":3},{"kind":"prepare"},{"kind":"resolve","effortTargets":4,"daysTarget":3}]}$cfg$::jsonb
+  end;
+$$;
+create or replace function private.titan_adventure_chronicle_current()
+returns integer language sql immutable security invoker set search_path = '' as $$ select 1; $$;
+
+-- The branch (route, clue) and guardian (mechanic, outcome) contracts of one arc version, as V1.5.0 to V1.5.3 declare them.
+create or replace function private.titan_adventure_chronicle_arc_config(p_arc text, p_version integer)
+returns jsonb language sql immutable security invoker set search_path = '' as $$
+  select case when b is not null and g is not null then jsonb_build_object('branch', b, 'guardian', g) end
+    from (select private.titan_adventure_branch_config(p_arc, p_version) b,
+                 private.titan_adventure_guardian_config(case when p_arc = 'aube-arc1' then 'veilleur'
+                   else private.titan_adventure_campaign_config(p_arc, p_version)->'guardian'->>'id' end, p_version) g) x;
+$$;
+revoke all on function private.titan_adventure_chronicle_config(integer), private.titan_adventure_chronicle_current(),
+  private.titan_adventure_chronicle_arc_config(text, integer) from public, anon, authenticated;
+
+-- The route's mechanic as the common primitive: the Vallée's sign is the one-slot "pick", the other worlds their slots.
+create or replace function private.titan_adventure_chronicle_mechanic(p_guardian jsonb, p_route text)
+returns jsonb language sql immutable security invoker set search_path = '' as $$
+  select case
+    when r is null then null
+    when jsonb_array_length(coalesce(p_guardian->'signs', '[]'::jsonb)) > 0 then jsonb_build_object('primitive', 'pick',
+      'slots', jsonb_build_array(jsonb_build_object('id', 'signe', 'pool', p_guardian->'signs')), 'answer', jsonb_build_array(r->'sign'),
+      'outcome', r->'outcome')
+    else jsonb_build_object('primitive', p_guardian->'primitive', 'slots', r->'slots', 'answer', r->'answer', 'outcome', r->'outcome') end
+    from (select (select x from jsonb_array_elements(p_guardian->'routes') x where x->>'route' = p_route) r) y;
+$$;
+revoke all on function private.titan_adventure_chronicle_mechanic(jsonb, text) from public, anon, authenticated;
+
+-- Effort points and distinct active days of THIS world's ledger from sessions created and dated at or after p_since.
+create or replace function private.titan_adventure_chronicle_effort(p_uid uuid, p_world text, p_since timestamptz)
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select jsonb_build_object('effort', coalesce(sum(l.effort), 0), 'days', count(distinct l.day) filter (where l.effort > 0))
+    from private.adventure_effort_ledger l
+    join public.training_logs t on t.id = l.source_id and t.user_id = l.user_id
+   where p_since is not null and l.user_id = p_uid and l.world_id = p_world and t.created_at >= p_since and t.date >= p_since
+     and t.archived_at is null and t.is_suspicious is not true and t.status not in ('rejected', 'flagged', 'pending_review')
+     and t.details->>'serverReward' = 'true' and coalesce(t.details->>'historical', 'false') <> 'true';
+$$;
+revoke all on function private.titan_adventure_chronicle_effort(uuid, text, timestamptz) from public, anon, authenticated;
+
+-- Run 1: the original playthrough, read from the facts V1.5.0 to V1.5.4 wrote. Nothing here is stored again.
+create or replace function private.titan_adventure_chronicle_original(p_uid uuid, p_world text)
+returns jsonb language plpgsql stable security definer set search_path = '' as $$
+declare
+  cur jsonb := private.titan_adventure_branch_current(p_world);
+  j private.adventure_journeys%rowtype; e private.adventure_branch_entries%rowtype;
+  g private.adventure_guardian_encounters%rowtype; c private.adventure_consequences%rowtype;
+  v_choice private.adventure_encounter_rewards%rowtype; v_kind text; v_arc text; v_version integer; v_route jsonb;
+  v_milestones jsonb; v_done timestamptz; v_quests jsonb;
+begin
+  if cur is null then return null; end if;
+  select * into j from private.adventure_journeys where user_id = p_uid and world_id = p_world;
+  if j.user_id is null then return null; end if;
+  v_arc := cur->>'id';
+  select * into e from private.adventure_branch_entries where user_id = p_uid and world_id = p_world and pilot = v_arc;
+  select * into v_choice from private.adventure_encounter_rewards
+   where user_id = p_uid and world_id = p_world and ordinal = (cur->>'choiceOrdinal')::integer;
+  -- pilot: entered the versioned arc; legacy: passed the choice before it existed; journal: v1 journal, arc never entered.
+  v_kind := case when e.user_id is not null then 'pilot' when v_choice.user_id is not null then 'legacy' else 'journal' end;
+  v_version := case when v_kind = 'pilot' then e.version end;
+  if v_kind = 'pilot' and v_choice.user_id is not null then
+    select r into v_route from jsonb_array_elements(private.titan_adventure_branch_config(v_arc, v_version)->'routes') r
+     where (r->>'choice')::integer = v_choice.choice;
+  end if;
+  select coalesce(jsonb_agg(jsonb_build_object('ordinal', r.ordinal, 'choice', r.choice, 'at', r.earned_at) order by r.ordinal), '[]'::jsonb),
+         max(r.earned_at) filter (where r.ordinal = 6)
+    into v_milestones, v_done
+    from private.adventure_encounter_rewards r where r.user_id = p_uid and r.world_id = p_world and r.ordinal between 1 and 6;
+  select * into g from private.adventure_guardian_encounters
+   where user_id = p_uid and world_id = p_world and v_kind = 'pilot' and route = v_route->>'id' order by created_at limit 1;
+  select * into c from private.adventure_consequences where user_id = p_uid and world_id = p_world and g.outcome is not null
+     and outcome = g.outcome order by created_at limit 1;
+  select coalesce(jsonb_agg(jsonb_build_object('chain', q.chain, 'version', q.version, 'clue', q.clue, 'startedAt', q.started_at,
+      'linkedAt', q.linked_at, 'manner', q.manner, 'chosenAt', q.chosen_at, 'outcome', q.outcome, 'resolvedAt', q.resolved_at)
+      order by q.started_at), '[]'::jsonb)
+    into v_quests from private.adventure_quests q where q.user_id = p_uid and q.source_world = p_world;
+  return jsonb_build_object('run', 1, 'kind', v_kind, 'arc', v_arc, 'version', v_version,
+    'state', case when v_done is not null then 'completed' else 'playing' end,
+    'startedAt', j.started_at, 'enteredAt', e.entered_at, 'choice', v_choice.choice, 'route', v_route->>'id',
+    'chosenAt', case when v_kind = 'pilot' then v_choice.earned_at end, 'clue', v_route->>'clue', 'milestones', v_milestones,
+    'completedAt', v_done,
+    'guardian', case when g.user_id is null then null else jsonb_build_object('id', g.guardian, 'version', g.version,
+      'attempts', g.attempts, 'preparedAt', g.prepared_at, 'outcome', g.outcome, 'resolvedAt', g.resolved_at) end,
+    -- The mini-boss was earned before V1.5.1 recorded outcomes: the victory is kept, no outcome is invented.
+    'guardianLegacy', v_kind = 'pilot' and v_done is not null and g.outcome is null,
+    'outcome', g.outcome, 'resolvedAt', g.resolved_at,
+    'consequence', case when c.user_id is null then null else jsonb_build_object('id', c.consequence, 'version', c.version,
+      'outcome', c.outcome, 'discoveredAt', c.discovered_at, 'visits', c.visits) end,
+    'quests', v_quests);
+end $$;
+revoke all on function private.titan_adventure_chronicle_original(uuid, text) from public, anon, authenticated;
+
+-- A replay run, server facts only. The expected answer of the mechanic never leaves the server through this block.
+create or replace function private.titan_adventure_chronicle_run(p_uid uuid, r private.adventure_arc_runs, p_target integer)
+returns jsonb language plpgsql stable security definer set search_path = '' as $$
+declare
+  rules jsonb := private.titan_adventure_chronicle_config(r.rules);
+  v_cfg jsonb := private.titan_adventure_chronicle_arc_config(r.arc, r.version);
+  v_route jsonb; v_mech jsonb; v_check jsonb; v_since jsonb; v_effort numeric := 0; v_days integer := 0;
+  v_steps jsonb; v_current text; v_state text; v_ready boolean;
+begin
+  if rules is null or v_cfg is null then
+    return jsonb_build_object('run', r.run, 'kind', 'replay', 'arc', r.arc, 'version', r.version, 'rules', r.rules, 'state', 'unknown',
+      'startedAt', r.started_at, 'route', r.route, 'outcome', r.outcome, 'resolvedAt', r.resolved_at, 'abandonedAt', r.abandoned_at);
+  end if;
+  if r.route is not null then
+    select x into v_route from jsonb_array_elements(v_cfg->'branch'->'routes') x where x->>'id' = r.route;
+    v_mech := private.titan_adventure_chronicle_mechanic(v_cfg->'guardian', r.route);
+    if r.abandoned_at is null and r.resolved_at is null then
+      v_since := private.titan_adventure_chronicle_effort(p_uid, r.world_id, r.chosen_at);
+      v_effort := (v_since->>'effort')::numeric; v_days := (v_since->>'days')::integer;
+    end if;
+    if r.last_answer is not null then
+      v_check := private.titan_adventure_mechanic_check(v_mech->>'primitive', v_mech, r.last_answer);
+    end if;
+  end if;
+  select jsonb_agg(jsonb_build_object('kind', s->>'kind',
+      'at', case s->>'kind' when 'scene' then r.scene_at when 'clue' then r.clue_at when 'observe' then r.observed_at
+                 when 'prepare' then r.prepared_at when 'resolve' then r.resolved_at end,
+      'effortTarget', (s->>'effortTargets')::integer * p_target, 'daysTarget', (s->>'daysTarget')::integer,
+      'ready', s->>'effortTargets' is null
+        or (v_effort >= (s->>'effortTargets')::integer * p_target and v_days >= (s->>'daysTarget')::integer)) order by n)
+    into v_steps from jsonb_array_elements(rules->'steps') with ordinality x(s, n);
+  select s->>'kind', (s->>'ready')::boolean into v_current, v_ready
+    from jsonb_array_elements(v_steps) with ordinality x(s, n) where s->>'at' is null order by n limit 1;
+  v_state := case
+    when r.abandoned_at is not null then 'abandoned'
+    when r.resolved_at is not null then 'resolved'
+    when r.route is null then 'choose'
+    else v_current end;
+  return jsonb_build_object('run', r.run, 'kind', 'replay', 'arc', r.arc, 'version', r.version, 'rules', r.rules,
+    'state', v_state, 'ready', case when v_state in ('scene', 'clue', 'observe', 'prepare', 'resolve') then v_ready end,
+    'startedAt', r.started_at, 'route', r.route, 'chosenAt', r.chosen_at, 'clue', v_route->>'clue',
+    'effortSince', v_effort, 'daysSince', v_days, 'steps', v_steps,
+    'mechanic', case when v_mech is null then null else jsonb_build_object('primitive', v_mech->>'primitive', 'slots', v_mech->'slots',
+      'attempts', r.attempts, 'lastAnswer', to_jsonb(r.last_answer), 'lastCorrect', v_check->'correct',
+      'firstWrong', v_check->'firstWrong', 'solved', r.prepared_at is not null) end,
+    'outcome', r.outcome, 'resolvedAt', r.resolved_at, 'abandonedAt', r.abandoned_at);
+end $$;
+revoke all on function private.titan_adventure_chronicle_run(uuid, private.adventure_arc_runs, integer) from public, anon, authenticated;
+
+-- One arc of one world: every run, the scenes discovered on each route and the outcome active in the world (run 1).
+create or replace function private.titan_adventure_chronicle_arc(p_uid uuid, p_world text)
+returns jsonb language plpgsql stable security definer set search_path = '' as $$
+declare
+  o jsonb := private.titan_adventure_chronicle_original(p_uid, p_world);
+  cur jsonb; j private.adventure_journeys%rowtype; v_runs jsonb; v_active integer; v_count integer; v_discovered jsonb;
+  v_reads integer; v_known boolean;
+begin
+  if o is null then return null; end if;
+  cur := private.titan_adventure_branch_current(p_world);
+  select * into j from private.adventure_journeys where user_id = p_uid and world_id = p_world;
+  select coalesce(jsonb_agg(private.titan_adventure_chronicle_run(p_uid, r, j.target) order by r.run), '[]'::jsonb),
+         max(r.run) filter (where r.resolved_at is null and r.abandoned_at is null), count(*)
+    into v_runs, v_active, v_count
+    from private.adventure_arc_runs r where r.user_id = p_uid and r.world_id = p_world and r.arc = o->>'arc';
+  -- Scenes discovered on each route of the current arc version, whichever run discovered them.
+  select jsonb_agg(jsonb_build_object('route', rt->>'id',
+      'scene', (o->>'route' = rt->>'id' and o->'milestones' @> '[{"ordinal":3}]')
+               or exists (select 1 from jsonb_array_elements(v_runs) x cross join lateral jsonb_array_elements(coalesce(x->'steps', '[]'::jsonb)) s
+                         where x->>'route' = rt->>'id' and s->>'kind' = 'scene' and s->>'at' is not null),
+      'clue', (o->>'route' = rt->>'id' and o->'milestones' @> '[{"ordinal":4}]')
+               or exists (select 1 from jsonb_array_elements(v_runs) x cross join lateral jsonb_array_elements(coalesce(x->'steps', '[]'::jsonb)) s
+                         where x->>'route' = rt->>'id' and s->>'kind' = 'clue' and s->>'at' is not null),
+      'outcome', (o->>'route' = rt->>'id' and o->>'outcome' is not null)
+               or exists (select 1 from jsonb_array_elements(v_runs) x where x->>'route' = rt->>'id' and x->>'outcome' is not null))
+      order by (rt->>'choice')::integer)
+    into v_discovered from jsonb_array_elements(cur->'routes') rt;
+  select count(*) into v_reads from private.adventure_chronicle_events e
+   where e.user_id = p_uid and e.world_id = p_world and e.arc = o->>'arc' and e.kind = 'read';
+  v_known := private.titan_adventure_chronicle_arc_config(cur->>'id', (cur->>'version')::integer) is not null;
+  return jsonb_build_object('world', p_world, 'arc', o->>'arc', 'version', (cur->>'version')::integer,
+    'rules', private.titan_adventure_chronicle_current(),
+    'completed', o->>'state' = 'completed', 'completedAt', o->'completedAt',
+    'activeOutcome', case when o->>'outcome' is null then null
+      else jsonb_build_object('route', o->>'route', 'outcome', o->>'outcome', 'at', o->'resolvedAt', 'run', 1) end,
+    'discovered', coalesce(v_discovered, '[]'::jsonb), 'activeRun', v_active, 'runCount', v_count + 1, 'reads', v_reads,
+    'replayable', o->>'state' = 'completed' and v_active is null and v_known
+      and v_count + 1 < (private.titan_adventure_chronicle_config(private.titan_adventure_chronicle_current())->>'maxRuns')::integer,
+    'runs', jsonb_build_array(o) || v_runs);
+end $$;
+revoke all on function private.titan_adventure_chronicle_arc(uuid, text) from public, anon, authenticated;
+
+create or replace function public.titan_adventure_chronicles_v1()
+returns jsonb language plpgsql stable security definer set search_path = '' set statement_timeout = '5s' as $$
+declare u uuid := auth.uid();
+begin
+  if u is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if not exists (select 1 from public.profiles where id = u and is_suspended is not true) then
+    raise exception 'ACCOUNT_UNAVAILABLE' using errcode = '42501';
+  end if;
+  return jsonb_build_object('contract', 1, 'owner', u, 'rules', private.titan_adventure_chronicle_current(), 'arcs', coalesce((
+    select jsonb_agg(a order by k) from unnest(array['aube', 'marees', 'forge', 'aurores']) with ordinality w(id, k)
+     cross join lateral private.titan_adventure_chronicle_arc(u, w.id) a where a is not null), '[]'::jsonb));
+end $$;
+revoke all on function public.titan_adventure_chronicles_v1() from public, anon;
+grant execute on function public.titan_adventure_chronicles_v1() to authenticated;
+
+create or replace function public.titan_adventure_chronicle_action_v1(
+  p_world text, p_action text, p_run integer default null, p_route text default null, p_step text default null,
+  p_answer text[] default null)
+returns jsonb language plpgsql security definer set search_path = '' set statement_timeout = '10s' as $$
+declare
+  u uuid := auth.uid(); a jsonb; cur jsonb; v_cfg jsonb; v_run jsonb; r private.adventure_arc_runs%rowtype; v_rules jsonb;
+  v_route jsonb; v_mech jsonb; v_check jsonb; v_next integer;
+begin
+  if u is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  -- Same per-account serialization as every adventure action: two devices starting or answering at once queue here.
+  perform 1 from public.profiles where id = u and is_suspended is not true for update;
+  if not found then raise exception 'ACCOUNT_UNAVAILABLE' using errcode = '42501'; end if;
+  if p_action is null or p_action not in ('start', 'choose', 'advance', 'solve', 'resolve', 'abandon', 'read', 'sync') then
+    raise exception 'INVALID_ACTION';
+  end if;
+  if p_world is null or not exists (select 1 from public.adventure_worlds where id = p_world) then raise exception 'INVALID_WORLD'; end if;
+  if p_action = 'sync' then
+    -- Imports the confirmed sessions exactly as the encounter engine always did (one world per session, daily cap).
+    perform public.titan_adventure_campaign_action_v1(p_world, 'sync');
+    return public.titan_adventure_chronicles_v1();
+  end if;
+  a := private.titan_adventure_chronicle_arc(u, p_world);
+  if a is null then raise exception 'CHRONICLE_UNAVAILABLE'; end if;
+  if p_action = 'read' then
+    -- Measurement only: the player opened a story of their chronicle. Nothing changes in the game.
+    if p_run is null or not exists (select 1 from jsonb_array_elements(a->'runs') x where (x->>'run')::integer = p_run) then
+      raise exception 'INVALID_RUN';
+    end if;
+    insert into private.adventure_chronicle_events(user_id, world_id, arc, run, kind)
+    select u, p_world, a->>'arc', p_run, 'read' where (select count(*) from private.adventure_chronicle_events e where e.user_id = u) < 2000;
+    return public.titan_adventure_chronicles_v1();
+  end if;
+  if p_action = 'start' then
+    -- Stable: a second or simultaneous start finds the active run and changes nothing.
+    if a->>'activeRun' is not null then return public.titan_adventure_chronicles_v1(); end if;
+    if not (a->>'completed')::boolean then raise exception 'ARC_NOT_COMPLETED'; end if;
+    if not (a->>'replayable')::boolean then raise exception 'REPLAY_UNAVAILABLE'; end if;
+    cur := private.titan_adventure_branch_current(p_world);
+    select coalesce(max(run), 1) + 1 into v_next from private.adventure_arc_runs where user_id = u and world_id = p_world and arc = cur->>'id';
+    insert into private.adventure_arc_runs(user_id, world_id, arc, run, version, rules)
+    values (u, p_world, cur->>'id', v_next, (cur->>'version')::integer, private.titan_adventure_chronicle_current())
+    on conflict do nothing;
+    if found then
+      insert into private.adventure_chronicle_events(user_id, world_id, arc, run, kind)
+      select u, p_world, cur->>'id', v_next, 'start' where (select count(*) from private.adventure_chronicle_events e where e.user_id = u) < 2000;
+    end if;
+    return public.titan_adventure_chronicles_v1();
+  end if;
+  -- Every other action works on the active run only; a finished or abandoned run is read, never changed.
+  if a->>'activeRun' is null then
+    -- A second or concurrent resolution or abandon of the run just closed is read back unchanged.
+    select x into v_run from jsonb_array_elements(a->'runs') x order by (x->>'run')::integer desc limit 1;
+    if (p_action = 'resolve' and v_run->>'state' = 'resolved') or (p_action = 'abandon' and v_run->>'state' = 'abandoned') then
+      if p_run is null or p_run = (v_run->>'run')::integer then return public.titan_adventure_chronicles_v1(); end if;
+    end if;
+    raise exception 'REPLAY_NOT_STARTED';
+  end if;
+  if p_run is not null and p_run <> (a->>'activeRun')::integer then raise exception 'REPLAY_NOT_ACTIVE'; end if;
+  select * into r from private.adventure_arc_runs where user_id = u and world_id = p_world and arc = a->>'arc' and run = (a->>'activeRun')::integer;
+  select x into v_run from jsonb_array_elements(a->'runs') x where (x->>'run')::integer = r.run;
+  if v_run->>'state' = 'unknown' then raise exception 'REPLAY_INCOMPATIBLE'; end if;
+  v_cfg := private.titan_adventure_chronicle_arc_config(r.arc, r.version);
+  if p_action = 'abandon' then
+    update private.adventure_arc_runs set abandoned_at = clock_timestamp()
+     where user_id = u and world_id = p_world and arc = r.arc and run = r.run and abandoned_at is null and resolved_at is null;
+    insert into private.adventure_chronicle_events(user_id, world_id, arc, run, kind)
+    select u, p_world, r.arc, r.run, 'abandon' where (select count(*) from private.adventure_chronicle_events e where e.user_id = u) < 2000;
+    return public.titan_adventure_chronicles_v1();
+  end if;
+  if p_action = 'choose' then
+    select x into v_route from jsonb_array_elements(v_cfg->'branch'->'routes') x where x->>'id' = p_route;
+    if v_route is null then raise exception 'INVALID_ROUTE'; end if;
+    -- Definitive for this run: a later or concurrent choice returns the route already recorded (the client shows the conflict).
+    if r.route is not null then return public.titan_adventure_chronicles_v1(); end if;
+    update private.adventure_arc_runs set route = v_route->>'id', chosen_at = clock_timestamp()
+     where user_id = u and world_id = p_world and arc = r.arc and run = r.run and route is null;
+    return public.titan_adventure_chronicles_v1();
+  end if;
+  if r.route is null then raise exception 'REPLAY_NOT_CHOSEN'; end if;
+  if p_action = 'advance' then
+    if p_step is null or p_step not in ('scene', 'clue', 'observe') then raise exception 'INVALID_STEP'; end if;
+    -- Replaying a step already discovered changes nothing; a step ahead of the run is refused.
+    if (select x->>'at' from jsonb_array_elements(v_run->'steps') x where x->>'kind' = p_step) is not null then
+      return public.titan_adventure_chronicles_v1();
+    end if;
+    if v_run->>'state' <> p_step then raise exception 'REPLAY_STEP_ORDER'; end if;
+    if not coalesce((v_run->>'ready')::boolean, false) then raise exception 'ENCOUNTER_INCOMPLETE'; end if;
+    update private.adventure_arc_runs set
+        scene_at = case when p_step = 'scene' then clock_timestamp() else scene_at end,
+        clue_at = case when p_step = 'clue' then clock_timestamp() else clue_at end,
+        observed_at = case when p_step = 'observe' then clock_timestamp() else observed_at end
+     where user_id = u and world_id = p_world and arc = r.arc and run = r.run;
+    return public.titan_adventure_chronicles_v1();
+  end if;
+  v_mech := private.titan_adventure_chronicle_mechanic(v_cfg->'guardian', r.route);
+  if p_action = 'solve' then
+    -- Stable once solved: a later or concurrent answer never undoes it and is not counted.
+    if r.prepared_at is not null then return public.titan_adventure_chronicles_v1(); end if;
+    if v_run->>'state' <> 'prepare' then raise exception 'GUARDIAN_NOT_OBSERVED'; end if;
+    v_check := private.titan_adventure_mechanic_check(v_mech->>'primitive', v_mech, p_answer);
+    if not (v_check->>'valid')::boolean then raise exception 'INVALID_ANSWER'; end if;
+    update private.adventure_arc_runs
+       set attempts = least(1000, attempts + 1), last_answer = p_answer,
+           prepared_at = case when (v_check->>'correct')::boolean then clock_timestamp() end
+     where user_id = u and world_id = p_world and arc = r.arc and run = r.run and prepared_at is null;
+    return public.titan_adventure_chronicles_v1();
+  end if;
+  -- resolve: one outcome per run, the route's outcome of this arc version. Nothing is earned.
+  if v_run->>'state' <> 'resolve' then raise exception 'GUARDIAN_NOT_PREPARED'; end if;
+  if not coalesce((v_run->>'ready')::boolean, false) then raise exception 'ENCOUNTER_INCOMPLETE'; end if;
+  update private.adventure_arc_runs set outcome = v_mech->>'outcome', resolved_at = clock_timestamp()
+   where user_id = u and world_id = p_world and arc = r.arc and run = r.run and outcome is null and prepared_at is not null;
+  insert into private.adventure_chronicle_events(user_id, world_id, arc, run, kind)
+  select u, p_world, r.arc, r.run, 'resolve' where (select count(*) from private.adventure_chronicle_events e where e.user_id = u) < 2000;
+  return public.titan_adventure_chronicles_v1();
+end $$;
+revoke all on function public.titan_adventure_chronicle_action_v1(text, text, integer, text, text, text[]) from public, anon;
+grant execute on function public.titan_adventure_chronicle_action_v1(text, text, integer, text, text, text[]) to authenticated;
+
+-- Measurement, per arc: accounts that achieved it, came back to read their chronicle on a later day, started a new run,
+-- finished one, finished one with another resolution than the outcome active in the world, abandoned one. Counts only.
+create or replace function private.titan_adventure_chronicle_metrics_v1()
+returns table(arc text, completed_accounts bigint, returning_readers bigint, replay_started bigint, replay_resolved bigint,
+  other_resolution bigint, replay_abandoned bigint)
+language sql stable security definer set search_path = '' as $$
+  with arcs as (
+    select x.id as arc, x.n, w.world
+      from jsonb_array_elements_text(private.titan_adventure_chronicle_config(private.titan_adventure_chronicle_current())->'arcs') with ordinality x(id, n)
+     cross join lateral (select private.titan_adventure_branch_config(x.id, 1)->>'world' as world) w
+  ), done as (
+    select k.arc, r.user_id, r.earned_at from arcs k join private.adventure_encounter_rewards r on r.world_id = k.world and r.ordinal = 6
+  )
+  select k.arc,
+    (select count(*) from done d where d.arc = k.arc),
+    (select count(distinct e.user_id) from private.adventure_chronicle_events e join done d on d.arc = e.arc and d.user_id = e.user_id
+      where e.arc = k.arc and e.kind = 'read' and e.at >= d.earned_at + interval '1 day'),
+    (select count(distinct r.user_id) from private.adventure_arc_runs r where r.arc = k.arc),
+    (select count(distinct r.user_id) from private.adventure_arc_runs r where r.arc = k.arc and r.resolved_at is not null),
+    (select count(distinct r.user_id) from private.adventure_arc_runs r where r.arc = k.arc and r.resolved_at is not null
+       and r.outcome is distinct from (select g.outcome from private.adventure_guardian_encounters g
+         where g.user_id = r.user_id and g.world_id = r.world_id and g.outcome is not null order by g.created_at limit 1)),
+    (select count(distinct r.user_id) from private.adventure_arc_runs r where r.arc = k.arc and r.abandoned_at is not null)
+  from arcs k order by k.n;
+$$;
+revoke all on function private.titan_adventure_chronicle_metrics_v1() from public, anon, authenticated;
+
+-- Account export keeps every previous section and adds the runs and the chronicle events.
+do $$ begin
+  if to_regprocedure('private.titan_export_extras_before_chronicles_v1(uuid)') is null then
+    alter function private.titan_export_extras_v1(uuid) rename to titan_export_extras_before_chronicles_v1;
+  end if;
+end $$;
+create or replace function private.titan_export_extras_v1(p_uid uuid)
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select private.titan_export_extras_before_chronicles_v1(p_uid) || jsonb_build_object(
+    'adventureRuns', coalesce((select jsonb_agg(to_jsonb(r) - 'user_id' order by r.world_id, r.run) from private.adventure_arc_runs r where r.user_id = p_uid), '[]'),
+    'adventureChronicleEvents', coalesce((select jsonb_agg(to_jsonb(e) - 'user_id' - 'id' order by e.at, e.id) from private.adventure_chronicle_events e where e.user_id = p_uid), '[]'));
+$$;
+revoke all on function private.titan_export_extras_before_chronicles_v1(uuid), private.titan_export_extras_v1(uuid) from public, anon, authenticated;
+notify pgrst, 'reload schema';

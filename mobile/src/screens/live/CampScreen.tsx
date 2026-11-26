@@ -12,20 +12,41 @@ import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
 import { LiveVoies, LiveWorld } from "../../core/live";
 import { useEffect } from "react";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { consequences } from "../../components/AdventureConsequence";
+import { useConsequences } from "../../data/adventureConsequence";
+import type { AdventureWorld } from "../../data/adventureRpg";
+import type { RootParams } from "../../navigation/types";
 import { useOwner } from "../../data/auth";
 import { flushSettlements, useLiveBuild, useLiveWorld } from "../../data/live";
 import { errorMessage } from "../../lib/errors";
 import { colors, familyColors, radius, space } from "../../theme/tokens";
 
-export function CampScreen() {
+export function CampScreen({ navigation }: Partial<NativeStackScreenProps<RootParams, "Camp">> = {}) {
   const owner = useOwner();
   const world = useLiveWorld();
   // Sessions that were saved offline or held settle as soon as the camp opens.
   useEffect(() => { void flushSettlements(owner).then((r) => { if (r.some((x) => x.status === "settled")) void world.refetch(); }); }, [owner]); // eslint-disable-line react-hooks/exhaustive-deps
   const build = useLiveBuild();
   const toast = useToast();
+  // V1.5.2: the Camp is the return point of the Vallée. What the Veilleur's outcome opened comes from the adventure server, never
+  // from the LIVE world: it needs no resource, no find and no live session.
+  const linked = useConsequences(owner);
+  useEffect(() => { void linked.refetch(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const retour = linked.data?.owner === owner ? consequences.campEntries(linked.data) : [];
+  const retourCards = retour.map((e) => (
+    <Card key={e.outcome} tone="ruled" onPress={() => navigation?.navigate("World", { id: e.world as AdventureWorld, focus: "retour" })}
+      accessibilityLabel={`${e.title}. ${e.text} ${e.cta}`} testID={`camp-retour-${e.outcome}`}>
+      <View style={{ gap: 4, borderLeftWidth: 3, borderLeftColor: colors.cy, paddingLeft: space.s3 }}>
+        <T variant="eyebrow" tone="accent">{e.eyebrow}</T>
+        <T variant="title">{e.title}</T>
+        <T variant="small">{e.text}</T>
+        <T variant="bodyStrong" tone="accent">{e.cta}</T>
+      </View>
+    </Card>
+  ));
   if (world.isLoading) return <Screen><LoadingCards /></Screen>;
-  if (world.error || !world.data) return <Screen><ErrorState error={world.error} onRetry={() => void world.refetch()} /></Screen>;
+  if (world.error || !world.data) return <Screen>{retourCards}<ErrorState error={world.error} onRetry={() => void world.refetch()} /></Screen>;
   const w = world.data;
   const cordee = LiveWorld.cordee({ days: w.days, voies: w.distinctVoies });
   const horizon = LiveWorld.horizon(w);
@@ -40,6 +61,7 @@ export function CampScreen() {
         <T variant="h1">{cordee.unlocked ? cordee.chapters[cordee.chapters.length - 1].title : "Le camp sous la neige"}</T>
         <T tone="muted">Tes séances live retressent la Cordée. Rien ici ne s’achète et rien ne se perd.</T>
       </View>
+      {retourCards}
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.s2 }}>
         <Resource label="Éclats" value={w.wallet.eclats} color={colors.cy} />
         {Object.values(LiveVoies.ESSENCES).map((e) => <Resource key={e.id} label={e.label} value={w.wallet.essences[e.id] ?? 0} color={familyColors[e.family as keyof typeof familyColors] ?? colors.tx2} />)}
