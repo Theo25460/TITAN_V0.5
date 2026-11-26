@@ -1062,6 +1062,7 @@
           <div data-co-calendar-slot>${calendarHtml()}</div>
           <div data-co-tools-slot></div>
           <div data-co-program-slot></div>
+          <div data-co-cycle-slot></div>
           <section class="asc-section"><div class="asc-section-head"><h2>Séances proposées</h2><span class="asc-small asc-muted">${assignments ? `${assignments.total} au total` : "…"}</span></div>
             ${assignments ? (assignments.rows.length ? `<div class="co-tasks">${taskCards()}</div>${assignments.rows.length < assignments.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-tasks>Voir les précédentes</button>` : ""}` : `<p class="asc-small asc-muted">${mode === "coach" ? "Prépare une séance : l’athlète choisit de l’accepter." : "Aucune proposition pour le moment."}</p>`) : '<div class="asc-skeleton" style="height:80px"></div>'}</section>
           <section class="asc-section" id="co-seen" tabindex="-1"><div class="asc-section-head"><h2>${mode === "coach" ? "Séances partagées" : "Ce que mon coach peut voir"}</h2></div>
@@ -1071,11 +1072,12 @@
             ${sessions ? `<p class="asc-small asc-muted">${sessions.rows.length} séance(s) sur ${sessions.total}.</p>${sessions.rows.length ? `<div class="co-sessions">${sessionRows()}</div>` : '<p class="asc-small asc-muted">Aucune séance partagée sur cette période.</p>'}${sessions.rows.length < sessions.total ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-more-sessions>Charger la suite</button>` : ""}` : '<div class="asc-skeleton" style="height:80px"></div>'}
           </section></div>` : ""}
       </div>` : `<div class="sig-empty">${icon(mode === "coach" ? "group" : "shield")}<h2>${mode === "coach" ? "Prêt pour le premier suivi ?" : "Tu gardes la main."}</h2><p>${mode === "coach" ? "Crée une invitation et transmets le code à ton sportif. Aucun accès ne s’ouvre tant qu’il n’a pas choisi son partage." : "Ton journal reste privé. Seul un code accepté avec ton accord ouvre un suivi."}</p></div>`}` : ""}
-      </div><div id="co-panel-${mode === "athlete" ? "coach" : "athlete"}" role="tabpanel" aria-labelledby="co-tab-${mode === "athlete" ? "coach" : "athlete"}" tabindex="-1" hidden></div>
+      ${mode === "athlete" ? '<div data-co-cycle-ended-slot></div>' : ""}</div><div id="co-panel-${mode === "athlete" ? "coach" : "athlete"}" role="tabpanel" aria-labelledby="co-tab-${mode === "athlete" ? "coach" : "athlete"}" tabindex="-1" hidden></div>
       <p class="asc-small asc-faint co-foot">TITAN facilite l’organisation entre vous. Il ne vérifie pas les qualifications d’un coach et ses propositions ne sont pas un avis médical.</p>`;
     root.setAttribute("aria-busy", "false");
     mountTools();
     mountPrograms();
+    mountCycles();
     if (focusedMode) root.querySelector(`[role="tab"][data-mode="${focusedMode}"]`)?.focus({ preventScroll: true });
   }
 
@@ -1093,9 +1095,24 @@
     if (!slot || !l || !feature("screens.coach_programs") || !window.TitanCoachPrograms || !window.TitanCoachProgram) return;
     const job = viewContext;
     if (!job || !sameContext(job)) return;
-    window.TitanCoachPrograms.mount(slot, { client: job.client, link: l, links: mode === "coach" ? links() : [], mode,
+    programsView = window.TitanCoachPrograms.mount(slot, { client: job.client, link: l, links: mode === "coach" ? links() : [], mode,
       ok: () => sameContext(job) && current()?.id === l.id && root.contains(slot),
       onChanged: () => { if (!sameContext(job)) return; loadDetail(); loadQueue(); loadReview(); } });
+  }
+
+  // V1.9.5: cycle reports of the selected link, only when screens.coach_cycle_report is open (checked again by the server).
+  let programsView = null;
+  function mountCycles() {
+    const job = viewContext;
+    if (!job || !sameContext(job) || !feature("screens.coach_cycle_report") || !window.TitanCoachCycles || !window.TitanCoachCycle) return;
+    const ended = root.querySelector("[data-co-cycle-ended-slot]");
+    if (ended && mode === "athlete") window.TitanCoachCycles.mount(ended, { client: job.client, link: { id: "ended" }, mode, ended: true, ok: () => sameContext(job) && root.contains(ended) });
+    const slot = root.querySelector("[data-co-cycle-slot]"), l = current();
+    if (!slot || !l) return;
+    window.TitanCoachCycles.mount(slot, { client: job.client, link: l, mode,
+      ok: () => sameContext(job) && current()?.id === l.id && root.contains(slot),
+      onChanged: () => { if (!sameContext(job)) return; loadQueue(); },
+      onPlans: () => programsView?.reload?.() });
   }
 
   function onTabKey(e) {
