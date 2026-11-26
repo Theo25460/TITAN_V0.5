@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { Linking } from "react-native";
 import { ADS_BUILD } from "../../ads/adIds";
 import { adsManager } from "../../ads/sdk";
+import { useAdsRemote } from "../../ads/useAds";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Group } from "../../components/ListRow";
@@ -32,6 +33,7 @@ export function PrivacyScreen() {
   const online = useOnline();
   const p = profile.data;
   const ads = useSyncExternalStore(adsManager.subscribe, adsManager.get);
+  const adsRemote = useAdsRemote();
   if (profile.isLoading && !p) return <Screen><LoadingCards count={1} /></Screen>;
   if (!p) return <Screen><ErrorState error={profile.error} onRetry={() => profile.refetch()} /></Screen>;
   const privacy = { publicProfile: false, showStats: false, socialPresence: false, friendRankings: false, ...(p.privacy || {}) };
@@ -66,7 +68,7 @@ export function PrivacyScreen() {
       <T variant="caption" tone="faint">
         {ADS_BUILD ? "TITAN ne collecte aucune statistique d’usage. Les publicités (gratuit seulement) passent par Google AdMob, une fois ton choix fait dans le formulaire de Google. Google peut alors utiliser l’identifiant publicitaire de ton téléphone (tu peux le réinitialiser ou le supprimer dans les réglages Android) ; TITAN lui-même ne le lit pas." : "L’application Android ne collecte aucune statistique d’usage et n’affiche aucune publicité dans cette version."}
       </T>
-      {ADS_BUILD && !p.is_elite ? (
+      {adsRemote.banners && !p.is_elite ? (
         <Card style={{ gap: space.s3 }}>
           <T variant="bodyStrong">Publicité</T>
           <T variant="small" tone="muted">

@@ -9,6 +9,9 @@ const mockState = { profile: { is_elite: false } as { is_elite: boolean } | unde
 const mockAds = { phase: "ready", canRequestAds: true, privacyOptions: false };
 const mockProps: { current: Record<string, unknown> | null } = { current: null };
 const mockStart = jest.fn();
+const mockFlags: Record<string, boolean> = {};
+const mockSdk = { broken: false };
+jest.mock("../src/data/flags", () => ({ useServerFlag: (key: string, enabled = true) => enabled && mockFlags[key] === true }));
 jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a" }));
 jest.mock("../src/data/hooks", () => ({ useProfile: () => ({ data: mockState.profile }), usePrefs: () => ({ favoriteSports: [] }), useLogs: () => ({ active: [] }) }));
 jest.mock("../src/data/drafts", () => ({ useDrafts: () => ({ ready: mockState.draftsReady, timer: mockState.timer }) }));
@@ -20,14 +23,17 @@ jest.mock("../src/ads/sdk", () => ({
     get: () => mockAds,
     start: (...a: unknown[]) => (mockStart(...a), Promise.resolve()),
   },
-  bannerParts: () => ({
+  bannerParts: () => {
+    if (mockSdk.broken) throw new Error("native module missing");
+    return {
     size: "INLINE_ADAPTIVE_BANNER",
     BannerAd: (p: Record<string, unknown>) => {
       const { Text: RNText } = jest.requireActual("react-native");
       mockProps.current = p;
       return <RNText testID="fake-banner">{String(p.unitId)}</RNText>;
     },
-  }),
+  };
+  },
 }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -40,6 +46,9 @@ const reset = () => {
   Object.assign(mockAds, { phase: "ready", canRequestAds: true });
   mockProps.current = null;
   mockStart.mockClear();
+  for (const k of Object.keys(mockFlags)) delete mockFlags[k];
+  mockFlags["ads.android"] = true;
+  mockSdk.broken = false;
 };
 beforeEach(reset);
 
@@ -120,4 +129,24 @@ test("the interactive guide suppresses ads across its real-screen visits until c
   expect(screen.queryByTestId("fake-banner")).toBeNull();
   view.rerender(frame(false));
   expect(await screen.findByTestId("fake-banner")).toBeTruthy();
+});
+
+test.each([
+  ["absent (never created)", () => delete mockFlags["ads.android"]],
+  ["switched off", () => (mockFlags["ads.android"] = false)],
+])("server switch ads.android %s: no banner and Google's consent form is never opened", async (_label, arrange) => {
+  arrange();
+  render(<AdBanner placement="hq" />);
+  await act(async () => {});
+  expect(screen.queryByTestId("fake-banner")).toBeNull();
+  expect(screen.queryByText("Publicité")).toBeNull();
+  expect(mockStart).not.toHaveBeenCalled();
+});
+
+test("an SDK that cannot be loaded leaves the screen intact: no banner, no crash", async () => {
+  mockSdk.broken = true;
+  render(<AdBanner placement="journal" />);
+  await act(async () => {});
+  expect(screen.queryByTestId("fake-banner")).toBeNull();
+  expect(screen.queryByTestId("ad-journal")).toBeNull();
 });

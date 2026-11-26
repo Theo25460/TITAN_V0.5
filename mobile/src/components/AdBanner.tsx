@@ -22,7 +22,13 @@ export const AdBanner = memo(function AdBanner({ placement }: { placement: Place
     return () => clearTimeout(t);
   }, [ok, placement]);
   if (!ok || state === "none") return null;
-  const { BannerAd, size } = bannerParts();
+  let parts: ReturnType<typeof bannerParts>;
+  try {
+    parts = bannerParts();
+  } catch {
+    return null; // native module unavailable: the screen stays exactly as it is without ads
+  }
+  const { BannerAd, size } = parts;
   const collapse = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setState("none");

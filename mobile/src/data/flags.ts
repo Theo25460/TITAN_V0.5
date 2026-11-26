@@ -6,13 +6,15 @@ import { useOwner } from "./auth";
 
 export const flagsKey = (owner: string) => ["server-flags", owner] as const;
 
-export function useServerFlag(key: string): boolean {
+/** `enabled: false` reads nothing from the server (and answers false): for a feature this build does not contain at all. */
+export function useServerFlag(key: string, enabled = true): boolean {
   const owner = useOwner();
   const q = useQuery({
     queryKey: flagsKey(owner),
     queryFn: () => ownerRpc<{ flags?: Record<string, boolean> }>(owner, "titan_feature_flags_v1", {}),
     staleTime: 10 * 60_000,
     retry: false,
+    enabled,
   });
-  return q.data?.flags?.[key] === true;
+  return enabled && q.data?.flags?.[key] === true;
 }

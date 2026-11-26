@@ -491,10 +491,17 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
         <Button
           label="Terminer"
           onPress={() => {
-            maybeAd().catch(() => {});
-            // AUD-13: a rare Play rating request at a proud moment (new record or tenth session), never for an unconfirmed or historical one.
-            if (status === "confirmed" && log)
-              void maybeAskForReview(owner, { confirmedSessions: logs.filter((l) => l.syncStatus === "confirmed" || !l.syncStatus).length, newRecord: records.some((r) => !r.first), historical: !!log.details?.historical });
+            const newRecord = records.some((r) => !r.first);
+            const confirmedSessions = logs.filter((l) => l.syncStatus === "confirmed" || !l.syncStatus).length;
+            // One overlay at most: no interstitial after a new record, and no Play rating request when an interstitial was shown
+            // (the ad decision is taken at once, without waiting; the navigation below never waits for either).
+            void maybeAd({ celebrate: newRecord })
+              .catch(() => false)
+              .then((adShown) => {
+                // AUD-13: a rare Play rating request at a proud moment (new record or tenth session), never for an unconfirmed or historical one.
+                if (!adShown && status === "confirmed" && log)
+                  void maybeAskForReview(owner, { confirmedSessions, newRecord, historical: !!log.details?.historical });
+              });
             navigation.navigate("Tabs", { screen: "QG" });
           }}
           testID="result-done"

@@ -7,9 +7,12 @@ export type FullscreenAd = {
   onClosed(l: () => void): () => void;
   onError(l: () => void): () => void;
 };
-export function createInterstitial(make: () => FullscreenAd) {
+/** Google keeps a loaded interstitial valid for one hour: an older one is dropped, never shown. */
+export const INTERSTITIAL_MAX_AGE_MS = 55 * 60_000;
+export function createInterstitial(make: () => FullscreenAd, now: () => number = Date.now) {
   let ad: FullscreenAd | null = null;
   let ready = false;
+  let loadedAt = 0;
   let showing = false;
   let offs: (() => void)[] = [];
   const reset = () => {
@@ -17,16 +20,23 @@ export function createInterstitial(make: () => FullscreenAd) {
     offs = [];
     ad = null;
     ready = false;
+    loadedAt = 0;
   };
+  const stale = () => ready && now() - loadedAt > INTERSTITIAL_MAX_AGE_MS;
   return {
-    isReady: () => ready && !showing,
+    isReady: () => ready && !showing && !stale(),
     /** Starts loading (once). Safe to call on every render of the result screen. */
     prepare() {
-      if (ad || showing) return;
+      if (showing) return;
+      if (ad && stale()) reset();
+      if (ad) return;
       try {
         ad = make();
         offs.push(
-          ad.onLoaded(() => (ready = true)),
+          ad.onLoaded(() => {
+            ready = true;
+            loadedAt = now();
+          }),
           ad.onError(() => reset()),
           ad.onClosed(() => {
             showing = false;
@@ -40,6 +50,7 @@ export function createInterstitial(make: () => FullscreenAd) {
     },
     /** True when the ad was handed to the system. The caller has already checked the frequency policy. */
     async show(): Promise<boolean> {
+      if (stale()) reset();
       if (!ad || !ready || showing) return false;
       showing = true;
       try {
