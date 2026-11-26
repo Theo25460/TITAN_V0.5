@@ -147,7 +147,7 @@ export function poisAlong<P extends { lat: number; lon: number }>(pois: P[], rou
 
 /** What the screen says for each failure: what happened, what still works, what is needed. */
 export const POI_STATES: Record<PoiFailure, { title: string; text: string; retry: boolean }> = {
-  POI_NOT_CONFIGURED: { title: "Points utiles : service pas encore en place", text: "Le serveur TITAN n’a pas encore de source de points utiles configurée. Ce n’est pas un réglage de ton téléphone : une mise à jour du serveur l’activera. En attendant, tes propres points fonctionnent normalement.", retry: false },
+  POI_NOT_CONFIGURED: { title: "Points utiles : service pas encore en place", text: "Le serveur TITAN n’a pas encore de source de points utiles configurée. Ce n’est pas un réglage de ton téléphone : le service sera branché côté TITAN, sans rien à installer de ton côté. En attendant, tes propres points fonctionnent normalement.", retry: false },
   OFFLINE: { title: "Pas de connexion", text: "Chercher des points utiles demande une connexion. Tes propres points et le dernier relevé gardé sur ce téléphone restent consultables.", retry: true },
   AUTH_REQUIRED: { title: "Session expirée", text: "Reconnecte-toi pour chercher des points utiles.", retry: false },
   BAD_REQUEST: { title: "Recherche refusée", text: "Le serveur n’a pas accepté cette recherche. Change le rayon ou les types de points, puis réessaie.", retry: true },

@@ -169,8 +169,8 @@ export const PLAN_STATES: Record<PlanFailure, { title: string; text: string; ret
 /** The full explanation shown while no routing provider exists: what is needed, and what works without it. */
 export const PLAN_NOT_CONFIGURED = {
   needs: [
-    "Calculer un itinéraire demande un service de routage : un compte chez un fournisseur d’itinéraires, configuré sur le serveur TITAN (voir docs/V177_CARTES_ET_ROUTAGE.md).",
-    "Ce n’est pas un réglage de ton téléphone : une mise à jour du serveur l’activera, sans rien à installer.",
+    "Calculer un itinéraire demande un service de routage : un compte chez un fournisseur d’itinéraires, configuré sur le serveur TITAN.",
+    "Ce n’est pas un réglage de ton téléphone : le service sera branché côté TITAN, sans rien à installer de ton côté.",
   ],
   meanwhile: [
     "Importer un GPX créé dans n’importe quel planificateur, puis le suivre.",

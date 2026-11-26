@@ -355,7 +355,7 @@ test("a server without the V1.7.7 functions: read and saved through v1, the name
     await page.locator("[data-rt-file]").setInputFiles(gpxFile());
     await page.locator("[data-rt-save]").click();
     await page.locator("[data-rt-flash]").waitFor();
-    assert.match(await page.locator("[data-rt-flash]").innerText(), /Nom gardé sur cet appareil en attendant la mise à jour du serveur/);
+    assert.match(await page.locator("[data-rt-flash]").innerText(), /Nom gardé sur cet appareil : ta bibliothèque en ligne ne prend pas encore les noms/);
     assert.deepEqual(await f.calls("titan_route_save"), ["titan_route_save_v1"], "v2 was refused once by the first read; the save goes straight to v1");
     const saved = await page.evaluate(() => window.rpcCalls.find((c) => c.fn === "titan_route_save_v1").args);
     assert.deepEqual(Object.keys(saved).sort(), ["p_ascent_m", "p_client_route_id", "p_distance_m", "p_duration_s", "p_sport", "p_started_at", "p_track"]);
@@ -367,7 +367,7 @@ test("a server without the V1.7.7 functions: read and saved through v1, the name
     await page.locator("[data-rt-rename]").click();
     await page.locator("[data-rt-new-name]").fill("Sortie du lundi");
     await page.locator("[data-rt-rename-form] [type=submit]").click();
-    await page.getByText("Nom gardé sur cet appareil en attendant la mise à jour du serveur.").waitFor();
+    await page.getByText("Nom gardé sur cet appareil : ta bibliothèque en ligne ne prend pas encore les noms.").waitFor();
     assert.equal(await page.locator("[data-rt-title]").innerText(), "Sortie du lundi");
     assert.equal(await page.locator("[data-rt-name-local]").count(), 1);
     await page.locator("[data-rt-back]").first().click();
@@ -450,7 +450,7 @@ test("planner: « not configured » says what is needed and what works meanwhile
     await page.locator("[data-pl-state='not_configured']").waitFor();
     const panel = await page.locator("[data-pl-state='not_configured']").innerText();
     assert.match(panel, /La planification n’est pas encore activée sur le serveur/);
-    assert.match(panel, /fournisseur d’itinéraires, configuré sur le serveur de TITAN \(voir docs\/V177_CARTES_ET_ROUTAGE\.md\)/);
+    assert.match(panel, /fournisseur d’itinéraires, configuré sur le serveur de TITAN/);
     assert.match(panel, /importer un GPX[\s\S]*suivre un parcours que tu as déjà enregistré[\s\S]*revenir par le même chemin/);
     assert.equal(await page.locator("svg.rt-map").count(), 0, "no made-up line");
     assert.deepEqual(f.functions.plan.map((c) => c.body), [{ profile: "run", points: [[48.5839, 7.7455], [48.85, 2.35]] }]);
@@ -655,7 +655,7 @@ test("Points utiles: nothing is asked before the athlete searches; « not config
     assert.equal(f.functions.poi.length, 0, "not before the position is agreed");
     await page.locator("[data-ask-ok]").click();
     await page.locator("[data-poi-state='not_configured']").waitFor();
-    assert.match(await page.locator("[data-poi-state='not_configured']").innerText(), /n’est pas encore activée[\s\S]*OpenStreetMap configuré sur le serveur \(voir docs\/V177_CARTES_ET_ROUTAGE\.md\)[\s\S]*« Mes points » fonctionnent sans ce service/);
+    assert.match(await page.locator("[data-poi-state='not_configured']").innerText(), /n’est pas encore activée[\s\S]*OpenStreetMap configuré sur le serveur[\s\S]*« Mes points » fonctionnent sans ce service/);
     assert.deepEqual(f.functions.poi[0].body, { kinds: ["water", "bike_repair"], around: { lat: 48.5839, lon: 7.7455, radiusM: 1000 } });
     assert.equal(await page.locator(".poi-item").count(), 0, "no made-up result");
     // Configured: the list, nearest first, with what OpenStreetMap says and nothing more.

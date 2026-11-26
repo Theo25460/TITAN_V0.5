@@ -120,7 +120,7 @@ function MapButton({ label, hint, onPress }: { label: string; hint: string; onPr
 /** Server-side limit of the private route library. */
 const ROUTE_LIMIT = 200;
 const GPX_MAX_BYTES = 15 * 1024 * 1024;
-export const NAME_KEPT_ON_PHONE = "Nom gardé sur ce téléphone en attendant la mise à jour du serveur";
+export const NAME_KEPT_ON_PHONE = "Nom gardé sur ce téléphone : ta bibliothèque en ligne ne prend pas encore les noms";
 const FULL_LIBRARY = `Bibliothèque pleine : ${ROUTE_LIMIT} parcours. Supprime un parcours pour que le suivant puisse être enregistré.`;
 type Origin = api.RouteOrigin;
 const ORIGINS: Record<Origin, string> = { recorded: "Enregistré", imported: "Importé", planned: "Planifié" };

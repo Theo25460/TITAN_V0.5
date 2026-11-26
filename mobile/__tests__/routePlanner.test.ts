@@ -109,7 +109,7 @@ test("every failure is a named state: not configured (503 or a function not depl
   expect(never).not.toHaveBeenCalled();
   for (const state of Object.values(PLAN_STATES)) expect(`${state.title} ${state.text}`).not.toMatch(/sûr/i);
   expect(PLAN_STATES.OFFLINE.text).toBe("Le calcul d’itinéraire demande une connexion. Tes parcours enregistrés restent utilisables.");
-  expect(PLAN_NOT_CONFIGURED.needs.join(" ")).toContain("docs/V177_CARTES_ET_ROUTAGE.md");
+  expect(PLAN_NOT_CONFIGURED.needs.join(" ")).not.toMatch(/docs\/|\.md\b/); // no internal file path shown to the athlete
   expect(PLAN_NOT_CONFIGURED.meanwhile).toHaveLength(3);
 });
 

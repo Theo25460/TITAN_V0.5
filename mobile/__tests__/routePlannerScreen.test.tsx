@@ -73,7 +73,7 @@ test("no routing service on the server: a full explanation instead of a form —
   wrap();
   expect(await screen.findByTestId("planner-not-configured")).toBeTruthy();
   expect(screen.getByText("La planification n’est pas encore disponible")).toBeTruthy();
-  expect(screen.getByText(/un compte chez un fournisseur d’itinéraires, configuré sur le serveur TITAN \(voir docs\/V177_CARTES_ET_ROUTAGE\.md\)/)).toBeTruthy();
+  expect(screen.getByText(/un compte chez un fournisseur d’itinéraires, configuré sur le serveur TITAN/)).toBeTruthy();
   expect(screen.getByText("• Importer un GPX créé dans n’importe quel planificateur, puis le suivre.")).toBeTruthy();
   expect(screen.getByText("• Suivre un parcours déjà enregistré dans Mes parcours.")).toBeTruthy();
   expect(screen.getByText("• Pendant une sortie GPS, revenir par le même chemin.")).toBeTruthy();

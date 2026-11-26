@@ -185,7 +185,7 @@
     return { state: "unavailable" };
   }
   const POI_MESSAGES = {
-    not_configured: "La recherche de points utiles n’est pas encore activée : elle demande un service de données OpenStreetMap configuré sur le serveur (voir docs/V177_CARTES_ET_ROUTAGE.md). En attendant, tes propres repères dans « Mes points » fonctionnent sans ce service.",
+    not_configured: "La recherche de points utiles n’est pas encore activée : elle demande un service de données OpenStreetMap configuré sur le serveur. En attendant, tes propres repères dans « Mes points » fonctionnent sans ce service.",
     offline: "La recherche de points utiles demande une connexion. Tes points personnels restent disponibles.",
     auth: "La recherche de points utiles demande un compte connecté. Reconnecte-toi, puis relance la recherche.",
     guest: "La recherche de points utiles demande un compte. En mode découverte, tu peux ajouter tes propres repères dans « Mes points ».",

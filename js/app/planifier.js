@@ -177,7 +177,7 @@
 
     const blocked = (state) => {
       if (state === "not_configured") return `<section class="pl-panel" data-pl-state="not_configured" tabindex="-1"><h3 class="asc-h3">${esc(MESSAGES.not_configured)}</h3>
-        <p class="asc-small"><strong>Ce qu’il faut :</strong> un compte chez un fournisseur d’itinéraires, configuré sur le serveur de TITAN (voir docs/V177_CARTES_ET_ROUTAGE.md). Tant que ce n’est pas fait, aucun itinéraire ne peut être calculé ici — et TITAN n’en invente pas.</p>
+        <p class="asc-small"><strong>Ce qu’il faut :</strong> un compte chez un fournisseur d’itinéraires, configuré sur le serveur de TITAN. Tant que ce n’est pas fait, aucun itinéraire ne peut être calculé ici — et TITAN n’en invente pas.</p>
         <p class="asc-small"><strong>Ce qui marche en attendant :</strong></p>
         <ul class="asc-small pl-meanwhile"><li>importer un GPX préparé dans n’importe quel planificateur (Mes parcours, « Importer un GPX ») ;</li><li>suivre un parcours que tu as déjà enregistré ;</li><li>revenir par le même chemin pendant une sortie.</li></ul>
         ${o.fromLibrary || !window.TitanRoutes?.openLibrary ? "" : `<button type="button" class="asc-btn asc-btn-secondary rt-tap" data-pl-library>${icon("route")} Ouvrir Mes parcours</button>`}</section>`;
@@ -336,7 +336,7 @@
         if (!r.ok) { save.disabled = false; return say(r.error); }
         P.savedId = r.id;
         const message = r.queued ? "Hors ligne : parcours gardé sur cet appareil. Il partira vers ta bibliothèque au retour du réseau." : r.local ? "Parcours gardé sur cet appareil seulement (mode découverte)."
-          : r.created === false ? "Ce parcours est déjà dans ta bibliothèque : rien n’a été ajouté." : r.nameLocal ? "Parcours enregistré. Nom gardé sur cet appareil en attendant la mise à jour du serveur." : "Parcours enregistré dans Mes parcours.";
+          : r.created === false ? "Ce parcours est déjà dans ta bibliothèque : rien n’a été ajouté." : r.nameLocal ? "Parcours enregistré. Nom gardé sur cet appareil : ta bibliothèque en ligne ne prend pas encore les noms." : "Parcours enregistré dans Mes parcours.";
         P.message = message;
         draw("[data-pl-follow]");
         o.onSaved?.({ id: r.id, message });

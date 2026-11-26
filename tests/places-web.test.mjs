@@ -245,7 +245,7 @@ test('Points utiles: every answer becomes one honest state', () => {
     assert.equal(P.readPoi(400, { ok: false, code: 'BAD_REQUEST' }).state, 'bad');
     for (const [status, json] of [[502, { ok: false, code: 'UPSTREAM_UNAVAILABLE' }], [503, { ok: false, code: 'SERVICE_UNAVAILABLE' }], [200, null], [200, { ok: true }], [200, { hello: 1 }], [500, 'oops']]) assert.equal(P.readPoi(status, json).state, 'unavailable');
     for (const state of ['not_configured', 'offline', 'auth', 'guest', 'rate', 'quota', 'bad', 'unavailable', 'empty']) assert.ok(P.POI_MESSAGES[state].length > 30, state);
-    assert.match(P.POI_MESSAGES.not_configured, /V177_CARTES_ET_ROUTAGE/);
+    assert.doesNotMatch(P.POI_MESSAGES.not_configured, /docs\/|\.md\b/);
 });
 
 test('Points utiles: source, freshness and hours are quoted, never interpreted', () => {

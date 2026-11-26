@@ -142,5 +142,5 @@ test('the file sends no analytics event and talks only to its own function', asy
     assert.ok(!/https?:\/\//.test(src), 'no external address: the provider is reached by the server, never by the browser');
     assert.deepEqual([...src.matchAll(/fetch\(\s*"([^"]+)"/g)].map(m => m[1]), ['/.netlify/functions/route-plan']);
     assert.ok(!/titanTrack|gtag\(|sendBeacon|TitanAnalytics/.test(src));
-    assert.match(src, /docs\/V177_CARTES_ET_ROUTAGE\.md/);
+    assert.doesNotMatch(src, /docs\/|\.md\b/, 'no internal file path is shown to the athlete');
 });

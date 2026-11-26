@@ -68,5 +68,5 @@ test('with screens.gps off the library is the one from before V1.7.7: only the v
     const legacy = src.slice(src.indexOf('async function openLegacy()'), src.indexOf('/* ---- Saving'));
     assert.ok(legacy.length > 500, 'the legacy library is still there');
     assert.deepEqual([...new Set([...legacy.matchAll(/"(titan_[a-z_]+_v\d)"/g)].map(m => m[1]))].sort(), ['titan_route_get_v1', 'titan_routes_v1']);
-    assert.match(src, /if \(!gpsEnabled\(\)\) return openLegacy\(\);/);
+    assert.match(src, /if \(!gpsEnabled\(\) \|\| !NAV\(\) \|\| !ENG\(\)\) return enabled\(\) && window\.titanShell\?\.sheet \? openLegacy\(\) : null;/);
 });

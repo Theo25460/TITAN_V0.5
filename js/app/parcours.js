@@ -575,9 +575,10 @@
   async function openLibrary(options) {
     const o = options || {};
     if (!enabled() && !gpsEnabled()) return null;
-    if (!gpsEnabled()) return openLegacy();
+    // Without the flag — or on a page that did not load the GPS modules — the library is the one from before, when it is open at all.
+    if (!gpsEnabled() || !NAV() || !ENG()) return enabled() && window.titanShell?.sheet ? openLegacy() : null;
     const ctx = context();
-    if (!alive(ctx) || !NAV() || !ENG()) return null;
+    if (!alive(ctx)) return null;
     const guest = isGuest(ctx.owner);
     const body = document.createElement("div");
     body.className = "asc-stack rt-lib";
@@ -680,6 +681,8 @@
       let text = "";
       try { text = await file.text(); } catch { return ok() && say("Ce fichier n’a pas pu être lu."); }
       if (!ok()) return;
+      await new Promise((r) => setTimeout(r, 30)); // lets « Lecture du fichier… » be painted before a long file is parsed
+      if (!ok()) return;
       const read = NAV().importGpx(text, window.TitanGpx);
       if (!read.ok) return say(read.error);
       preview(read, file.name);
@@ -728,7 +731,7 @@
     const saved = (r, name) => r.queued ? "Hors ligne : parcours gardé sur cet appareil. Il partira vers ta bibliothèque au retour du réseau."
       : r.local ? "Parcours gardé sur cet appareil seulement (mode découverte)."
       : r.created === false ? "Ce parcours est déjà dans ta bibliothèque : rien n’a été ajouté."
-      : r.nameLocal && name ? "Parcours enregistré. Nom gardé sur cet appareil en attendant la mise à jour du serveur." : "Parcours enregistré dans Mes parcours.";
+      : r.nameLocal && name ? "Parcours enregistré. Nom gardé sur cet appareil : ta bibliothèque en ligne ne prend pas encore les noms." : "Parcours enregistré dans Mes parcours.";
 
     /* -- detail -- */
     /** One route with its trace. `known` (a row of the list) lets a copy kept in this browser answer without a request. */
@@ -836,7 +839,7 @@
         S.rows = S.rows.map((x) => (x.id === r.id ? { ...x, name, nameLocal: next.nameLocal } : x));
         S.tracks.set(r.id, { ...got, r: next, route: { ...got.route, name } });
         C().patch(r.id, { name });
-        detail(r.id, localOnly ? "Nom gardé sur cet appareil en attendant la mise à jour du serveur." : name ? "Nom enregistré." : "Nom retiré : le parcours reprend son sport et sa date.");
+        detail(r.id, localOnly ? "Nom gardé sur cet appareil : ta bibliothèque en ligne ne prend pas encore les noms." : name ? "Nom enregistré." : "Nom retiré : le parcours reprend son sport et sa date.");
       });
     }
     async function remove(r) {
