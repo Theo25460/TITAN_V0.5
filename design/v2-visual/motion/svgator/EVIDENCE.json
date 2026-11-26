@@ -1,0 +1,12 @@
+{
+  "tool": "SVGator (MCP connector)",
+  "checked_at": "2026-11-26T13:40Z",
+  "account_plan": {"name": "Free", "access_level": 0},
+  "tests": [
+    {"action": "list_projects", "result": "ok, 0 projects before the test"},
+    {"action": "create_project", "result": "ok", "project_id": "pi_6ae5a57d540c4d3e9790d76c38bc182f", "title": "TITAN · m02 quête validée (A1 bis)", "editor_url": "https://app.svgator.com/editor#/6ae5a57d540c4d3e9790d76c38bc182f", "note": "700 ms: plate scale .92→1 with overshoot, two chevrons drawn on (stroke-dashoffset 80→0), second one trailing 100 ms"},
+    {"action": "export_project svg animated (css)", "result": "refused", "code": 422, "message": "Animated SVG export is not available on this plan. Requires the Starter plan."},
+    {"action": "export_project svg static", "result": "ok, no watermark", "file": "m02-quest-validated.static-export.svg", "limitation": "a static export is the first frame only (chevrons not drawn yet) and the rect origin is exported at the transform origin; not usable as an end state"}
+  ],
+  "consequence": "Animated SVG, Lottie, React Native and video/GIF exports need a paid plan (Starter/Pro). No purchase was made (0 €). Micro-animations are delivered as hand-written CSS/SVG (web) with a Reanimated specification (Android), rendered and recorded with Chromium; the SVGator project stays editable for a later paid export if the owner decides so."
+}

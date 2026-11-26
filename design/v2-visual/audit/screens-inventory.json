@@ -1,0 +1,4866 @@
+{
+ "generatedAt": "2026-11-26T13:31:53Z",
+ "baseSha": "1418a8501bb5b8dfb11782994e71305bb9d89f45",
+ "repo": "/home/user/TITAN_V0.5",
+ "branchAtBase": "claude/brave-wozniak-96p01b",
+ "schemaNotes": "screens[].platform web|android|both; status existing-main|future-unmerged:<branch>|prototype; category app|public-seo|system|internal|component|prototype|reference; states[].illustration = none | icon:<name> (24-grid line icon) | brand-mark | image:<path>. Branch screens are listed under branches.<name>.screens (status future-unmerged:<branch>).",
+ "counts": {
+  "byPlatformStatusCategory": {
+   "web|existing-main|app": 21,
+   "web|existing-main|system": 2,
+   "web|existing-main|internal": 2,
+   "web|existing-main|component": 1,
+   "web|existing-main|public-seo": 27,
+   "android|existing-main|app": 52,
+   "android|existing-main|component": 1,
+   "android|prototype|prototype": 1,
+   "both|prototype|prototype": 2,
+   "both|prototype|reference": 1
+  },
+  "branchScreens": {
+   "claude/gracious-feynman-q190d7": 9,
+   "claude/gifted-brahmagupta-mg28j8": 14,
+   "claude/hopeful-fermat-o35c8o": 2,
+   "claude/sweet-cannon-ulls05": 4,
+   "claude/bold-pasteur-n7zeg3": 2,
+   "claude/stoic-meitner-ubw09b": 2
+  },
+  "branchScreensTotal": 33,
+  "total": 110
+ },
+ "screens": [
+  {
+   "id": "web-qg",
+   "space": "qg",
+   "route": "/aujourdhui (aujourdhui.html, data-territory=qg)",
+   "sourceFiles": [
+    "aujourdhui.html",
+    "js/app/qg.js",
+    "js/app/pas.js",
+    "js/app/rendez-vous.js",
+    "js/app/quete-commune.js",
+    "js/app/objectif-mondial.js",
+    "js/app/binome.js",
+    "js/app/saison.js",
+    "js/app/classement.js",
+    "js/app/program.js",
+    "js/core/program-grid.js",
+    "js/core/steps.js",
+    "css/one-entree.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp + valley.webp (static .asc-art-head painting, swapped by qg.js to current world: /assets/renaissance/${image}-small|.webp)",
+    "assets/renaissance/${image}-xs.webp (qg-world-thumb, chapter)",
+    "assets/renaissance/${avatar}-s.webp (qg-portrait)",
+    "assets/ranks/<rank>-256/512.webp via TitanCrest.svg (qg-crest)",
+    "TitanProgramView week grid (sport family colours)",
+    "UI icons titanIcon (gauge, target, group, globe, link, calendar, bars on fold rows)"
+   ],
+   "signatureClasses": [
+    ".asc-art-head.qg-head",
+    ".qg-hero (slab, action of the day)",
+    ".qg-rank/.qg-crest/.qg-xp",
+    ".qg-program",
+    ".qg-doors/.qg-door",
+    ".qg-pulse",
+    ".qg-more .asc-fold (« Autour de ta pratique »)",
+    ".qg-steps/.qg-steps-card/.wk-days (steps)",
+    ".asc-ascent (progress bars)"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x3 in aujourdhui.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "status object {state:'is-error'} in qg.js (sync status line)",
+     "illustration": "none"
+    },
+    {
+     "kind": "guest",
+     "name": "guest/découverte mode: '≈' XP and 'En mode découverte… indicatif' copy (qg.js ~l.164-212)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": "steps fold row hidden entirely when no data (TitanStepsCard.html() returns '')",
+     "illustration": "none",
+     "note": "no empty visual; row absent"
+    },
+    {
+     "kind": "empty",
+     "name": "'Pas encore de donnée aujourd’hui.' [data-steps-none] inside steps card",
+     "illustration": "none"
+    },
+    {
+     "kind": "success",
+     "name": "titanShell toast (.asc-toast, js/app/shell.js)",
+     "illustration": "none",
+     "note": "text toast; used across pages"
+    },
+    {
+     "kind": "offline",
+     "name": "shell sync pill 'Hors ligne — tes séances restent sur cet appareil' (js/app/shell.js syncState)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Steps card is only reachable inside a folded <details class=asc-fold> row; a user without steps data sees nothing (no invitation, no illustration).",
+    "Seven optional modules (rendez-vous, common quest, world goal, Duo, season, ranking, steps) render as identical folded rows with a 24-grid line icon each: generic, no per-module illustration.",
+    "Header painting is one of only 4 world images (valley by default)."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-aventure",
+   "space": "aventure",
+   "route": "/adventure (adventure.html, data-territory=aventure)",
+   "sourceFiles": [
+    "adventure.html",
+    "js/app/aventure.js",
+    "js/app/aventure-rpg.js",
+    "js/app/journey.js",
+    "js/app/quetes-periodiques.js",
+    "js/core/adventure-rpg.js",
+    "js/core/campaign-quests.js",
+    "js/core/campaign-encounters.js",
+    "js/core/journey.js",
+    "js/core/adventure-access.js",
+    "js/renaissance-catalog.js",
+    "css/adventure-rpg.css",
+    "css/journey-v13.css",
+    "css/one-aventure-live.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "assets/renaissance/{valley,archipelago,forge,aurora}-small.webp + full .webp (.av-map-img painting, 800w/1600w)",
+    "assets/renaissance/{world}-xs.webp (world tabs .av-world)",
+    "assets/renaissance/guardian-{aube,marees,forge,aurores}-s.webp and full guardian-*.webp (boss node 9, guardian panel)",
+    "assets/objects/sceau-exploration-{96,256,512}.webp (seal, journey.js / aventure.js)",
+    "inline SVG .av-trail (9-node path over painting)",
+    "TitanCrest.beacon (vector chapter beacon)"
+   ],
+   "signatureClasses": [
+    ".av-map/.av-node(.is-earned/.is-active/.is-boss)",
+    ".av-mission (slab)",
+    ".av-worlds/.av-world/.av-world-pips",
+    ".sig-object(.is-locked/.is-portrait)",
+    ".sig-state",
+    ".asc-slab",
+    ".av-sentiers [data-journey-host]"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in adventure.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "loading",
+     "name": ".asc-empty 'Ton univers se prépare…' (aventure.js l.312)",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": ".asc-empty 'L’aventure est momentanément indisponible' + retry (aventure.js l.312)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty 'Les quêtes suivent ta pratique' (aventure.js l.337)",
+     "illustration": "icon:compass"
+    },
+    {
+     "kind": "locked",
+     "name": ".sig-object.is-locked (greyscale filter on object images), state('is-locked','lock','Au neuvième chapitre'), world access 'Indisponible'/'TITAN+'",
+     "illustration": "image greyed (CSS filter)"
+    },
+    {
+     "kind": "guest",
+     "name": "access label 'Découverte' on world tabs",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Chapter beacons 1–8 are vector (TitanCrest.beacon); proposed raster beacons balise-chapitre-01..03 exist only in design/titan-visual-library/global-v2/proposed (not integrated).",
+    "Locked objects are the same image desaturated by CSS, no dedicated locked art.",
+    "Error/loading states are text-only .asc-empty."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-seance-nouvelle",
+   "space": "seance",
+   "route": "/training (training.html, data-territory=seance)",
+   "sourceFiles": [
+    "training.html",
+    "js/app/seance.js",
+    "js/app/share.js",
+    "js/app/moment.js",
+    "js/core/gpx.js",
+    "js/core/gpx-view.js",
+    "css/one-seance-progres.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "sport glyphs TITAN_SPORT_ICONS (js/app/sport-icons.js, 257 glyphs + 5 family marks) in sport grid/search",
+    "GPX trace SVG (js/core/gpx-view.js)",
+    "TitanCrest.rank via moment.js (post-session moment card)"
+   ],
+   "signatureClasses": [
+    ".asc-page-head.seance-field (lime field with sport search)",
+    ".asc-row",
+    ".sig-state",
+    ".seance-search-empty"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x1 in training.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty.sp-none 'Aucun sport ne correspond à « … »' (seance.js l.524)",
+     "illustration": "icon:search"
+    },
+    {
+     "kind": "empty",
+     "name": ".seance-search-empty 'Aucun sport ne correspond à ta recherche.' (seance.js l.332)",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "'Garmin est indisponible pour le moment…' text (seance.js l.385)",
+     "illustration": "none"
+    },
+    {
+     "kind": "success",
+     "name": "moment card / share sheet after save (moment.js, share.js)",
+     "illustration": "crest SVG/badge"
+    },
+    {
+     "kind": "success",
+     "name": "titanShell toast (.asc-toast, js/app/shell.js)",
+     "illustration": "none",
+     "note": "text toast; used across pages"
+    }
+   ],
+   "gaps": [
+    "Search empty states are text + line icon only."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-seance-live",
+   "space": "seance",
+   "route": "/seance-live (seance-live.html)",
+   "sourceFiles": [
+    "seance-live.html",
+    "js/app/live.js",
+    "js/core/live-voies.js",
+    "js/core/live-engine.js",
+    "js/core/live-world.js",
+    "js/core/live-prepare.js",
+    "js/core/live-scene.js",
+    "css/live.css",
+    "css/one-aventure-live.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "inline SVG scene/intent glyphs in live.js (4 <svg>)",
+    "no raster image"
+   ],
+   "signatureClasses": [
+    ".live-block",
+    ".live-flow",
+    ".live-intent",
+    ".live-scene-line",
+    ".live-building-head",
+    ".sig-plate",
+    ".sig-state",
+    ".is-locked"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x1 in seance-live.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": ".sig-empty 'Rien n’est perdu' (Camp de base unreadable, live.js l.403)",
+     "illustration": "none"
+    },
+    {
+     "kind": "guest",
+     "name": "'Le Camp de base se rebâtit avec un compte' (live.js l.171)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": "'Rien à atteindre. Pratique : le monde se révèle en chemin.' (live.js l.341)",
+     "illustration": "none"
+    },
+    {
+     "kind": "locked",
+     "name": ".is-locked on Camp buildings (live.js)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "DESIGN.md: 'the background paintings of TITAN LIVE do not exist yet' — confirmed: no image referenced by live.js/seance-live.html.",
+    "No page field by design (nothing bright while moving)."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-prevoir",
+   "space": "seance",
+   "route": "/prevoir (prevoir.html; netlify.toml 200 rewrite)",
+   "sourceFiles": [
+    "prevoir.html",
+    "js/app/prevoir.js",
+    "js/app/sessions.js",
+    "css/one-seance-progres.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "UI icons only",
+    "sport glyphs on planned rows"
+   ],
+   "signatureClasses": [
+    ".asc-page-head",
+    ".asc-row",
+    ".asc-slab"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in prevoir.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty.pv-none 'Aucune séance prévue' (prevoir.js l.79)",
+     "illustration": "icon:calendar"
+    }
+   ],
+   "gaps": [
+    "Text-only empty state with a line icon."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-progres-semaine",
+   "space": "progres",
+   "route": "/stats (stats.html, title 'Ta semaine')",
+   "sourceFiles": [
+    "stats.html",
+    "js/app/semaine.js",
+    "js/app/analyses.js",
+    "js/app/rapports.js",
+    "js/app/vues.js",
+    "js/app/quetes-periodiques.js",
+    "js/app/pas.js",
+    "js/app/program.js",
+    "js/core/questions.js",
+    "js/core/analysis-views.js",
+    "js/core/reports.js",
+    "js/core/month-report.js",
+    "js/core/steps.js",
+    "css/one-seance-progres.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "TitanProgramView week + span grid (12/26 weeks)",
+    "CSS bars .wk-chart/.wk-bar/.wk-col-bar/.wk-gauge (no SVG charts)",
+    "steps 30-day sparkline .qg-steps-spark (TitanStepsCard.monthHtml)"
+   ],
+   "signatureClasses": [
+    ".asc-page-head + .asc-field-figures (azure field with 30-day figures)",
+    ".asc-row",
+    ".wk-questions",
+    ".sig-plate/.sig-state (periodic quests)"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in stats.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".asc-empty.sig-empty 'Tes statistiques répondront à de vraies questions' (semaine.js l.380)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": "'Aucune séance dans cette période.' (analyses.js l.52)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Main stats empty state has no icon and no illustration.",
+    "Analyses/reports/vues render no chart at all (0 SVG); only CSS bars in semaine.js."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-journal",
+   "space": "progres",
+   "route": "/journal (journal.html)",
+   "sourceFiles": [
+    "journal.html",
+    "js/app/journal.js",
+    "js/app/sessions.js",
+    "js/app/parcours.js",
+    "js/app/share.js",
+    "js/app/moment.js",
+    "js/core/gpx-view.js",
+    "js/core/progression.js",
+    "css/one-seance-progres.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "sport glyphs per row",
+    "GPX route SVG in session sheet (gpx-view.js, parcours.js)",
+    "TitanCrest via moment.js"
+   ],
+   "signatureClasses": [
+    ".asc-page-head",
+    ".asc-chip filters",
+    ".asc-row (table on wide screens)",
+    ".sig-empty"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in journal.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".asc-empty.sig-empty 'Ton journal commence à ta première séance' (journal.js l.151)",
+     "illustration": "icon:journal"
+    },
+    {
+     "kind": "empty",
+     "name": ".asc-empty.sig-empty 'Aucune séance archivée' (l.150)",
+     "illustration": "icon:archive"
+    },
+    {
+     "kind": "empty",
+     "name": ".asc-empty.sig-empty 'Aucune séance ne correspond' + reset (l.152)",
+     "illustration": "icon:search"
+    },
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton in parcours.js",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "First-run journal empty state (most-seen by new users) is an icon + text, no illustration."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-records",
+   "space": "progres",
+   "route": "/records (records.html)",
+   "sourceFiles": [
+    "records.html",
+    "js/app/records.js",
+    "js/app/sport-browser.js",
+    "js/core/sport-navigation.js",
+    "js/app/card.js",
+    "js/app/share.js",
+    "css/one-seance-progres.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "assets/objects/relique-maitrise-256/512.webp (RELIC, .sig-object.rc-relic)",
+    "SVG line chart .rc-chart/.rc-chart-line/.rc-chart-area",
+    "sport glyphs (sport-browser.js)"
+   ],
+   "signatureClasses": [
+    ".sig-plate",
+    ".sig-object",
+    ".sig-state",
+    ".rc-chart"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in records.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty.rc-none 'Aucun record pour l’instant' (records.js l.89)",
+     "illustration": "image:assets/objects/relique-maitrise-256.webp (locked/greyed)"
+    },
+    {
+     "kind": "empty",
+     "name": "'Aucune donnée pour ce sport.' (records.js l.137)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".asc-empty[data-nav-empty] 'Aucun sport à afficher' (sport-browser.js l.61)",
+     "illustration": "none"
+    },
+    {
+     "kind": "locked",
+     "name": ".sig-object.is-locked relic",
+     "illustration": "image greyed"
+    }
+   ],
+   "gaps": [
+    "Only web empty state in the whole app with a real illustration (relic)."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-carriere",
+   "space": "progres",
+   "route": "/carriere (carriere.html)",
+   "sourceFiles": [
+    "carriere.html",
+    "js/app/carriere.js",
+    "js/core/career.js",
+    "css/carriere.css",
+    "css/one-seance-progres.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "TitanCrest rank badge (crest)",
+    "2 inline SVG (career curve)",
+    "sig-object"
+   ],
+   "signatureClasses": [
+    ".asc-page-head",
+    ".asc-panel x9",
+    ".sig-plate",
+    ".sig-object",
+    ".is-locked"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in carriere.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "locked",
+     "name": ".is-locked milestone (carriere.js)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Heavy use of .asc-panel (9) — repeated generic panels."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-objectifs",
+   "space": "progres",
+   "route": "/objectifs (objectifs.html)",
+   "sourceFiles": [
+    "objectifs.html",
+    "js/app/objectifs.js",
+    "js/app/sessions.js",
+    "css/one-seance-progres.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "CSS bar .ob-bar",
+    "UI icons"
+   ],
+   "signatureClasses": [
+    ".asc-page-head",
+    ".asc-row",
+    ".asc-chip",
+    ".sig-state"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in objectifs.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty.ob-none 'Aucun objectif en cours' (objectifs.js l.181)",
+     "illustration": "icon:flag"
+    },
+    {
+     "kind": "empty",
+     "name": "'Aucun objectif archivé.' / 'Aucune séance sur la période…' (asc-small text)",
+     "illustration": "none"
+    },
+    {
+     "kind": "locked",
+     "name": ".is-locked (objectifs.js)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Empty states text + line icon."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-profil",
+   "space": "profil",
+   "route": "/profile (profile.html; /personnage, /trophies, /talents, /disciplines redirect here)",
+   "sourceFiles": [
+    "profile.html",
+    "js/app/profil.js",
+    "js/app/journey.js",
+    "js/app/sport-browser.js",
+    "js/app/program.js",
+    "js/app/card.js",
+    "js/core/titles.js",
+    "js/core/endurance.js",
+    "css/profile-v13.css",
+    "css/journey-v13.css",
+    "css/one-profil-atelier.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "assets/renaissance/{avatar}-s.webp (.pf-avatar, frame via data-frame) and 6 avatar picks (.pf-avatar-pick, locked by level)",
+    "TitanCrest rank badge",
+    "TitanProgramView 8-week « Mes sports »",
+    "CSS ascents"
+   ],
+   "signatureClasses": [
+    ".asc-page-head.pf-head (chalk field = left column on wide)",
+    ".pf-hero.asc-on-field",
+    ".pf-avatars/.pf-avatar-pick[aria-disabled]",
+    ".pf-table (mastery tiers sheet)",
+    ".asc-row x57"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in profile.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": "'Aucune pratique enregistrée.' (profil.js l.112)",
+     "illustration": "none"
+    },
+    {
+     "kind": "locked",
+     "name": "avatar pick aria-disabled with 'Niveau N' caption",
+     "illustration": "image (no lock art)"
+    }
+   ],
+   "gaps": [
+    "57 .asc-row in one module: long list of generic rows.",
+    "Mastery tiers shown only as a table in a sheet (no badges per palier)."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-atelier",
+   "space": "profil",
+   "route": "/boutique (boutique.html, data-territory=atelier, title 'Atelier')",
+   "sourceFiles": [
+    "boutique.html",
+    "js/app/atelier.js",
+    "js/app/card.js",
+    "css/one-profil-atelier.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "assets/objects/coffre-tactique-256/512.webp, relique-maitrise, sceau-exploration",
+    "assets/renaissance/{avatar}-s.webp (trial stage)",
+    "assets/renaissance/{world}-small.webp (map ambience trial)",
+    "TitanCrest.svg (rank frames)",
+    "frames/card styles/map ambiences cosmetics (CSS)"
+   ],
+   "signatureClasses": [
+    ".sig-plate x9",
+    ".sig-state",
+    ".sig-object",
+    ".at-path",
+    ".at-trial-stage",
+    ".at-merit",
+    ".at-wallet-main"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in boutique.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty.at-empty[data-collection-empty] (atelier.js l.459)",
+     "illustration": "icon:check|sparkle"
+    },
+    {
+     "kind": "locked",
+     "name": ".is-locked cosmetics x3",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Cosmetic previews reuse the same avatar/world images; no dedicated cosmetic art."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-recours",
+   "space": "profil",
+   "route": "/recours (recours.html)",
+   "sourceFiles": [
+    "recours.html",
+    "js/app/recours.js",
+    "js/app/sessions.js",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "UI icons only"
+   ],
+   "signatureClasses": [
+    ".asc-page-head",
+    ".asc-row",
+    ".asc-chip"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in recours.html (shimmer blocks)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Text/form-only page."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-communaute",
+   "space": "communaute",
+   "route": "/social (social.html; /chat redirects here)",
+   "sourceFiles": [
+    "social.html",
+    "js/app/communaute.js",
+    "js/app/cordee.js",
+    "js/core/cordee.js",
+    "js/app/clubs.js",
+    "js/app/duels.js",
+    "js/app/factions.js",
+    "js/app/pantheon.js",
+    "js/app/binome.js",
+    "js/app/communaute-extras.js",
+    "js/app/retour.js",
+    "js/app/consultations.js",
+    "js/app/assistance.js",
+    "js/app/support-report.js",
+    "js/core/social-digest.js",
+    "css/communaute.css",
+    "css/one-communaute.css",
+    "css/assistance.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "assets/renaissance/{avatar}-s.webp for friends, members, invitations, moments authors (default scout)",
+    "assets/renaissance/{view}-small/xs.webp (cordée route view)",
+    "UI icons"
+   ],
+   "signatureClasses": [
+    ".asc-page-head.cm-head",
+    ".asc-row x36",
+    ".sig-plate",
+    ".sig-state (cordée)",
+    ".asc-fold « Plus loin »",
+    ".asc-panel (clubs, duels, factions)"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in social.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty 'Aucun Moment pour l’instant' (communaute.js l.428)",
+     "illustration": "icon:heart"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty 'Ton cercle commence par une personne' (l.452)",
+     "illustration": "icon:group"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty 'Pas encore de défi' (l.543)",
+     "illustration": "icon:target"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty 'Une équipe pour tenir la semaine ensemble' guild (l.554)",
+     "illustration": "icon:shield"
+    },
+    {
+     "kind": "error",
+     "name": ".sig-empty 'Ta guilde ne s’affiche pas pour le moment' (l.551)",
+     "illustration": "icon:shield"
+    },
+    {
+     "kind": "offline",
+     "name": ".sig-empty.cm-down 'Hors ligne' / 'Communauté indisponible' / 'bientôt disponible' (l.636)",
+     "illustration": "icon:offline|alert"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty[data-cordee-empty] 'Pas encore de cordée' (cordee.js l.176)",
+     "illustration": "icon:route"
+    },
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 (communaute.js)",
+     "illustration": "none"
+    },
+    {
+     "kind": "locked",
+     "name": ".is-locked (cordee.js)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Six distinct empty states, all icon + text; no community illustration.",
+    "All people shown with one of 6 avatar images (default scout); no photo/initial fallback variety."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-coaching",
+   "space": "communaute",
+   "route": "/coaching (coaching.html, data-territory=coaching)",
+   "sourceFiles": [
+    "coaching.html",
+    "js/app/coaching.js",
+    "js/app/coach-tools.js",
+    "js/core/coach-analysis.js",
+    "js/core/coach-workspace.js",
+    "css/one-communaute.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "UI icons only"
+   ],
+   "signatureClasses": [
+    ".asc-page-head",
+    ".asc-row",
+    ".sig-state",
+    ".sig-plate",
+    ".asc-chip",
+    ".is-locked"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x2 in coaching.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x3 (coaching.js) + 1 (coach-tools.js)",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": ".sig-empty 'Prêt pour le premier suivi ?' / 'Tu gardes la main.' (coaching.js l.593)",
+     "illustration": "icon:group|shield"
+    },
+    {
+     "kind": "empty",
+     "name": "6 text-only 'Aucune séance…/Aucun suivi…/Aucune proposition…' lines (asc-small)",
+     "illustration": "none"
+    },
+    {
+     "kind": "locked",
+     "name": ".is-locked x3 (coach features)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Data-dense coach views with no chart/visual beyond text."
+   ],
+   "note": "data-territory='coaching' is not one of the six spaces listed in DESIGN.md (unverified how it maps; CSS one-communaute.css suggests coral).",
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-defi",
+   "space": "communaute",
+   "route": "/defi (defi.html) — challenge invitation link",
+   "sourceFiles": [
+    "defi.html",
+    "js/app/defi.js",
+    "js/core/cordee.js",
+    "css/one-communaute.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "assets/renaissance/{view}-small/xs.webp (route painting)"
+   ],
+   "signatureClasses": [
+    ".asc-page-head",
+    ".sig-plate",
+    ".asc-actions"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x1 in defi.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": ".sig-empty.df-invalid 'Lien indisponible' (defi.js l.22)",
+     "illustration": "icon:link"
+    }
+   ],
+   "gaps": [],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-athlete-card",
+   "space": "communaute",
+   "route": "/u/* → athlete.html (netlify.toml 200)",
+   "sourceFiles": [
+    "athlete.html",
+    "js/app/athlete.js",
+    "js/core/titles.js",
+    "css/one-communaute.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "assets/renaissance/{avatar}-s.webp",
+    "TitanCrest rank badge",
+    "image/og-titan.jpg (OG)"
+   ],
+   "signatureClasses": [
+    ".crest",
+    ".sig-plate",
+    ".sig-object"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x1 in athlete.html (shimmer blocks)",
+     "illustration": "none"
+    },
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton (athlete.js)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Public card has no page field/head class; unverified how error/not-found is rendered."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-login",
+   "space": "system",
+   "route": "/login (login.html)",
+   "sourceFiles": [
+    "login.html",
+    "js/app/auth.js",
+    "css/one-entree.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/icons.js"
+   ],
+   "visualAssets": [
+    "text brand .asc-brand (no image)",
+    "no illustration"
+   ],
+   "signatureClasses": [
+    ".auth-layout",
+    ".auth-side/.auth-pitch/.auth-points",
+    ".auth-card"
+   ],
+   "states": [
+    {
+     "kind": "error",
+     "name": "form validation messages (auth.js)",
+     "illustration": "none",
+     "note": "unverified exact class"
+    }
+   ],
+   "gaps": [
+    "Login has no imagery at all (side pitch is text), unlike Android Welcome which shows hero + world paintings."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-onboarding",
+   "space": "system",
+   "route": "/onboarding (onboarding.html)",
+   "sourceFiles": [
+    "onboarding.html",
+    "js/app/onboarding.js",
+    "css/one-entree.css",
+    "css/ascension.css",
+    "css/ascension-app.css",
+    "css/signature.css",
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/icons.js",
+    "js/app/sport-icons.js",
+    "js/app/crest.js"
+   ],
+   "visualAssets": [
+    "assets/ranks/{eclaireur,explorateur,sentinelle,gardien}-256.webp",
+    "assets/renaissance/valley-small.webp + valley.webp"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": ".asc-skeleton x1 in onboarding.html (shimmer blocks)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Shows only first 4 rank crests."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-update-password",
+   "space": "system",
+   "route": "/update-password",
+   "sourceFiles": [
+    "update-password.html",
+    "js/app/update-password.js",
+    "css/one-entree.css"
+   ],
+   "visualAssets": [
+    "none"
+   ],
+   "signatureClasses": [
+    ".asc-field"
+   ],
+   "states": [],
+   "gaps": [
+    "Text-only."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-network-error",
+   "space": "system",
+   "route": "/network-error.html (service-worker offline fallback, precached)",
+   "sourceFiles": [
+    "network-error.html",
+    "sw.js"
+   ],
+   "visualAssets": [
+    "none"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "offline",
+     "name": "'Hors ligne — Pas de réseau pour l’instant…' + buttons Enregistrer/QG/Réessayer/Assistance",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Offline page is text-only: no illustration, no brand image."
+   ],
+   "platform": "web",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "web-404",
+   "space": "system",
+   "category": "system",
+   "route": "/404.html (catch-all)",
+   "sourceFiles": [
+    "404.html",
+    "css/public.css"
+   ],
+   "visualAssets": [
+    "3 inline SVG (logo/icons)"
+   ],
+   "signatureClasses": [
+    ".pub-header"
+   ],
+   "states": [
+    {
+     "kind": "error",
+     "name": "Page introuvable",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "No illustration on 404."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "web-admin",
+   "space": "system",
+   "category": "internal",
+   "route": "/admin (admin.html)",
+   "sourceFiles": [
+    "admin.html",
+    "js/admin.js",
+    "css/admin.css",
+    "css/design-system.css",
+    "css/tracking.css",
+    "css/icons.css"
+   ],
+   "visualAssets": [
+    "image/logo.png, logo-192.png, apple-touch-icon.png, og-titan.jpg"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Legacy design system (design-system.css) — outside the « Programme » system."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "web-sys-core-override",
+   "space": "system",
+   "category": "internal",
+   "status": "existing-main",
+   "route": "/sys_core_override_99.html → 404 (_redirects) and excluded from build",
+   "sourceFiles": [
+    "sys_core_override_99.html"
+   ],
+   "visualAssets": [
+    "image/og-titan-os.png"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Legacy admin console, not published."
+   ],
+   "platform": "web"
+  },
+  {
+   "id": "web-dynamic-page",
+   "space": "public",
+   "category": "system",
+   "route": "/dynamic-page",
+   "sourceFiles": [
+    "dynamic-page.html",
+    "js/dynamic-page.js",
+    "css/dynamic-page.css",
+    "css/design-system.css"
+   ],
+   "visualAssets": [
+    "image/logo.png, logo-192.png, apple-touch-icon.png, og-titan.jpg"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Legacy design-system.css styling."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "web-shell",
+   "space": "system",
+   "category": "component",
+   "route": "(every app page) rail / tab bar / sheets",
+   "sourceFiles": [
+    "js/app/shell.js",
+    "js/app/shell-nav.js",
+    "js/app/hints.js",
+    "js/app/share.js",
+    "js/app/card.js",
+    "js/app/moment.js"
+   ],
+   "visualAssets": [
+    "assets/renaissance/{avatar}-s.webp (profile button)",
+    "assets/ranks/{rank}-256.webp (shell-nav)",
+    "UI icon set js/app/icons.js (81 icons)"
+   ],
+   "signatureClasses": [
+    ".asc-toast",
+    "sheet via titanShell.sheet()"
+   ],
+   "states": [
+    {
+     "kind": "success",
+     "name": "titanShell toast (.asc-toast, js/app/shell.js)",
+     "illustration": "none",
+     "note": "text toast; used across pages"
+    },
+    {
+     "kind": "offline",
+     "name": "shell sync pill 'Hors ligne — tes séances restent sur cet appareil' (js/app/shell.js syncState)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-index",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/",
+   "sourceFiles": [
+    "index.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/ranks/gardien-256.webp",
+    "assets/renaissance/{archipelago,aurora,forge,valley}-xs.webp",
+    "assets/renaissance/navigator-s.webp",
+    "assets/renaissance/valley-small.webp",
+    "image/editorial/valley-hero-800/1600.webp",
+    "image/og-titan.jpg",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [],
+   "note": "landing",
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-fonctionnalites",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/fonctionnalites",
+   "sourceFiles": [
+    "fonctionnalites.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/forge-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-sports",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/sports",
+   "sourceFiles": [
+    "sports.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "note": "260 sports page",
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-suivi-sportif",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/suivi-sportif",
+   "sourceFiles": [
+    "suivi-sportif.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-suivi-velo",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/suivi-velo",
+   "sourceFiles": [
+    "suivi-velo.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-suivi-escalade",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/suivi-escalade",
+   "sourceFiles": [
+    "suivi-escalade.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-journal-entrainement",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/journal-entrainement",
+   "sourceFiles": [
+    "journal-entrainement.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/archipelago-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-journal-course-a-pied",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/journal-course-a-pied",
+   "sourceFiles": [
+    "journal-course-a-pied.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/archipelago-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-carnet-musculation",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/carnet-musculation",
+   "sourceFiles": [
+    "carnet-musculation.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-aventures-sportives",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/aventures-sportives",
+   "sourceFiles": [
+    "aventures-sportives.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/{archipelago,aurora,forge,valley}-xs.webp",
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [],
+   "note": "4 mondes, 36 balises, 4 gardiens",
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-defis-sportifs",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/defis-sportifs",
+   "sourceFiles": [
+    "defis-sportifs.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-comprendre-mes-donnees",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/comprendre-mes-donnees",
+   "sourceFiles": [
+    "comprendre-mes-donnees.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-debuter-titan",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/debuter-titan",
+   "sourceFiles": [
+    "debuter-titan.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/archipelago-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-motivation-sport",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/motivation-sport",
+   "sourceFiles": [
+    "motivation-sport.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-niveaux-et-xp",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/niveaux-et-xp (/algorithme redirects)",
+   "sourceFiles": [
+    "niveaux-et-xp.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "note": "ranks, mastery tiers table",
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-progression-sportive",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/progression-sportive",
+   "sourceFiles": [
+    "progression-sportive.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-pour-les-coachs",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/pour-les-coachs",
+   "sourceFiles": [
+    "pour-les-coachs.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/valley-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "Hero reuses assets/renaissance/valley-small.webp (same image on 12 public pages)."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-partenariats",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/partenariats",
+   "sourceFiles": [
+    "partenariats.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "No raster image; text + inline SVG only."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-changelog",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/changelog",
+   "sourceFiles": [
+    "changelog.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "No raster image; text + inline SVG only."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-service",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/service",
+   "sourceFiles": [
+    "service.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "No raster image; text + inline SVG only."
+   ],
+   "note": "assistance",
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-regles-communaute",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/regles-communaute",
+   "sourceFiles": [
+    "regles-communaute.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "No raster image; text + inline SVG only."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-legal-hub",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/legal_hub",
+   "sourceFiles": [
+    "legal_hub.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "No raster image; text + inline SVG only."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-legal-cgu",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/legal_cgu",
+   "sourceFiles": [
+    "legal_cgu.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "No raster image; text + inline SVG only."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-legal-mentions",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/legal_mentions",
+   "sourceFiles": [
+    "legal_mentions.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "No raster image; text + inline SVG only."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-legal-privacy",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/legal_privacy",
+   "sourceFiles": [
+    "legal_privacy.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "No raster image; text + inline SVG only."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-supprimer-mon-compte",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/supprimer-mon-compte",
+   "sourceFiles": [
+    "supprimer-mon-compte.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [
+    "No raster image; text + inline SVG only."
+   ],
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "public-titan-plus",
+   "space": "public",
+   "category": "public-seo",
+   "route": "/titan-plus",
+   "sourceFiles": [
+    "titan-plus.html",
+    "css/public.css",
+    "css/ascension.css"
+   ],
+   "visualAssets": [
+    "assets/renaissance/{archipelago,aurora,forge,valley}-xs.webp",
+    "assets/renaissance/aurora-small.webp",
+    "inline SVG icons/logo",
+    "assets/ascension/contours.svg (via css/public.css background)"
+   ],
+   "signatureClasses": [
+    ".pub-header",
+    ".pub-head",
+    ".pub-prose",
+    ".pub-table"
+   ],
+   "states": [],
+   "gaps": [],
+   "note": "TITAN+ coming soon (css one-profil-atelier too)",
+   "platform": "web",
+   "status": "existing-main"
+  },
+  {
+   "id": "android-qg",
+   "space": "qg",
+   "route": "Tabs › QG (HomeScreen)",
+   "sourceFiles": [
+    "mobile/src/screens/home/HomeScreen.tsx",
+    "mobile/src/components/QgBanner.tsx",
+    "mobile/src/components/QgProgress.tsx",
+    "mobile/src/components/TodayStrip.tsx",
+    "mobile/src/components/StepsCard.tsx",
+    "mobile/src/components/JourneyCard.tsx",
+    "mobile/src/components/MilestoneCard.tsx",
+    "mobile/src/components/MemoryCard.tsx",
+    "mobile/src/components/HabitCards.tsx",
+    "mobile/src/components/CommunityCards.tsx",
+    "mobile/src/components/RepeatLastCard.tsx",
+    "mobile/src/components/SinceCard.tsx",
+    "mobile/src/components/TourCard.tsx",
+    "mobile/src/components/HealthDetectCard.tsx",
+    "mobile/src/components/AdBanner.tsx"
+   ],
+   "visualAssets": [
+    "mobile/assets/rpg/{world}-small.webp (QgBanner painting via worldImages; heroImage hero-small.webp fallback)",
+    "mobile/assets/rpg/{avatar}-s.webp (avatarImages)",
+    "mobile/assets/rank/{rank}-256.webp (RankCrest size 72)",
+    "ProgramGrid (QgProgress)",
+    "chapter thumb image (QgProgress)",
+    "Ring (StepsCard)"
+   ],
+   "signatureClasses": [
+    "QgBanner (edge-to-edge painting)",
+    "QG slab (DESIGN.md)",
+    "Section/Card"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (HomeScreen count=2) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (HomeScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "empty",
+     "name": "TodayStrip quiet line when no steps (opens Steps screen)",
+     "illustration": "none"
+    },
+    {
+     "kind": "offline",
+     "name": "<OfflineBanner/> (in components/Screen.tsx for every Screen)",
+     "illustration": "icon:offline (16px)"
+    },
+    {
+     "kind": "success",
+     "name": "toast 'Objectif de pas atteint' (TodayStrip useGoalCheer)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Many stacked cards (≈14 card components) on one screen; risk of repeated generic Card look.",
+    "AdBanner present on QG (ads)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-progres",
+   "space": "progres",
+   "route": "Tabs › Progress (ProgressScreen)",
+   "sourceFiles": [
+    "mobile/src/screens/progress/ProgressScreen.tsx",
+    "mobile/src/screens/progress/Questions.tsx",
+    "mobile/src/components/ProgressionCards.tsx",
+    "mobile/src/components/Charts.tsx",
+    "mobile/src/components/ProgramGrid.tsx",
+    "mobile/src/components/SpaceField.tsx"
+   ],
+   "visualAssets": [
+    "SpaceField (azure field)",
+    "ProgramGrid x2",
+    "BarChart/LineChart/ShareBar SVG (Charts.tsx)"
+   ],
+   "signatureClasses": [
+    "SpaceField"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (ProgressScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (ProgressScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState brand icon='chart' title='Tes statistiques commencent ici'/>",
+     "illustration": "brand-mark mobile/assets/brand/mark.png"
+    },
+    {
+     "kind": "offline",
+     "name": "<OfflineBanner/> (in components/Screen.tsx for every Screen)",
+     "illustration": "icon:offline (16px)"
+    }
+   ],
+   "gaps": [
+    "Web stats has no SVG charts while Android has BarChart — parity gap in data visuals."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-seance",
+   "space": "seance",
+   "route": "Tabs › Record (RecordScreen)",
+   "sourceFiles": [
+    "mobile/src/screens/session/RecordScreen.tsx",
+    "mobile/src/components/SportPicker.tsx",
+    "mobile/src/components/RepeatLastCard.tsx",
+    "mobile/src/components/SpaceField.tsx",
+    "mobile/src/core/icons.generated.ts"
+   ],
+   "visualAssets": [
+    "SpaceField (lime)",
+    "sport glyphs (icons.generated.ts, 257 sport + 5 family)"
+   ],
+   "signatureClasses": [
+    "SpaceField",
+    "SportGrid/SportFamilyPicker/SportSearch"
+   ],
+   "states": [
+    {
+     "kind": "offline",
+     "name": "<OfflineBanner/> (in components/Screen.tsx for every Screen)",
+     "illustration": "icon:offline (16px)"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-aventure",
+   "space": "aventure",
+   "route": "Tabs › Adventure (AdventureScreen)",
+   "sourceFiles": [
+    "mobile/src/screens/adventure/AdventureScreen.tsx",
+    "mobile/src/components/JourneyCard.tsx",
+    "mobile/src/components/AdventureHelp.tsx",
+    "mobile/src/components/Shade.tsx"
+   ],
+   "visualAssets": [
+    "mobile/assets/rpg/{valley,archipelago,forge,aurora}-small.webp (worldImages)",
+    "mobile/assets/rpg/hero-small.webp (heroImage)",
+    "Shade gradient overlay (LinearGradient)"
+   ],
+   "signatureClasses": [
+    "painting head (QgBanner-like)"
+   ],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (AdventureScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Aventure indisponible'/> (AdventureScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "offline",
+     "name": "<OfflineBanner/> (in components/Screen.tsx for every Screen)",
+     "illustration": "icon:offline (16px)"
+    }
+   ],
+   "gaps": [
+    "No empty state for a world list; locked worlds unverified (no locked art)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-profil",
+   "space": "profil",
+   "route": "Tabs › Profile (ProfileScreen)",
+   "sourceFiles": [
+    "mobile/src/screens/profile/ProfileScreen.tsx",
+    "mobile/src/components/Avatar.tsx",
+    "mobile/src/components/Crest.tsx",
+    "mobile/src/components/ProgramGrid.tsx",
+    "mobile/src/components/JourneyCard.tsx",
+    "mobile/src/core/cosmetics.ts"
+   ],
+   "visualAssets": [
+    "avatarImages {scout..sentinel}-s.webp with FRAMES rings/glow (cosmetics.ts)",
+    "RankCrest (rankImages 256/512)",
+    "ProgramGrid 8 weeks"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "offline",
+     "name": "<OfflineBanner/> (in components/Screen.tsx for every Screen)",
+     "illustration": "icon:offline (16px)"
+    }
+   ],
+   "gaps": [
+    "Frames use glow (cosmetics.ts), which DESIGN.md 'Don't' forbids elsewhere."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-world",
+   "space": "aventure",
+   "route": "Stack › World {id}",
+   "sourceFiles": [
+    "mobile/src/screens/adventure/WorldScreen.tsx",
+    "mobile/src/components/WorldPathMap.tsx",
+    "mobile/src/components/WorldStory.tsx",
+    "mobile/src/components/AdventureEncounters.tsx",
+    "mobile/src/components/RewardReveal.tsx",
+    "mobile/src/components/Embers.tsx"
+   ],
+   "visualAssets": [
+    "worldImages {world}-small.webp",
+    "guardianImages guardian-{aube,marees,forge,aurores}-s.webp",
+    "WorldPathMap SVG (9 balises)",
+    "BeaconEmblem (vector)",
+    "Embers particle reveal"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards label='Chargement de {world}'/>",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Campagne indisponible'/> (WorldScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "success",
+     "name": "RewardReveal + Embers",
+     "illustration": "vector/particles"
+    }
+   ],
+   "gaps": [
+    "No raster chapter beacons; guardians only in -s (small) size on Android."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-sentiers",
+   "space": "aventure",
+   "route": "Stack › Sentiers",
+   "sourceFiles": [
+    "mobile/src/screens/adventure/SentiersScreen.tsx",
+    "mobile/src/components/JourneyCard.tsx"
+   ],
+   "visualAssets": [
+    "JourneyCard worldImages"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "offline",
+     "name": "<OfflineBanner/> (in components/Screen.tsx for every Screen)",
+     "illustration": "icon:offline (16px)"
+    }
+   ],
+   "gaps": [
+    "Thin screen, single JourneyCard."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-camp",
+   "space": "aventure",
+   "route": "Stack › Camp (Camp de base)",
+   "sourceFiles": [
+    "mobile/src/screens/live/CampScreen.tsx"
+   ],
+   "visualAssets": [
+    "ProgressBar only"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (CampScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (CampScreen)",
+     "illustration": "icon:alert in red soft badge"
+    }
+   ],
+   "gaps": [
+    "Camp de base has no image at all."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-live",
+   "space": "seance",
+   "route": "Stack › LiveSession",
+   "sourceFiles": [
+    "mobile/src/screens/live/LiveSessionScreen.tsx",
+    "mobile/src/screens/live/LivePanels.tsx",
+    "mobile/src/components/LiveTrail.tsx",
+    "mobile/src/components/LiveSettleCard.tsx"
+   ],
+   "visualAssets": [
+    "LiveTrail SVG + LinearGradient"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "No background painting (same as web)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-gps-record",
+   "space": "seance",
+   "route": "Stack › GpsRecord {sport}",
+   "sourceFiles": [
+    "mobile/src/screens/session/GpsRecordScreen.tsx",
+    "mobile/src/lib/gpsRecorder.ts",
+    "mobile/src/lib/tiles.ts"
+   ],
+   "visualAssets": [
+    "text dashboard (no map on main)"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Main GPS screen has no map; branch gifted-brahmagupta adds GpsLiveMap."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-routes",
+   "space": "seance",
+   "route": "Stack › Routes / Route",
+   "sourceFiles": [
+    "mobile/src/screens/session/RoutesScreen.tsx",
+    "mobile/src/lib/tiles.ts"
+   ],
+   "visualAssets": [
+    "SVG trace on tile view (MapView type from lib/tiles; tiles only if configured)",
+    "<Image> tiles"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (RoutesScreen x2) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (RoutesScreen x2)",
+     "illustration": "icon:alert in red soft badge"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-session-form",
+   "space": "seance",
+   "route": "Stack › SessionForm",
+   "sourceFiles": [
+    "mobile/src/screens/session/SessionFormScreen.tsx",
+    "mobile/src/screens/session/ExerciseEditor.tsx",
+    "mobile/src/screens/session/SportMetricsEditor.tsx",
+    "mobile/src/components/RpeSelector.tsx"
+   ],
+   "visualAssets": [
+    "sport glyph",
+    "RpeSelector"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-session-result",
+   "space": "seance",
+   "route": "Stack › SessionResult (fullscreen, fade_from_bottom)",
+   "sourceFiles": [
+    "mobile/src/screens/session/SessionResultScreen.tsx",
+    "mobile/src/components/ProgressReveal.tsx",
+    "mobile/src/components/ShareCard.tsx",
+    "mobile/src/components/LiveSettleCard.tsx"
+   ],
+   "visualAssets": [
+    "worldImages",
+    "ProgressReveal SVG + Embers",
+    "RankCrest (ProgressReveal)",
+    "ShareCard"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "success",
+     "name": "ProgressReveal / reward reveal",
+     "illustration": "crest + particles"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-session-detail",
+   "space": "progres",
+   "route": "Stack › SessionDetail",
+   "sourceFiles": [
+    "mobile/src/screens/session/SessionDetailScreen.tsx"
+   ],
+   "visualAssets": [
+    "Chips"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='journal' title='Séance introuvable'/>",
+     "illustration": "icon:journal in round badge"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-session-edit",
+   "space": "seance",
+   "route": "Stack › SessionEdit (modal)",
+   "sourceFiles": [
+    "mobile/src/screens/session/SessionEditScreen.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='compass(default)' title='Séance introuvable'/>",
+     "illustration": "icon:compass(default) in round badge"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-pending",
+   "space": "seance",
+   "route": "Stack › Pending",
+   "sourceFiles": [
+    "mobile/src/screens/session/PendingScreen.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='cloud' title='Tout est synchronisé'/>",
+     "illustration": "icon:cloud in round badge"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-journal",
+   "space": "progres",
+   "route": "Stack › Journal",
+   "sourceFiles": [
+    "mobile/src/screens/progress/JournalScreen.tsx",
+    "mobile/src/components/SessionRow.tsx"
+   ],
+   "visualAssets": [
+    "SessionRow sport glyph marks",
+    "Chips"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (JournalScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (JournalScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "offline",
+     "name": "<OfflineBanner/> (in components/Screen.tsx for every Screen)",
+     "illustration": "icon:offline (16px)"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='archive' title='Aucune séance archivée'/>",
+     "illustration": "icon:archive in round badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState brand icon='journal' title='Ton journal… / Aucune séance de ce sport'/>",
+     "illustration": "brand-mark mobile/assets/brand/mark.png"
+    }
+   ],
+   "gaps": [
+    "AdBanner present."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-records",
+   "space": "progres",
+   "route": "Stack › Records",
+   "sourceFiles": [
+    "mobile/src/screens/progress/RecordsScreen.tsx"
+   ],
+   "visualAssets": [
+    "Chips",
+    "icons"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "empty",
+     "name": "<EmptyState brand icon='trophy' title='Pas encore de record'/>",
+     "illustration": "brand-mark mobile/assets/brand/mark.png"
+    }
+   ],
+   "gaps": [
+    "No relic image (web uses assets/objects/relique-maitrise); mobile/assets has no objects folder."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-career",
+   "space": "progres",
+   "route": "Stack › Career",
+   "sourceFiles": [
+    "mobile/src/screens/progress/CareerScreen.tsx",
+    "mobile/src/components/LifeChapters.tsx"
+   ],
+   "visualAssets": [
+    "RankCrest",
+    "Charts"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (CareerScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (CareerScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState brand icon='trophy' title='Ta carrière commence ici'/>",
+     "illustration": "brand-mark mobile/assets/brand/mark.png"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-goals",
+   "space": "progres",
+   "route": "Stack › Goals",
+   "sourceFiles": [
+    "mobile/src/screens/progress/GoalsScreen.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (GoalsScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (GoalsScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState brand icon='target' title='Fixe-toi un cap'/>",
+     "illustration": "brand-mark mobile/assets/brand/mark.png"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-plan",
+   "space": "progres",
+   "route": "Stack › Plan (Ma semaine type)",
+   "sourceFiles": [
+    "mobile/src/screens/progress/PlanScreen.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "No empty/loading state component."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-retro",
+   "space": "progres",
+   "route": "Stack › Retro (TITAN Rétro)",
+   "sourceFiles": [
+    "mobile/src/screens/progress/RetroScreen.tsx",
+    "mobile/src/lib/retro.ts"
+   ],
+   "visualAssets": [
+    "ShareCard x2"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='calendar' title='Pas encore de Rétro {label}'/>",
+     "illustration": "icon:calendar in round badge"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-steps",
+   "space": "progres",
+   "route": "Stack › Steps (Mes pas)",
+   "sourceFiles": [
+    "mobile/src/screens/steps/StepsScreen.tsx",
+    "mobile/src/components/StepsCard.tsx",
+    "mobile/src/data/steps.ts",
+    "mobile/src/lib/steps.ts",
+    "mobile/src/lib/stepLedger.ts",
+    "mobile/src/lib/pedometer.ts"
+   ],
+   "visualAssets": [
+    "Ring",
+    "Charts (week)"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards count=1 label='Chargement des pas'/>",
+     "illustration": "none"
+    },
+    {
+     "kind": "empty",
+     "name": "StepsCardView without data: invitation to enable counter/Santé Connect",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-atelier",
+   "space": "profil",
+   "route": "Stack › Atelier",
+   "sourceFiles": [
+    "mobile/src/screens/profile/AtelierScreen.tsx",
+    "mobile/src/core/cosmetics.ts"
+   ],
+   "visualAssets": [
+    "Avatar + frames",
+    "worldImages (map ambience)"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (AtelierScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (AtelierScreen)",
+     "illustration": "icon:alert in red soft badge"
+    }
+   ],
+   "gaps": [
+    "No object art (coffre/relique/sceau) unlike web Atelier."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-public-card",
+   "space": "profil",
+   "route": "Stack › PublicCard",
+   "sourceFiles": [
+    "mobile/src/screens/profile/PublicCardScreen.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (PublicCardScreen count=1) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (PublicCardScreen)",
+     "illustration": "icon:alert in red soft badge"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-capsules",
+   "space": "profil",
+   "route": "Stack › Capsules (Lettres à moi-même)",
+   "sourceFiles": [
+    "mobile/src/screens/profile/CapsuleScreen.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (CapsuleScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (CapsuleScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='send' title='Aucune lettre en chemin'/>",
+     "illustration": "icon:send in round badge"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-community",
+   "space": "communaute",
+   "route": "Stack › Community",
+   "sourceFiles": [
+    "mobile/src/screens/community/CommunityScreen.tsx",
+    "mobile/src/screens/community/CordeePanel.tsx",
+    "mobile/src/screens/community/DuoCard.tsx",
+    "mobile/src/screens/community/FriendLinks.tsx",
+    "mobile/src/screens/community/CircleDigestCard.tsx",
+    "mobile/src/screens/community/CoachFollows.tsx",
+    "mobile/src/components/CommunityPanels.tsx",
+    "mobile/src/components/GuildChat.tsx"
+   ],
+   "visualAssets": [
+    "Avatar (avatarImages)"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (CommunityScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (CommunityScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='group' title='Pas encore d’amis'/>",
+     "illustration": "icon:group in round badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='sparkle' title='Aucun moment récent'/>",
+     "illustration": "icon:sparkle in round badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='flag' title='Aucun défi en cours'/>",
+     "illustration": "icon:flag in round badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='shield' title='Pas encore de guilde'/>",
+     "illustration": "icon:shield in round badge"
+    }
+   ],
+   "gaps": [
+    "Community is a stack screen, not a tab (reached from QG/Profile)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-events",
+   "space": "communaute",
+   "route": "Stack › Events (Quêtes et événements)",
+   "sourceFiles": [
+    "mobile/src/screens/community/EventsScreen.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (EventsScreen) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (EventsScreen)",
+     "illustration": "icon:alert in red soft badge"
+    },
+    {
+     "kind": "empty",
+     "name": "<EmptyState icon='flag' title='Rien de prévu pour le moment'/>",
+     "illustration": "icon:flag in round badge"
+    }
+   ],
+   "gaps": [],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-tour",
+   "space": "qg",
+   "route": "Stack › Tour",
+   "sourceFiles": [
+    "mobile/src/screens/auth/TourScreen.tsx"
+   ],
+   "visualAssets": [
+    "heroImage",
+    "worldImages",
+    "Avatar",
+    "RankCrest",
+    "ProgramGrid",
+    "LiveTrail",
+    "Shade"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [],
+   "note": "ROUTE_SPACE maps auth routes to qg",
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-welcome",
+   "space": "qg",
+   "route": "Stack › Welcome",
+   "sourceFiles": [
+    "mobile/src/screens/auth/WelcomeScreen.tsx"
+   ],
+   "visualAssets": [
+    "heroImage hero-small.webp",
+    "worldImages",
+    "Brand mark.png",
+    "Shade"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [],
+   "note": "ROUTE_SPACE maps auth routes to qg",
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-login",
+   "space": "qg",
+   "route": "Stack › Login",
+   "sourceFiles": [
+    "mobile/src/screens/auth/LoginScreen.tsx"
+   ],
+   "visualAssets": [
+    "GoogleButton"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [],
+   "note": "ROUTE_SPACE maps auth routes to qg",
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-signup",
+   "space": "qg",
+   "route": "Stack › Signup",
+   "sourceFiles": [
+    "mobile/src/screens/auth/SignupScreen.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Text-only form screen."
+   ],
+   "note": "ROUTE_SPACE maps auth routes to qg",
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-forgot",
+   "space": "qg",
+   "route": "Stack › Forgot",
+   "sourceFiles": [
+    "mobile/src/screens/auth/ForgotScreen.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Text-only form screen."
+   ],
+   "note": "ROUTE_SPACE maps auth routes to qg",
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-onboarding",
+   "space": "qg",
+   "route": "Stack › Onboarding",
+   "sourceFiles": [
+    "mobile/src/screens/auth/OnboardingScreen.tsx"
+   ],
+   "visualAssets": [
+    "SportGrid/SportSearch glyphs"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [],
+   "note": "ROUTE_SPACE maps auth routes to qg",
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-settings",
+   "space": "profil",
+   "route": "Stack › Settings",
+   "sourceFiles": [
+    "mobile/src/screens/settings/SettingsScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-account",
+   "space": "profil",
+   "route": "Stack › Account",
+   "sourceFiles": [
+    "mobile/src/screens/settings/AccountScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-privacy",
+   "space": "profil",
+   "route": "Stack › Privacy",
+   "sourceFiles": [
+    "mobile/src/screens/settings/PrivacyScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (PrivacyScreen count=1) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (PrivacyScreen)",
+     "illustration": "icon:alert in red soft badge"
+    }
+   ],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-notifications",
+   "space": "profil",
+   "route": "Stack › Notifications",
+   "sourceFiles": [
+    "mobile/src/screens/settings/NotificationsScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-sports",
+   "space": "profil",
+   "route": "Stack › Sports (Mes sports)",
+   "sourceFiles": [
+    "mobile/src/screens/settings/SportsScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-help",
+   "space": "profil",
+   "route": "Stack › Help",
+   "sourceFiles": [
+    "mobile/src/screens/settings/HelpScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-webhub",
+   "space": "profil",
+   "route": "Stack › WebHub",
+   "sourceFiles": [
+    "mobile/src/screens/settings/WebHubScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-sources",
+   "space": "profil",
+   "route": "Stack › Sources",
+   "sourceFiles": [
+    "mobile/src/screens/settings/SourcesScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-health-connect",
+   "space": "profil",
+   "route": "Stack › HealthConnect",
+   "sourceFiles": [
+    "mobile/src/screens/settings/HealthConnectScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-garmin",
+   "space": "profil",
+   "route": "Stack › Garmin",
+   "sourceFiles": [
+    "mobile/src/screens/settings/GarminScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "loading",
+     "name": "<LoadingCards/> (GarminScreen count=1) — Skeleton cards",
+     "illustration": "none"
+    },
+    {
+     "kind": "error",
+     "name": "<ErrorState title='Impossible de charger ces données'/> (GarminScreen)",
+     "illustration": "icon:alert in red soft badge"
+    }
+   ],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-guide",
+   "space": "profil",
+   "route": "Stack › Guide",
+   "sourceFiles": [
+    "mobile/src/screens/settings/GuideScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-feedback",
+   "space": "profil",
+   "route": "Stack › Feedback",
+   "sourceFiles": [
+    "mobile/src/screens/settings/FeedbackScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-legal",
+   "space": "profil",
+   "route": "Stack › Legal",
+   "sourceFiles": [
+    "mobile/src/screens/settings/LegalScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-about",
+   "space": "profil",
+   "route": "Stack › About",
+   "sourceFiles": [
+    "mobile/src/screens/settings/AboutScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-titan-plus",
+   "space": "profil",
+   "route": "Stack › TitanPlus",
+   "sourceFiles": [
+    "mobile/src/screens/settings/TitanPlusScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "TITAN+ screen has no image (web titan-plus.html uses world paintings)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-delete-account",
+   "space": "profil",
+   "route": "Stack › DeleteAccount",
+   "sourceFiles": [
+    "mobile/src/screens/settings/DeleteAccountScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-save-account",
+   "space": "profil",
+   "route": "Stack › SaveAccount",
+   "sourceFiles": [
+    "mobile/src/screens/settings/SaveAccountScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-history-import",
+   "space": "profil",
+   "route": "Stack › HistoryImport",
+   "sourceFiles": [
+    "mobile/src/screens/settings/HistoryImportScreen.tsx"
+   ],
+   "visualAssets": [
+    "ListRow/Card/Icon only"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Settings-style list, no imagery (expected)."
+   ],
+   "platform": "android",
+   "status": "existing-main",
+   "category": "app"
+  },
+  {
+   "id": "android-error-boundary",
+   "space": "system",
+   "category": "component",
+   "route": "(global) ErrorBoundary",
+   "sourceFiles": [
+    "mobile/src/components/ErrorBoundary.tsx"
+   ],
+   "visualAssets": [],
+   "signatureClasses": [],
+   "states": [
+    {
+     "kind": "error",
+     "name": "'Un écran n’a pas pu s’afficher' (ErrorBoundary)",
+     "illustration": "none"
+    }
+   ],
+   "gaps": [
+    "Text-only crash screen."
+   ],
+   "platform": "android",
+   "status": "existing-main"
+  },
+  {
+   "id": "android-preview-gallery",
+   "space": "system",
+   "category": "prototype",
+   "status": "prototype",
+   "route": "mobile/preview (PreviewApp/Gallery harness, not in the app)",
+   "sourceFiles": [
+    "mobile/preview/Gallery.tsx",
+    "mobile/preview/PreviewApp.tsx",
+    "mobile/preview/fixtures.ts"
+   ],
+   "visualAssets": [
+    "renders app components with fixtures"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [],
+   "platform": "android"
+  },
+  {
+   "id": "design-proposed-gemini-20261117",
+   "platform": "both",
+   "status": "prototype",
+   "category": "prototype",
+   "space": "aventure",
+   "route": "design/titan-visual-library/global-v2/proposed/exports/drive-gemini-20261117",
+   "sourceFiles": [
+    "design/titan-visual-library/global-v2/proposed/",
+    "design/titan-visual-library/global-v2/registry/fusion-20261117.json",
+    "design/titan-visual-library/CHARTER.md"
+   ],
+   "visualAssets": [
+    "balise-chapitre-01/02/03 (96/256/512 webp + png) — NOT integrated",
+    "champion/titan/legende badges (integrated copies in assets/ranks)",
+    "coffre-tactique, relique-maitrise, sceau-exploration (integrated copies in assets/objects)",
+    "masters/*.png (9)"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Chapter beacon rasters exist as proposals only."
+   ]
+  },
+  {
+   "id": "design-sport-icon-lots",
+   "platform": "both",
+   "status": "prototype",
+   "category": "prototype",
+   "space": "system",
+   "route": "design/titan-visual-library/sports/lot-01, lot-02",
+   "sourceFiles": [
+    "design/titan-visual-library/sports/",
+    "docs/design/SPORT_ICONS.md"
+   ],
+   "visualAssets": [
+    "lot-01: 10 icon files; lot-02: 48 raster sport icons (e.g. 11-basketball.webp)"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": [
+    "Raster sport illustrations not used by the app (app uses vector 24-grid glyphs)."
+   ]
+  },
+  {
+   "id": "docs-design-captures",
+   "platform": "both",
+   "status": "prototype",
+   "category": "reference",
+   "space": "system",
+   "route": "docs/design/captures/{android,masterclass,signature,sport-icons,titan-one,web}",
+   "sourceFiles": [
+    "docs/design/captures/"
+   ],
+   "visualAssets": [
+    "185 capture files (before/after)"
+   ],
+   "signatureClasses": [],
+   "states": [],
+   "gaps": []
+  }
+ ],
+ "branches": {
+  "claude/gracious-feynman-q190d7": {
+   "sha": "52e83b24283e7809d38ce4e828e014db79f3442f",
+   "versions": "V1.5.0 Bifurcations, V1.5.1 Gardiens, V1.5.2 Camp et conséquences, V1.5.3 Quatre mondes quatre mécaniques, V1.5.4 Quêtes entre les mondes, V1.5.5 Chroniques et aventures rejouables",
+   "newCore": [
+    "js/core/adventure-branches.js",
+    "adventure-campaigns.js (mechanics: pick=Aube, chart=Marées, sequence=Forge, link=Aurores)",
+    "adventure-chronicles.js",
+    "adventure-consequence.js",
+    "adventure-guardian.js",
+    "adventure-quests.js"
+   ],
+   "docCaptures": 63,
+   "screens": [
+    {
+     "id": "web-aventure-branches-guardian",
+     "platform": "web",
+     "space": "aventure",
+     "route": "/adventure (aventure-rpg.js, +209/-24)",
+     "change": "substantial",
+     "sourceFiles": [
+      "js/app/aventure-rpg.js",
+      "css/adventure-rpg.css (+53)"
+     ],
+     "visualElements": [
+      "reuses /assets/renaissance/guardian-aube-s.webp and guardian-${world}-s.webp",
+      ".av-guardian(-stage/-scene/-figure/-phases/-outcome/-wall/-signs)",
+      ".av-branch(-routes/-confirm)",
+      ".av-mech/.av-mech-board/.av-mech-options (mechanic slots)"
+     ],
+     "states": [
+      {
+       "kind": "error",
+       "name": "'… indisponible pour le moment' text",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Branch choices, guardian phases and mechanics are text + buttons; no new scene illustrations (only the existing guardian -s portrait)."
+     ],
+     "status": "future-unmerged:claude/gracious-feynman-q190d7"
+    },
+    {
+     "id": "web-aventure-retour",
+     "platform": "web",
+     "space": "aventure",
+     "route": "/adventure#retour + Camp card (seance-live)",
+     "change": "new",
+     "sourceFiles": [
+      "js/app/aventure-retour.js",
+      "js/app/live.js (+11)"
+     ],
+     "visualElements": [
+      ".av-retour/.av-retour-way/.av-retour-marks/.live-retour",
+      "no image"
+     ],
+     "states": [
+      {
+       "kind": "error",
+       "name": "'… indisponible pour le moment. Ta découverte est conservée.'",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Text-only."
+     ],
+     "status": "future-unmerged:claude/gracious-feynman-q190d7"
+    },
+    {
+     "id": "web-aventure-indices",
+     "platform": "web",
+     "space": "aventure",
+     "route": "/adventure (Carnet view, #indices)",
+     "change": "new",
+     "sourceFiles": [
+      "js/app/aventure-indices.js"
+     ],
+     "visualElements": [
+      ".av-indices-clues/.av-quest(-scene/-clue/-marks/-encounter/-opens)/.av-map-quest",
+      "no image"
+     ],
+     "states": [
+      {
+       "kind": "error",
+       "name": "'… indisponible pour le moment. Tes indices sont conservés.'",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Notebook of clues has no clue/object art."
+     ],
+     "status": "future-unmerged:claude/gracious-feynman-q190d7"
+    },
+    {
+     "id": "web-aventure-chroniques",
+     "platform": "web",
+     "space": "aventure",
+     "route": "/adventure (Carnet view, #chroniques)",
+     "change": "new",
+     "sourceFiles": [
+      "js/app/aventure-chroniques.js"
+     ],
+     "visualElements": [
+      ".av-chronique-*(runs/run/entries/step/discovered/active/slot/start)",
+      "no image"
+     ],
+     "states": [
+      {
+       "kind": "error",
+       "name": "'… indisponibles pour le moment. Tes parties sont conservées.'",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Chronicle (story log) is text-only; natural place for illustrations is empty."
+     ],
+     "status": "future-unmerged:claude/gracious-feynman-q190d7"
+    },
+    {
+     "id": "android-adventure-branch",
+     "platform": "android",
+     "space": "aventure",
+     "route": "World › AdventureBranch",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/components/AdventureBranch.tsx"
+     ],
+     "visualElements": [
+      "Button + Text only"
+     ],
+     "states": [],
+     "gaps": [
+      "Text-only."
+     ],
+     "status": "future-unmerged:claude/gracious-feynman-q190d7"
+    },
+    {
+     "id": "android-adventure-guardian",
+     "platform": "android",
+     "space": "aventure",
+     "route": "World › AdventureGuardian",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/components/AdventureGuardian.tsx",
+      "mobile/src/components/AdventureMechanic.tsx"
+     ],
+     "visualElements": [
+      "guardianImages (Animated Image)",
+      "mechanic slots via Tap/Button"
+     ],
+     "states": [],
+     "gaps": [],
+     "status": "future-unmerged:claude/gracious-feynman-q190d7"
+    },
+    {
+     "id": "android-adventure-consequence",
+     "platform": "android",
+     "space": "aventure",
+     "route": "Camp › AdventureConsequence",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/components/AdventureConsequence.tsx",
+      "mobile/src/screens/live/CampScreen.tsx (+24)"
+     ],
+     "visualElements": [
+      "Card + Text"
+     ],
+     "states": [
+      {
+       "kind": "offline",
+       "name": "useOnline/onReconnect handling",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Text-only."
+     ],
+     "status": "future-unmerged:claude/gracious-feynman-q190d7"
+    },
+    {
+     "id": "android-adventure-quests",
+     "platform": "android",
+     "space": "aventure",
+     "route": "World {focus:'indices'} › AdventureQuests",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/components/AdventureQuests.tsx"
+     ],
+     "visualElements": [
+      "Card + Text"
+     ],
+     "states": [
+      {
+       "kind": "offline",
+       "name": "useOnline",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Text-only."
+     ],
+     "status": "future-unmerged:claude/gracious-feynman-q190d7"
+    },
+    {
+     "id": "android-adventure-chronicles",
+     "platform": "android",
+     "space": "aventure",
+     "route": "World {focus:'chroniques'} › AdventureChronicles",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/components/AdventureChronicles.tsx",
+      "mobile/src/screens/adventure/WorldScreen.tsx (+14)"
+     ],
+     "visualElements": [
+      "Card + Text"
+     ],
+     "states": [
+      {
+       "kind": "offline",
+       "name": "useOnline",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Text-only."
+     ],
+     "status": "future-unmerged:claude/gracious-feynman-q190d7"
+    }
+   ]
+  },
+  "claude/gifted-brahmagupta-mg28j8": {
+   "sha": "52a209bdbb1a2aba95e6864f61060fa805384c6a",
+   "versions": "Journal V1.6.1–1.6.4, V1.6.6 + sport V1.7.1–V1.7.7 (training blocks, week plan/review, discipline analysis, scenarios, GPS outing)",
+   "newCore": [
+    "block-scenario.js",
+    "discipline-analysis.js",
+    "gps-engine.js",
+    "gps-map.js",
+    "gps-nav.js",
+    "gps-session.js",
+    "history-ledger.js",
+    "history-migration.js",
+    "history-window.js",
+    "session-match.js",
+    "sync-state.js",
+    "training-block.js",
+    "week-plan.js",
+    "week-review.js"
+   ],
+   "docCaptures": 69,
+   "screens": [
+    {
+     "id": "web-sortie-gps",
+     "platform": "web",
+     "space": "seance",
+     "route": "/sortie (NEW sortie.html, data-territory=seance, 'Sortie GPS — TITAN')",
+     "change": "new",
+     "sourceFiles": [
+      "sortie.html",
+      "js/app/sortie.js (1166 l.)",
+      "js/app/sortie-map.js",
+      "js/app/sortie-model.js"
+     ],
+     "visualElements": [
+      "canvas map: cyan trace, amber dashed route to follow, start, personal places, position + accuracy circle + heading arrow",
+      "neutral faint grid ground unless window.TITAN_MAP tiles configured AND user opt-in",
+      "live dashboard",
+      ".asc-ascent goals"
+     ],
+     "states": [
+      {
+       "kind": "loading",
+       "name": ".asc-skeleton x1 in sortie.html (shimmer blocks)",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "No basemap by default (grid only) — map looks abstract.",
+      "New page not in _redirects/netlify.toml list seen on main (unverified on branch)."
+     ],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "web-lieux",
+     "platform": "web",
+     "space": "seance",
+     "route": "(sheet) « Mes points » / « Points utiles »",
+     "change": "new",
+     "sourceFiles": [
+      "js/app/lieux.js"
+     ],
+     "visualElements": [
+      ".asc-chip",
+      "no icons per place type verified"
+     ],
+     "states": [],
+     "gaps": [
+      "Text list."
+     ],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "web-planifier",
+     "platform": "web",
+     "space": "seance",
+     "route": "(sheet) « Créer un parcours » route planner",
+     "change": "new",
+     "sourceFiles": [
+      "js/app/planifier.js"
+     ],
+     "visualElements": [
+      ".asc-skeleton",
+      "honest 'no provider configured' state"
+     ],
+     "states": [
+      {
+       "kind": "empty",
+       "name": "no routing provider configured message",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Unconfigured state is text-only."
+     ],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "web-parcours-library",
+     "platform": "web",
+     "space": "seance",
+     "route": "journal/training route library (parcours.js +847)",
+     "change": "substantial",
+     "sourceFiles": [
+      "js/app/parcours.js"
+     ],
+     "visualElements": [
+      "SVG trace",
+      ".asc-chip x4",
+      ".asc-skeleton x3"
+     ],
+     "states": [],
+     "gaps": [],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "web-training-block",
+     "platform": "web",
+     "space": "progres",
+     "route": "stats/prevoir training block view",
+     "change": "new",
+     "sourceFiles": [
+      "js/app/training-block-view.js",
+      "js/app/block-scenario-view.js"
+     ],
+     "visualElements": [
+      ".sig-state",
+      ".sig-empty",
+      ".is-locked",
+      ".asc-chip"
+     ],
+     "states": [
+      {
+       "kind": "empty",
+       "name": ".sig-empty",
+       "illustration": "unverified icon"
+      }
+     ],
+     "gaps": [],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "web-week-plan-review",
+     "platform": "web",
+     "space": "progres",
+     "route": "stats/prevoir week plan & review",
+     "change": "new",
+     "sourceFiles": [
+      "js/app/week-plan-view.js",
+      "js/app/week-review-view.js",
+      "js/app/semaine.js (+36)",
+      "js/app/prevoir.js (+43)"
+     ],
+     "visualElements": [
+      "text rows"
+     ],
+     "states": [],
+     "gaps": [
+      "No chart in week review."
+     ],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "web-discipline-analysis",
+     "platform": "web",
+     "space": "progres",
+     "route": "stats discipline analysis view",
+     "change": "new",
+     "sourceFiles": [
+      "js/app/discipline-analysis-view.js"
+     ],
+     "visualElements": [
+      "text/table (no svg)"
+     ],
+     "states": [],
+     "gaps": [
+      "Analysis with no chart."
+     ],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "web-journal-sync-match-migration",
+     "platform": "web",
+     "space": "progres",
+     "route": "/journal (journal.js +298) + matches/migration",
+     "change": "substantial",
+     "sourceFiles": [
+      "js/app/journal.js",
+      "js/app/matches.js",
+      "js/app/migration.js",
+      "js/app/sessions.js"
+     ],
+     "visualElements": [
+      "sync state chips",
+      "match card",
+      ".asc-ascent import progress"
+     ],
+     "states": [],
+     "gaps": [],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "android-gps-record-v2",
+     "platform": "android",
+     "space": "seance",
+     "route": "Stack › GpsRecord {sport, follow?} (+315/-87)",
+     "change": "substantial",
+     "sourceFiles": [
+      "mobile/src/screens/session/GpsRecordScreen.tsx",
+      "mobile/src/components/GpsLiveMap.tsx",
+      "mobile/src/components/GpsDashboard.tsx",
+      "mobile/src/components/GpsSheets.tsx",
+      "mobile/src/components/GpsSummary.tsx"
+     ],
+     "visualElements": [
+      "GpsLiveMap: react-native-svg Polyline/Polygon/Circle over optional tiles (lib/tiles)",
+      "GpsSignalChip",
+      "dashboard tiles with short labels"
+     ],
+     "states": [],
+     "gaps": [
+      "Same grid-without-basemap default as web."
+     ],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "android-route-planner",
+     "platform": "android",
+     "space": "seance",
+     "route": "Stack › RoutePlanner (NEW)",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/screens/session/RoutePlannerScreen.tsx"
+     ],
+     "visualElements": [
+      "ShareBar",
+      "Chip"
+     ],
+     "states": [],
+     "gaps": [
+      "Route not added to ROUTE_SPACE in theme/space.tsx → falls back to QG cyan instead of Séance lime."
+     ],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "android-places",
+     "platform": "android",
+     "space": "seance",
+     "route": "Stack › Places 'Mes points' (NEW)",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/screens/session/PlacesScreen.tsx"
+     ],
+     "visualElements": [
+      "Chip",
+      "LoadingCards"
+     ],
+     "states": [
+      {
+       "kind": "loading",
+       "name": "<LoadingCards/> (PlacesScreen) — Skeleton cards",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Not in ROUTE_SPACE → QG cyan fallback."
+     ],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "android-routes-library-v2",
+     "platform": "android",
+     "space": "seance",
+     "route": "Stack › Routes (+731/-47)",
+     "change": "substantial",
+     "sourceFiles": [
+      "mobile/src/screens/session/RoutesScreen.tsx"
+     ],
+     "visualElements": [
+      "MapView/Polyline/Svg",
+      "Chip x4"
+     ],
+     "states": [
+      {
+       "kind": "loading",
+       "name": "<LoadingCards/> (x2) — Skeleton cards",
+       "illustration": "none"
+      },
+      {
+       "kind": "error",
+       "name": "<ErrorState title='Impossible de charger ces données'/> (x2)",
+       "illustration": "icon:alert in red soft badge"
+      }
+     ],
+     "gaps": [],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "android-plan-cards",
+     "platform": "android",
+     "space": "progres",
+     "route": "Plan/Progress cards",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/components/TrainingBlockCard.tsx",
+      "WeekPlanCard.tsx",
+      "WeekReviewCard.tsx",
+      "ScenarioCard.tsx",
+      "ComparisonCard.tsx",
+      "DisciplineAnalysisCard.tsx",
+      "CoverageNote.tsx",
+      "mobile/src/screens/progress/PlanScreen.tsx (+126)"
+     ],
+     "visualElements": [
+      "Chip-heavy cards (TrainingBlockCard 9 Chips)",
+      "no charts"
+     ],
+     "states": [],
+     "gaps": [
+      "Seven new card components built from Card+Chip+Text: risk of repeated generic card."
+     ],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    },
+    {
+     "id": "android-journal-sync",
+     "platform": "android",
+     "space": "progres",
+     "route": "Journal/SessionDetail/Pending + SyncCard/MatchCard/ChangesCard",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/components/SyncCard.tsx",
+      "MatchCard.tsx",
+      "ChangesCard.tsx",
+      "mobile/src/screens/settings/HistoryImportScreen.tsx (+179)"
+     ],
+     "visualElements": [
+      "Chip",
+      "text"
+     ],
+     "states": [],
+     "gaps": [],
+     "status": "future-unmerged:claude/gifted-brahmagupta-mg28j8"
+    }
+   ]
+  },
+  "claude/hopeful-fermat-o35c8o": {
+   "sha": "29424d8f0ea0f73f2e9488ac0d949f3b5d37ff6e",
+   "versions": "V1.6.1–V1.6.5 (sync state, matching, reconciliation, history import, V1.6.5 connected sources center)",
+   "newCore": [
+    "history-ledger.js",
+    "history-migration.js",
+    "session-match.js",
+    "source-center.js",
+    "sync-state.js"
+   ],
+   "docCaptures": 0,
+   "screens": [
+    {
+     "id": "web-sources-center",
+     "platform": "web",
+     "space": "profil",
+     "route": "/profile (profil.js +66) sources center",
+     "change": "substantial",
+     "sourceFiles": [
+      "js/app/profil.js",
+      "js/app/journal.js (+117)",
+      "js/app/matches.js",
+      "js/app/migration.js"
+     ],
+     "visualElements": [
+      "per-source rows, .asc-chip, .asc-ascent"
+     ],
+     "states": [],
+     "gaps": [
+      "No source/brand logos (Santé Connect, Garmin, Strava) — text only (unverified for logos: none found in assets)."
+     ],
+     "status": "future-unmerged:claude/hopeful-fermat-o35c8o"
+    },
+    {
+     "id": "android-sources-center",
+     "platform": "android",
+     "space": "profil",
+     "route": "Stack › Sources (+191/-9)",
+     "change": "substantial",
+     "sourceFiles": [
+      "mobile/src/screens/settings/SourcesScreen.tsx",
+      "mobile/src/screens/settings/HistoryImportScreen.tsx",
+      "mobile/src/components/SyncCard.tsx",
+      "MatchCard.tsx",
+      "ChangesCard.tsx"
+     ],
+     "visualElements": [
+      "Chip",
+      "text"
+     ],
+     "states": [],
+     "gaps": [
+      "No third-party source logos."
+     ],
+     "status": "future-unmerged:claude/hopeful-fermat-o35c8o"
+    }
+   ],
+   "note": "Overlaps gifted-brahmagupta on V1.6.1–1.6.4 files (matches.js, migration.js, SyncCard, MatchCard, ChangesCard)."
+  },
+  "claude/sweet-cannon-ulls05": {
+   "sha": "c7e0223ffaf87fe7c78dc94905735e216da56b8d",
+   "versions": "V1.8.1 relais de cordée, V1.8.2 relay hold/handover, V1.8.3 repartir ensemble, V1.8.4 club seasons, V1.8.5 meetings between clubs, V1.8.6 club agenda",
+   "newCore": [
+    "club-agenda.js",
+    "club-match.js",
+    "club-season.js"
+   ],
+   "docCaptures": 40,
+   "screens": [
+    {
+     "id": "web-cordee-relais",
+     "platform": "web",
+     "space": "communaute",
+     "route": "/social › Défis (cordee.js +165)",
+     "change": "substantial",
+     "sourceFiles": [
+      "js/app/cordee.js",
+      "css/one-communaute.css"
+     ],
+     "visualElements": [
+      "/assets/renaissance/${view}-small/xs.webp route painting",
+      ".sig-state x6",
+      ".sig-plate",
+      ".asc-ascent"
+     ],
+     "states": [
+      {
+       "kind": "empty",
+       "name": ".sig-empty",
+       "illustration": "icon"
+      },
+      {
+       "kind": "locked",
+       "name": ".is-locked",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [],
+     "status": "future-unmerged:claude/sweet-cannon-ulls05"
+    },
+    {
+     "id": "web-clubs-seasons-agenda",
+     "platform": "web",
+     "space": "communaute",
+     "route": "/social › Clubs (clubs.js +373)",
+     "change": "substantial",
+     "sourceFiles": [
+      "js/app/clubs.js"
+     ],
+     "visualElements": [
+      ".asc-panel/.asc-actions",
+      ".asc-ascent x2",
+      "no club crest/emblem image"
+     ],
+     "states": [],
+     "gaps": [
+      "Clubs, seasons, meetings, agenda have no club emblem or calendar visual."
+     ],
+     "status": "future-unmerged:claude/sweet-cannon-ulls05"
+    },
+    {
+     "id": "android-cordee-relais",
+     "platform": "android",
+     "space": "communaute",
+     "route": "Community › Défis (CordeePanel +184)",
+     "change": "substantial",
+     "sourceFiles": [
+      "mobile/src/screens/community/CordeePanel.tsx",
+      "mobile/src/screens/community/ChallengeLinkCard.tsx"
+     ],
+     "visualElements": [
+      "Chip x9",
+      "text"
+     ],
+     "states": [],
+     "gaps": [
+      "No route painting on Android cordée (web shows one)."
+     ],
+     "status": "future-unmerged:claude/sweet-cannon-ulls05"
+    },
+    {
+     "id": "android-clubs-panels",
+     "platform": "android",
+     "space": "communaute",
+     "route": "Community › Clubs (CommunityPanels +268)",
+     "change": "substantial",
+     "sourceFiles": [
+      "mobile/src/components/CommunityPanels.tsx"
+     ],
+     "visualElements": [
+      "Card/Text"
+     ],
+     "states": [],
+     "gaps": [
+      "Text-only."
+     ],
+     "status": "future-unmerged:claude/sweet-cannon-ulls05"
+    }
+   ]
+  },
+  "claude/bold-pasteur-n7zeg3": {
+   "sha": "3229bdceccf29b0db9359763ee4d37b33fb24e2b",
+   "versions": "V1.9.1–V1.9.6 coaching (proposals, feedback, weekly review, multi-week programmes, cycle reports, coach groups)",
+   "newCore": [
+    "coach-cycle.js",
+    "coach-feedback.js",
+    "coach-followup.js",
+    "coach-group.js",
+    "coach-program.js",
+    "coach-review.js"
+   ],
+   "docCaptures": 21,
+   "screens": [
+    {
+     "id": "web-coaching-v19",
+     "platform": "web",
+     "space": "communaute",
+     "route": "/coaching (coaching.js +556)",
+     "change": "substantial",
+     "sourceFiles": [
+      "coaching.html",
+      "js/app/coaching.js",
+      "js/app/coach-cycle.js",
+      "js/app/coach-groups.js",
+      "js/app/coach-programs.js",
+      "js/app/coach-tools.js",
+      "css/ascension-app.css"
+     ],
+     "visualElements": [
+      ".asc-chip (5+2+4+7)",
+      ".asc-skeleton",
+      ".sig-state",
+      ".sig-plate",
+      ".is-locked"
+     ],
+     "states": [
+      {
+       "kind": "loading",
+       "name": ".asc-skeleton x8 in coach modules (shimmer blocks)",
+       "illustration": "none"
+      }
+     ],
+     "gaps": [
+      "Programmes/cycle reports rendered as chips and text, no calendar or chart visual."
+     ],
+     "status": "future-unmerged:claude/bold-pasteur-n7zeg3"
+    },
+    {
+     "id": "android-coach-screens",
+     "platform": "android",
+     "space": "communaute",
+     "route": "Community › coach sections",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/screens/community/CoachCycles.tsx",
+      "mobile/src/screens/community/CoachFeedback.tsx",
+      "mobile/src/screens/community/CoachPrograms.tsx",
+      "mobile/src/screens/community/CoachProposals.tsx",
+      "mobile/src/screens/community/CoachFollows.tsx",
+      "mobile/src/screens/session/SessionDetailScreen.tsx (+5)"
+     ],
+     "visualElements": [
+      "Chip (9/1/4/3)",
+      "text"
+     ],
+     "states": [],
+     "gaps": [
+      "Chip-heavy, no visual."
+     ],
+     "status": "future-unmerged:claude/bold-pasteur-n7zeg3"
+    }
+   ]
+  },
+  "claude/stoic-meitner-ubw09b": {
+   "sha": "e767d523da405c5ee4dd8082c2a0929312ab3304",
+   "versions": "Partage: 9:16 story cards (styles Champ, Feuille, Carnet), route drawn by default, no RPG",
+   "newCore": [
+    "share-story.js"
+   ],
+   "docCaptures": 0,
+   "screens": [
+    {
+     "id": "web-share-story",
+     "platform": "web",
+     "space": "progres",
+     "route": "sheet from journal/records/training (story.js)",
+     "change": "new",
+     "sourceFiles": [
+      "js/app/story.js",
+      "js/core/share-story.js",
+      "js/app/journal.js",
+      "js/app/records.js",
+      "js/app/moment.js",
+      "js/app/parcours.js"
+     ],
+     "visualElements": [
+      "canvas 1080×1920 render (toDataURL)",
+      "assets/ascension/contours.svg texture",
+      "3 styles Champ/Feuille/Carnet",
+      "route shape without map (first/last 300 m removed)"
+     ],
+     "states": [],
+     "gaps": [],
+     "status": "future-unmerged:claude/stoic-meitner-ubw09b"
+    },
+    {
+     "id": "android-share-story",
+     "platform": "android",
+     "space": "progres",
+     "route": "Stack › ShareStory (modal, NEW)",
+     "change": "new",
+     "sourceFiles": [
+      "mobile/src/screens/share/ShareStoryScreen.tsx",
+      "mobile/src/components/StoryCard.tsx",
+      "mobile/src/components/MilestoneCard.tsx"
+     ],
+     "visualElements": [
+      "StoryCard Svg Polyline route",
+      "NEW mobile/assets/brand/relief.png texture"
+     ],
+     "states": [],
+     "gaps": [
+      "ShareStory not in ROUTE_SPACE → QG cyan fallback."
+     ],
+     "status": "future-unmerged:claude/stoic-meitner-ubw09b"
+    }
+   ]
+  }
+ },
+ "stepCounter": {
+  "web": {
+   "exists": true,
+   "qg": "js/app/pas.js → window.TitanStepsCard.html(), mounted by js/app/qg.js MORE list as folded row <details class='asc-fold' id='qg-more-pas'> in section .qg-more « Autour de ta pratique » (aujourdhui.html). Card markup: section.qg-steps[data-steps] > .asc-panel.qg-steps-card (.qg-steps-value, .asc-ascent goal bar, .wk-days 7-day bars, source note, link to /adventure#sentiers).",
+   "otherPlaces": "stats.html via js/app/semaine.js l.382 → TitanStepsCard.monthHtml() ('Pas, 30 derniers jours', .qg-steps-spark).",
+   "dataSource": "server titan_daily_activity_v1 written by the Android app (Santé Connect / phone counter); the web never reads a sensor (js/core/steps.js summarize).",
+   "visibility": "Hidden for guests, servers without the function, and accounts with no steps (html() returns '')."
+  },
+  "android": {
+   "exists": true,
+   "qg": "mobile/src/screens/home/HomeScreen.tsx l.289 <TodayStrip steps={useSteps()}/> → mobile/src/components/TodayStrip.tsx → <StepsCardView s quiet/> (mobile/src/components/StepsCard.tsx): Ring (size 88, cyan, green when goal reached), number, goal, freshness line; quiet single line when no data.",
+   "screen": "Stack route 'Steps' (title 'Mes pas') mobile/src/screens/steps/StepsScreen.tsx (space progres).",
+   "data": "mobile/src/data/steps.ts, mobile/src/lib/steps.ts, stepLedger.ts, pedometer.ts, data/pedometer.ts, healthConnect.ts"
+  },
+  "xp": "Steps grant no XP/session; confirmed steps open the Sentiers du Titan (Aventure)."
+ },
+ "ranks": {
+  "ranks": [
+   {
+    "level": 1,
+    "id": "eclaireur",
+    "name": "Éclaireur"
+   },
+   {
+    "level": 3,
+    "id": "explorateur",
+    "name": "Explorateur"
+   },
+   {
+    "level": 6,
+    "id": "sentinelle",
+    "name": "Sentinelle"
+   },
+   {
+    "level": 10,
+    "id": "gardien",
+    "name": "Gardien"
+   },
+   {
+    "level": 15,
+    "id": "champion",
+    "name": "Champion"
+   },
+   {
+    "level": 25,
+    "id": "titan",
+    "name": "Titan"
+   },
+   {
+    "level": 40,
+    "id": "legende",
+    "name": "Légende"
+   }
+  ],
+  "definedIn": [
+   "js/core/effort.js RANKS (l.61-69, authoritative; level curve 500·L^1.3, levels up to 500)",
+   "js/renaissance-catalog.js ranks",
+   "mobile/src/core/web/effort.js + renaissance-catalog.js (synced copies)"
+  ],
+  "crests": {
+   "web": "js/app/crest.js (BADGES = all 7 → /assets/ranks/<id>-256|512.webp; vector SVG fallback with ACCENT colours and CHEVRONS 1,2,2,3,3,3,3)",
+   "android": "mobile/src/components/Crest.tsx RankCrest + mobile/src/core/images.ts rankImages (mobile/assets/rank/<id>-256|512.webp, all 7)",
+   "note": "DESIGN.md §10 still says crests for the three highest ranks do not exist — outdated: champion/titan/legende integrated 18 Nov 2026 (crest.js comment)."
+  },
+  "tiers21": {
+   "found": false,
+   "status": "not found",
+   "detail": "No 21-tier (paliers) definition exists on main or on any of the six branches (git grep for 21 paliers/tiers/échelons/sous-rang). Existing tier-like systems: 7 ranks; per-sport MASTERY with 10 paliers in js/core/progress.js l.149-160 (Découverte, Initiation, Pratique, Régularité, Solidité, Expérience, Expertise, Maîtrise, Excellence, Référence; hours 0/2/6/12/20/32/50/75/110/160, weeks 0/2/4/8/12/20/30/45/65/90); crest chevrons 1–3 per rank (visual only). 7×3=21 is plausible as a design intent but unverified."
+  }
+ },
+ "avatars": {
+  "definedIn": "js/renaissance-catalog.js avatars (l.305-342) ; mobile/src/core/images.ts avatarImages",
+  "list": [
+   {
+    "id": "scout",
+    "name": "L’Éclaireuse",
+    "role": "La curiosité ouvre le chemin",
+    "unlockLevel": 1
+   },
+   {
+    "id": "ranger",
+    "name": "Le Passeur",
+    "role": "Chaque retour compte",
+    "unlockLevel": 1
+   },
+   {
+    "id": "keeper",
+    "name": "La Gardienne",
+    "role": "Un rythme qui dure",
+    "unlockLevel": 3
+   },
+   {
+    "id": "artisan",
+    "name": "L’Artisan",
+    "role": "L’attention aux détails",
+    "unlockLevel": 6
+   },
+   {
+    "id": "navigator",
+    "name": "La Navigatrice",
+    "role": "Toujours un nouvel horizon",
+    "unlockLevel": 10
+   },
+   {
+    "id": "sentinel",
+    "name": "La Sentinelle",
+    "role": "Ton chemin, ton histoire",
+    "unlockLevel": 15
+   }
+  ],
+  "imageFiles": {
+   "web": "assets/renaissance/{id}-s.webp (used) and assets/renaissance/{id}.webp full size (only scout.webp referenced, in legacy js/ui.js)",
+   "android": "mobile/assets/rpg/{id}-s.webp"
+  },
+  "usedIn": [
+   "js/app/profil.js (pf-avatar, pf-avatar-pick)",
+   "js/app/qg.js (qg-portrait)",
+   "js/app/shell-nav.js",
+   "js/app/atelier.js",
+   "js/app/athlete.js",
+   "js/app/communaute.js (friends/members/invitations, default scout)",
+   "index.html (navigator-s)",
+   "sw.js/build precache of all six -s",
+   "mobile Avatar.tsx → QgBanner, ProfileScreen, AtelierScreen, CommunityScreen, FriendLinks, TourScreen"
+  ],
+  "naming": "Avatar display names are French (L’Éclaireuse, Le Passeur, La Gardienne, L’Artisan, La Navigatrice, La Sentinelle); the English ids Scout/Ranger/Keeper/Artisan/Navigator/Sentinel are file/ids only.",
+  "legacy": "image/avatar/avatar_1..10 (.png+.webp, 44.4 MB) only reachable via legacy js/ui.js getAvatarUrl for avatar_N ids (unverified whether any current page path renders it)."
+ },
+ "worlds": {
+  "loreSource": [
+   "js/renaissance-catalog.js (worlds: name, subtitle, tier, image, color, guardian, intro, ending, 9 chapters each = 36 balises; chapter 9 is the boss)",
+   "js/core/adventure-rpg.js, js/core/campaign-quests.js, js/core/campaign-encounters.js (main)",
+   "branch gracious-feynman: js/core/adventure-campaigns.js (one mechanic per world), adventure-branches/guardian/consequence/quests/chronicles.js",
+   "RENAISSANCE_ART.json (ImageGen prompts, 4 landscapes, 6 characters, 4 guardians)",
+   "aventures-sportives.html (public: 4 mondes, 36 balises, 4 gardiens)"
+  ],
+  "list": [
+   {
+    "id": "aube",
+    "name": "La vallée de l’Aube",
+    "subtitle": "Retrouver son élan",
+    "image": "valley",
+    "color": "#ade8cb",
+    "guardian": "Le Veilleur de pierre",
+    "guardianImage": "assets/renaissance/guardian-aube(-s).webp",
+    "mechanicOnBranch": "pick (the Veilleur's sign)"
+   },
+   {
+    "id": "marees",
+    "name": "L’archipel des Marées",
+    "subtitle": "Explorer à sa façon",
+    "image": "archipelago",
+    "color": "#8edbe5",
+    "guardian": "La Gardienne des courants",
+    "guardianImage": "assets/renaissance/guardian-marees(-s).webp",
+    "mechanicOnBranch": "chart (map of currents then passage)"
+   },
+   {
+    "id": "forge",
+    "name": "Les forges d’Obsidienne",
+    "subtitle": "Affiner ses repères",
+    "image": "forge",
+    "color": "#f3bb86",
+    "guardian": "L’Artisan de braise",
+    "guardianImage": "assets/renaissance/guardian-forge(-s).webp",
+    "mechanicOnBranch": "sequence (order of the pieces)"
+   },
+   {
+    "id": "aurores",
+    "name": "La citadelle des Aurores",
+    "subtitle": "Construire sur la durée",
+    "image": "aurora",
+    "color": "#c4b5fd",
+    "guardian": "La Sentinelle du ciel",
+    "guardianImage": "assets/renaissance/guardian-aurores(-s).webp",
+    "mechanicOnBranch": "link (chain of beacons)"
+   }
+  ],
+  "imageVariants": {
+   "web": "assets/renaissance/{valley,archipelago,forge,aurora}{-xs,-small,}.webp (all used; full size via srcset 1600w)",
+   "android": "mobile/assets/rpg/{world}-small.webp only"
+  },
+  "allTierFree": true,
+  "namingCollisions": "Guardian 'L’Artisan de braise' vs avatar 'L’Artisan'; guardian 'La Sentinelle du ciel' vs avatar 'La Sentinelle' vs rank 'Sentinelle'; guardian 'La Gardienne des courants' vs avatar 'La Gardienne' vs rank 'Gardien'."
+ },
+ "sports": {
+  "catalogue": "js/core/sports-catalog.js (TITAN_SPORTS_SNAPSHOT, 7 lines, generated) + js/core/sports.js (TitanSports API); synced copy mobile/src/core/web/sports-catalog.js",
+  "count": 260,
+  "families": {
+   "endurance": 106,
+   "jeu": 81,
+   "technique": 44,
+   "force": 23,
+   "mobilite": 6
+  },
+  "familyLabels": {
+   "endurance": "Endurance",
+   "force": "Force",
+   "technique": "Technique",
+   "jeu": "Jeu & combat",
+   "mobilite": "Mobilité"
+  },
+  "icons": {
+   "file": "js/app/sport-icons.js (generated by tools/sport-icons/build.mjs; 257 sport glyphs + 5 family marks, 24 grid)",
+   "android": "mobile/src/core/icons.generated.ts (same 257 sport + 5 family glyphs)",
+   "coverage": "260/260 sports resolve via TitanSports.iconOf to an existing glyph; 257 distinct glyphs; 4 sports share a drawing (ICON_SHARED): lacrosse_sixes→sport-lacrosse, camogie→sport-hurling, freestyle_wrestling & greco_roman_wrestling→sport-wrestling-singlet. Wheelchair basketball/rugby/tennis glyphs start with the same chair drawing (visually near-identical, unverified).",
+   "uiIcons": "js/app/icons.js 81 UI icons (TITAN_ICON_NAMES)",
+   "rasterProposals": "design/titan-visual-library/sports/lot-01 (10) and lot-02 (48) raster sport icons, not used"
+  }
+ },
+ "assetFolders": [
+  {
+   "path": "assets/renaissance",
+   "count": 32,
+   "bytes": 2880236,
+   "unreferencedByBasename": [
+    "ranger.webp",
+    "artisan.webp",
+    "archipelago.webp",
+    "aurora.webp",
+    "navigator.webp",
+    "keeper.webp",
+    "forge.webp",
+    "guardian-aurores.webp",
+    "guardian-aube.webp",
+    "guardian-forge.webp",
+    "sentinel.webp",
+    "guardian-marees.webp"
+   ],
+   "unusedCandidates": [
+    "ranger.webp",
+    "keeper.webp",
+    "artisan.webp",
+    "navigator.webp",
+    "sentinel.webp (full-size avatars: no reference; only scout.webp in legacy js/ui.js)"
+   ],
+   "dynamicallyUsed": "world full .webp via aventure.js/qg.js srcset; guardian-*.webp full via aventure.js l.227; all -s/-small/-xs via templates"
+  },
+  {
+   "path": "assets/objects",
+   "count": 9,
+   "bytes": 249538,
+   "unreferencedByBasename": [
+    "relique-maitrise-96.webp",
+    "sceau-exploration-512.webp",
+    "sceau-exploration-96.webp",
+    "coffre-tactique-96.webp"
+   ],
+   "unusedCandidates": [
+    "relique-maitrise-96.webp",
+    "coffre-tactique-96.webp"
+   ],
+   "dynamicallyUsed": "sceau-exploration-${96|256|512} via journey.js l.49"
+  },
+  {
+   "path": "assets/ranks",
+   "count": 14,
+   "bytes": 429736,
+   "unreferencedByBasename": [],
+   "unusedCandidates": [],
+   "dynamicallyUsed": "crest.js /assets/ranks/${id}-256|512"
+  },
+  {
+   "path": "assets/ascension",
+   "count": 1,
+   "bytes": 28400,
+   "unreferencedByBasename": [],
+   "unusedCandidates": [],
+   "dynamicallyUsed": "contours.svg in css/signature.css, public.css, one-profil-atelier.css"
+  },
+  {
+   "path": "image",
+   "count": 12,
+   "bytes": 258494,
+   "unreferencedByBasename": [
+    "titan-plus-logo.svg",
+    "titan-coach-logo.svg",
+    "titan-coach-ultra-logo.svg",
+    "titan-mark.svg"
+   ],
+   "unusedCandidates": [
+    "titan-plus-logo.svg",
+    "titan-coach-logo.svg",
+    "titan-coach-ultra-logo.svg",
+    "titan-mark.svg"
+   ],
+   "note": "og-titan-os.png only in sys_core_override_99.html (excluded from build); logo-512/maskable in manifest.json"
+  },
+  {
+   "path": "image/editorial",
+   "count": 4,
+   "bytes": 321400,
+   "unreferencedByBasename": [
+    "hero.webp"
+   ],
+   "unusedCandidates": [
+    "hero.webp",
+    "hero-small.webp (basename only matches mobile/assets/rpg/hero-small.webp; web copy unreferenced)"
+   ]
+  },
+  {
+   "path": "image/mob",
+   "count": 30,
+   "bytes": 23353849,
+   "unreferencedByBasename": "30 files (all)",
+   "unusedCandidates": [
+    "all 30 files (mob_1..15) — same as image/boss"
+   ]
+  },
+  {
+   "path": "image/avatar",
+   "count": 20,
+   "bytes": 44402848,
+   "unreferencedByBasename": "20 files (all)",
+   "unusedCandidates": [
+    "all 20 files (avatar_1..10 .png/.webp) — only legacy js/ui.js getAvatarUrl builds ./image/avatar/avatar_N.webp; PNGs excluded from build by tools/build-public.mjs"
+   ]
+  },
+  {
+   "path": "image/boss",
+   "count": 50,
+   "bytes": 66614757,
+   "unreferencedByBasename": "50 files (all)",
+   "unusedCandidates": [
+    "all 50 files (boss_1..25) — no reference in current UI; legacy js/state.js maps creature.image_url from DB, fixPath() in js/ui.js has no caller"
+   ]
+  },
+  {
+   "path": "image/shop",
+   "count": 1,
+   "bytes": 143870,
+   "unreferencedByBasename": [
+    "titan-plus-v89.webp"
+   ],
+   "unusedCandidates": [
+    "titan-plus-v89.webp"
+   ]
+  },
+  {
+   "path": "mobile/assets/rpg",
+   "count": 15,
+   "bytes": 561614,
+   "unreferencedByBasename": [],
+   "unusedCandidates": []
+  },
+  {
+   "path": "mobile/assets/brand",
+   "count": 6,
+   "bytes": 72024,
+   "unreferencedByBasename": [],
+   "unusedCandidates": []
+  },
+  {
+   "path": "mobile/assets/rank",
+   "count": 14,
+   "bytes": 429736,
+   "unreferencedByBasename": [],
+   "unusedCandidates": []
+  },
+  {
+   "path": "mobile/assets/fonts",
+   "count": 9,
+   "bytes": 329775,
+   "unreferencedByBasename": [
+    "archivo-OFL.txt"
+   ],
+   "unusedCandidates": [
+    "archivo-OFL.txt (licence text, expected)"
+   ]
+  }
+ ],
+ "observations": [
+  "Screens: web app 26 entries (17 user-facing app pages + 9 system/internal/component), 27 public-seo pages, Android 54 entries (52 app screens covering all 53 navigator routes — 5 tabs + 48 stack, Routes/Route merged — plus ErrorBoundary and the mobile/preview harness), 3 prototype/reference entries; 6 branches add 33 new/substantially changed UI screens/components (1 new web page sortie.html, 3 new Android routes RoutePlanner, Places, ShareStory).",
+  "Empty states: web uses .sig-empty/.asc-empty with a 24-grid line icon + text (≈18 instances); only Records shows a real illustration (assets/objects/relique-maitrise). Android EmptyState shows an icon badge (most) or the brand mark.png (brand, 5 uses: Progress, Journal, Records, Career, Goals). No empty state anywhere uses world/character art.",
+  "Error/offline: web network-error.html, 404.html and every .asc-empty error are text-only; Android ErrorState is a red alert icon badge; ErrorBoundary text-only; OfflineBanner 16px icon.",
+  "Only 4 world paintings, 4 guardians, 6 avatars, 7 rank badges and 3 objects exist as real art; they are reused across QG header, Aventure, Atelier trials, Défi/Cordée views and 17 public pages. assets/renaissance/valley-small.webp is the hero of 12 public pages.",
+  "TITAN LIVE (web seance-live and Android LiveSession) has no background painting; Camp de base has no image (DESIGN.md open item confirmed).",
+  "Chapter beacons are vector only (TitanCrest.beacon / BeaconEmblem); raster balise-chapitre-01..03 are proposed in design/titan-visual-library but not integrated.",
+  "Parity gaps: web Records/Atelier/Aventure use assets/objects (relic/chest/seal); mobile/assets has no objects folder. Web stats has no SVG charts (CSS bars only) while Android Progress has BarChart/LineChart. Android Welcome/Tour show hero + paintings while web login.html has no image. Android Cordée has no route painting (web does).",
+  "DESIGN.md §10 is outdated about crests: all 7 rank badges exist on web (assets/ranks) and Android (mobile/assets/rank).",
+  "Branches add mostly text/chip UI: RPG V1.5 (branches, guardian mechanics, clues notebook, chronicles) adds no new art beyond reusing guardian -s portraits; coaching V1.9 and clubs V1.8 are chip/text heavy; GPS V1.7.7 draws on canvas/SVG with a neutral grid unless tiles are configured; sharing adds a 9:16 canvas story card with 3 styles and a new mobile/assets/brand/relief.png.",
+  "New Android routes on branches (RoutePlanner, Places, ShareStory) are not added to ROUTE_SPACE in mobile/src/theme/space.tsx, so they would take the QG cyan instead of their space colour.",
+  "Legacy raster sets image/boss (66.6 MB), image/avatar (44.4 MB), image/mob (23.4 MB) ≈134 MB are not used by the current UI; their .webp copies still ship in dist (build skips only PNG/JPG with a webp sibling).",
+  "Naming overlaps between avatars, guardians and ranks (Sentinelle ×3, Gardien(ne) ×3, Artisan ×2) may confuse iconography.",
+  "Cosmetic frames (mobile/src/core/cosmetics.ts) use glow, which DESIGN.md's Don't list forbids for UI.",
+  "coaching.html and boutique.html use data-territory values 'coaching' and 'atelier', not among the six spaces in DESIGN.md (mapping unverified).",
+  "No 21-tier (paliers) system exists in code; only 7 ranks and 10 per-sport mastery paliers."
+ ]
+}

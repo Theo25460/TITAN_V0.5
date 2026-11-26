@@ -1,0 +1,1478 @@
+[
+ {
+  "id": "anvil",
+  "master": "anvil-512.png",
+  "master_sha256": "d5a12d58d5477d43823ee1ab5f5e75c4919e8a35e6620495720d37c0d6e95577",
+  "master_px": 512,
+  "alpha_bbox": [
+   56,
+   147,
+   465,
+   510
+  ],
+  "exports": [
+   {
+    "file": "anvil-512.webp",
+    "px": 512,
+    "bytes": 22476,
+    "sha256": "acd84a04861c3733fc2e6d851fdb70becdb1d9c403b626cd13eb66a50f1d0c9a"
+   },
+   {
+    "file": "anvil-256.webp",
+    "px": 256,
+    "bytes": 9970,
+    "sha256": "d0538a867fdc15649ec8e11126630f29e7337369f472617ec8b0d440c29af9c9"
+   },
+   {
+    "file": "anvil-128.webp",
+    "px": 128,
+    "bytes": 4468,
+    "sha256": "070b0a6e5feeef4f373a81249d773681b21baaa0dcf6ca215747ec268a7083c0"
+   },
+   {
+    "file": "anvil-64.webp",
+    "px": 64,
+    "bytes": 1904,
+    "sha256": "a7466cc2d7903caee701a7f7a80845c7ad4344efb19b64d7f25e5539c7b76d71"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "aurora-beacon-dormant",
+  "master": "aurora-beacon-dormant-512.png",
+  "master_sha256": "b1a3b49ae70156e795033201ac35b41eda7cc2aeacb4cdf9837157dc15a566e4",
+  "master_px": 512,
+  "alpha_bbox": [
+   143,
+   79,
+   429,
+   510
+  ],
+  "exports": [
+   {
+    "file": "aurora-beacon-dormant-512.webp",
+    "px": 512,
+    "bytes": 20820,
+    "sha256": "64803d7c721d173544d4a55e1f4dac230128c47b74db25bc32645c7d5bb358a4"
+   },
+   {
+    "file": "aurora-beacon-dormant-256.webp",
+    "px": 256,
+    "bytes": 8640,
+    "sha256": "36324808a55d87d6bf4ecbaeb5c7dc5221a7f2afcd94269d7962b8af6f7498d0"
+   },
+   {
+    "file": "aurora-beacon-dormant-128.webp",
+    "px": 128,
+    "bytes": 3764,
+    "sha256": "2e07a5957011a077c5aa8462fc91c413be4d2f826f4ffabf8c45daf881950588"
+   },
+   {
+    "file": "aurora-beacon-dormant-64.webp",
+    "px": 64,
+    "bytes": 1690,
+    "sha256": "fc1af253be7a6a49c45042d11f51ddae4d1bbb8c0740ebaec2e4448af609fb59"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "aurora-beacon-lit",
+  "master": "aurora-beacon-lit-512.png",
+  "master_sha256": "43456f602e77d90e7e96b8c6be3d05a19790b8e06ff9d979cdefc00c8e648d5f",
+  "master_px": 512,
+  "alpha_bbox": [
+   67,
+   79,
+   449,
+   510
+  ],
+  "exports": [
+   {
+    "file": "aurora-beacon-lit-512.webp",
+    "px": 512,
+    "bytes": 25408,
+    "sha256": "65f63deb44cb480858b20b9f89dc711c1834f83be8ee2c60f89aef4d021ebeec"
+   },
+   {
+    "file": "aurora-beacon-lit-256.webp",
+    "px": 256,
+    "bytes": 10176,
+    "sha256": "60d0ad797ed7cce5ff8cd168e409eab575ede9f952dd7a723a84c8745a14c255"
+   },
+   {
+    "file": "aurora-beacon-lit-128.webp",
+    "px": 128,
+    "bytes": 4304,
+    "sha256": "2b8db299d454f63a41311c1f724fde4194439a7c42a057f567924eef411cc3fa"
+   },
+   {
+    "file": "aurora-beacon-lit-64.webp",
+    "px": 64,
+    "bytes": 1898,
+    "sha256": "e5efd0eb1b637b9b9e9fa7f22d2be7037e6c188e2cd93ffc2a573728ac0ba34f"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "ball",
+  "master": "ball-512.png",
+  "master_sha256": "e89d8779e4546e9dde99455dfa6472f16d1b9e7dabbb04d9532b4d88a0264d48",
+  "master_px": 512,
+  "alpha_bbox": [
+   91,
+   157,
+   417,
+   509
+  ],
+  "exports": [
+   {
+    "file": "ball-512.webp",
+    "px": 512,
+    "bytes": 17136,
+    "sha256": "cd2ccf5d6a53f503342a9b12703a6325af66fff5cbbdeae0d004d09438328a70"
+   },
+   {
+    "file": "ball-256.webp",
+    "px": 256,
+    "bytes": 7102,
+    "sha256": "a7546a0297229933771aad3b69554a032bf9112300120c33fe7cf5c60d59f1f6"
+   },
+   {
+    "file": "ball-128.webp",
+    "px": 128,
+    "bytes": 3034,
+    "sha256": "60af236bd4d125d2ed38575778c2a7395fbb24e5f91af4f9774de5a52f816806"
+   },
+   {
+    "file": "ball-64.webp",
+    "px": 64,
+    "bytes": 1340,
+    "sha256": "c167086e29f7a6423687376ba43a20a19eed0caea34eda91e8bcbfbd2edf0600"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "beacon-dormant",
+  "master": "beacon-dormant-512.png",
+  "master_sha256": "36fc6ae24d1eefb64ed992b717efe5079ac3f3d5ce9cfaeb4997610f841fc186",
+  "master_px": 512,
+  "alpha_bbox": [
+   143,
+   79,
+   440,
+   510
+  ],
+  "exports": [
+   {
+    "file": "beacon-dormant-512.webp",
+    "px": 512,
+    "bytes": 19822,
+    "sha256": "f6ff78f47a51c9f57b6914d129c738121fb1629fb80225c8c762f65f978d3424"
+   },
+   {
+    "file": "beacon-dormant-256.webp",
+    "px": 256,
+    "bytes": 8184,
+    "sha256": "4b4aee2bcc45a8ddf26969f53e54c86d4a133d02a470c4758aafd5b3a705e09a"
+   },
+   {
+    "file": "beacon-dormant-128.webp",
+    "px": 128,
+    "bytes": 3584,
+    "sha256": "fcdaaea98307b7f0d50fa4c9a2a6d47b08524a25f6237afb5439e6e7d8c67bfb"
+   },
+   {
+    "file": "beacon-dormant-64.webp",
+    "px": 64,
+    "bytes": 1686,
+    "sha256": "d73f8ed05fb2cd104226a162a3de120959bf41f4a112bd24b83d19405dd43590"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "beacon-lit",
+  "master": "beacon-lit-1024.png",
+  "master_sha256": "fed816b14fc63bbb1365affe911cf5bf88efa413cb195e9e7aa0ca28614df065",
+  "master_px": 1024,
+  "alpha_bbox": [
+   146,
+   158,
+   873,
+   1022
+  ],
+  "exports": [
+   {
+    "file": "beacon-lit-1024.webp",
+    "px": 1024,
+    "bytes": 64100,
+    "sha256": "7ddc23ba56c243debfa774a8e93f66c1fe5695ea37a02ea04554a0d13f4e5367"
+   },
+   {
+    "file": "beacon-lit-512.webp",
+    "px": 512,
+    "bytes": 24256,
+    "sha256": "5bd54fc9822d1f94c83983ed9cdb44e8071a8d23348aaa8c602900835a8358a6"
+   },
+   {
+    "file": "beacon-lit-256.webp",
+    "px": 256,
+    "bytes": 9458,
+    "sha256": "c35a41fc0cdd4c3dffff123db9d936db81084570c70b30c598acb846a3f1507f"
+   },
+   {
+    "file": "beacon-lit-128.webp",
+    "px": 128,
+    "bytes": 4012,
+    "sha256": "e8868df31baf8a532ad3449e081f894361ab4c06260a990664361f0db48471b5"
+   },
+   {
+    "file": "beacon-lit-64.webp",
+    "px": 64,
+    "bytes": 1828,
+    "sha256": "90ed92ce68b2b35f410a27a7f5f0ed03835fb66250885097eb98000e82b6e784"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "beacon-lit",
+  "master": "beacon-lit-512.png",
+  "master_sha256": "34d6e01bc0bd9fe0f66ceec29f621f754a3479aa3e122747285494f5c7e82c71",
+  "master_px": 512,
+  "alpha_bbox": [
+   73,
+   79,
+   447,
+   510
+  ],
+  "exports": [
+   {
+    "file": "beacon-lit-512.webp",
+    "px": 512,
+    "bytes": 23342,
+    "sha256": "0f65096fd6dc540b38da308906f3d3dd09c33109e51588dff343bb62caf1ecbe"
+   },
+   {
+    "file": "beacon-lit-256.webp",
+    "px": 256,
+    "bytes": 9368,
+    "sha256": "298981999c7aa60e2251a66bc90b0012eaa9858310b1ce2faee41e3691d23286"
+   },
+   {
+    "file": "beacon-lit-128.webp",
+    "px": 128,
+    "bytes": 4018,
+    "sha256": "f4bb1b2ea035f7647fa957e2fa5807503b5134b8bd3600b7a5cad3eedc201e98"
+   },
+   {
+    "file": "beacon-lit-64.webp",
+    "px": 64,
+    "bytes": 1822,
+    "sha256": "c453728398e350fac82620d0b79eede2e5f1f256151b0b4e55971a83d139802e"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "buoy",
+  "master": "buoy-512.png",
+  "master_sha256": "d60d414f50314bb095f057aa1181d9aea2304fe528a9f402f115d403403fd178",
+  "master_px": 512,
+  "alpha_bbox": [
+   110,
+   74,
+   401,
+   510
+  ],
+  "exports": [
+   {
+    "file": "buoy-512.webp",
+    "px": 512,
+    "bytes": 20632,
+    "sha256": "136f86108dd364d828569f881af77894bedc1fd2a6c2f978d09cad0947c3fee0"
+   },
+   {
+    "file": "buoy-256.webp",
+    "px": 256,
+    "bytes": 8828,
+    "sha256": "00cb0416521d7181f64666bff9ee8270ce595fe2c3b074b6f27d36c2927ddca8"
+   },
+   {
+    "file": "buoy-128.webp",
+    "px": 128,
+    "bytes": 4092,
+    "sha256": "232e1380883ae4b20fcab9cc4c0cff92ae7b1b5aa4acd9b3b70013390bd10ffb"
+   },
+   {
+    "file": "buoy-64.webp",
+    "px": 64,
+    "bytes": 1842,
+    "sha256": "099c5c738692d3045cb009e9c94e4b5745c7352b05bc35896d7c2505d49a5b2e"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "camp-tent",
+  "master": "camp-tent-512.png",
+  "master_sha256": "15352de205df4dcaf0ee67008d583ed0afd32187f00493bcbbf0f6a0bd089318",
+  "master_px": 512,
+  "alpha_bbox": [
+   110,
+   149,
+   450,
+   507
+  ],
+  "exports": [
+   {
+    "file": "camp-tent-512.webp",
+    "px": 512,
+    "bytes": 17722,
+    "sha256": "2715115215bc8a6bc7484a520268a7ee1581329c4ab77000fa856733fac29a17"
+   },
+   {
+    "file": "camp-tent-256.webp",
+    "px": 256,
+    "bytes": 7538,
+    "sha256": "cd0f760c6803e8f8e52922a0e564585312b4cfdf18ed0eaaeebb5525071d965e"
+   },
+   {
+    "file": "camp-tent-128.webp",
+    "px": 128,
+    "bytes": 3488,
+    "sha256": "8c2289b17db04b45d5d57791631832183dfe02e2b03e618d2b987b8e040c6d80"
+   },
+   {
+    "file": "camp-tent-64.webp",
+    "px": 64,
+    "bytes": 1630,
+    "sha256": "1c050329f6d139cb2b8149cd0e297191aaeef64971f0203727a46bd943c0c573"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "climbing-hold",
+  "master": "climbing-hold-512.png",
+  "master_sha256": "189b7ab7d79c7e11b570ac88478171da056e2370e119a0e2fad31ed0cb6246d4",
+  "master_px": 512,
+  "alpha_bbox": [
+   74,
+   81,
+   470,
+   510
+  ],
+  "exports": [
+   {
+    "file": "climbing-hold-512.webp",
+    "px": 512,
+    "bytes": 18284,
+    "sha256": "f5416befa93ff14de63c1e0eb60ecfbf2b625d5a1ee7be8529dfce331030e74c"
+   },
+   {
+    "file": "climbing-hold-256.webp",
+    "px": 256,
+    "bytes": 8338,
+    "sha256": "315876c6b500b0fb71520c47b30f9b4b5d3dcbaf67f092558b36b9650bc0a4a9"
+   },
+   {
+    "file": "climbing-hold-128.webp",
+    "px": 128,
+    "bytes": 3952,
+    "sha256": "f64f4a75fa8288cc29d99545e30063bdb77ac49f83e7b08d533eb86362849128"
+   },
+   {
+    "file": "climbing-hold-64.webp",
+    "px": 64,
+    "bytes": 1874,
+    "sha256": "250f2fbeb5b2bdda1b6b5db62a3c2e78c4630fb8d8273c0d60a94a3acea80528"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "dumbbell",
+  "master": "dumbbell-512.png",
+  "master_sha256": "7e1dde64abc632763bc8f09573282eed983061da31204af8e70e026b66dc6c7e",
+  "master_px": 512,
+  "alpha_bbox": [
+   42,
+   159,
+   464,
+   480
+  ],
+  "exports": [
+   {
+    "file": "dumbbell-512.webp",
+    "px": 512,
+    "bytes": 21552,
+    "sha256": "2d635efb92e0df1443c2e893265cf0b24f886e8f9491dca0d86bdc6204f4ae97"
+   },
+   {
+    "file": "dumbbell-256.webp",
+    "px": 256,
+    "bytes": 8922,
+    "sha256": "b52fabf34541e3a2d65e90e5729d002727acbbdadfafeb7623a7207c5d788223"
+   },
+   {
+    "file": "dumbbell-128.webp",
+    "px": 128,
+    "bytes": 3886,
+    "sha256": "179a0eeb98ab4159f99d6f8d8a695420e9dcbda6f80dbde932cb71eca17554c5"
+   },
+   {
+    "file": "dumbbell-64.webp",
+    "px": 64,
+    "bytes": 1710,
+    "sha256": "39e0a8f07f50e5ddbe7ffd5b6db4d4eaa8af35096b4e4237c7e2a3896819d699"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "exploration-seal",
+  "master": "exploration-seal-512.png",
+  "master_sha256": "7d1fb581fac43d92e29477dcc24394814c036a1301ba2d11ff4fe9beb261fb43",
+  "master_px": 512,
+  "alpha_bbox": [
+   92,
+   93,
+   466,
+   510
+  ],
+  "exports": [
+   {
+    "file": "exploration-seal-512.webp",
+    "px": 512,
+    "bytes": 26300,
+    "sha256": "468f35852e802fe79988d15214bee39e130026c7c7fd70c728fb23580c87d2d8"
+   },
+   {
+    "file": "exploration-seal-256.webp",
+    "px": 256,
+    "bytes": 10806,
+    "sha256": "8c0122a74870565cbaa933baa67a1abe40b395b90796dcef267c2a62d14f7906"
+   },
+   {
+    "file": "exploration-seal-128.webp",
+    "px": 128,
+    "bytes": 4930,
+    "sha256": "adf52e1515254bd74ae7190ac323003190a668f53ee84b973a77871b8c7165d9"
+   },
+   {
+    "file": "exploration-seal-64.webp",
+    "px": 64,
+    "bytes": 2176,
+    "sha256": "b800e809d5e73f5695b6d74c6001c45a29c90617f25e2c07832d9f25b043de3b"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "forge-gears",
+  "master": "forge-gears-512.png",
+  "master_sha256": "0b895e1fbf20784001f847577f17c130505085c8ca9124ebf69de7c083f86d1e",
+  "master_px": 512,
+  "alpha_bbox": [
+   58,
+   161,
+   417,
+   461
+  ],
+  "exports": [
+   {
+    "file": "forge-gears-512.webp",
+    "px": 512,
+    "bytes": 18576,
+    "sha256": "c5f8abb482fb3734c9b51b225471aa0804d104474d0d75de6c09777282468c32"
+   },
+   {
+    "file": "forge-gears-256.webp",
+    "px": 256,
+    "bytes": 7972,
+    "sha256": "688d85d59ff7824de2c7453e54325cf079a15b594898cbe6cec3a2b603a32d4e"
+   },
+   {
+    "file": "forge-gears-128.webp",
+    "px": 128,
+    "bytes": 3790,
+    "sha256": "7bef6421dd67216ce103727f94385c66d4a9f048c4611b45472a807b475c4ecc"
+   },
+   {
+    "file": "forge-gears-64.webp",
+    "px": 64,
+    "bytes": 1618,
+    "sha256": "906aa3f8cfc80385a24f13e6e333ec6d53bd35e18a8ec09deb736b236bc8fd1f"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "gps-watch",
+  "master": "gps-watch-512.png",
+  "master_sha256": "554e8f36438e0aaad1e0524b2202c9d9083f3996abaac506cc041eab541353dc",
+  "master_px": 512,
+  "alpha_bbox": [
+   102,
+   82,
+   402,
+   505
+  ],
+  "exports": [
+   {
+    "file": "gps-watch-512.webp",
+    "px": 512,
+    "bytes": 18642,
+    "sha256": "2e969c1d0ae9282630592f279bd30db54e3d644f216a342c825bc5a46467dab8"
+   },
+   {
+    "file": "gps-watch-256.webp",
+    "px": 256,
+    "bytes": 7698,
+    "sha256": "422ed63631185cb3f5f9e29c0ccd2306af9c0763cbf6160518b12121fc1d1d6b"
+   },
+   {
+    "file": "gps-watch-128.webp",
+    "px": 128,
+    "bytes": 3488,
+    "sha256": "7c73b3f2cc212edccd09e3e4941f940deac3d9f2400f70e946486e24e08152c7"
+   },
+   {
+    "file": "gps-watch-64.webp",
+    "px": 64,
+    "bytes": 1502,
+    "sha256": "2c31f8d3dbf684d512877bc5d1c9a8d203637a5fbc1ceca6a3e25d79b8237370"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "kettlebell",
+  "master": "kettlebell-512.png",
+  "master_sha256": "1398484786d48ce70637ba6b4c86b7a30ba2edda12d57a9c12e63fdd964eccb0",
+  "master_px": 512,
+  "alpha_bbox": [
+   100,
+   107,
+   423,
+   510
+  ],
+  "exports": [
+   {
+    "file": "kettlebell-512.webp",
+    "px": 512,
+    "bytes": 19506,
+    "sha256": "275673cae62f94e9b11bad1489dd44a4eb080407d8197a3ec7d7d40ebe6dc90d"
+   },
+   {
+    "file": "kettlebell-256.webp",
+    "px": 256,
+    "bytes": 8136,
+    "sha256": "55c4fb2b9cd82eef79413acd77ba7b6f5961516f211f57b05ef35ac89d75422c"
+   },
+   {
+    "file": "kettlebell-128.webp",
+    "px": 128,
+    "bytes": 3756,
+    "sha256": "93b0ccd693c5a158e9dddd99d4eef6d3aa815a42a6cff66eb7c6139594471643"
+   },
+   {
+    "file": "kettlebell-64.webp",
+    "px": 64,
+    "bytes": 1640,
+    "sha256": "02628eb2ae11ab22f337c162508b8881d2b7ee05910506142c3dc01ceb8dba1f"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "logbook",
+  "master": "logbook-512.png",
+  "master_sha256": "1dd083f990393d3bf7888c3996fa75e0fa976f6e3afffebe3108dc0398aa048e",
+  "master_px": 512,
+  "alpha_bbox": [
+   81,
+   195,
+   421,
+   406
+  ],
+  "exports": [
+   {
+    "file": "logbook-512.webp",
+    "px": 512,
+    "bytes": 12960,
+    "sha256": "825bfa17315f0ad0ce119421c8830a4445194251451305f5c51b19760806dd67"
+   },
+   {
+    "file": "logbook-256.webp",
+    "px": 256,
+    "bytes": 5526,
+    "sha256": "995e796120cdd8b7a6751145722058ea85b06262285f44201c164e92d1529b2c"
+   },
+   {
+    "file": "logbook-128.webp",
+    "px": 128,
+    "bytes": 2514,
+    "sha256": "bc40ee8458f9e1812874ed93458d2ef594ef5f4aa3f46bf4e62a188a939f2339"
+   },
+   {
+    "file": "logbook-64.webp",
+    "px": 64,
+    "bytes": 1146,
+    "sha256": "b506baedb9096e1bbd4f2a326f80353c3bbc230a47e68944aa73c8a1049cad9b"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "mastery-relic",
+  "master": "mastery-relic-512.png",
+  "master_sha256": "809444faeafbfecba933a9dc873ef215650e566ef690a09abaaa0b421236c39b",
+  "master_px": 512,
+  "alpha_bbox": [
+   103,
+   116,
+   429,
+   510
+  ],
+  "exports": [
+   {
+    "file": "mastery-relic-512.webp",
+    "px": 512,
+    "bytes": 37664,
+    "sha256": "5e57ca57975ffc5dc2d7b6f0967880713fdc98d5546210a49113a575c12517ed"
+   },
+   {
+    "file": "mastery-relic-256.webp",
+    "px": 256,
+    "bytes": 15946,
+    "sha256": "e81ed8e68867df303978b0a0acc167a73f95c8728cc9d29e39e790d8fbb3c7e9"
+   },
+   {
+    "file": "mastery-relic-128.webp",
+    "px": 128,
+    "bytes": 6530,
+    "sha256": "f27629ef9c33d9ca59d98c6d3a5b19c322a231647b317f221baa517f128573a9"
+   },
+   {
+    "file": "mastery-relic-64.webp",
+    "px": 64,
+    "bytes": 2428,
+    "sha256": "8b99713e248621073de1367a13c7267e538bd73995f008a02e2c9a6d9e017d6d"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "record-medal",
+  "master": "record-medal-1024.png",
+  "master_sha256": "03d19c942f90efc0b5ffa1f57e2eb987aab26480fba0b41f15984f684bc2166b",
+  "master_px": 1024,
+  "alpha_bbox": [
+   249,
+   111,
+   894,
+   1022
+  ],
+  "exports": [
+   {
+    "file": "record-medal-1024.webp",
+    "px": 1024,
+    "bytes": 58024,
+    "sha256": "9a570504559c4355053a72989a563b3813c200e279a2f080afd175b6d13fde03"
+   },
+   {
+    "file": "record-medal-512.webp",
+    "px": 512,
+    "bytes": 25284,
+    "sha256": "2009dce754af1273c36fc8c36142dd1da94d97383f656ab8f3742116623be0e4"
+   },
+   {
+    "file": "record-medal-256.webp",
+    "px": 256,
+    "bytes": 10368,
+    "sha256": "98dfedfff29edc5fd670a62082dce165687fa77d9eef7e4839ab0a790211f5ed"
+   },
+   {
+    "file": "record-medal-128.webp",
+    "px": 128,
+    "bytes": 4698,
+    "sha256": "78164105a6cd53e7b9a97f25e86b9a5822f096640740dd1bd0ac2109a52283ac"
+   },
+   {
+    "file": "record-medal-64.webp",
+    "px": 64,
+    "bytes": 2092,
+    "sha256": "92551d85f5ed112e449b85d294936f469b2bf640c36dc9d96bef1eb1bc4cad6f"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "record-medal",
+  "master": "record-medal-512.png",
+  "master_sha256": "c91bbd0a2aaeeea46317471287e55a2839971c20ebe4854143c5d6c0d3cccf36",
+  "master_px": 512,
+  "alpha_bbox": [
+   126,
+   55,
+   449,
+   510
+  ],
+  "exports": [
+   {
+    "file": "record-medal-512.webp",
+    "px": 512,
+    "bytes": 23360,
+    "sha256": "d1af1e03ac2605b01050e31a1c793657cd9a504bf112d89c7855652aa3790f5b"
+   },
+   {
+    "file": "record-medal-256.webp",
+    "px": 256,
+    "bytes": 10354,
+    "sha256": "2b520b028eee3071670fc24c08167b39b46dd44f6d020a361aa0ba3428a518e4"
+   },
+   {
+    "file": "record-medal-128.webp",
+    "px": 128,
+    "bytes": 4800,
+    "sha256": "3f4640f35c9785caad803c134d0101171f3cd3800018a1eb07b7eaf58d8ef980"
+   },
+   {
+    "file": "record-medal-64.webp",
+    "px": 64,
+    "bytes": 2092,
+    "sha256": "1d33a62b4c9e1083f5f5458ed22dc6d5e8ad0b34970afc330930dbeec18a3bf3"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "relay-baton",
+  "master": "relay-baton-512.png",
+  "master_sha256": "591c19623f3038c6882db65816645942bc628125b155b9db314b114489323c96",
+  "master_px": 512,
+  "alpha_bbox": [
+   24,
+   222,
+   485,
+   378
+  ],
+  "exports": [
+   {
+    "file": "relay-baton-512.webp",
+    "px": 512,
+    "bytes": 12182,
+    "sha256": "4f891ce03526abb7e4ac55fa52fbacd7f6863bc33f8ae7bf0aafae7935940e66"
+   },
+   {
+    "file": "relay-baton-256.webp",
+    "px": 256,
+    "bytes": 5076,
+    "sha256": "0233c7ef8ea7554a0d885d77df093db954fa06a830ab83cbf1729f5946d25a15"
+   },
+   {
+    "file": "relay-baton-128.webp",
+    "px": 128,
+    "bytes": 2290,
+    "sha256": "2e13979b44ab0ae531fe2df3b0bdef0a1fd5d80bf9ae265f84f1a75adf48c8fd"
+   },
+   {
+    "file": "relay-baton-64.webp",
+    "px": 64,
+    "bytes": 1162,
+    "sha256": "bd633b6b24372bf548852f042bd7a461ff8558704e37dedf58e80b6c3d053208"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "rope-carabiner",
+  "master": "rope-carabiner-512.png",
+  "master_sha256": "ded122d9c730c567eb3e8b0dc4768f2917b387361d0922d50efe35f2ce0f1949",
+  "master_px": 512,
+  "alpha_bbox": [
+   74,
+   158,
+   464,
+   504
+  ],
+  "exports": [
+   {
+    "file": "rope-carabiner-512.webp",
+    "px": 512,
+    "bytes": 24368,
+    "sha256": "47f6f9b05709c0a51668e9bbddb1183e020a94df45dd9a41d65e8d8e32f774ad"
+   },
+   {
+    "file": "rope-carabiner-256.webp",
+    "px": 256,
+    "bytes": 10658,
+    "sha256": "17042b7009470a2d3cd4d04c3b1f3697e4159862a39493c9259bc5b3a65d4b6f"
+   },
+   {
+    "file": "rope-carabiner-128.webp",
+    "px": 128,
+    "bytes": 4774,
+    "sha256": "6ad5cefed9c617d32aac394cd434b8de917089fbebda3dd2e53618b243d362a2"
+   },
+   {
+    "file": "rope-carabiner-64.webp",
+    "px": 64,
+    "bytes": 1978,
+    "sha256": "78abfa3162d10e362a6b28fec0626ff174d48f95a8f70489d0fdaa7b6902f75c"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "running-shoe",
+  "master": "running-shoe-512.png",
+  "master_sha256": "401b1914c917a0778735dd7f6d27ecab803d69ff9d8183eb2fdc5f8b8fc9e755",
+  "master_px": 512,
+  "alpha_bbox": [
+   36,
+   152,
+   457,
+   491
+  ],
+  "exports": [
+   {
+    "file": "running-shoe-512.webp",
+    "px": 512,
+    "bytes": 20326,
+    "sha256": "69e67f20ae2e260638a127f11dda5f9fe3f349a07a49f88ed2f65e088addafe7"
+   },
+   {
+    "file": "running-shoe-256.webp",
+    "px": 256,
+    "bytes": 8782,
+    "sha256": "48096d3113a61df808a85e9e3de78ba46e3cd22e5f728b1121054092fa1e97a2"
+   },
+   {
+    "file": "running-shoe-128.webp",
+    "px": 128,
+    "bytes": 3738,
+    "sha256": "acce6bc4ac62b3b762da5cb8d7e786a8d01fb8fd051bd73a60b9007074eca924"
+   },
+   {
+    "file": "running-shoe-64.webp",
+    "px": 64,
+    "bytes": 1634,
+    "sha256": "f59f2827247042598b3cbd9cd7119ecb3d9d011ebe8ce4f1b74823295191a7b0"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "sea-chart",
+  "master": "sea-chart-512.png",
+  "master_sha256": "85d072ed35e6ff222a85185df145e0879daf5644f9d8057ae454fcb120eeaf4d",
+  "master_px": 512,
+  "alpha_bbox": [
+   28,
+   183,
+   437,
+   430
+  ],
+  "exports": [
+   {
+    "file": "sea-chart-512.webp",
+    "px": 512,
+    "bytes": 18166,
+    "sha256": "a0fc8c912b62da389a07bbd80c594e5a1a6fd834b197df7a8f3e8e217f388f82"
+   },
+   {
+    "file": "sea-chart-256.webp",
+    "px": 256,
+    "bytes": 7760,
+    "sha256": "a103a97e76d5524c4802e273eaba9d7fd05ba41946955ab75205ed245e12b728"
+   },
+   {
+    "file": "sea-chart-128.webp",
+    "px": 128,
+    "bytes": 3494,
+    "sha256": "8e24722f87a711dd324f6619536fc3e16ed8fb357257b90a73ce13df17b3475a"
+   },
+   {
+    "file": "sea-chart-64.webp",
+    "px": 64,
+    "bytes": 1596,
+    "sha256": "2cda668cafe1f7ae34722c3490f9b9432a4ef14bc7071101702a5b423c18a0f6"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "stopwatch",
+  "master": "stopwatch-1024.png",
+  "master_sha256": "03ab20c37e8ce968b16ceb4f2751dfde4d76343a17e0377fcb739e01f3567562",
+  "master_px": 1024,
+  "alpha_bbox": [
+   236,
+   123,
+   904,
+   1022
+  ],
+  "exports": [
+   {
+    "file": "stopwatch-1024.webp",
+    "px": 1024,
+    "bytes": 55874,
+    "sha256": "cfa7dd3cfd7720807395a169e8c640682b78360b5a08092dcc8bc45f2423aaab"
+   },
+   {
+    "file": "stopwatch-512.webp",
+    "px": 512,
+    "bytes": 23382,
+    "sha256": "2bccfa8aff0c90bcaebca5ab67e30111a114e549b373cafaa44b435ca84111f0"
+   },
+   {
+    "file": "stopwatch-256.webp",
+    "px": 256,
+    "bytes": 9154,
+    "sha256": "89331e8bfd2cb466bf528c7d10dd7a936b0894f3984e2bbe363f76e418e7af39"
+   },
+   {
+    "file": "stopwatch-128.webp",
+    "px": 128,
+    "bytes": 4160,
+    "sha256": "be5762e3aafd18ac044c79a40406c5d0841deab4dad630944e6569790339304a"
+   },
+   {
+    "file": "stopwatch-64.webp",
+    "px": 64,
+    "bytes": 1796,
+    "sha256": "29a27b3d33d20a9820714d6ff785ed61189ac5946efe480f3fa1a58581893f65"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "stopwatch",
+  "master": "stopwatch-512.png",
+  "master_sha256": "daea4aee0ceeec173ebac2600ddaab8dcc1d321bdbc6bb7311dc87245f061018",
+  "master_px": 512,
+  "alpha_bbox": [
+   118,
+   61,
+   452,
+   510
+  ],
+  "exports": [
+   {
+    "file": "stopwatch-512.webp",
+    "px": 512,
+    "bytes": 21694,
+    "sha256": "7f1d0c47fc66c063188c9b4cda76ae98a7c2afb241e6559f47a3ea3b8618714a"
+   },
+   {
+    "file": "stopwatch-256.webp",
+    "px": 256,
+    "bytes": 9460,
+    "sha256": "84321ff36f4ac3443a0cfaf37cba941d3d7101e590974cb1ee503116fbde8c66"
+   },
+   {
+    "file": "stopwatch-128.webp",
+    "px": 128,
+    "bytes": 4226,
+    "sha256": "72d758655c21c085e41fb3a1724cfab338c363426c1857f035a9252fe638979b"
+   },
+   {
+    "file": "stopwatch-64.webp",
+    "px": 64,
+    "bytes": 1816,
+    "sha256": "f0935003b55737f2deb66abe35c0fbcd3b8300b616a0d125aad811a327ddac7c"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "supply-chest",
+  "master": "supply-chest-512.png",
+  "master_sha256": "2d25fdf9135bcbea55dbe29691e6db25e60ef53ed0572e3cbbb3a284e37ac91d",
+  "master_px": 512,
+  "alpha_bbox": [
+   44,
+   141,
+   474,
+   510
+  ],
+  "exports": [
+   {
+    "file": "supply-chest-512.webp",
+    "px": 512,
+    "bytes": 21154,
+    "sha256": "3b4ac95540d6003a57da51b43f44ae38c6c03ed78333c79c6ca111e66d149320"
+   },
+   {
+    "file": "supply-chest-256.webp",
+    "px": 256,
+    "bytes": 8754,
+    "sha256": "d5b9d8068b46c698d4802b917e16dcdac0dd45ac262ebabb86355e733e5066d0"
+   },
+   {
+    "file": "supply-chest-128.webp",
+    "px": 128,
+    "bytes": 3806,
+    "sha256": "237368bd1d17c0a86b2170193a6347400f0bb4f85c3182e9c9033e78c934a29e"
+   },
+   {
+    "file": "supply-chest-64.webp",
+    "px": 64,
+    "bytes": 1662,
+    "sha256": "c07f27466be39ab35ca68d324a5cfa6ad715d7e356dfeda103d48a2e877a067a"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "titan-crest",
+  "master": "titan-crest-1024.png",
+  "master_sha256": "c1421a7bf6b2631753dd935f1c0fb189c0a637f1cf9da4b9010b6c6b1c835df1",
+  "master_px": 1024,
+  "alpha_bbox": [
+   187,
+   137,
+   925,
+   1022
+  ],
+  "exports": [
+   {
+    "file": "titan-crest-1024.webp",
+    "px": 1024,
+    "bytes": 63698,
+    "sha256": "1e861b317a390365f727f251ea36587b7a9ca1efac9855cae43cb4229a8de782"
+   },
+   {
+    "file": "titan-crest-512.webp",
+    "px": 512,
+    "bytes": 25298,
+    "sha256": "591f12623ae90e35b373b15cda163b84a905808616e09e5d521eb9a4c05500fb"
+   },
+   {
+    "file": "titan-crest-256.webp",
+    "px": 256,
+    "bytes": 9412,
+    "sha256": "9cbf149f2e10e5e4289e42026effa30820cef95135efe705827b2d8b47d72010"
+   },
+   {
+    "file": "titan-crest-128.webp",
+    "px": 128,
+    "bytes": 4310,
+    "sha256": "8769509746c52e31fe869c73e7ffb8a7ab27b65d28e374d683068ba191ca9904"
+   },
+   {
+    "file": "titan-crest-64.webp",
+    "px": 64,
+    "bytes": 1906,
+    "sha256": "640e640354882a30048804a82225f17951db6743e30fa6e7c2d976442fe29131"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "titan-crest",
+  "master": "titan-crest-512.png",
+  "master_sha256": "2a8de96180645e9393017ba6c9ae9d5776ac544b190ff2d68a75dfba9e8be7d0",
+  "master_px": 512,
+  "alpha_bbox": [
+   92,
+   68,
+   463,
+   510
+  ],
+  "exports": [
+   {
+    "file": "titan-crest-512.webp",
+    "px": 512,
+    "bytes": 22554,
+    "sha256": "ad6a9ec2b8d5074d95da53fc22a53d10219f87c628f5fe79ec5b838981b13f46"
+   },
+   {
+    "file": "titan-crest-256.webp",
+    "px": 256,
+    "bytes": 9424,
+    "sha256": "8e53a399a348d6c09213f7b908a9f3eddae3e74377609f95ec3121ceac241fca"
+   },
+   {
+    "file": "titan-crest-128.webp",
+    "px": 128,
+    "bytes": 4366,
+    "sha256": "7c60920d961b84f57664d81e30a596e8f30e5631c33eb201a0a473ad0a163baf"
+   },
+   {
+    "file": "titan-crest-64.webp",
+    "px": 64,
+    "bytes": 1922,
+    "sha256": "9ee7d75f1885dd08983712cfd6973d5734142b4f8e5f735329a12bcf4d1229a5"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "titan-crest-amber",
+  "master": "titan-crest-amber-512.png",
+  "master_sha256": "356d3919dd74797ae4bba1e425fddd4a17659ae809c085a990f4c0333d16d6a1",
+  "master_px": 512,
+  "alpha_bbox": [
+   92,
+   68,
+   463,
+   510
+  ],
+  "exports": [
+   {
+    "file": "titan-crest-amber-512.webp",
+    "px": 512,
+    "bytes": 22342,
+    "sha256": "3fc28951abc93f6042276b8914b2b0c10827e69513029823d8196e55805fd7b6"
+   },
+   {
+    "file": "titan-crest-amber-256.webp",
+    "px": 256,
+    "bytes": 9514,
+    "sha256": "a4933611a80dda05d641dd57700ade64945114df647283b4be4410efc88c2e0b"
+   },
+   {
+    "file": "titan-crest-amber-128.webp",
+    "px": 128,
+    "bytes": 4510,
+    "sha256": "fd39a2b59d6992ef5eac47a0192c349db8e03b206ab29606b790f6aeca9c2aa3"
+   },
+   {
+    "file": "titan-crest-amber-64.webp",
+    "px": 64,
+    "bytes": 2092,
+    "sha256": "6756a071c71c234f9f78da6fadfb8301c7fa9768eb69b8bcb0ff9c10aeee3434"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "trophy",
+  "master": "trophy-512.png",
+  "master_sha256": "6691ef3d96b9884e8f0912b3045cd470d5536416bae26d3f7ab80d7dabd3780f",
+  "master_px": 512,
+  "alpha_bbox": [
+   96,
+   81,
+   459,
+   510
+  ],
+  "exports": [
+   {
+    "file": "trophy-512.webp",
+    "px": 512,
+    "bytes": 28346,
+    "sha256": "6da05d6361972a4abc577781215258f433f2ae0443104236e337879087dfef47"
+   },
+   {
+    "file": "trophy-256.webp",
+    "px": 256,
+    "bytes": 12584,
+    "sha256": "e2cdeae1706dfc56d6d6d71cc09ea7870c9c450d926d51d4c549327e81d42b8b"
+   },
+   {
+    "file": "trophy-128.webp",
+    "px": 128,
+    "bytes": 5628,
+    "sha256": "b2e092af248220e676dbca605a2a43a58be628da795ac75a3e3d74e2be1620d2"
+   },
+   {
+    "file": "trophy-64.webp",
+    "px": 64,
+    "bytes": 2476,
+    "sha256": "9f81bfa84f02e85cf0d138ca559ea44115e9a2aa891ace584456b11bcff2434a"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "veilleur-stone",
+  "master": "veilleur-stone-512.png",
+  "master_sha256": "7906fb4d913fd5fdcb0f1ef1f30c867475281af80da9291957db45334989e055",
+  "master_px": 512,
+  "alpha_bbox": [
+   146,
+   50,
+   449,
+   510
+  ],
+  "exports": [
+   {
+    "file": "veilleur-stone-512.webp",
+    "px": 512,
+    "bytes": 18128,
+    "sha256": "616019016eaa8ce4d1374662289773c4e704c1292feebdd4806a3387a2a9786c"
+   },
+   {
+    "file": "veilleur-stone-256.webp",
+    "px": 256,
+    "bytes": 7806,
+    "sha256": "ad20cac7620cc0f964e387dd2a0c679f81694064cc3e707e7ac503d37d27a5ec"
+   },
+   {
+    "file": "veilleur-stone-128.webp",
+    "px": 128,
+    "bytes": 3628,
+    "sha256": "65b660a49323381ccc22a127aab436e13b47dad06f91fbd2821bf48fbceedf67"
+   },
+   {
+    "file": "veilleur-stone-64.webp",
+    "px": 64,
+    "bytes": 1582,
+    "sha256": "b50f1dd03d82b748d8702df7e9552c4a515ebc73c806226fb084ace8abdbbd0d"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "week-pennant",
+  "master": "week-pennant-512.png",
+  "master_sha256": "991af398a4945fae7ccb9abe119c77977a858e9ad64119b9e3ca6145069fb68c",
+  "master_px": 512,
+  "alpha_bbox": [
+   134,
+   71,
+   448,
+   503
+  ],
+  "exports": [
+   {
+    "file": "week-pennant-512.webp",
+    "px": 512,
+    "bytes": 16996,
+    "sha256": "ebfbdb7bf4e30b3e37462b9de3eb9f0bf7f2168a458c77ef14e63dfe99da0f88"
+   },
+   {
+    "file": "week-pennant-256.webp",
+    "px": 256,
+    "bytes": 7306,
+    "sha256": "2953b80f51eb4d7fb2d0fa76b5e70d75ce3e87f2d8e68695c68936991b64ba28"
+   },
+   {
+    "file": "week-pennant-128.webp",
+    "px": 128,
+    "bytes": 3320,
+    "sha256": "cd715462ba7243859aa9a16442c0610d36b15b67b5d57131ba8528388ed40015"
+   },
+   {
+    "file": "week-pennant-64.webp",
+    "px": 64,
+    "bytes": 1598,
+    "sha256": "3b375ba929ed23867f39fc9ce79db3be22fac1605eb8ddc6c65f708a133f92b9"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "id": "yoga-mat",
+  "master": "yoga-mat-512.png",
+  "master_sha256": "43eba42874031f1a6db6aee910dbbaa9c055053de65101f09ad752a0ca5e95a5",
+  "master_px": 512,
+  "alpha_bbox": [
+   65,
+   175,
+   415,
+   476
+  ],
+  "exports": [
+   {
+    "file": "yoga-mat-512.webp",
+    "px": 512,
+    "bytes": 19434,
+    "sha256": "98249c27b85e8fee7189156ff20d9581d5770be4daade83f6cfdbe836fdf4add"
+   },
+   {
+    "file": "yoga-mat-256.webp",
+    "px": 256,
+    "bytes": 8348,
+    "sha256": "8670b456d4ff4b41f0d9825ea93dc50b4c10e1625272b63356382e3396a76d31"
+   },
+   {
+    "file": "yoga-mat-128.webp",
+    "px": 128,
+    "bytes": 3690,
+    "sha256": "6c67d2a56f58670691b0ea60546620a6143499a85d2b50384fe23a700d369350"
+   },
+   {
+    "file": "yoga-mat-64.webp",
+    "px": 64,
+    "bytes": 1650,
+    "sha256": "3d0af9e8139fbcdccc83c5616fc77ed15de474b9d5de40f4ca8e537047ab5997"
+   }
+  ],
+  "corner_alpha": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

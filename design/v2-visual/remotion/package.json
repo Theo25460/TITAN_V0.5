@@ -1,0 +1,15 @@
+{
+  "name": "titan-v2-remotion",
+  "private": true,
+  "description": "A1 bis — planches animées TITAN V2 (Remotion). Isolé du produit : aucune dépendance ajoutée au site ni à l'application.",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts TitanBoard out/titan-v2-board.mp4 --browser-executable=/opt/pw-browsers/chromium"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.540",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.540"
+  }
+}

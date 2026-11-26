@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TITAN V2 — galerie avant / après</title>
+<style>
+:root { --bg:#090C10; --bg-2:#131920; --bg-3:#1A222C; --tx:#F1F3EF; --tx-2:#AEB7BD; --tx-3:#838E97; --cy:#3DD9E8; --line:rgb(226 234 236 / .17); }
+* { box-sizing: border-box; } body { margin:0; background:var(--bg); color:var(--tx); font:15px/1.5 system-ui, sans-serif; padding:24px 16px 64px; }
+main { max-width: 1240px; margin: 0 auto; } h1 { font-size: 28px; margin: 0 0 4px; } h2 { font-size: 20px; margin: 36px 0 6px; padding-top: 12px; border-top: 2px solid var(--tx); }
+p { color: var(--tx-2); max-width: 75ch; } .pair { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+.pair.phone { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); max-width: 980px; }
+figure { margin:0; background: var(--bg-2); border-radius: 8px; padding: 8px; } figure img { width:100%; height:auto; display:block; border-radius: 4px; }
+figcaption { font-size: 12.5px; color: var(--tx-3); padding: 6px 2px 0; } figcaption b { color: var(--tx); }
+.obj { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; } .obj figure { text-align:center; } .obj img { width: 120px; margin: 0 auto; }
+nav a { color: var(--cy); margin-right: 14px; } video { width: 100%; max-width: 960px; border-radius: 8px; background: #000; }
+</style>
+</head>
+<body><main>
+<h1>TITAN V2 — habillage (A1 bis)</h1>
+<p>Captures de Chromium sans écran, pages réelles du build local, compte connecté simulé (<code>tools/visual/fixture-connected.mjs</code>) ou nouvel utilisateur. « Après » = la couche <code>demo/habillage.css</code> + <code>demo/habillage-demo.js</code> injectée par <code>demo/capture-habillage.mjs</code> ; le produit n’est pas modifié. Valeurs de pas et vitrine : fixtures. Aucun écran n’a été vu sur un téléphone physique.</p>
+<nav><a href="#qg">QG</a><a href="#resultat">Résultat</a><a href="#profil">Profil</a><a href="#vides">États vides</a><a href="#autres">Records · Atelier · Aventure</a><a href="#objets">Objets</a><a href="#planche">Planche animée</a></nav>
+<section id="qg"><h2>QG</h2><p>Les pas passent au premier écran (une ligne, 44 px, la commande reste visible) ; sur grand écran la balise allumée se pose sur la dalle du chapitre.</p>
+<div class="pair phone"><figure><img src="shots/before--qg--390.webp" alt="QG avant, 390 px"><figcaption><b>Avant</b> · 390 px</figcaption></figure><figure><img src="shots/after--qg--390.webp" alt="QG après, 390 px"><figcaption><b>Après</b> · 390 px</figcaption></figure><figure><img src="shots/after--qg--320.webp" alt="QG après, 320 px"><figcaption><b>Après</b> · 320 px</figcaption></figure></div>
+<div class="pair"><figure><img src="shots/before--qg--1440.webp" alt="QG avant, 1440 px"><figcaption><b>Avant</b> · 1440 px</figcaption></figure><figure><img src="shots/after--qg--1440.webp" alt="QG après, 1440 px"><figcaption><b>Après</b> · 1440 px</figcaption></figure></div></section>
+<section id="resultat"><h2>Résultat de séance</h2><p>L’objet de la famille sportive (ou la médaille ambre pour un record) se pose dans l’aplat citron, sans déplacer les mesures.</p>
+<div class="pair phone"><figure><img src="shots/before--resultat--390.webp" alt=""><figcaption><b>Avant</b> · 390 px</figcaption></figure><figure><img src="shots/after--resultat--390.webp" alt=""><figcaption><b>Après</b> · 390 px</figcaption></figure><figure><img src="shots/after--resultat--320.webp" alt=""><figcaption><b>Après</b> · 320 px</figcaption></figure></div>
+<div class="pair"><figure><img src="shots/before--resultat--1440.webp" alt=""><figcaption><b>Avant</b> · 1440 px</figcaption></figure><figure><img src="shots/after--resultat--1440.webp" alt=""><figcaption><b>Après</b> · 1440 px</figcaption></figure></div></section>
+<section id="profil"><h2>Profil — vitrine</h2><p>Les objets gagnés tiennent debout sur une tablette d’acier ; « à gagner » est désaturé et dit en mots.</p>
+<div class="pair phone"><figure><img src="shots/before--profil--390--scroll.webp" alt=""><figcaption><b>Avant</b> · 390 px, défilé</figcaption></figure><figure><img src="shots/after--profil--390--scroll.webp" alt=""><figcaption><b>Après</b> · 390 px, défilé</figcaption></figure></div>
+<div class="pair"><figure><img src="shots/before--profil--1440.webp" alt=""><figcaption><b>Avant</b> · 1440 px</figcaption></figure><figure><img src="shots/after--profil--1440.webp" alt=""><figcaption><b>Après</b> · 1440 px</figcaption></figure></div></section>
+<section id="vides"><h2>États vides — nouvel utilisateur</h2><p>Le texte existant reste (natif, traduisible) ; le glyphe 24 px laisse place au dessin de la famille.</p>
+<div class="pair phone"><figure><img src="shots/before--new-user--journal--390.webp" alt=""><figcaption><b>Avant</b> · Journal</figcaption></figure><figure><img src="shots/after--new-user--journal--390.webp" alt=""><figcaption><b>Après</b> · Journal</figcaption></figure><figure><img src="shots/before--new-user--records--390.webp" alt=""><figcaption><b>Avant</b> · Records</figcaption></figure><figure><img src="shots/after--new-user--records--390.webp" alt=""><figcaption><b>Après</b> · Records</figcaption></figure></div></section>
+<section id="autres"><h2>Records · Atelier · Aventure · Progrès · Séance · Journal</h2><p>Records : la relique à texte incrusté laisse place à la médaille ambre (le sens « record »). Atelier : coffre sans texte (proposition à arbitrer, l’original est plus riche). Aventure : motif des Marées sur la mission ; l’objet du monde seulement sur grand écran. Progrès, Séance, Journal connectés : inchangés à dessein (la donnée prime).</p>
+<div class="pair phone"><figure><img src="shots/before--records--390.webp" alt=""><figcaption><b>Avant</b> · Records</figcaption></figure><figure><img src="shots/after--records--390.webp" alt=""><figcaption><b>Après</b> · Records</figcaption></figure><figure><img src="shots/before--atelier--390.webp" alt=""><figcaption><b>Avant</b> · Atelier</figcaption></figure><figure><img src="shots/after--atelier--390.webp" alt=""><figcaption><b>Après</b> · Atelier</figcaption></figure><figure><img src="shots/before--aventure--390.webp" alt=""><figcaption><b>Avant</b> · Aventure</figcaption></figure><figure><img src="shots/after--aventure--390.webp" alt=""><figcaption><b>Après</b> · Aventure</figcaption></figure></div>
+<div class="pair"><figure><img src="shots/before--aventure--1440.webp" alt=""><figcaption><b>Avant</b> · Aventure 1440</figcaption></figure><figure><img src="shots/after--aventure--1440.webp" alt=""><figcaption><b>Après</b> · Aventure 1440</figcaption></figure></div></section>
+<section id="objets"><h2>Objets (rendus Blender, WebP alpha 256 px)</h2><div class="obj" id="objs"></div></section>
+<section id="planche"><h2>Planche animée (Remotion)</h2><video src="../remotion/renders/titan-v2-board.mp4" controls muted playsinline preload="metadata"></video></section>
+<script>
+const ids = ["record-medal","week-pennant","trophy","exploration-seal","mastery-relic","supply-chest","titan-crest","titan-crest-amber","veilleur-stone","buoy","sea-chart","anvil","forge-gears","beacon-lit","beacon-dormant","aurora-beacon-lit","aurora-beacon-dormant","camp-tent","logbook","rope-carabiner","relay-baton","stopwatch","gps-watch","running-shoe","dumbbell","kettlebell","ball","yoga-mat","climbing-hold"];
+document.getElementById("objs").innerHTML = ids.map(i => `<figure><img src="../exports/objects/${i}-256.webp" alt="" width="120" height="120" loading="lazy"><figcaption>${i}</figcaption></figure>`).join("");
+</script>
+</main></body></html>

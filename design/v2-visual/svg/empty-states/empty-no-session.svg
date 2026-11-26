@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="titan-es titan-es--no-session" data-accent="lime" aria-hidden="true" focusable="false" style="color:#AEB7BD">
+<g class="titan-es__relief" opacity=".16" stroke-width="1.2"><path d="M6 92c18-10 30-26 46-26s22 12 34 12 24-20 40-20 22 18 28 24"/><path d="M22 92c12-6 22-16 32-16s16 8 28 8 20-12 30-12 16 12 22 16"/></g>
+<path class="titan-es__ground" d="M10 92h140" opacity=".5"/>
+<g class="titan-es__subject"><path d="M30 92c14-4 22-12 34-14s20 4 30-2 16-16 26-22" stroke-dasharray="3 4"/>
+<path d="M40 92l4-8h12l4 8"/><path d="M45 84l3-6h6l3 6"/><path d="M51 78v-16"/><path d="M45 52h12v10H45z"/><path d="M47 52l4-5 4 5"/>
+<circle cx="51" cy="57" r="2" style="stroke:var(--titan-accent,#D7F25A)"/></g>
+</svg>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr" data-motion="full">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TITAN V2 — micro-animations</title>
+<style>
+@font-face { font-family: Archivo; src: url("../../../css/fonts/archivo-latin-variable.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; }
+:root { --bg:#090C10; --bg-2:#131920; --bg-3:#1A222C; --bg-4:#232D39; --tx:#F1F3EF; --tx-2:#AEB7BD; --tx-3:#838E97; --cy:#3DD9E8; --am:#F4BB54; --am-ink:#1D1302;
+  --lime:#D7F25A; --lime-ink:#161C00; --ok:#57D39B; --err:#F2665F; --line-2: rgb(226 234 236 / .17); --cut: 18px;
+  --ease-out: cubic-bezier(.2,.7,.2,1); --ease-settle: cubic-bezier(.2,.8,.25,1.05); }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--tx); font: 15.5px/1.5 Archivo, system-ui, sans-serif; padding: 20px; }
+h1 { font: 800 24px/1.1 Archivo; font-stretch: 75%; margin: 0 0 4px; } p.lead { color: var(--tx-2); margin: 0 0 18px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.piece { background: var(--bg-2); border-radius: 12px; padding: 16px; display: grid; gap: 12px; align-content: start; }
+.piece header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.piece h2 { margin: 0; font: 800 17px/1.2 Archivo; font-stretch: 75%; } .piece .spec { color: var(--tx-3); font-size: 12px; }
+button.replay { font: 600 13px Archivo; color: var(--tx); background: var(--bg-4); border: 0; border-radius: 6px; padding: 8px 12px; min-height: 36px; cursor: pointer; }
+button.replay:focus-visible { outline: 2px solid var(--cy); outline-offset: 2px; }
+.stage { position: relative; min-height: 150px; display: grid; align-content: center; }
+.num { font-stretch: 62%; font-variant-numeric: tabular-nums; }
+/* m01 XP */
+.xp-fig { font-weight: 300; font-size: 56px; line-height: 1; color: var(--cy); } .xp-fig small { font-size: 18px; font-weight: 700; color: var(--tx-2); margin-left: 6px; }
+.bar { height: 8px; border-radius: 4px; background: var(--bg-4); position: relative; overflow: hidden; margin-top: 10px; }
+.bar .was { position: absolute; inset: 0 auto 0 0; width: 31%; background: #1F6F78; }
+.bar .now { position: absolute; inset: 0 auto 0 0; width: 37%; background: var(--cy); transform-origin: left; }
+.go .bar .now { animation: fillFrom 560ms var(--ease-out) both 120ms; }
+@keyframes fillFrom { from { transform: scaleX(calc(31 / 37)); } }
+/* m02 quest */
+.stamp path { stroke-dasharray: 80; stroke-dashoffset: 0; } .stamp rect { transform-origin: 80px 80px; }
+.go .stamp rect { animation: plate 320ms var(--ease-settle) both; }
+.go .stamp path:nth-of-type(1) { animation: draw 320ms var(--ease-out) both 120ms; } .go .stamp path:nth-of-type(2) { animation: draw 340ms var(--ease-out) both 220ms; }
+@keyframes plate { from { transform: scale(.92); opacity: .6; } } @keyframes draw { from { stroke-dashoffset: 80; } }
+.quest-row { display: flex; gap: 12px; align-items: center; } .quest-row strong { display: block; } .quest-row small { color: var(--tx-2); }
+/* m03 steps */
+.steps { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: center; }
+.steps svg { width: 22px; height: 22px; color: var(--cy); } .steps .fig { font-weight: 700; font-size: 28px; line-height: 1; } .steps .fig small { font-size: 14px; color: var(--tx-2); margin-left: 4px; }
+.steps .goal { color: var(--tx-2); font-size: 13.5px; } .steps .bar { grid-column: 1/-1; margin: 6px 0 0; height: 6px; }
+.steps .bar .now { width: 92.6%; background: var(--cy); } .steps .bar b { position: absolute; top: 0; bottom: 0; width: 2px; left: 73.7%; background: var(--tx-2); }
+.go .steps .bar .now { animation: fill 520ms var(--ease-out) both; } .go .steps .bar b { animation: fade 240ms ease-out both 380ms; }
+@keyframes fill { from { transform: scaleX(0); } } @keyframes fade { from { opacity: 0; } }
+/* m04 record */
+.record { background: var(--am); color: var(--am-ink); padding: 16px 128px 16px 16px; position: relative; clip-path: polygon(0 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%); min-height: 140px; }
+.record .lead { font-weight: 300; font-size: 52px; line-height: 1; } .record .lead small { font-size: 20px; font-weight: 700; }
+.record .was { font-weight: 700; font-size: 13.5px; opacity: .84; } .record img { position: absolute; right: 4px; bottom: 6px; width: 120px; height: 120px; }
+.go .record img { animation: settle 640ms var(--ease-settle) both 80ms; } .go .record .was { animation: rise 260ms var(--ease-out) both 360ms; }
+@keyframes settle { 0% { transform: translateY(12px) scale(.92); opacity: 0; } 70% { transform: translateY(-2px) scale(1.01); opacity: 1; } 100% { transform: none; } }
+@keyframes rise { from { transform: translateY(6px); opacity: 0; } }
+/* m05 unlock */
+.unlock { display: flex; gap: 16px; align-items: center; } .unlock img { width: 112px; height: 112px; filter: none; }
+.unlock svg { width: 40px; height: 40px; color: var(--tx-2); overflow: visible; } .unlock .shackle { transform-origin: 30px 18px; transform: rotate(-28deg) translateY(-3px); }
+.go .unlock .shackle { animation: shackle 260ms var(--ease-out) both 60ms; } .go .unlock img { animation: color 420ms ease-out both 200ms; }
+@keyframes shackle { from { transform: none; } } @keyframes color { from { filter: grayscale(1) brightness(.55); } }
+/* m06 sync */
+.sync { display: grid; gap: 8px; } .sync .state { display: inline-flex; gap: 6px; align-items: center; font-size: 13.5px; position: relative; height: 24px; }
+.sync .state span { position: absolute; left: 0; display: inline-flex; gap: 6px; align-items: center; opacity: 0; } .sync svg { width: 18px; height: 18px; }
+.sync .s3 { opacity: 1; color: var(--ok); } .sync .s1 { color: var(--tx-2); } .sync .s2 { color: var(--cy); }
+.go .sync .s1 { animation: step 200ms 0ms both, out 160ms 520ms forwards; } .go .sync .s2 { animation: step 180ms 520ms both, out 160ms 1040ms forwards; } .go .sync .s3 { animation: step 200ms 1040ms both; }
+@keyframes step { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } } @keyframes out { to { opacity: 0; } }
+.row { display: flex; justify-content: space-between; border-top: 1px solid var(--line-2); padding-top: 10px; }
+/* m07 beacon */
+.beacon { display: flex; gap: 14px; align-items: end; } .beacon .imgs { position: relative; width: 120px; height: 120px; } .beacon img { position: absolute; inset: 0; width: 120px; height: 120px; }
+.beacon .lit { opacity: 1; } .go .beacon .lit { animation: fade 520ms ease-out both 160ms; }
+.trail { display: flex; gap: 10px; align-items: center; } .trail i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #7FE0B0; } .trail i.on { background: #7FE0B0; } .trail i.now { background: var(--am); border-color: var(--am); }
+.go .trail i.now { animation: pop 300ms var(--ease-settle) both 420ms; } @keyframes pop { from { transform: scale(.6); background: transparent; border-color: #7FE0B0; } }
+/* m08 end of session */
+.endfield { background: var(--lime); color: var(--lime-ink); padding: 16px 120px 16px 16px; position: relative; clip-path: polygon(0 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%); }
+.endfield .lead { font-weight: 300; font-size: 56px; line-height: 1; } .endfield .lead small { font-size: 20px; font-weight: 700; }
+.endfield .m { font-weight: 700; font-size: 13.5px; border-top: 1px solid rgb(22 28 0 / .3); padding-top: 6px; margin-top: 8px; } .endfield img { position: absolute; right: 2px; bottom: 4px; width: 116px; height: 116px; }
+.go .endfield { animation: reveal 300ms var(--ease-out) both; } .go .endfield img { animation: settle 600ms var(--ease-settle) both 160ms; }
+@keyframes reveal { from { clip-path: polygon(0 100%,100% 100%,100% 100%,100% 100%,0 100%); } }
+/* reduced motion: every piece shows its final state at once */
+@media (prefers-reduced-motion: reduce) { .go * { animation: none !important; } }
+html[data-motion="reduced"] .go * { animation: none !important; }
+</style>
+</head>
+<body>
+<h1>Micro-animations TITAN V2</h1>
+<p class="lead">Chaque animation part d’un événement réel (bouton « Rejouer » ici), ne bloque aucune commande, n’exécute aucune règle et donne son état final immédiatement sous « mouvement réduit ».</p>
+<div class="grid">
+  <section class="piece" id="m01"><header><h2>m01 · Gain d’XP confirmé</h2><span class="spec">560 ms · progression</span></header>
+    <div class="stage"><div class="xp-fig num" data-count="886" data-prefix="+">+886<small>XP</small></div><div class="bar"><span class="was"></span><span class="now"></span></div><p class="spec">Niveau 14 → 4 797 / 15 450 XP. La teinte calme montre où le niveau était.</p></div>
+    <button class="replay" type="button">Rejouer</button></section>
+  <section class="piece" id="m02"><header><h2>m02 · Quête validée</h2><span class="spec">560 ms · retour</span></header>
+    <div class="stage quest-row"><svg class="stamp" viewBox="0 0 160 160" width="72" height="72" aria-hidden="true"><rect x="24" y="24" width="112" height="112" rx="12" fill="#1A222C"/><path d="M52 82l28-26 28 26" fill="none" stroke="#3DD9E8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M52 108l28-26 28 26" fill="none" stroke="#3DD9E8" stroke-opacity=".7" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div><strong>Le relevé des bouées</strong><small>Indice trouvé · confirmé par le serveur</small></div></div>
+    <button class="replay" type="button">Rejouer</button></section>
+  <section class="piece" id="m03"><header><h2>m03 · Compteur de pas</h2><span class="spec">520 ms · progression</span></header>
+    <div class="stage steps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" aria-hidden="true"><path d="M8 13c-1.6 0-2.5-1.8-2.5-4S6.4 4 8 4s2.5 2.2 2.5 5-1 4-2.5 4z"/><path d="M6.4 16.2c0 1.3.7 2.3 1.6 2.3s1.6-1 1.6-2.3"/><path d="M16 17c-1.6 0-2.5-1.8-2.5-4s.9-5 2.5-5 2.5 2.2 2.5 5-1 4-2.5 4z"/></svg>
+      <span class="fig num" data-count="7412">7 412<small>pas</small></span><span class="goal">objectif 8 000</span><span class="bar"><span class="now"></span><b></b></span></div>
+    <button class="replay" type="button">Rejouer</button></section>
+  <section class="piece" id="m04"><header><h2>m04 · Record battu</h2><span class="spec">640 ms · célébration brève</span></header>
+    <div class="stage record"><div class="lead num">62,5<small> kg</small></div><div class="was">Développé couché · avant 57,5 kg</div><img src="../exports/objects/record-medal-256.webp" alt="" width="120" height="120"></div>
+    <button class="replay" type="button">Rejouer</button></section>
+  <section class="piece" id="m05"><header><h2>m05 · Déverrouillage</h2><span class="spec">420 ms · changement d’état</span></header>
+    <div class="stage unlock"><img src="../exports/objects/relay-baton-256.webp" alt="" width="112" height="112"><svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><rect x="14" y="26" width="32" height="26" rx="4"/><path class="shackle" d="M20 26v-6a10 10 0 0120 0"/></svg><div><strong>Relais de cordée</strong><br><small style="color:var(--tx-2)">Débloqué : 3 relais passés</small></div></div>
+    <button class="replay" type="button">Rejouer</button></section>
+  <section class="piece" id="m06"><header><h2>m06 · Synchronisation</h2><span class="spec">3 × 180 ms · état</span></header>
+    <div class="stage sync"><div class="row"><span>Course à pied · 15,8 km</span><span class="state">
+      <span class="s1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"><rect x="7" y="3" width="10" height="18" rx="2"/><circle cx="12" cy="14" r="2.2"/></svg>Sur ce téléphone</span>
+      <span class="s2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><path d="M12 20V8M7 12l5-5 5 5M5 4h14"/></svg>Envoi…</span>
+      <span class="s3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><path d="M5 4h14M7 13l3.5 3.5L17 10"/></svg>Reçue par TITAN</span></span></div></div>
+    <button class="replay" type="button">Rejouer</button></section>
+  <section class="piece" id="m07"><header><h2>m07 · Balise allumée</h2><span class="spec">520 ms · aventure</span></header>
+    <div class="stage beacon"><div class="imgs"><img src="../exports/objects/beacon-dormant-256.webp" alt=""><img class="lit" src="../exports/objects/beacon-lit-256.webp" alt=""></div>
+      <div><div class="trail" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="now"></i><i></i><i></i></div><p class="spec" style="margin:8px 0 0">Balise 4 sur 9 · L’archipel des Marées</p></div></div>
+    <button class="replay" type="button">Rejouer</button></section>
+  <section class="piece" id="m08"><header><h2>m08 · Fin de séance</h2><span class="spec">300 + 600 ms · résultat</span></header>
+    <div class="stage"><div class="endfield"><div class="lead num">15,8<small> km</small></div><div class="m">1 h 22 · 5:11 /km · +139 m</div><img src="../exports/objects/running-shoe-256.webp" alt=""></div></div>
+    <button class="replay" type="button">Rejouer</button></section>
+</div>
+<script>
+const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.dataset.motion === "reduced";
+const fmt = n => n.toLocaleString("fr-FR");
+function count(el) { const to = +el.dataset.count, pre = el.dataset.prefix || "", small = el.querySelector("small")?.outerHTML || "";
+  if (reduced()) { el.innerHTML = pre + fmt(to) + small; return; }
+  const t0 = performance.now(), d = 520; (function f(t) { const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3); el.innerHTML = pre + fmt(Math.round(to * e)) + small; if (k < 1) requestAnimationFrame(f); })(t0); }
+function play(piece) { piece.classList.remove("go"); void piece.offsetWidth; piece.classList.add("go"); piece.querySelectorAll("[data-count]").forEach(count); }
+document.querySelectorAll(".piece").forEach(p => p.querySelector(".replay").addEventListener("click", () => play(p)));
+window.__play = id => play(document.getElementById(id));
+</script>
+</body></html>

@@ -1,0 +1,92 @@
+/* TITAN V2 — couche d'habillage (A1 bis). Ajoute des matières et des objets au système « Programme / Signature » sans créer
+   de token : tout vient de css/ascension.css (--bg*, --tx*, --space*, --cy, --am, --ok, --warn, --err) et de
+   css/signature.css (--cut, --cut-sm, la coupe, le relief, l'objet). Préfixe .v2- ; à déplacer dans css/ par B2.
+   Règles : un objet ne porte jamais seul une information ; il est aria-hidden ou décrit ; il ne pousse jamais une action
+   sous la ligne de flottaison ; sous mouvement réduit, chaque animation donne son état final immédiatement. */
+
+/* ---------- L'objet rendu (rendu Blender, WebP alpha, ombre portée incluse) */
+.v2-object { display: block; flex: none; width: var(--v2-object, 96px); height: var(--v2-object, 96px); object-fit: contain; pointer-events: none; user-select: none; }
+.v2-object[data-size="64"] { --v2-object: 64px; } .v2-object[data-size="128"] { --v2-object: 128px; } .v2-object[data-size="160"] { --v2-object: 160px; }
+.v2-object.is-locked { filter: grayscale(1) brightness(.55) contrast(.9); opacity: .8; }
+
+/* L'objet posé sur la dalle — seulement quand il y a la place (≥ 960 px). Sur téléphone, la dalle garde toute sa hauteur
+   pour le titre et l'action : un objet n'a jamais le droit de pousser la commande sous la barre d'onglets. */
+.qg-hero .v2-hero-object, .av-mission .v2-hero-object { display: none; }
+@media (min-width: 960px) {
+  .av-mission.v2-mission { padding-right: clamp(150px, 22%, 200px); }
+  .av-mission .v2-hero-object { display: block; position: absolute; right: 16px; top: 16px; --v2-object: 150px; }
+  .qg-hero.v2-has-object { position: relative; padding-right: clamp(180px, 26%, 240px); }
+  .qg-hero .v2-hero-object { display: block; position: absolute; right: clamp(12px, 2vw, 28px); bottom: 22px; --v2-object: clamp(148px, 14vw, 196px); filter: drop-shadow(0 14px 18px rgb(0 0 0 / .28)); }
+}
+
+/* ---------- Compteur de pas du QG : UNE ligne du bandeau d'état, au premier écran (jamais un anneau autour d'un nombre).
+   Téléphone : pictogramme · chiffre · barre · objectif sur 40 px de haut ; la source et l'heure passent dans le détail et dans
+   le nom accessible. Grand écran : la source s'ajoute sous la barre. */
+.v2-steps { display: grid; grid-template-columns: auto auto minmax(48px, 1fr) auto; align-items: center; gap: 2px var(--s3, 12px); min-height: 44px; padding: 6px 0; border-top: 1px solid var(--line-2); color: var(--tx); text-decoration: none; }
+.v2-steps-icon { width: 20px; height: 20px; color: var(--cy); display: grid; } .v2-steps-icon svg { width: 20px; height: 20px; }
+.v2-steps-figure { font-variation-settings: "wdth" 62; font-weight: 700; font-size: 24px; line-height: 1; font-variant-numeric: tabular-nums; }
+.v2-steps-figure small { font-size: 13px; font-weight: 600; color: var(--tx-2); margin-left: 3px; }
+.v2-steps-label { order: 4; font-size: 13px; color: var(--tx-2); white-space: nowrap; }
+.v2-steps-bar { order: 3; height: 6px; border-radius: 3px; background: var(--bg-4); position: relative; overflow: hidden; }
+.v2-steps-bar i { position: absolute; inset: 0 auto 0 0; width: var(--v2-pct, 0%); background: var(--cy); border-radius: inherit; transform-origin: left; }
+.v2-steps-bar b { position: absolute; top: 0; bottom: 0; width: 2px; left: var(--v2-usual, 60%); background: var(--tx-2); opacity: .75; }
+.v2-steps-meta { display: none; }
+.v2-steps[data-state="no-data"] .v2-steps-figure { color: var(--tx-3); font-weight: 600; font-size: 15px; font-variation-settings: normal; }
+.v2-steps:focus-visible { outline: 2px solid var(--space, var(--cy)); outline-offset: 2px; border-radius: 4px; }
+@media (min-width: 600px) { .v2-steps-meta { order: 5; display: flex; grid-column: 2 / -1; justify-content: space-between; font-size: 12.5px; color: var(--tx-3); } }
+
+/* ---------- La vitrine : les objets gagnés tiennent debout sur une tablette d'acier (le « sig-plate » en long) */
+.v2-vitrine { margin: var(--s6, 32px) 0 var(--s5, 24px); }
+.v2-vitrine-shelf { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); column-gap: 0; row-gap: var(--s4, 16px); }
+/* each object stands on its own length of steel ledge (the stand): ledges line up per row because every stand has the
+   same height, whatever the length of the label under it */
+.v2-vitrine-item { display: grid; justify-items: center; align-content: start; gap: 4px; text-align: center; color: var(--tx); }
+.v2-vitrine-stand { width: 100%; display: grid; justify-items: center; padding-bottom: 12px; margin-bottom: 4px;
+  background: linear-gradient(180deg, transparent calc(100% - 12px), #3a4550 calc(100% - 12px), #2a333d calc(100% - 11px), #141a21 100%); }
+.v2-vitrine-item .v2-object { --v2-object: clamp(80px, 24vw, 112px); margin-bottom: -6px; }
+.v2-vitrine-item strong { font-size: 13px; padding: 0 4px; line-height: 1.25; font-weight: 700; }
+.v2-vitrine-item small { padding: 0 4px; font-size: 12px; color: var(--tx-3); }
+.v2-vitrine-item.is-record small { color: var(--am); }
+.v2-vitrine-item.is-locked strong { color: var(--tx-2); }
+
+/* ---------- Les états vides : un dessin d'une seule ligne, une phrase vraie, une action */
+.v2-empty { display: grid; justify-items: start; gap: var(--s2, 8px); padding: var(--s5, 24px) 0; color: var(--tx-2); }
+.v2-empty-art { display: block; color: var(--tx-3); }
+.v2-empty-art > svg { width: min(160px, 46vw); height: auto; display: block; }
+.sig-empty.v2-has-art::before { display: none; } /* the drawing carries le relief already */
+.v2-empty h3 { margin: 0; font-size: 17px; color: var(--tx); }
+.v2-empty p { margin: 0; max-width: 46ch; }
+.v2-empty[data-layout="center"] { justify-items: center; text-align: center; }
+
+/* ---------- Provenance et synchronisation : un mot + un pictogramme, jamais la couleur seule */
+.v2-source, .v2-sync { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--tx-2); white-space: nowrap; }
+.v2-source svg, .v2-sync svg { width: 14px; height: 14px; }
+.v2-sync[data-state="local"] { color: var(--tx-2); } .v2-sync[data-state="sending"] { color: var(--cy); }
+.v2-sync[data-state="received"] { color: var(--ok); } .v2-sync[data-state="refused"] { color: var(--err); }
+.v2-sync[data-state="offline"] { color: var(--tx-3); } .v2-sync[data-state="conflict"] { color: var(--warn); }
+
+/* ---------- Échelle de maîtrise (10 paliers par sport, js/core/progress.js) : encoches, pas de second accent */
+.v2-ladder { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; height: 8px; }
+.v2-ladder i { background: var(--bg-4); border-radius: 2px; }
+.v2-ladder i.is-done { background: var(--cy); } .v2-ladder i.is-now { background: linear-gradient(90deg, var(--cy) var(--v2-pct, 40%), var(--bg-4) 0); outline: 1px solid var(--cy); outline-offset: 1px; }
+
+/* ---------- Motifs de monde : une seule grammaire (lignes d'1 px à l'encre de la surface), quatre écritures */
+.v2-motif { position: absolute; inset: 0; pointer-events: none; opacity: .14; color: inherit; -webkit-mask: var(--v2-motif) center / 320px auto repeat; mask: var(--v2-motif) center / 320px auto repeat; background: currentColor; }
+.v2-motif[data-world="aube"]    { --v2-motif: url("/__v2/svg/motifs/motif-aube.svg"); }
+.v2-motif[data-world="marees"]  { --v2-motif: url("/__v2/svg/motifs/motif-marees.svg"); }
+.v2-motif[data-world="forges"]  { --v2-motif: url("/__v2/svg/motifs/motif-forges.svg"); }
+.v2-motif[data-world="aurores"] { --v2-motif: url("/__v2/svg/motifs/motif-aurores.svg"); }
+
+/* ---------- Le moment après la séance : l'objet du record (ambre) ou de la famille sportive se pose sur l'aplat */
+.moment-sheet .moment-field.v2-has-object { position: relative; }
+.moment-sheet .v2-moment-object { position: absolute; top: 2px; right: 8px; --v2-object: clamp(72px, 20vw, 116px); filter: drop-shadow(0 8px 10px rgb(0 0 0 / .18)); }
+.moment-sheet[data-record] .v2-moment-object { --v2-object: clamp(84px, 24vw, 132px); }
+
+/* ---------- Mouvement (durées : retour 120–250 ms, progression 250–600 ms, célébration ≤ 900 ms, jamais en boucle) */
+@keyframes v2-fill { from { transform: scaleX(0); } }
+@keyframes v2-settle { 0% { transform: translateY(10px) scale(.94); opacity: 0; } 70% { transform: translateY(-2px) scale(1.01); opacity: 1; } 100% { transform: none; } }
+@keyframes v2-stamp { 0% { stroke-dashoffset: 40; } 100% { stroke-dashoffset: 0; } }
+.v2-steps-bar i { animation: v2-fill 520ms cubic-bezier(.2, .7, .2, 1) both; }
+.v2-hero-object, .v2-moment-object { animation: v2-settle 640ms cubic-bezier(.2, .8, .25, 1.05) both 120ms; }
+@media (prefers-reduced-motion: reduce) { .v2-steps-bar i, .v2-hero-object, .v2-moment-object { animation: none; } }
+html[data-motion="reduced"] .v2-steps-bar i, html[data-motion="reduced"] .v2-hero-object, html[data-motion="reduced"] .v2-moment-object { animation: none; }
