@@ -704,8 +704,8 @@
         "file": "20261130105900_v2_consolidation.sql",
         "version": "20261130105900",
         "package": "supabase/release-v2-08",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "ed82821531f8ee52b161dcc69b5a342103cbeba4d2b758714da5c32a75335e78"
       },
       "identical": null,
       "written_by_a2": true,
