@@ -24,7 +24,7 @@ continuent de fonctionner, et un parcours qu'ils enregistrent se lit par la v2 a
 
 Empreintes mesurées le 25 novembre 2026 sur une réplique vierge construite depuis le dépôt jusqu'à `20261123180000` : avant = état v24
 attendu (identique) ; le fichier `01` appliqué sur cette réplique donne l'état « après » ; un second passage est refusé
-(« migration 20261125090000 is already registered ») ; `sql/tests/300_gps_navigation.sql` passe sur la réplique ainsi migrée.
+(« migration 20261125170000 is already registered ») ; `sql/tests/300_gps_navigation.sql` passe sur la réplique ainsi migrée.
 Répétition : `pnpm run test:db` (toutes migrations, `sql/tests/300_gps_navigation.sql`).
 
 Ordre de déploiement : appliquer ce paquet **avant** de créer le drapeau `screens.gps` et avant de poser `ROUTING_PROVIDER`,
@@ -34,4 +34,4 @@ configurées, répondent `503 SERVICE_UNAVAILABLE` sans appeler le fournisseur (
 
 Aucun drapeau n'est créé par la migration (`docs/FEATURE_FLAGS.md`).
 
-Retour arrière : en-tête de `supabase/migrations/20261125090000_gps_navigation.sql`.
+Retour arrière : en-tête de `supabase/migrations/20261125170000_gps_navigation.sql`.

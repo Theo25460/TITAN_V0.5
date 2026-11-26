@@ -322,7 +322,7 @@ test("privacy: every per-player table added since 17 November 2026 is erased wit
 
 test("privacy: V1.7.7 GPS — the ceiling of personal points, the route limits and the two outside services are stated as the code applies them", () => {
   const privacy = page("legal_privacy.html");
-  const gps = sql("20261125090000_gps_navigation.sql");
+  const gps = sql("20261125170000_gps_navigation.sql");
   // v2 saves through v1: the two ceilings of the library are still the ones of the routes migration, and the policy still quotes them.
   assert.match(gps, /v_result := public\.titan_route_save_v1\(p_client_route_id, p_sport, p_started_at, p_distance_m, p_duration_s, p_ascent_m, p_track\);/);
   assert.doesNotMatch(gps, /ROUTE_LIMIT|TRACK_TOO_LARGE/, "no second ceiling to keep in step");

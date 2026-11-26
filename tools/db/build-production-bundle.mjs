@@ -140,7 +140,7 @@ export const BUNDLES = {
   // Netlify functions; points and the new route columns in the account export. NOT APPLIED: owner's approval required. Requires v24.
   // Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_gps_navigation.sql).
   v25: {
-    out: "supabase/release-v25", after: "20261123180000", until: "20261125090000",
+    out: "supabase/release-v25", after: "20261123180000", until: "20261125170000",
     before: { private: [130, "6588576b84de", "263683b3f84f"], public: [332, "fb59f2b689b9", "dca2a744f579"] },
     expected: { private: [132, "bbccf194ac43", "7a252d3ccf96"], public: [341, "d126eb93aed9", "351dd6eb7e5d"] },
     beforeNote: "This is the state production reaches at the end of the v24 bundle (head 20261123180000).",
