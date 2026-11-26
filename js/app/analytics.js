@@ -31,9 +31,16 @@
     "support_opened",
     "support_category_selected",
     "support_submission_result",
+    // « Partager » (before V2): the story-card flow. Only `kind` (session | achievement); never a sport, a value or a name.
+    // An export or an opened share sheet is not a publication nor an install.
+    "share_preview_opened",
+    "share_export_succeeded",
+    "share_export_failed",
+    "share_sheet_opened",
   ]);
   const ANALYSIS = new Set([...EVENTS].filter(name => name.startsWith("analysis_")));
   const PUBLIC = new Set(["dynamic_page_opened"]);
+  const SHARE = new Set([...EVENTS].filter(name => name.startsWith("share_")));
   const SUPPORT = new Set(["support_opened", "support_category_selected", "support_submission_result"]);
   const SUPPORT_CATEGORIES = new Set(["bug", "compte", "titanplus", "donnees", "communaute", "autre"]);
   const SUPPORT_RESULTS = new Set(["received", "rejected", "uncertain", "unavailable", "offline"]);
@@ -103,6 +110,7 @@
       return typeof props.result === "string" && SUPPORT_RESULTS.has(props.result) ? { category: props.category, result: props.result } : null;
     }
     if (PUBLIC.has(name)) return {};
+    if (SHARE.has(name)) return ["session", "achievement"].includes(props?.kind) ? { kind: props.kind } : {};
     if (ANALYSIS.has(name)) {
       return name.startsWith("analysis_view_") && ["report", "comparison"].includes(props?.kind) ? { kind: props.kind } : {};
     }
@@ -176,7 +184,7 @@
         user_id: userId,
         event_name: name,
         page: support ? supportPage : location.pathname.slice(0, 80),
-        source: c === "granted" && !ANALYSIS.has(name) && !PUBLIC.has(name) && !support ? new URLSearchParams(location.search).get("utm_source")?.slice(0, 40) || null : null,
+        source: c === "granted" && !ANALYSIS.has(name) && !PUBLIC.has(name) && !SHARE.has(name) && !support ? new URLSearchParams(location.search).get("utm_source")?.slice(0, 40) || null : null,
         referrer: null,
         metadata: { ...(support ? supportProps : clean(props, name)), consent: c === "granted" ? "granted" : "anonymous", v: 300 },
       });

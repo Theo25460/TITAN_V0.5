@@ -27,7 +27,7 @@ jest.mock("../src/data/hooks", () => ({
 const { social } = jest.requireActual("../test-fixtures/data");
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 
-function show(params?: { ami?: string; guilde?: string }) {
+function show(params?: { ami?: string; guilde?: string; sheet?: "invite" }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
   client.setQueryData(["profile", "owner-a"], { privacy: { showStats: true } });
   render(
@@ -102,6 +102,17 @@ test("a guild member sees the join code and can invite with a link", async () =>
 test("an opened friend link fills the code field; a malformed one is ignored", async () => {
   show({ ami: "tn-zz99" });
   expect(await screen.findByDisplayValue("TN-ZZ99", undefined, slow)).toBeTruthy();
+});
+
+test("« Inviter un ami » from a share preview opens the invitation sheet; without it the sheet stays closed", async () => {
+  show({ sheet: "invite" });
+  expect(await screen.findByTestId("share-friend-code", undefined, slow)).toBeTruthy();
+});
+
+test("the Community screen opened plainly does not open the invitation sheet", async () => {
+  show();
+  await screen.findAllByText(/./, undefined, slow);
+  expect(screen.queryByTestId("share-friend-code")).toBeNull();
 });
 
 test("an opened guild link fills the join field for someone without a guild", async () => {

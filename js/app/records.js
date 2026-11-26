@@ -166,7 +166,7 @@
       <p class="rc-big asc-num">${esc(value(r))}</p>
       <p class="asc-small asc-muted">${esc(r.context || "")}</p>
       <a class="asc-row" data-record-source href="/journal?session=${encodeURIComponent(X().idOf(r.log))}"><span class="asc-row-icon am">${icon("star")}</span><span class="asc-row-main"><span class="asc-row-title">Séance source</span><span class="asc-row-sub">${esc(new Date(r.log.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }))}</span></span>${icon("chevron")}</a>
-      <div class="asc-row-flex">${window.TitanCard ? `<button type="button" class="asc-btn asc-btn-secondary" data-card-record>${icon("share")} Créer une image</button>` : ""}${window.TitanShare?.available() ? `<button type="button" class="asc-btn asc-btn-ghost" data-share-record>${icon("send")} Partager avec mes amis</button>` : ""}</div>
+      <div class="asc-row-flex">${window.TitanStory ? `<button type="button" class="asc-btn asc-btn-secondary" data-story-record>${icon("share")} Partager en story</button>` : ""}${window.TitanCard ? `<button type="button" class="asc-btn asc-btn-secondary" data-card-record>${icon("share")} Créer une image</button>` : ""}${window.TitanShare?.available() ? `<button type="button" class="asc-btn asc-btn-ghost" data-share-record>${icon("send")} Partager avec mes amis</button>` : ""}</div>
       ${steps.length > 1 ? `<section class="asc-stack-sm"><p class="asc-eyebrow">Progression</p>${stepsChart(r, steps)}<ol class="rc-steps">${steps
         .slice()
         .reverse()
@@ -208,8 +208,8 @@
       if (!live()) return;
       const next = all().find(x => x.id === id);
       if (!next) { dialog.close(); return; }
-      const focused = body.contains(document.activeElement) ? document.activeElement.closest("[data-card-record], [data-share-record], [data-record-source]") : null;
-      const selector = focused?.hasAttribute("data-card-record") ? "[data-card-record]" : focused?.hasAttribute("data-share-record") ? "[data-share-record]" : focused ? "[data-record-source]" : null;
+      const focused = body.contains(document.activeElement) ? document.activeElement.closest("[data-story-record], [data-card-record], [data-share-record], [data-record-source]") : null;
+      const selector = focused?.hasAttribute("data-story-record") ? "[data-story-record]" : focused?.hasAttribute("data-card-record") ? "[data-card-record]" : focused?.hasAttribute("data-share-record") ? "[data-share-record]" : focused ? "[data-record-source]" : null;
       const nextSteps = progression(next), nextKey = detailKey(next, nextSteps);
       if (nextKey === key) return;
       r = next;
@@ -227,6 +227,17 @@
         return;
       }
       const prev = steps.length > 1 ? steps[steps.length - 2] : null;
+      // « Partager » (before V2): this record as a 9:16 success card; « avant » is the previous step of its own history.
+      if (e.target.closest("[data-story-record]")) {
+        const sourceGeneration = generation;
+        void window.TitanStory.open({ kind: "achievement", input: {
+          type: "record", title: r.label, value: value(r), sport: SP().label(r.sport), sportId: r.sport,
+          previous: prev ? value(r, prev.value) : null, date: r.log.date, name: window.titanShell?.user?.()?.guest ? "" : window.titanShell?.user?.()?.name || "",
+        } }, { isCurrent: () => live() && sourceGeneration === generation }).then(sheet => {
+          if (sheet?.open) sheet.addEventListener("close", () => restoreAction("[data-story-record]"), { once: true });
+          else restoreAction("[data-story-record]");
+        });
+      }
       if (e.target.closest("[data-card-record]")) {
         const sourceGeneration = generation;
         void window.TitanCard.open({

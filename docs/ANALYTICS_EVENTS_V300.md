@@ -55,6 +55,10 @@ La migration additive `20261013074320_analytics_support_metadata_v300.sql`, gén
 | `support_opened` | Montage du formulaire préparé/rapport, client disponible | Aucune |
 | `support_category_selected` | Choix explicite d’une catégorie | `category`, six slugs fermés |
 | `support_submission_result` | Résultat d’une tentative volontaire, après les gardes courants | `category`, `result`, listes fermées |
+| `share_preview_opened` | Ouverture de l’aperçu d’une carte « Partager » (story 9:16) | `kind = session \| achievement` |
+| `share_export_succeeded` | Image PNG 1080 × 1920 créée sur l’appareil pour un partage ou un téléchargement | `kind` |
+| `share_export_failed` | Échec de création de l’image (encodage PNG) | `kind` |
+| `share_sheet_opened` | Ouverture du partage de fichiers du navigateur (`navigator.share`) avec l’image | `kind` |
 
 Un rafraîchissement par timer, retour de focus, changement d’historique ou de connexion n’ajoute aucun événement de consultation des analyses. Une erreur, un refus Premium, une réponse malformée/étrangère/obsolète ou une mutation non confirmée ne compte pas comme succès. Une mutation confirmée compte avant le rafraîchissement de liste, même si celui-ci échoue. Ouvrir une vue signifie restaurer ses paramètres ; la réussite du recalcul est comptée séparément par l’événement du bilan ou de la comparaison. Un export indique son déclenchement, pas la lecture du fichier téléchargé.
 
@@ -105,3 +109,8 @@ Références navigateur : [révision UUID locale](https://developer.mozilla.org/
 Références Paddle : [ouverture du checkout](https://developer.paddle.com/paddle-js/methods/paddle-checkout-open/), [checkout terminé](https://developer.paddle.com/paddle-js/events/checkout-completed/), [webhooks](https://developer.paddle.com/webhooks/).
 
 Références techniques contrôlées : [session Supabase](https://supabase.com/docs/reference/javascript/auth-getsession), [insertion](https://supabase.com/docs/reference/javascript/insert), [configuration et fetch personnalisé](https://supabase.com/docs/reference/javascript/initializing), [changelog](https://supabase.com/changelog), [RLS Supabase](https://supabase.com/docs/guides/database/postgres/row-level-security), [policies PostgreSQL16](https://www.postgresql.org/docs/16/sql-createpolicy.html). Client verrouillé à `2.111.0`, API et colonnes de table inchangées ; une policy INSERT restrictive et les EXECUTE de son nouveau prédicat sont préparés. Les tests de transport chargent réellement le SDK vendored et simulent uniquement ses frontières d’authentification/HTTP. `sql/tests/300_analytics_events.sql` conserve ses vérifications de propriété et d’absence de lecture ; `300_analytics_contract.sql` teste les payloads API réels et `300_z_analytics_migration.sql` la migration, l’historique et son rollback, sous rôles API et transaction sur réplique.
+
+## « Partager » — cartes story (avant V2, 26 novembre 2026)
+
+Quatre noms s’ajoutent pour le parcours de partage d’une séance ou d’un succès en image (`js/app/story.js`), soit vingt-neuf noms acceptés. Ils ne portent que `kind` (`session` ou `achievement`) : jamais de sport, de valeur, de nom, de date, ni d’attribution UTM (`source = null` imposé par le contrat SQL `20261126120000_analytics_share_story.sql`). Le consentement s’applique comme pour les autres événements : refus, aucun envoi ; sans réponse, compte anonyme. `share_export_succeeded` mesure une image créée, `share_sheet_opened` l’ouverture du sélecteur : ni l’un ni l’autre ne prouve une publication ou une installation, et l’annulation du sélecteur n’est pas un échec. Tant que la migration n’est pas appliquée, le validateur serveur refuse ces noms et le collecteur les abandonne sans effet sur la page. L’application Android n’a pas de collecteur d’analyse : aucun événement n’y est émis.
+

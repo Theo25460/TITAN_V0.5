@@ -92,6 +92,17 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v18 bundle (v19, the coach-places decision of PR #155, is not part of this chain).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // « Partager » before V2 (26 November 2026): the collector contract accepts the four story-card events (`kind` only, no source).
+  // One function body replaced, no table, policy or grant changed; rehearsed on a replica (sql/tests/300_analytics_share_story.sql).
+  // NOT applied. At the V2.0 merge, the V1.9.x bundles (v191 to v195) may also start after 20261122090000: re-chain them, then
+  // re-measure `before` of whichever runs second.
+  partage: {
+    out: "supabase/release-partage", after: "20261122090000", until: "20261126120000",
+    before: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [324, "39442f678587", "81ad6534245e"] },
+    expected: { private: [120, "0c180d72fbc0", "b87b04f7f588"], public: [324, "39442f678587", "81ad6534245e"] },
+    beforeNote: "This is the state production reaches at the end of the v20 bundle (applied on 18 Nov 2026).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

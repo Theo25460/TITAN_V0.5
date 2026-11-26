@@ -15,7 +15,8 @@ import { Format, Progress, Progression, Sports, Training } from "../../core";
 import { recordText, sessionRecords } from "../../core/moment";
 import { RPE_TEXT } from "../../core/session";
 import { metricFields } from "../../core/sportMetrics";
-import { useLogs, useUpdateSession } from "../../data/hooks";
+import { sessionStory } from "../../core/shareStory";
+import { useLogs, useProfile, useUpdateSession } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
@@ -26,6 +27,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
   const update = useUpdateSession();
   const online = useOnline();
   const toast = useToast();
+  const username = useProfile().data?.username ?? null;
   const log = [...logs, ...archived].find((l) => l.id === route.params.id || l.client_event_id === route.params.id);
   if (!log)
     return (
@@ -204,6 +206,8 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
       </Section> : null}
 
       <View style={{ gap: space.s3 }}>
+        {/* « Partager » (before V2): a story card of this session, opened on its preview; nothing is sent without the person's choice. */}
+        {!log.archived_at && log.syncStatus !== "error" ? <Button label="Partager" icon="share" kind="secondary" onPress={() => navigation.navigate("ShareStory", { kind: "session", input: sessionStory(log, { logs, name: username }) })} testID="detail-share" /> : null}
         <Button label="Refaire cette séance" icon="copy" kind="secondary" onPress={() => navigation.navigate("SessionForm", { sport: log.sport, duplicateOf: log.id })} />
         {confirmed ? <Button label="Corriger" icon="edit" kind="secondary" disabled={!online} onPress={() => navigation.navigate("SessionEdit", { id: log.id })} /> : null}
         {confirmed ? <Button label={log.archived_at ? "Restaurer" : "Archiver"} icon={log.archived_at ? "restore" : "archive"} kind={log.archived_at ? "secondary" : "danger"} disabled={!online} loading={update.isPending} onPress={archive} /> : null}

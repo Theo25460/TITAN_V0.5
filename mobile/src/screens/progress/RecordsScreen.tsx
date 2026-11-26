@@ -10,7 +10,8 @@ import { Section } from "../../components/Section";
 import { EmptyState } from "../../components/States";
 import { T } from "../../components/Text";
 import { Format, Insights, Sports, type RecordEntry } from "../../core";
-import { useLogs } from "../../data/hooks";
+import { recordStory } from "../../core/shareStory";
+import { useLogs, useProfile } from "../../data/hooks";
 import { recordHistory } from "../../lib/recordBook";
 import { colors, space, TOUCH } from "../../theme/tokens";
 
@@ -44,6 +45,7 @@ export function RecordsScreen() {
   const sports = useMemo(() => [...new Set(records.map((r) => r.sport))], [records]);
   const history = useMemo(() => recordHistory(active), [active]);
   const [opened, setOpened] = useState<string | null>(null);
+  const username = useProfile().data?.username ?? null;
   const shown = records.filter((r) => !sport || r.sport === sport);
   const grouped = useMemo(() => {
     const m = new Map<string, RecordEntry[]>();
@@ -111,6 +113,22 @@ export function RecordsScreen() {
                   </Tap>
                 )
               ) : null}
+              {/* « Partager » (before V2): this record as a success card; the step before it comes from its own history. */}
+              <Tap
+                onPress={() => {
+                  const steps = history.get(r.id) ?? [];
+                  const previous = steps.length > 1 && steps[steps.length - 1]?.logId === r.log.id ? steps[steps.length - 2]?.value ?? null : null;
+                  navigation.navigate("ShareStory", { kind: "achievement", input: recordStory(r, { previous, name: username }) });
+                }}
+                accessibilityLabel={`Partager le record ${r.label}`}
+                testID={`record-share-${r.id}`}
+                style={styles.bookLink}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Icon name="share" size={16} color={colors.cy} />
+                  <T variant="caption" tone="accent">Partager</T>
+                </View>
+              </Tap>
             </Card>
           ))}
         </Section>

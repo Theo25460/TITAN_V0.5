@@ -387,6 +387,7 @@
       <div data-route-slot></div>
       ${l.archived_at ? "" : compareHtml(l)}
       <div class="jr-actions">
+        ${l.archived_at || l.syncStatus === "error" || !window.TitanStory ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-story>${icon("share")} Partager</button>`}
         ${l.archived_at ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-edit>${icon("edit")} Corriger</button>`}
         ${l.archived_at ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-duplicate>${icon("copy")} Refaire</button>`}
         <button type="button" class="asc-btn asc-btn-ghost" data-toggle-archive>${icon(l.archived_at ? "restore" : "archive")} ${l.archived_at ? "Restaurer" : "Archiver"}</button>
@@ -425,6 +426,8 @@
     body.addEventListener("click", async (e) => {
       if (!currentAccount(context)) return d.close();
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
+      // « Partager » (before V2): a story card of this session, previewed before anything is shared.
+      if (e.target.closest("[data-story]")) return window.TitanStory?.open({ kind: "session", input: window.TitanStory.sessionInput(l) }, { isCurrent: () => d.open && currentAccount(context) });
       if (e.target.closest("[data-edit]")) {
         d.close();
         return openEdit(l, context);
