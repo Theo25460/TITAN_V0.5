@@ -1154,3 +1154,40 @@ a.pub-card:hover {
 @media (prefers-reduced-motion: reduce) {
   @view-transition { navigation: none; }
 }
+
+/* ---------- Google Play (GP12 to GP15) ----------
+   Text buttons in the TITAN style, no imitation of Google's badge. Never fixed, never over the content. In an installed PWA the
+   visitor already uses TITAN: the links and their sentence are hidden before any script runs (the Android app removes them, js/play-store.js). */
+.pub .pub-play .t-icon { width: 20px; height: 20px; flex: none; }
+.pub-play-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s4);
+  margin: var(--s2) 0 0;
+  color: var(--tx-2);
+  font-size: 15px;
+}
+.pub-foot-play { margin: 0; }
+.pub a.pub-play-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--tx-2);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.pub a.pub-play-text:hover { color: var(--tx); }
+.pub a.pub-play-text .t-icon { width: 18px; height: 18px; }
+@media (max-width: 479px) {
+  /* Each choice gets the full width on a small phone: no label is cut, every target stays wide and tall. */
+  .pub-hero .pub-cta .asc-btn, .pub-play-line .asc-btn { width: 100%; }
+  .pub .pub-play { white-space: normal; text-align: center; line-height: 1.25; padding-block: 10px; }
+}
+.titan-no-play [data-play-store], .titan-no-play [data-play-store-zone] { display: none !important; }
+@media (display-mode: standalone) {
+  [data-play-store], [data-play-store-zone] { display: none !important; }
+}

@@ -2,7 +2,7 @@
 // Every claim here must match what the app and the server actually do (see docs/ASCENSION_300.md).
 // Usage: node tools/build-public-site.mjs   (rewrites the HTML files listed in PAGES and the sitemap)
 import { writeFileSync } from "node:fs";
-import { icon, C, E, SITE, typical, monthsTo, fmtMonths, MASTERY, page, breadcrumbTrail, faq, finalCta, cards } from "./lib/public-template.mjs";
+import { icon, C, E, SITE, typical, monthsTo, fmtMonths, MASTERY, page, breadcrumbTrail, faq, finalCta, cards, PLAY, playLink } from "./lib/public-template.mjs";
 
 /* Server figures quoted by the pages below. They are written once here and tests/coherence-offers.test.mjs compares them with the SQL
    that enforces them (supabase/migrations/20261102090000_coach_seats.sql and 20261117120000_cadence_week_reward.sql). */
@@ -84,7 +84,11 @@ const home = page({
   <div class="pub-wrap"><div class="pub-hero-copy"><p class="pub-eyebrow">${icon("bolt")} Journal multisport · progression · aventure</p>
     <h1>Ton sport réel.<br><em>Une progression qui dure.</em></h1>
     <p class="pub-lead">Course, musculation, escalade, natation, padel : enregistre ce que tu fais vraiment. TITAN en tire des repères clairs, une maîtrise qui grandit sport par sport et une aventure qui avance avec tes séances. Ici, seul l’effort fait avancer.</p>
-    <div class="pub-cta"><a class="asc-btn asc-btn-primary" href="/onboarding">Commencer · 2 minutes ${icon("arrow")}</a><a class="asc-btn asc-btn-secondary" href="#boucle">Voir comment ça marche</a></div>
+    <div class="pub-cta">${PLAY
+      /* Two choices on the first screen, no more: the Web version stays the main action (it needs no installation), Google Play is the
+         second one. "Voir comment ça marche" gives way: the loop is the very next section. */
+      ? `<a class="asc-btn asc-btn-primary" href="/onboarding">Commencer sur le Web ${icon("arrow")}</a>${playLink("hero")}`
+      : `<a class="asc-btn asc-btn-primary" href="/onboarding">Commencer · 2 minutes ${icon("arrow")}</a><a class="asc-btn asc-btn-secondary" href="#boucle">Voir comment ça marche</a>`}</div>
     <p class="pub-fine">Gratuit · Site sans publicité · Sans carte bancaire · Essai sans compte</p></div>${heroMock}</div></section>
   <div class="pub-wrap"><div class="pub-promises"><span>${icon("layers")} 260 sports, chacun ses mesures</span><span>${icon("offline")} Fonctionne hors ligne</span><span>${icon("lock")} Privé par défaut</span><span>${icon("shield")} Aucune progression à vendre</span></div></div>
 
@@ -258,7 +262,9 @@ guide({
   ],
   faqItems: [
     ["Combien coûte le premier essai ?", "Rien. L’essai, le journal, les analyses, la progression et quatre campagnes complètes sont gratuits, sans carte bancaire."],
-    ["Puis-je installer TITAN sur mon téléphone ?", "Oui : depuis le navigateur, « Ajouter à l’écran d’accueil ». TITAN s’ouvre alors comme une application et fonctionne hors ligne."],
+    ["Puis-je installer TITAN sur mon téléphone ?", PLAY
+      ? "Oui. Sur Android, l’application TITAN s’installe depuis Google Play. Sur tous les téléphones, iPhone compris, tu peux aussi ajouter la version Web à l’écran d’accueil depuis le navigateur : elle s’ouvre alors comme une application et fonctionne hors ligne. Ton compte est le même partout."
+      : "Oui : depuis le navigateur, « Ajouter à l’écran d’accueil ». TITAN s’ouvre alors comme une application et fonctionne hors ligne."],
   ],
 });
 
@@ -358,7 +364,9 @@ writeFileSync(
 /* ---------- Fonctionnalités ---------- */
 const featFaq = faq([
   ["Qu’est-ce qui est gratuit ?", "Le journal, les analyses, les records, les objectifs, la progression, quatre campagnes, la Communauté, l’Atelier, cinq routines et le suivi de trois sportifs."],
-  ["TITAN est-il une application mobile ?", "C’est une application web installable : depuis ton navigateur, ajoute-la à l’écran d’accueil. Elle fonctionne hors ligne."],
+  ["TITAN est-il une application mobile ?", PLAY
+    ? "Oui. Sur Android, l’application TITAN se télécharge sur Google Play. Partout ailleurs, iPhone compris, TITAN fonctionne dans le navigateur et s’ajoute à l’écran d’accueil ; la version Web fonctionne hors ligne. Ton compte est le même sur le Web et sur Android."
+    : "C’est une application web installable : depuis ton navigateur, ajoute-la à l’écran d’accueil. Elle fonctionne hors ligne."],
   ["Mon coach voit-il mon journal automatiquement ?", "Non. Le partage commence après ton accord explicite, sur le périmètre que tu choisis, et se révoque à tout moment."],
 ]);
 writeFileSync(

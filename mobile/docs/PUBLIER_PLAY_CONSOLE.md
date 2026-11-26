@@ -146,3 +146,5 @@ structure). Mais :
 
 Mettre l'adresse publique de la fiche dans `tools/data/play-store.json` (procédure : `docs/PLAY_CONSOLE.md` §10, PR
 #115) pour afficher le lien « Télécharger sur Google Play » sur le site. Jamais avant que la fiche soit publique.
+Fait dans le dépôt le 26/11/2026 (branche `claude/funny-cerf-ui44tf`, voir `docs/PLAY_PARCOURS_ANDROID_2026-11-26.md`) ;
+en ligne seulement après fusion et déploiement.

@@ -809,3 +809,5 @@ body:has(#communaute[data-state="guest"]) .cm-circle { min-height: 0; }
 }
 @media (max-width: 419px) { .ap-crest { --obj: 64px; } }
 @media (min-width: 720px) { .ap-hero { padding: var(--s7); } }
+/* The shared card leads to TITAN: the site first, Google Play beside it (hidden inside the app, js/play-store.js). */
+@media (max-width: 479px) { .ap-cta-actions { width: 100%; } .ap-cta-actions .asc-btn { width: 100%; } }

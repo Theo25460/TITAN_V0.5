@@ -29,7 +29,7 @@ test("every first-party stylesheet and script of every built page is addressed b
 });
 
 // Code and stylesheets request first-party files too, and those requests hit the same seven-day cache: a script added at runtime
-// (assistance.js loads config.js, moment.js the live scene, play-store.js its sheet), a worker (seance.js starts the GPX worker, which
+// (assistance.js loads config.js, moment.js the live scene), a worker (seance.js starts the GPX worker, which
 // importScripts the parser) and a CSS @import (design-system.css imports fonts.css). Before the build stamped them, each kept a stale copy
 // for a week after a deployment, the incident class this file exists for.
 const distFiles = (dir, ext) => readdirSync(ROOT + "dist/" + dir, { recursive: true }).map(String).filter(f => f.endsWith(ext)).map(f => `${dir}/${f.split("\\").join("/")}`);
@@ -57,7 +57,7 @@ test("every first-party address written in a built script or stylesheet carries 
       found.push(`${file} -> ${target.pathname}`);
     }
   }
-  for (const expected of ["js/app/seance.js -> /js/core/gpx-worker.js", "js/core/gpx-worker.js -> /js/core/gpx.js", "js/app/moment.js -> /js/core/live-scene.js", "js/app/assistance.js -> /js/config.js", "js/play-store.js -> /css/play-store.css", "css/design-system.css -> /css/fonts.css"]) {
+  for (const expected of ["js/app/seance.js -> /js/core/gpx-worker.js", "js/core/gpx-worker.js -> /js/core/gpx.js", "js/app/moment.js -> /js/core/live-scene.js", "js/app/assistance.js -> /js/config.js", "css/design-system.css -> /css/fonts.css"]) {
     assert.ok(found.includes(expected), `${expected} is no longer found: the scan lost a reference the code still makes`);
   }
   // Vendor files are versioned by their file name and left as written.

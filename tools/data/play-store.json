@@ -1,4 +1,4 @@
 {
-  "_comment": "GP12/GP13: public Google Play listing URL. Leave empty until the listing is public and the link works: while empty, no page contains any Play Store link, meta tag or script. Then run: node tools/build-public-site.mjs && node tools/build-public-docs.mjs",
-  "url": ""
+  "_comment": "GP12/GP13: public Google Play listing URL. Only the exact listing of fr.titanapp.app is accepted. While empty, no page contains any Play Store link, meta tag or script. After a change, run: node tools/build-public-site.mjs && node tools/build-public-docs.mjs (athlete.html carries the same address in its meta tag; tests/play-store-link.test.mjs checks they match)",
+  "url": "https://play.google.com/store/apps/details?id=fr.titanapp.app"
 }

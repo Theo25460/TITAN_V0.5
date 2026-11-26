@@ -99,15 +99,14 @@ Chaque ligne dépend de la précédente. Les parties techniques sont déjà dans
 9. **Production** : demander l'accès (si exigé), publier, puis ajouter le lien Google Play dans Titan et sur le site (GP12, GP13).
 
 
-## 10. Activer le lien Google Play sur le site (GP12 à GP15, SEO09)
+## 10. Lien Google Play sur le site (GP12 à GP15, SEO09)
 
-Le code est prêt et **éteint** : tant que `tools/data/play-store.json` contient `"url": ""`, aucune page ne contient de lien, de balise ni de script Google Play (un bouton cassé ne peut donc pas partir en ligne, GP13).
+**Activé dans le dépôt le 26/11/2026** (branche `claude/funny-cerf-ui44tf`) : `tools/data/play-store.json` contient l'adresse exacte `https://play.google.com/store/apps/details?id=fr.titanapp.app`. Ce n'est en ligne qu'après fusion et déploiement Netlify ; vérifier la fiche publique avant (voir `docs/PLAY_PARCOURS_ANDROID_2026-11-26.md`). Pour l'éteindre : remettre `"url": ""`, régénérer, retirer la balise `titan-play-store` d'`athlete.html` (le test `tests/play-store-link.test.mjs` signale l'écart).
 
-Quand la fiche est **publique** et que l'adresse fonctionne :
-
-1. Mettre dans `tools/data/play-store.json` l'adresse exacte `https://play.google.com/store/apps/details?id=fr.titanapp.app` (rien d'autre n'est accepté : ni autre application, ni paramètre).
-2. `node tools/build-public-site.mjs && node tools/build-public-docs.mjs`, relire `git diff`, lancer `pnpm run verify` puis `pnpm run test:e2e`.
-3. Résultat : un lien « Télécharger sur Google Play » dans le pied de page de toutes les pages publiques, la déclaration `MobileApplication` (sans note, avis ni prix inventés) sur l'accueil, et sur un téléphone Android dans un navigateur une fine bande « TITAN existe aussi sur Android » que l'on peut fermer (mémorisé 14 jours). Rien n'apparaît dans l'application Android ni dans une PWA installée (GP14).
-4. Le lien porte `referrer=utm_source=titan-site&utm_medium=web&utm_campaign=<page>` : les installations par page se lisent dans Play Console (acquisition), sans aucune donnée personnelle.
-5. Après la mise en ligne, demander une réindexation dans la Search Console ; Google ne change pas son aperçu instantanément (SEO11).
-6. Le logo officiel « Disponible sur Google Play » est volontairement remplacé par un lien texte : si tu veux le badge, prends-le dans le kit officiel de Google et respecte ses règles d'usage.
+1. Seule l'adresse exacte de la fiche est acceptée (ni autre application, ni paramètre). Après tout changement : `node tools/build-public-site.mjs && node tools/build-public-docs.mjs`, relire `git diff`, `pnpm run verify` puis `pnpm run test:e2e`.
+2. Emplacements (`data-play-store` / `id`) : accueil, premier écran, à côté de « Commencer sur le Web » (`hero` / `play-hero`) ; appel final de toutes les pages générées (`final` / `play-final`) ; pied de page de toutes les pages publiques (`footer` / `play-footer`) ; carte d'athlète partagée `/u/…` (`athlete_card` / `play-athlete-card`). La déclaration `MobileApplication` (sans note, avis ni prix inventés) reste sur l'accueil seulement.
+3. Plus de bande fixe : les liens sont dans la page et ne recouvrent rien. Rien n'apparaît dans l'application Android (retrait par `js/play-store.js`) ni dans une PWA installée (masqué en CSS, GP14).
+4. Le lien ne porte plus de paramètre `referrer` : l'adresse suivie est exactement celle de la fiche. Les chiffres de Play Console ne disent donc pas de quelle page vient une installation, et un clic n'est jamais une installation.
+5. Mesure : aucun nouvel événement (la politique de confidentialité énumère les événements GA4). Si la mesure améliorée « Clics sortants » est active sur le flux GA4, les clics des visiteurs ayant accepté GA4 y figurent avec `link_id` = l'`id` de l'emplacement ; déclarer `link_id` comme dimension personnalisée pour le lire dans les rapports.
+6. Après la mise en ligne, demander une réindexation dans la Search Console ; Google ne change pas son aperçu instantanément (SEO11).
+7. Le logo officiel « Disponible sur Google Play » est volontairement remplacé par un bouton texte : si tu veux le badge, prends-le dans le kit officiel de Google et respecte ses règles d'usage.
