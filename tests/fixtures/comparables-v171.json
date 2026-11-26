@@ -1,0 +1,733 @@
+{
+ "about": "V1.7.1 — Comparaisons justes. One synthetic history read unchanged by tests/comparables.test.mjs (website module), mobile/__tests__/comparables.test.tsx (Android copy) and tests/e2e/comparables.e2e.mjs (journal sheet). Each case names a session and the selection the shared rule must produce. Rules version pinned below: a change of criterion changes it.",
+ "rulesVersion": "2026.11-v1",
+ "now": "2026-11-20T12:00:00Z",
+ "history": [
+  {
+   "id": "run-road-1",
+   "client_event_id": "run-road-1",
+   "sport": "running",
+   "unit": "km",
+   "val": 10,
+   "date": "2026-10-04T08:00:00Z",
+   "details": {
+    "duration": 56,
+    "extras": {
+     "surface": "Route"
+    }
+   }
+  },
+  {
+   "id": "run-road-2",
+   "client_event_id": "run-road-2",
+   "sport": "running",
+   "unit": "km",
+   "val": 9.8,
+   "date": "2026-10-18T08:00:00Z",
+   "details": {
+    "duration": 54,
+    "elevation": 40,
+    "extras": {
+     "surface": "Route"
+    }
+   }
+  },
+  {
+   "id": "run-road-3",
+   "client_event_id": "run-road-3",
+   "sport": "running",
+   "unit": "km",
+   "val": 10.1,
+   "date": "2026-11-01T08:00:00Z",
+   "details": {
+    "duration": 55,
+    "extras": {
+     "surface": "Route"
+    }
+   }
+  },
+  {
+   "id": "run-trail",
+   "client_event_id": "run-trail",
+   "sport": "running",
+   "unit": "km",
+   "val": 10.4,
+   "date": "2026-11-08T08:00:00Z",
+   "details": {
+    "duration": 72,
+    "elevation": 420,
+    "extras": {
+     "surface": "Chemin"
+    }
+   }
+  },
+  {
+   "id": "run-nosurface",
+   "client_event_id": "run-nosurface",
+   "sport": "running",
+   "unit": "km",
+   "val": 10,
+   "date": "2026-11-10T08:00:00Z",
+   "details": {
+    "duration": 58
+   }
+  },
+  {
+   "id": "run-short",
+   "client_event_id": "run-short",
+   "sport": "running",
+   "unit": "km",
+   "val": 5,
+   "date": "2026-11-12T08:00:00Z",
+   "details": {
+    "duration": 24,
+    "extras": {
+     "surface": "Route"
+    }
+   }
+  },
+  {
+   "id": "run-noduration",
+   "client_event_id": "run-noduration",
+   "sport": "running",
+   "unit": "km",
+   "val": 10,
+   "date": "2026-11-13T08:00:00Z",
+   "details": {
+    "extras": {
+     "surface": "Route"
+    }
+   }
+  },
+  {
+   "id": "run-hilly",
+   "client_event_id": "run-hilly",
+   "sport": "running",
+   "unit": "km",
+   "val": 10,
+   "date": "2026-11-14T08:00:00Z",
+   "details": {
+    "duration": 60,
+    "elevation": 380,
+    "extras": {
+     "surface": "Route"
+    }
+   }
+  },
+  {
+   "id": "run-held",
+   "client_event_id": "run-held",
+   "sport": "running",
+   "unit": "km",
+   "val": 10,
+   "date": "2026-11-15T08:00:00Z",
+   "details": {
+    "duration": 40,
+    "extras": {
+     "surface": "Route"
+    }
+   },
+   "is_suspicious": true
+  },
+  {
+   "id": "run-unsent",
+   "client_event_id": "run-unsent",
+   "sport": "running",
+   "unit": "km",
+   "val": 10,
+   "date": "2026-11-16T08:00:00Z",
+   "details": {
+    "duration": 52,
+    "extras": {
+     "surface": "Route"
+    }
+   },
+   "syncStatus": "pending"
+  },
+  {
+   "id": "trail-race",
+   "client_event_id": "trail-race",
+   "sport": "trail",
+   "unit": "km",
+   "val": 10.2,
+   "date": "2026-11-11T08:00:00Z",
+   "details": {
+    "duration": 80,
+    "elevation": 500
+   }
+  },
+  {
+   "id": "run-today",
+   "client_event_id": "run-today",
+   "sport": "running",
+   "unit": "km",
+   "val": 10.2,
+   "date": "2026-11-18T08:00:00Z",
+   "details": {
+    "duration": 53,
+    "extras": {
+     "surface": "Route"
+    },
+    "elevation": 45
+   }
+  },
+  {
+   "id": "run-plain",
+   "client_event_id": "run-plain",
+   "sport": "running",
+   "unit": "km",
+   "val": 10,
+   "date": "2026-11-19T08:00:00Z",
+   "details": {
+    "duration": 54
+   }
+  },
+  {
+   "id": "run-track",
+   "client_event_id": "run-track",
+   "sport": "running",
+   "unit": "km",
+   "val": 10,
+   "date": "2026-11-19T18:00:00Z",
+   "details": {
+    "duration": 50,
+    "extras": {
+     "surface": "Piste"
+    }
+   }
+  },
+  {
+   "id": "lift-1",
+   "client_event_id": "lift-1",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-10-20T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 100,
+        "reps": 5
+       },
+       {
+        "weight": 100,
+        "reps": 5
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "lift-front",
+   "client_event_id": "lift-front",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-03T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Front",
+      "setRows": [
+       {
+        "weight": 80,
+        "reps": 5
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "lift-novariant",
+   "client_event_id": "lift-novariant",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-06T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "squat ",
+      "setRows": [
+       {
+        "weight": 60,
+        "reps": 10
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "lift-nosets",
+   "client_event_id": "lift-nosets",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-09T18:00:00Z",
+   "details": {
+    "duration": 45,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre"
+     }
+    ]
+   }
+  },
+  {
+   "id": "lift-bench",
+   "client_event_id": "lift-bench",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-12T18:00:00Z",
+   "details": {
+    "duration": 50,
+    "exercises": [
+     {
+      "name": "Développé couché",
+      "setRows": [
+       {
+        "weight": 70,
+        "reps": 6
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "lift-2",
+   "client_event_id": "lift-2",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-14T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 105,
+        "reps": 5
+       },
+       {
+        "weight": 100,
+        "reps": 5
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "lift-today",
+   "client_event_id": "lift-today",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-18T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 105,
+        "reps": 6
+       },
+       {
+        "weight": 100,
+        "reps": 5
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "lift-plain",
+   "client_event_id": "lift-plain",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-19T18:00:00Z",
+   "details": {
+    "duration": 40,
+    "exercises": [
+     {
+      "name": "Squat",
+      "setRows": [
+       {
+        "weight": 60,
+        "reps": 12
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "boulder-1",
+   "client_event_id": "boulder-1",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-10-25T18:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "max_done": "6A"
+    }
+   }
+  },
+  {
+   "id": "boulder-v",
+   "client_event_id": "boulder-v",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-11-02T18:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "V-scale bloc",
+     "climbing_discipline": "Bloc",
+     "max_done": "V5"
+    }
+   }
+  },
+  {
+   "id": "boulder-nodisc",
+   "client_event_id": "boulder-nodisc",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 80,
+   "date": "2026-11-05T18:00:00Z",
+   "details": {
+    "duration": 80,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "max_done": "6A+"
+    }
+   }
+  },
+  {
+   "id": "boulder-tried",
+   "client_event_id": "boulder-tried",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 60,
+   "date": "2026-11-09T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "max_attempted": "7A"
+    }
+   }
+  },
+  {
+   "id": "boulder-2",
+   "client_event_id": "boulder-2",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-11-12T18:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "max_done": "6B"
+    }
+   }
+  },
+  {
+   "id": "boulder-today",
+   "client_event_id": "boulder-today",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-11-18T18:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "max_done": "6B+"
+    }
+   }
+  },
+  {
+   "id": "boulder-yds",
+   "client_event_id": "boulder-yds",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-11-19T18:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "YDS",
+     "climbing_discipline": "Voie",
+     "max_done": "5.11a"
+    }
+   }
+  }
+ ],
+ "cases": [
+  {
+   "name": "course concluante : même distance sur route, le trail et la sortie vallonnée écartés",
+   "subject": "run-today",
+   "expect": {
+    "status": "ok",
+    "rule": "distance.taille-parcours",
+    "sample": 3,
+    "considered": 10,
+    "retained": [
+     "run-road-3",
+     "run-road-2",
+     "run-road-1"
+    ],
+    "excluded": [
+     [
+      "run-hilly",
+      "elevation"
+     ],
+     [
+      "run-noduration",
+      "no_duration"
+     ],
+     [
+      "run-short",
+      "size"
+     ],
+     [
+      "run-nosurface",
+      "route_unknown"
+     ],
+     [
+      "run-trail",
+      "route_other"
+     ]
+    ],
+    "counts": {
+     "unsent": 1,
+     "held": 1,
+     "elevation": 1,
+     "no_duration": 1,
+     "size": 1,
+     "route_unknown": 1,
+     "route_other": 1
+    },
+    "previous": "run-road-3",
+    "direction": "better",
+    "reference": "5:31 /km",
+    "limits": [
+     "Non prises en compte : 1 en attente d’envoi, 1 en vérification",
+     "Dénivelé non renseigné sur 2 des 3 séances retenues",
+     "1 séance de distance voisine sans parcours renseigné est écartée",
+     "1 séance sans durée saisie"
+    ]
+   }
+  },
+  {
+   "name": "course sur piste : aucune sortie sur piste, comparaison élargie aux parcours non renseignés",
+   "subject": "run-track",
+   "expect": {
+    "status": "limited",
+    "rule": "distance.taille-parcours",
+    "sample": 2,
+    "retained": [
+     "run-plain",
+     "run-nosurface"
+    ],
+    "previous": "run-plain",
+    "limits": [
+     "Aucune séance précédente à distance comparable sur « Piste » : TITAN compare avec 2 séances où le parcours n’est pas renseigné"
+    ]
+   }
+  },
+  {
+   "name": "course sans parcours renseigné : comparaison élargie, la limite est dite",
+   "subject": "run-plain",
+   "expect": {
+    "status": "limited",
+    "rule": "distance.taille",
+    "sample": 7,
+    "retained": [
+     "run-today",
+     "run-hilly",
+     "run-nosurface",
+     "run-trail",
+     "run-road-3",
+     "run-road-2",
+     "run-road-1"
+    ],
+    "previous": "run-today",
+    "limits": [
+     "Le parcours de cette séance n’est pas renseigné (Surface)"
+    ]
+   }
+  },
+  {
+   "name": "musculation : exercice homonyme, autre variante ou variante absente",
+   "subject": "lift-today",
+   "expect": {
+    "status": "ok",
+    "rule": "force.exercice-variante",
+    "sample": 2,
+    "retained": [
+     "lift-2",
+     "lift-1"
+    ],
+    "excluded": [
+     [
+      "lift-nosets",
+      "sets_missing"
+     ],
+     [
+      "lift-novariant",
+      "variant_unknown"
+     ],
+     [
+      "lift-front",
+      "variant_other"
+     ]
+    ],
+    "counts": {
+     "sets_missing": 1,
+     "variant_unknown": 1,
+     "variant_other": 1,
+     "no_exercise": 1
+    },
+    "previous": "lift-2",
+    "direction": "better",
+    "limits": [
+     "sans variante renseignée, TITAN ne peut pas savoir s’il s’agit du même mouvement"
+    ]
+   }
+  },
+  {
+   "name": "musculation sans variante : seule la séance de squat sans variante est retenue",
+   "subject": "lift-plain",
+   "expect": {
+    "status": "ok",
+    "rule": "force.exercice-variante",
+    "sample": 1,
+    "retained": [
+     "lift-novariant"
+    ],
+    "excluded": [
+     [
+      "lift-today",
+      "variant_unknown"
+     ],
+     [
+      "lift-2",
+      "variant_unknown"
+     ],
+     [
+      "lift-nosets",
+      "sets_missing"
+     ],
+     [
+      "lift-front",
+      "variant_unknown"
+     ],
+     [
+      "lift-1",
+      "variant_unknown"
+     ]
+    ],
+    "previous": "lift-novariant",
+    "direction": "better",
+    "limits": [
+     "4 séances du même exercice sans variante commune sont écartées (Squat)"
+    ]
+   }
+  },
+  {
+   "name": "escalade : deux échelles, une discipline absente, une cotation seulement tentée",
+   "subject": "boulder-today",
+   "expect": {
+    "status": "ok",
+    "rule": "escalade.echelle-discipline",
+    "sample": 2,
+    "retained": [
+     "boulder-2",
+     "boulder-1"
+    ],
+    "excluded": [
+     [
+      "boulder-tried",
+      "grade_missing"
+     ],
+     [
+      "boulder-nodisc",
+      "discipline_unknown"
+     ],
+     [
+      "boulder-v",
+      "scale_other"
+     ]
+    ],
+    "counts": {
+     "grade_missing": 1,
+     "discipline_unknown": 1,
+     "scale_other": 1
+    },
+    "previous": "boulder-2",
+    "direction": "better",
+    "reference": "6B",
+    "limits": [
+     "TITAN ne convertit pas les cotations"
+    ]
+   }
+  },
+  {
+   "name": "escalade dans une échelle que TITAN ne sait pas ordonner : données insuffisantes",
+   "subject": "boulder-yds",
+   "expect": {
+    "status": "insufficient",
+    "rule": "climbing.indisponible",
+    "sample": 0,
+    "limits": [
+     "TITAN ne sait pas ordonner les cotations de l’échelle « YDS »"
+    ]
+   }
+  },
+  {
+   "name": "course sans durée : jamais d’allure inventée, l’estimation reste à part",
+   "subject": "run-noduration",
+   "expect": {
+    "status": "insufficient",
+    "rule": "distance.indisponible",
+    "sample": 0,
+    "limits": [
+     "Sans durée saisie, TITAN ne compare rien : la durée de 60 min est une estimation pour l’XP, jamais comparée"
+    ]
+   }
+  }
+ ]
+}

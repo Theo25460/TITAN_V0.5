@@ -1,0 +1,81 @@
+{
+  "about": "V1.6.3 — fixed set of sessions and the expected controls before and after each mutation. Device A (website) holds the server rows plus its queue (P1 waiting, X1 refused); device B (Android) holds the server rows only. Values computed by hand from the view contracts (js/core/history-ledger.js). Week: 16 → 24 Nov 2026 (UTC). now = 23 Nov 2026 18:00 UTC.",
+  "now": "2026-11-23T18:00:00.000Z",
+  "week": { "from": "2026-11-16T00:00:00.000Z", "to": "2026-11-24T00:00:00.000Z" },
+  "server": [
+    { "id": "r1", "client_event_id": "1a2b3c4d-0000-4000-8000-000000000001", "sport": "running", "date": "2026-11-20T07:30:00.000Z", "val": 10.4, "unit": "km", "details": { "duration": 52, "note": "Sortie du vendredi" }, "xp": 60, "revision": 1, "archived_at": null, "source": "manual" },
+    { "id": "g1", "client_event_id": "9f8e7d6c-0000-4000-8000-000000000002", "sport": "running", "date": "2026-11-20T07:31:00.000Z", "val": 10.6, "unit": "km", "details": { "duration": 53 }, "xp": 60, "revision": 1, "archived_at": null, "source": "garmin", "external_id": "g-77001" },
+    { "id": "r2", "client_event_id": "5e5e5e5e-0000-4000-8000-000000000003", "sport": "running", "date": "2026-11-17T18:00:00.000Z", "val": 9.8, "unit": "km", "details": { "duration": 49 }, "xp": 55, "revision": 1, "archived_at": null, "source": "manual" },
+    { "id": "r3", "client_event_id": "3c3c3c3c-0000-4000-8000-000000000004", "sport": "running", "date": "2026-11-11T07:00:00.000Z", "val": 12, "unit": "km", "details": { "duration": 5 }, "xp": 10, "revision": 1, "archived_at": null, "source": "manual" },
+    { "id": "c1", "client_event_id": "c1c1c1c1-0000-4000-8000-000000000005", "sport": "cycling", "date": "2026-11-18T12:00:00.000Z", "val": 32, "unit": "km", "details": { "duration": 120 }, "xp": 90, "revision": 1, "archived_at": null, "source": "manual" },
+    { "id": "w1", "client_event_id": "e1e1e1e1-0000-4000-8000-000000000006", "sport": "swimming", "date": "2026-11-19T12:00:00.000Z", "val": 1500, "unit": "m", "details": { "duration": 40 }, "xp": 40, "revision": 1, "archived_at": null, "source": "manual" },
+    { "id": "h1", "client_event_id": "b1b1b1b1-0000-4000-8000-000000000007", "sport": "cycling", "date": "2026-11-22T09:00:00.000Z", "val": 80, "unit": "km", "details": { "duration": 120 }, "xp": 0, "revision": 1, "archived_at": null, "is_suspicious": true, "source": "manual" },
+    { "id": "a0", "client_event_id": "a0a0a0a0-0000-4000-8000-000000000008", "sport": "running", "date": "2026-11-05T07:00:00.000Z", "val": 15, "unit": "km", "details": { "duration": 80 }, "xp": 70, "revision": 2, "archived_at": "2026-11-06T08:00:00.000Z", "source": "manual" }
+  ],
+  "deviceA": {
+    "queue": [
+      { "id": "d1d1d1d1-0000-4000-8000-000000000009", "client_event_id": "d1d1d1d1-0000-4000-8000-000000000009", "sport": "running", "date": "2026-11-23T08:00:00.000Z", "val": 5, "unit": "km", "details": { "duration": 28, "client_event_id": "d1d1d1d1-0000-4000-8000-000000000009" }, "xp": 0, "syncStatus": "pending", "confirmsAs": { "id": "p1", "xp": 30 } },
+      { "id": "f0f0f0f0-0000-4000-8000-000000000010", "client_event_id": "f0f0f0f0-0000-4000-8000-000000000010", "sport": "running", "date": "2026-11-22T07:00:00.000Z", "val": 4200, "unit": "km", "details": { "duration": 60, "client_event_id": "f0f0f0f0-0000-4000-8000-000000000010" }, "xp": 0, "syncStatus": "error" }
+    ]
+  },
+  "steps": [
+    {
+      "id": "S0", "title": "État initial : la sortie saisie (10,4 km) et son import Garmin séparé (10,6 km) comptent deux fois",
+      "mutation": null,
+      "expect": {
+        "A": { "journal": 9, "archives": 1, "period": { "sessions": 6, "minutes": 342, "km": 67.8 }, "records": { "distance:running": [10.6, "9f8e7d6c"], "duration:running": [53, "9f8e7d6c"], "time:running:5": [28, "d1d1d1d1"], "distance:cycling": [32, "c1c1c1c1"] }, "csv": { "journal": 8, "archives": 1 }, "json": { "trainingLogs": 8, "archived": 1 }, "xp": 385 },
+        "B": { "journal": 7, "archives": 1, "period": { "sessions": 5, "minutes": 314, "km": 62.8 }, "records": { "distance:running": [10.6, "9f8e7d6c"], "duration:running": [53, "9f8e7d6c"], "time:running:5": null, "distance:cycling": [32, "c1c1c1c1"] }, "csv": { "journal": 7, "archives": 1 }, "json": { "trainingLogs": 8, "archived": 1 }, "xp": 385 }
+      }
+    },
+    {
+      "id": "S1", "title": "Correction de la sortie : 10,4 → 10 km, 52 → 50 min (même date, même unité, même référence)",
+      "mutation": { "kind": "update", "id": "r1", "patch": { "val": 10, "duration": 50 } },
+      "changes": [["val", 10.4, 10], ["duration", 52, 50]],
+      "expect": {
+        "A": { "journal": 9, "archives": 1, "period": { "sessions": 6, "minutes": 340, "km": 67.4 }, "records": { "distance:running": [10.6, "9f8e7d6c"], "duration:running": [53, "9f8e7d6c"], "time:running:10": [50, "1a2b3c4d"], "time:running:5": [28, "d1d1d1d1"] }, "csv": { "journal": 8, "archives": 1 }, "json": { "trainingLogs": 8, "archived": 1 }, "xp": 385 },
+        "B": { "journal": 7, "archives": 1, "period": { "sessions": 5, "minutes": 312, "km": 62.4 }, "records": { "distance:running": [10.6, "9f8e7d6c"], "duration:running": [53, "9f8e7d6c"], "time:running:10": [50, "1a2b3c4d"], "time:running:5": null }, "csv": { "journal": 7, "archives": 1 }, "json": { "trainingLogs": 8, "archived": 1 }, "xp": 385 }
+      }
+    },
+    {
+      "id": "S2", "title": "Archivage de l’import Garmin en double : une seule séance active, les records basculent sur la séance corrigée (12 km en 5 min, invraisemblable, et 15 km archivés sont sautés)",
+      "mutation": { "kind": "update", "id": "g1", "patch": { "archived": true } },
+      "changes": [["archived", false, true]],
+      "expect": {
+        "A": { "journal": 8, "archives": 2, "period": { "sessions": 5, "minutes": 287, "km": 56.8 }, "records": { "distance:running": [10, "1a2b3c4d"], "duration:running": [50, "1a2b3c4d"], "time:running:10": [50, "1a2b3c4d"], "time:running:5": [28, "d1d1d1d1"] }, "csv": { "journal": 7, "archives": 2 }, "json": { "trainingLogs": 8, "archived": 2 }, "xp": 385 },
+        "B": { "journal": 6, "archives": 2, "period": { "sessions": 4, "minutes": 259, "km": 51.8 }, "records": { "distance:running": [10, "1a2b3c4d"], "duration:running": [50, "1a2b3c4d"], "time:running:10": [50, "1a2b3c4d"], "time:running:5": null }, "csv": { "journal": 6, "archives": 2 }, "json": { "trainingLogs": 8, "archived": 2 }, "xp": 385 }
+      }
+    },
+    {
+      "id": "S3", "title": "Synchronisation : la séance en attente de l’appareil A est confirmée ; l’appareil B la reçoit, les deux appareils affichent les mêmes chiffres",
+      "mutation": { "kind": "confirm", "event": "d1d1d1d1-0000-4000-8000-000000000009" },
+      "expect": {
+        "A": { "journal": 8, "archives": 2, "period": { "sessions": 5, "minutes": 287, "km": 56.8 }, "records": { "distance:running": [10, "1a2b3c4d"], "time:running:10": [50, "1a2b3c4d"], "time:running:5": [28, "d1d1d1d1"] }, "csv": { "journal": 7, "archives": 2 }, "json": { "trainingLogs": 9, "archived": 2 }, "xp": 415 },
+        "B": { "journal": 7, "archives": 2, "period": { "sessions": 5, "minutes": 287, "km": 56.8 }, "records": { "distance:running": [10, "1a2b3c4d"], "time:running:10": [50, "1a2b3c4d"], "time:running:5": [28, "d1d1d1d1"] }, "csv": { "journal": 7, "archives": 2 }, "json": { "trainingLogs": 9, "archived": 2 }, "xp": 415 }
+      }
+    },
+    {
+      "id": "S4", "title": "Déconnexion puis reconnexion : chaque appareil repart de son cache et de sa file, puis relit le serveur",
+      "mutation": { "kind": "reload" },
+      "sameAs": "S3"
+    },
+    {
+      "id": "S5", "title": "Restauration de l’import : il revient avec sa référence, sans nouvelle récompense",
+      "mutation": { "kind": "update", "id": "g1", "patch": { "archived": false } },
+      "changes": [["archived", true, false]],
+      "expect": {
+        "A": { "journal": 9, "archives": 1, "period": { "sessions": 6, "minutes": 340, "km": 67.4 }, "records": { "distance:running": [10.6, "9f8e7d6c"], "duration:running": [53, "9f8e7d6c"], "time:running:10": [50, "1a2b3c4d"] }, "csv": { "journal": 8, "archives": 1 }, "json": { "trainingLogs": 9, "archived": 1 }, "xp": 415 },
+        "B": { "journal": 8, "archives": 1, "period": { "sessions": 6, "minutes": 340, "km": 67.4 }, "records": { "distance:running": [10.6, "9f8e7d6c"], "duration:running": [53, "9f8e7d6c"], "time:running:10": [50, "1a2b3c4d"] }, "csv": { "journal": 8, "archives": 1 }, "json": { "trainingLogs": 9, "archived": 1 }, "xp": 415 }
+      }
+    },
+    {
+      "id": "S6", "title": "Nouvel archivage du doublon : retour exact aux totaux de S3",
+      "mutation": { "kind": "update", "id": "g1", "patch": { "archived": true } },
+      "sameAs": "S3"
+    },
+    {
+      "id": "S7", "title": "Garmin renvoie la même activité, modifiée chez Garmin (10,8 km) : l’import déjà reçu n’est pas relu, rien ne change",
+      "mutation": { "kind": "replay", "source": "garmin", "external_id": "g-77001", "val": 10.8 },
+      "sameAs": "S3"
+    }
+  ]
+}

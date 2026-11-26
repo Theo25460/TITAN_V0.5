@@ -560,3 +560,43 @@ describe("audit · séance GPS en attente", () => {
     }
   });
 });
+
+describe("V1.6.1 · état de synchronisation", () => {
+  test("fiche refusée : l’état, le motif et « Corriger et renvoyer » ouvrent le formulaire prérempli qui remplace la séance refusée", async () => {
+    const { provisionalLogs } = jest.requireActual("../src/data/queue");
+    const payload = { sport: "gravel", category: "cardio", val: 4200, unit: "km", date: "2026-11-22T07:30:00.000Z", details: { client_event_id: "refused-1", schemaVersion: 2, duration: 150, note: "Sortie sans réseau" } };
+    const item = { key: "owner-a:refused-1", ownerId: "owner-a", payload, status: "error", reason: "La valeur saisie est hors des limites acceptées.", code: "TRAINING_VALUE_OUT_OF_RANGE", queuedAt: "2026-11-22T10:00:00.000Z", attempts: 1, lastAttemptAt: "2026-11-22T10:01:00.000Z" };
+    await AsyncStorage.setItem(ownerKey("queue", "owner-a"), JSON.stringify([item]));
+    await loadQueue("owner-a");
+    mockState.logs = [...provisionalLogs([item], new Set()), ...logs];
+    nav.navigate.mockClear();
+    try {
+      const detail = show(<S.Detail {...props({ id: "refused-1" })} />);
+      expect(screen.getAllByText("Refusée : à corriger")).toHaveLength(2); // header chip + « Synchronisation »
+      expect(within(screen.getByTestId("sync-card")).getByTestId("sync-state").props.children).toBe("Refusée : à corriger");
+      expect(screen.getByText("La valeur saisie est hors des limites acceptées.")).toBeTruthy();
+      expect(screen.queryByText("Corriger")).toBeNull(); // the server edit needs a confirmed row
+      fireEvent.press(screen.getByTestId("sync-correct"));
+      expect(nav.navigate).toHaveBeenLastCalledWith("SessionForm", { sport: "gravel", duplicateOf: "refused-1", replaces: "owner-a:refused-1" });
+      detail.unmount();
+      show(<S.Form {...props({ sport: "gravel", duplicateOf: "refused-1", replaces: "owner-a:refused-1" })} />);
+      expect(screen.getByTestId("correction-notice")).toBeTruthy();
+      expect(screen.getByTestId("distance").props.value).toBe("4200");
+      expect(screen.getByDisplayValue("Sortie sans réseau")).toBeTruthy();
+      show(<S.Pending />);
+      expect(screen.getByTestId("pending-correct")).toBeTruthy();
+      expect(screen.getAllByText("Refusée : à corriger").length).toBeGreaterThanOrEqual(1);
+    } finally {
+      await act(async () => { await discard("owner-a", item.key); await discardDraft("owner-a"); });
+    }
+  });
+
+  test("fiche confirmée : « Confirmée dans ton compte », le reçu du serveur et la référence de la séance", () => {
+    show(<S.Detail {...props({ id: logs[0].id })} />);
+    const card = within(screen.getByTestId("sync-card"));
+    expect(card.getByTestId("sync-state").props.children).toBe("Confirmée dans ton compte");
+    expect(card.getByText("Reçu du serveur")).toBeTruthy();
+    expect(card.getByText("Référence")).toBeTruthy();
+    expect(screen.getAllByText("Confirmée dans ton compte")).toHaveLength(1); // no header chip once confirmed
+  });
+});

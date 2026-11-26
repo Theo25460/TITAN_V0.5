@@ -9,9 +9,13 @@ import { Section, Stat, StatRow } from "../../components/Section";
 import { sessionHeadline } from "../../components/SessionRow";
 import { Icon } from "../../components/Icon";
 import { EmptyState } from "../../components/States";
+import { ChangesCard } from "../../components/ChangesCard";
+import { ComparisonCard } from "../../components/ComparisonCard";
+import { MatchCard } from "../../components/MatchCard";
+import { SyncCard, useSyncView } from "../../components/SyncCard";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Format, Progress, Progression, Sports, Training } from "../../core";
+import { Format, Progress, Sports, Training } from "../../core";
 import { recordText, sessionRecords } from "../../core/moment";
 import { RPE_TEXT } from "../../core/session";
 import { metricFields } from "../../core/sportMetrics";
@@ -19,13 +23,12 @@ import { useLogs, useUpdateSession } from "../../data/hooks";
 import { errorMessage } from "../../lib/errors";
 import { useOnline } from "../../lib/network";
 import type { RootParams } from "../../navigation/types";
+import type { TrainingLog } from "../../core/types";
 import { colors, space } from "../../theme/tokens";
 
-export function SessionDetailScreen({ navigation, route }: NativeStackScreenProps<RootParams, "SessionDetail">) {
+export function SessionDetailScreen(props: NativeStackScreenProps<RootParams, "SessionDetail">) {
+  const { navigation, route } = props;
   const { logs, archived } = useLogs();
-  const update = useUpdateSession();
-  const online = useOnline();
-  const toast = useToast();
   const log = [...logs, ...archived].find((l) => l.id === route.params.id || l.client_event_id === route.params.id);
   if (!log)
     return (
@@ -33,6 +36,14 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         <EmptyState icon="journal" title="Séance introuvable" text="Elle a peut-être été archivée sur un autre appareil." action="Ouvrir le journal" onAction={() => navigation.replace("Journal")} />
       </Screen>
     );
+  return <SessionSheet {...props} log={log} logs={logs} />;
+}
+
+function SessionSheet({ navigation, log, logs }: NativeStackScreenProps<RootParams, "SessionDetail"> & { log: TrainingLog; logs: TrainingLog[] }) {
+  const update = useUpdateSession();
+  const online = useOnline();
+  const toast = useToast();
+  const sync = useSyncView(log).view;
 
   const d = log.details || {};
   const effort = Progress.effortOf(log);
@@ -41,8 +52,6 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
   const ex = d.exercises || [];
   const extras = (d.extras || {}) as Record<string, unknown>;
   const records = confirmed && !log.archived_at ? sessionRecords(logs, log) : [];
-  // Lot D: against the last comparable session of the same sport (measured values only, shared rule with the website).
-  const comparison = log.archived_at ? null : Progression.compare(log, logs);
 
   /* Archiving and restoring are reversible: no "are you sure?", the action happens and "Annuler" is one tap away (V12-17). */
   async function archive() {
@@ -83,7 +92,7 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         </T>
         <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
           {log.archived_at ? <Chip label="Archivée" tone="warn" /> : null}
-          {!confirmed ? <Chip label={log.syncStatus === "error" ? "Refusée par le serveur" : "En attente d’envoi"} tone={log.syncStatus === "error" ? "err" : "warn"} icon="offline" /> : null}
+          {!confirmed ? <Chip label={sync.label} tone={sync.tone === "muted" ? "default" : sync.tone} icon={sync.state === "refused" ? "alert" : "offline"} /> : null}
           {d.historical ? <Chip label="Historique (sans XP)" /> : null}
         </View>
       </View>
@@ -184,17 +193,8 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         </Section>
       ) : null}
 
-      {comparison && comparison.items.length ? <Section title={`Par rapport au ${new Date(comparison.previous.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`}>
-        <Card tone="flat" style={{ gap: 8 }} testID="session-comparison">
-          {comparison.items.slice(0, 6).map((i) => {
-            const now = i.currentReps !== undefined ? `${Progression.formatValue(i)} × ${i.currentReps}` : Progression.formatValue(i);
-            const before = i.currentReps !== undefined ? `${Progression.formatValue(i, "previous")} × ${i.previousReps}` : Progression.formatValue(i, "previous");
-            const word = Progression.DIRECTION_TEXT[i.direction];
-            return <View key={i.id} style={{ gap: 2 }}><T variant="caption" tone="muted">{i.label}</T><T variant="small">{now} · avant {before}{word ? ` · ${word}` : ""}</T></View>;
-          })}
-          <T variant="caption" tone="faint">{comparison.basis} Seules les valeurs mesurées sont comparées.</T>
-        </Card>
-      </Section> : null}
+      {/* V1.7.1: the comparison and the selection behind it (rule, sample, sources, limits), shared rule with the website. */}
+      <ComparisonCard log={log} logs={logs} onOpen={(id) => navigation.push("SessionDetail", { id })} />
 
       {metricFields(log.sport, true).some((f) => extras[f.id] !== undefined && extras[f.id] !== null && extras[f.id] !== "") ? <Section title="Mesures enregistrées">
         <Card tone="flat" style={{ gap: 8 }}>
@@ -214,6 +214,9 @@ export function SessionDetailScreen({ navigation, route }: NativeStackScreenProp
         ) : null}
         {!confirmed ? <Button label="Voir les envois en attente" kind="ghost" onPress={() => navigation.navigate("Pending")} /> : null}
       </View>
+      <SyncCard log={log} onCorrect={(item) => navigation.navigate("SessionForm", { sport: log.sport, duplicateOf: item.payload.details.client_event_id!, replaces: item.key })} onRemoved={() => navigation.goBack()} />
+      <MatchCard log={log} logs={logs} />
+      <ChangesCard log={log} />
       <T variant="caption" tone="faint" center style={{ color: colors.tx3 }}>
         Les corrections ne changent jamais les récompenses déjà attribuées.
       </T>

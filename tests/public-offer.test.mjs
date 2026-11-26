@@ -133,7 +133,7 @@ test("generated sitemap uses each public page's own canonical exactly once", () 
 
 test("account, application and shared-card HTML keep noindex and stay out of the generated sitemap", () => {
   const urls = new Set(sitemapUrls());
-  const privatePages = ["404", "admin", "adventure", "athlete", "aujourdhui", "boutique", "coaching", "dynamic-page", "journal", "login", "network-error", "objectifs", "onboarding", "prevoir", "profile", "records", "social", "stats", "training", "update-password"];
+  const privatePages = ["404", "admin", "adventure", "athlete", "aujourdhui", "boutique", "coaching", "dynamic-page", "journal", "login", "network-error", "objectifs", "onboarding", "prevoir", "profile", "records", "social", "sortie", "stats", "training", "update-password"];
   for (const page of privatePages) {
     const html = readFileSync(join(root, page + ".html"), "utf8");
     const genericRobots = headTags(html, "meta").filter(tag => tag.name?.toLowerCase() === "robots")

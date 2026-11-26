@@ -39,6 +39,9 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
   const initialDur = Number(d.duration || d.val2) || 0;
   const [durM, setDurM] = useState(initialDur ? String(initialDur) : log?.unit === "min" && !hasExercises ? String(log.val) : "");
   const [note, setNote] = useState(String(d.note || ""));
+  // V1.6.6: the positive elevation (details.elevation) of a session measured in km, corrected like the website.
+  const initialElev = d.elevation === undefined || d.elevation === null || String(d.elevation) === "" ? null : Number(d.elevation);
+  const [elev, setElev] = useState(initialElev === null ? "" : String(initialElev));
   const [exercises, setExercises] = useState<ExerciseDraft[]>(
     exerciseDrafts(d.exercises),
   );
@@ -88,6 +91,12 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
       patch.duration = dm;
     }
     if (note.trim() !== String(d.note || "")) patch.note = note.trim();
+    if (unit === "km" && Sports.hasElevation(log.sport)) {
+      const e = elev.trim() === "" ? null : num(elev);
+      if (elev.trim() !== "" && !(e !== null && e >= 0 && e <= 12000)) return setError("Le dénivelé va de 0 à 12 000 m.");
+      const next = e === null ? null : Math.round(e);
+      if (next !== initialElev) patch.elevation = next;
+    }
     if (hasExercises) {
       const exerciseError = exerciseDraftError(exercises);
       if (exerciseError) return setError(exerciseError);
@@ -137,6 +146,7 @@ export function SessionEditScreen({ navigation, route }: NativeStackScreenProps<
       </View>
       {!hasExercises && unit !== "min" ? <Field label={valueLabel} value={value} onChangeText={setValue} keyboardType="decimal-pad" /> : null}
       <Field label={unit === "min" ? "Durée (minutes)" : "Durée en minutes (facultatif)"} value={durM} onChangeText={setDurM} keyboardType="decimal-pad" />
+      {unit === "km" && Sports.hasElevation(log.sport) ? <Field label="Dénivelé positif en m (facultatif)" value={elev} onChangeText={setElev} keyboardType="number-pad" suffix="m" testID="edit-elevation" /> : null}
       {hasExercises ? <ExerciseEditor exercises={exercises} onChange={setExercises} bodyweight={Sports.formOf(log.sport) === "bodyweight"} /> : null}
       <SportMetricsEditor sport={log.sport} values={extras} onChange={setExtras} plus={plus} skip={[]} />
       <Field label="Note" value={note} onChangeText={setNote} multiline style={{ minHeight: 84, textAlignVertical: "top" }} />

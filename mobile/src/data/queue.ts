@@ -18,8 +18,11 @@ export type QueueItem = {
   gpsRouteId?: string;
   status: "pending" | "error";
   reason?: string;
+  /** Server code of the last failure (src/lib/errors.ts), read by the shared sync wording (src/core/web/sync-state.js). */
+  code?: string;
   queuedAt: string;
   attempts: number;
+  lastAttemptAt?: string;
 };
 
 type Listener = () => void;
@@ -66,14 +69,18 @@ export async function loadQueue(owner: string | null) {
   });
 }
 
-/** The session is stored durably before the promise resolves; only then may the UI celebrate. */
-export function enqueue(owner: string, payload: TrainingPayload, gpsRouteId?: string): Promise<QueueItem> {
+/** The session is stored durably before the promise resolves; only then may the UI celebrate.
+    `replaces` (« Corriger et renvoyer », V1.6.1): the key of a session the server REFUSED. The corrected session has its own
+    client_event_id, and the refused one leaves the device in the same storage write: never two entries, never a loss. A session that
+    may be on its way to the server (pending) is never replaced. */
+export function enqueue(owner: string, payload: TrainingPayload, gpsRouteId?: string, replaces?: string): Promise<QueueItem> {
   return serial(async () => {
     if (state.owner !== owner) throw new Error("Le compte a changé. Rien n’a été enregistré.");
     if (readyOwner !== owner) throw new Error("Ton journal local n’a pas pu être chargé. Réessaie avant d’enregistrer une nouvelle séance.");
     const id = payload.details.client_event_id!;
-    const item: QueueItem = { key: `${owner}:${id}`, ownerId: owner, payload: JSON.parse(JSON.stringify(payload)), gpsRouteId, status: "pending", queuedAt: new Date().toISOString(), attempts: 0 };
-    const items = [...state.items.filter((i) => i.key !== item.key), item];
+    const replaced = replaces ? state.items.find((i) => i.key === replaces && i.ownerId === owner && i.status === "error") : undefined;
+    const item: QueueItem = { key: `${owner}:${id}`, ownerId: owner, payload: JSON.parse(JSON.stringify(payload)), gpsRouteId: gpsRouteId ?? replaced?.gpsRouteId, status: "pending", queuedAt: new Date().toISOString(), attempts: 0 };
+    const items = [...state.items.filter((i) => i.key !== item.key && i !== replaced), item];
     await persist(owner, items);
     if (state.owner === owner) {
       state.items = items;
@@ -96,7 +103,8 @@ function replace(owner: string, mutate: (items: QueueItem[]) => QueueItem[]) {
 }
 
 export const discard = (owner: string, key: string) => replace(owner, (items) => items.filter((i) => i.key !== key));
-export const retryItem = (owner: string, key: string) => replace(owner, (items) => items.map((i) => (i.key === key ? { ...i, status: "pending" as const, reason: undefined } : i)));
+// The last attempt and its reason stay visible until the next attempt answers.
+export const retryItem = (owner: string, key: string) => replace(owner, (items) => items.map((i) => (i.key === key ? { ...i, status: "pending" as const } : i)));
 
 export type FlushResult = { sent: number; remaining: number; receipts: Record<string, SubmitReceipt>; offline: boolean };
 
@@ -143,7 +151,7 @@ export function flushQueue(owner: string, onSent?: (eventId: string, receipt: Su
             const err = toAppError(e);
             if (err.code === "AUTH_REQUIRED") break;
             await replace(owner, (items) =>
-              items.map((i) => (i.key === item.key ? { ...i, attempts: i.attempts + 1, status: err.permanent ? "error" : "pending", reason: err.message } : i)),
+              items.map((i) => (i.key === item.key ? { ...i, attempts: i.attempts + 1, lastAttemptAt: new Date().toISOString(), status: err.permanent ? "error" : "pending", reason: err.message, code: err.code } : i)),
             );
             if (!err.permanent) {
               offline = err.network;
@@ -188,6 +196,8 @@ export function provisionalLogs(items: QueueItem[], confirmedIds: Set<string>): 
       created_at: i.queuedAt,
       syncStatus: i.status,
       syncReason: i.reason,
+      syncAttempts: i.attempts,
+      syncCode: i.code,
     }));
 }
 

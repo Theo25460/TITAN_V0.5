@@ -3,7 +3,7 @@
 import { ownerKey, readJSONStrict as readJSON, writeJSON } from "./storage";
 import { encodeTrack, type EncodedTrack, type Track } from "./gpsTrack";
 
-export type PendingRoute = { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: EncodedTrack; attempts: number; rejected?: boolean };
+export type PendingRoute = { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: EncodedTrack; attempts: number; rejected?: boolean; /** V1.7.7: the GPS engine's digest of the outing (moving, total, stopped time…), kept with the route when the server has the v2 library. */ summary?: Record<string, unknown> | null };
 export type Saver = (r: Omit<PendingRoute, "attempts">) => Promise<unknown>;
 export type Linker = (clientRouteId: string, eventId: string) => Promise<unknown>;
 export type PendingLink = { clientRouteId: string; eventId: string; attempts: number };
@@ -31,7 +31,7 @@ const MAX_PENDING = 20;
 
 export const newRouteId = (rand: () => number = Math.random, now = Date.now) => `r${now().toString(36)}-${Math.floor(rand() * 36 ** 8).toString(36).padStart(8, "0")}`;
 
-export function buildPending(opts: { track: Track; sport: string; startedAt: number; distanceKm: number; activeSeconds: number; ascent: number | null; id?: string }): PendingRoute | null {
+export function buildPending(opts: { track: Track; sport: string; startedAt: number; distanceKm: number; activeSeconds: number; ascent: number | null; id?: string; summary?: Record<string, unknown> | null }): PendingRoute | null {
   const track = encodeTrack(opts.track);
   if (!track) return null;
   return {
@@ -43,6 +43,7 @@ export function buildPending(opts: { track: Track; sport: string; startedAt: num
     ascentM: opts.ascent,
     track,
     attempts: 0,
+    ...(opts.summary ? { summary: opts.summary } : {}),
   };
 }
 

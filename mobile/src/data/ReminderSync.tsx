@@ -16,7 +16,8 @@ export function ReminderSync() {
   const { active } = useLogs();
   const prefs = usePrefs();
   const target = prefs.weeklyGoalSessions;
-  const scheduleKey = JSON.stringify(prefs.schedule ?? {});
+  // The seven days only: a decision of the week (V1.7.2, schedule.weeks) does not re-plan the reminders.
+  const scheduleKey = JSON.stringify(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((k) => prefs.schedule?.[k] ?? null));
   const lastSession = useMemo(() => active.reduce((m, l) => Math.max(m, new Date(l.date).getTime() || 0), 0), [active]);
   // AUD-47: this week's figures, for the Monday recap planned now and re-planned after every session.
   const week = useMemo<WeekStats | null>(() => {

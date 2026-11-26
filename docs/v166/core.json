@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-23T13:49:31.394Z",
+  "node": "v22.23.5",
+  "sessions": 10000,
+  "engine": "Node/V8 dans le conteneur (pas Hermes, pas le S23)",
+  "recordsBefore": {
+    "p50": 108.6,
+    "p95": 152.6
+  },
+  "useLogsViewsBefore": {
+    "p50": 23.3,
+    "p95": 28.9
+  },
+  "journalSortBefore": {
+    "p50": 14.5,
+    "p95": 15.7
+  },
+  "recordsAfter": {
+    "p50": 34.2,
+    "p95": 48.2
+  },
+  "useLogsViewsAfter": {
+    "p50": 20,
+    "p95": 28.2
+  },
+  "journalSortAfter": {
+    "p50": 2.7,
+    "p95": 3.8
+  },
+  "recordsIdentical": true,
+  "refreshBefore": {
+    "requests": 20,
+    "mb": 18.22,
+    "gzMb": 2.53,
+    "faibleSeconds": 18.7
+  },
+  "refreshAfterNoChange": {
+    "requests": 10,
+    "mb": 1.17,
+    "gzMb": 0.03,
+    "faibleSeconds": 3.2
+  },
+  "refreshAfterOneChange": {
+    "requests": 11,
+    "mb": 1.17,
+    "gzMb": 0.03,
+    "faibleSeconds": 3.5
+  },
+  "coldFirstPage": {
+    "requests": 1,
+    "mb": 0.93,
+    "faibleSeconds": 0.9
+  },
+  "cacheWriteBefore": {
+    "mb": 18.22
+  },
+  "cacheWriteAfterAndroid": {
+    "mb": 0.28
+  },
+  "cacheWriteAfterWeb": {
+    "mb": 0.95
+  },
+  "network": "faible : 300 ms d’aller-retour, 1,6 Mbit/s"
+}

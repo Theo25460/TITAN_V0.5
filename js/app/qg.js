@@ -125,7 +125,7 @@
     const V = window.TitanProgramView;
     const now = new Date();
     const list = P().activeLogs(D().logs());
-    const plan = D().plan ? D().plan().map((p) => p.sport) : null;
+    const plan = D().weekPlanSports ? D().weekPlanSports(now) : D().plan ? D().plan().map((p) => p.sport) : null;
     const grid = V && window.TitanProgram ? V.week(list, { now, plan }) : null;
     const days = cad.currentDays, target = cad.target;
     const minutes = recapNow.week.minutes;
@@ -146,7 +146,7 @@
     if (!V || !window.TitanProgram || !hasSessions) return "";
     const now = new Date();
     const list = P().activeLogs(D().logs());
-    const plan = D().plan ? D().plan().map((p) => p.sport) : null;
+    const plan = D().weekPlanSports ? D().weekPlanSports(now) : D().plan ? D().plan().map((p) => p.sport) : null;
     const grid = V.week(list, { now, plan });
     const before = new Date(now); before.setDate(before.getDate() - 7);
     const previous = grid.totals.sessions === 0 ? V.week(list, { now, start: before }) : null;

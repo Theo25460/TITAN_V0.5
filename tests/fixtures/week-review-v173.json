@@ -1,0 +1,1351 @@
+{
+  "version": 1,
+  "about": "V1.7.3 — Bilan et ajustements. Shared test set of the website (tests/week-review.test.mjs) and of the Android copy (mobile/__tests__/weekReview.test.tsx). Typical week: running Tuesday, bouldering Thursday, strength Saturday. Four followed weeks from Monday 26 October 2026; the first bilan is the week of 16 November read on Sunday 22, the second the week of 23 November read on Sunday 29. Synthetic sessions, no account. Expected output: week-review-v173.expected.json (tools/week-review/write-expected.mjs).",
+  "zone": "Europe/Paris",
+  "type": {
+    "tuesday": {
+      "sport": "running",
+      "minutes": 45,
+      "note": "Footing"
+    },
+    "thursday": {
+      "sport": "bouldering",
+      "minutes": 90
+    },
+    "saturday": {
+      "sport": "muscu_gym",
+      "minutes": 60
+    },
+    "revisions": {
+      "2026-10-26": {
+        "days": [
+          null,
+          {
+            "sport": "running",
+            "minutes": 45,
+            "note": "Footing"
+          },
+          null,
+          {
+            "sport": "bouldering",
+            "minutes": 90,
+            "note": ""
+          },
+          null,
+          {
+            "sport": "muscu_gym",
+            "minutes": 60,
+            "note": ""
+          },
+          null
+        ],
+        "at": "2026-10-26T08:00:00.000Z"
+      }
+    }
+  },
+  "logs": [
+    {
+      "id": "run-w1",
+      "client_event_id": "run-w1",
+      "sport": "running",
+      "date": "2026-10-27T17:30:00.000Z",
+      "val": 8.1,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 45,
+        "client_event_id": "run-w1"
+      }
+    },
+    {
+      "id": "bloc-w1",
+      "client_event_id": "bloc-w1",
+      "sport": "bouldering",
+      "date": "2026-10-29T18:00:00.000Z",
+      "val": 90,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 90,
+        "client_event_id": "bloc-w1",
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6A"
+        }
+      }
+    },
+    {
+      "id": "lift-w1",
+      "client_event_id": "lift-w1",
+      "sport": "muscu_gym",
+      "date": "2026-10-31T09:00:00.000Z",
+      "val": 1,
+      "unit": "kg",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 60,
+        "client_event_id": "lift-w1",
+        "exercises": [
+          {
+            "name": "Squat",
+            "variant": "Barre",
+            "setRows": [
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-w2",
+      "client_event_id": "run-w2",
+      "sport": "running",
+      "date": "2026-11-04T17:30:00.000Z",
+      "val": 8.4,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 46,
+        "client_event_id": "run-w2"
+      }
+    },
+    {
+      "id": "bloc-w2",
+      "client_event_id": "bloc-w2",
+      "sport": "bouldering",
+      "date": "2026-11-05T18:00:00.000Z",
+      "val": 90,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 90,
+        "client_event_id": "bloc-w2",
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6A+"
+        }
+      }
+    },
+    {
+      "id": "lift-w2",
+      "client_event_id": "lift-w2",
+      "sport": "muscu_gym",
+      "date": "2026-11-07T09:00:00.000Z",
+      "val": 1,
+      "unit": "kg",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 60,
+        "client_event_id": "lift-w2",
+        "exercises": [
+          {
+            "name": "Squat",
+            "variant": "Barre",
+            "setRows": [
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-w3",
+      "client_event_id": "run-w3",
+      "sport": "running",
+      "date": "2026-11-10T17:30:00.000Z",
+      "val": 8,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 44,
+        "client_event_id": "run-w3"
+      }
+    },
+    {
+      "id": "bloc-w3",
+      "client_event_id": "bloc-w3",
+      "sport": "bouldering",
+      "date": "2026-11-12T18:00:00.000Z",
+      "val": 90,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 90,
+        "client_event_id": "bloc-w3",
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6A+"
+        }
+      }
+    },
+    {
+      "id": "lift-w3",
+      "client_event_id": "lift-w3",
+      "sport": "muscu_gym",
+      "date": "2026-11-14T09:00:00.000Z",
+      "val": 1,
+      "unit": "kg",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 60,
+        "client_event_id": "lift-w3",
+        "exercises": [
+          {
+            "name": "Squat",
+            "variant": "Barre",
+            "setRows": [
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-w4",
+      "client_event_id": "run-w4",
+      "sport": "running",
+      "date": "2026-11-18T17:30:00.000Z",
+      "val": 9.2,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 50,
+        "client_event_id": "run-w4"
+      }
+    },
+    {
+      "id": "bloc-w4",
+      "client_event_id": "bloc-w4",
+      "sport": "bouldering",
+      "date": "2026-11-19T18:00:00.000Z",
+      "val": 90,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 90,
+        "client_event_id": "bloc-w4",
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6B"
+        }
+      }
+    },
+    {
+      "id": "lift-w4",
+      "client_event_id": "lift-w4",
+      "sport": "muscu_gym",
+      "date": "2026-11-21T09:00:00.000Z",
+      "val": 1,
+      "unit": "kg",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 60,
+        "client_event_id": "lift-w4",
+        "exercises": [
+          {
+            "name": "Squat",
+            "variant": "Barre",
+            "setRows": [
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-w5",
+      "client_event_id": "run-w5",
+      "sport": "running",
+      "date": "2026-11-25T17:30:00.000Z",
+      "val": 9,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 49,
+        "client_event_id": "run-w5"
+      }
+    },
+    {
+      "id": "bloc-w5",
+      "client_event_id": "bloc-w5",
+      "sport": "bouldering",
+      "date": "2026-11-26T18:00:00.000Z",
+      "val": 90,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 90,
+        "client_event_id": "bloc-w5",
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6B"
+        }
+      }
+    },
+    {
+      "id": "lift-w5",
+      "client_event_id": "lift-w5",
+      "sport": "muscu_gym",
+      "date": "2026-11-28T09:00:00.000Z",
+      "val": 1,
+      "unit": "kg",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 60,
+        "client_event_id": "lift-w5",
+        "exercises": [
+          {
+            "name": "Squat",
+            "variant": "Barre",
+            "setRows": [
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              },
+              {
+                "weight": 100,
+                "reps": 5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-w5-tue",
+      "client_event_id": "run-w5-tue",
+      "sport": "running",
+      "date": "2026-11-24T17:30:00.000Z",
+      "val": 6,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 33,
+        "client_event_id": "run-w5-tue"
+      }
+    },
+    {
+      "id": "run-w2-tue",
+      "client_event_id": "run-w2-tue",
+      "sport": "running",
+      "date": "2026-11-03T17:30:00.000Z",
+      "val": 8.2,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 45,
+        "client_event_id": "run-w2-tue"
+      }
+    },
+    {
+      "id": "run-w4-tue",
+      "client_event_id": "run-w4-tue",
+      "sport": "running",
+      "date": "2026-11-17T17:30:00.000Z",
+      "val": 8.3,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "duration": 45,
+        "client_event_id": "run-w4-tue"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "1 — premier bilan : le créneau du mardi déplacé deux fois, le bloc régulier",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22"
+      }
+    },
+    {
+      "name": "2 — aperçu : la semaine suivante seulement",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        }
+      ],
+      "preview": {
+        "kind": "move",
+        "from": 1,
+        "to": 2,
+        "scope": "next"
+      },
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22"
+      }
+    },
+    {
+      "name": "3 — aperçu : la semaine type",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        }
+      ],
+      "preview": {
+        "kind": "move",
+        "from": 1,
+        "to": 2,
+        "scope": "type"
+      },
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22"
+      }
+    },
+    {
+      "name": "4 — confirmé pour la semaine suivante : visible au programme",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        },
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "5 — deuxième semaine : le bilan suivant distingue le changement décidé et ce qui a été observé",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4",
+        "run-w5",
+        "bloc-w5",
+        "lift-w5"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        },
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-23",
+        "today": "2026-11-29",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "5b — deuxième semaine : la séance faite le mardi quand même",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4",
+        "run-w5-tue",
+        "bloc-w5",
+        "lift-w5"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        },
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-23",
+        "today": "2026-11-29",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "6 — confirmé dans la semaine type : le programme change à partir du lundi 23",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4",
+        "run-w5",
+        "bloc-w5",
+        "lift-w5"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        },
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "type"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-23",
+        "today": "2026-11-29",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "7 — historique trop court : programme suivi depuis le lundi 16",
+      "journal": [
+        "run-w4",
+        "bloc-w4"
+      ],
+      "ops": [],
+      "type": {
+        "tuesday": {
+          "sport": "running",
+          "minutes": 45,
+          "note": "Footing"
+        },
+        "thursday": {
+          "sport": "bouldering",
+          "minutes": 90
+        },
+        "saturday": {
+          "sport": "muscu_gym",
+          "minutes": 60
+        },
+        "revisions": {
+          "2026-11-16": {
+            "days": [
+              null,
+              {
+                "sport": "running",
+                "minutes": 45,
+                "note": "Footing"
+              },
+              null,
+              {
+                "sport": "bouldering",
+                "minutes": 90,
+                "note": ""
+              },
+              null,
+              {
+                "sport": "muscu_gym",
+                "minutes": 60,
+                "note": ""
+              },
+              null
+            ],
+            "at": "2026-11-16T08:00:00.000Z"
+          }
+        }
+      },
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22"
+      }
+    },
+    {
+      "name": "7b — aucun programme",
+      "journal": [
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [],
+      "type": {},
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22"
+      }
+    },
+    {
+      "name": "8 — refus : la proposition est vue puis ignorée",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        }
+      ],
+      "preview": {
+        "kind": "move",
+        "from": 1,
+        "to": 2,
+        "scope": "next"
+      },
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "9 — annulation d’un déplacement pour la semaine suivante",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4",
+        "run-w5",
+        "bloc-w5",
+        "lift-w5"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        },
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        },
+        {
+          "op": "undo",
+          "week": "2026-11-16",
+          "today": "2026-11-23",
+          "at": "2026-11-23T07:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-23",
+        "today": "2026-11-29",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "9b — annulation d’un changement de la semaine type",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        },
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "type"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        },
+        {
+          "op": "undo",
+          "week": "2026-11-16",
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:05:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "10 — mettre la semaine suivante en pause, puis le bilan suivant",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4",
+        "bloc-w5"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        },
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "pause"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-23",
+        "today": "2026-11-29",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "10b — pause annulée",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        },
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "pause"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        },
+        {
+          "op": "undo",
+          "week": "2026-11-16",
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:05:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "11 — reconduire le plan, puis le bilan suivant",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4",
+        "run-w5",
+        "bloc-w5",
+        "lift-w5"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        },
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "keep"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-23",
+        "today": "2026-11-29",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "12 — semaines régulières",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2-tue",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4-tue",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [],
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22"
+      }
+    },
+    {
+      "name": "13 — choix fait sur le téléphone, relu sur le site",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        }
+      ],
+      "remote": [
+        {
+          "op": "apply",
+          "week": "2026-11-16",
+          "action": {
+            "kind": "move",
+            "from": 1,
+            "to": 2,
+            "scope": "next"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T18:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-16",
+        "today": "2026-11-22",
+        "program": "2026-11-23"
+      }
+    },
+    {
+      "name": "14 — bilan d’une semaine trop ancienne : lecture seule",
+      "journal": [
+        "run-w1",
+        "bloc-w1",
+        "lift-w1",
+        "run-w2",
+        "bloc-w2",
+        "lift-w2",
+        "run-w3",
+        "bloc-w3",
+        "lift-w3",
+        "run-w4",
+        "bloc-w4",
+        "lift-w4"
+      ],
+      "ops": [
+        {
+          "op": "decide",
+          "id": "2026-11-02/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-11-04"
+          },
+          "today": "2026-11-03",
+          "at": "2026-11-03T07:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-11-16/1",
+          "decision": {
+            "kind": "link",
+            "session": "run-w4"
+          },
+          "today": "2026-11-18",
+          "at": "2026-11-18T19:00:00.000Z"
+        }
+      ],
+      "read": {
+        "week": "2026-11-02",
+        "today": "2026-11-22"
+      }
+    }
+  ]
+}

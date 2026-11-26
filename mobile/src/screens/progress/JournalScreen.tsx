@@ -3,6 +3,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { RefreshControl, ScrollView, SectionList, View } from "react-native";
 import { Chip } from "../../components/Chip";
+import { CoverageNote } from "../../components/CoverageNote";
 import { OfflineBanner } from "../../components/OfflineBanner";
 import { SessionRow } from "../../components/SessionRow";
 import { EmptyState, ErrorState, LoadingCards } from "../../components/States";
@@ -22,20 +23,21 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
   const [showArchived, setShowArchived] = useState(false);
   const source = showArchived ? q.archived : q.logs;
   const weekStart = route.params?.weekStart;
-  // Use the same confirmed, eligible sessions as the weekly recap, even while another upload is pending.
+  // The same counted sessions as the weekly recap (V1.6.3 matrix, shared with the website).
   const periodLogs = useMemo(() => {
     if (weekStart == null) return source;
-    return Progress.weekLogs(q.confirmed.filter((log) => !log.archived_at && !log.is_suspicious), new Date(weekStart));
-  }, [weekStart, source, q.confirmed]);
+    return Progress.weekLogs(q.active, new Date(weekStart));
+  }, [weekStart, source, q.active]);
   const sports = useMemo(() => {
     const count = new Map<string, number>();
     for (const l of periodLogs) count.set(l.sport, (count.get(l.sport) || 0) + 1);
     return [...count.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => s);
   }, [periodLogs]);
-  // A record badge belongs to a session the server confirmed: a pending or refused one must not take it from the real holder.
-  const holders = useMemo(() => recordHolders(q.confirmed.filter((l) => !l.archived_at)), [q.confirmed]);
+  // A record badge follows the records view: counted sessions only, never a refused or archived one (V1.6.3 matrix).
+  const holders = useMemo(() => recordHolders(q.active), [q.active]);
   const sections = useMemo(() => {
-    const list = periodLogs.filter((l) => !sport || l.sport === sport).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // V1.6.6: each date parsed once (a sort of 10 000 sessions parsed two dates per comparison, about 280 000 parses).
+    const list = periodLogs.filter((l) => !sport || l.sport === sport).map((l) => [Date.parse(l.date), l] as const).sort((a, b) => (b[0] || 0) - (a[0] || 0)).map((e) => e[1]);
     const month = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
     const groups = new Map<string, TrainingLog[]>();
     for (const l of list) {
@@ -65,6 +67,8 @@ export function JournalScreen({ navigation, route }: NativeStackScreenProps<Root
         refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => q.refetch()} colors={[theme.accent]} progressBackgroundColor={colors.bg3} />}
         ListHeaderComponent={
           <View style={{ gap: space.s3, marginBottom: space.s2 }}>
+            {/* V1.6.6: what this phone holds, offline or while the history arrives; a partial copy never reads as complete. */}
+            {!showArchived ? <CoverageNote coverage={q.coverage} loading={q.isFetching} /> : null}
             {weekStart != null ? (
               <View style={{ gap: space.s2 }}>
                 <T variant="title">Semaine du {Format.longDate(new Date(weekStart).toISOString())}</T>

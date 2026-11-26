@@ -20,12 +20,20 @@ export type RootParams = {
   // Signed in
   Onboarding: undefined;
   Tabs: NavigatorScreenParams<TabParams> | undefined;
-  SessionForm: { sport: string; duplicateOf?: string; quickMinutes?: number } ;
-  GpsRecord: { sport: string };
+  /** `replaces`: queue key of a refused session this form corrects (« Corriger et renvoyer », V1.6.1). */
+  SessionForm: { sport: string; duplicateOf?: string; quickMinutes?: number; replaces?: string } ;
+  /** `follow`: id of a route of the private library to follow during this outing (kept on the phone for offline use). */
+  GpsRecord: { sport: string; follow?: string };
   LiveSession: { sport: string };
   Camp: undefined;
-  Routes: undefined;
+  /** `importGpx`: opened to import a file at once (from the planner, when no routing service exists). */
+  Routes: { importGpx?: boolean } | undefined;
+  /** `id`: a server route id, or the id made on this phone for a route the server has not confirmed yet. */
   Route: { id: string };
+  /** V1.7.7 — planning a route (`sport` preselects the routing profile). */
+  RoutePlanner: { sport?: string } | undefined;
+  /** V1.7.7 — personal points and the useful points nearby. */
+  Places: undefined;
   SessionResult: { eventId: string; stored?: { owner: string; payload: TrainingPayload } };
   SessionDetail: { id: string };
   SessionEdit: { id: string };

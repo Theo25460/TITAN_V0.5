@@ -2,13 +2,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Crypto from "expo-crypto";
 import { useMemo } from "react";
-import { Progress } from "../core";
 import { buildSession, toPayload, type SessionDraft } from "../core/session";
 import type { Goal, Profile, TrainingLog } from "../core/types";
 import { isOnline } from "../lib/network";
 import { flushRoutes } from "../lib/routeSync";
+import { flushLibraryRoutes } from "../lib/routeLibrary";
 import * as api from "./api";
 import { useOwner } from "./auth";
+import { HistoryWindow } from "../core";
+import { historyViews } from "./history";
+import { coverageOf, setCoverage, useCoverage } from "./historyCoverage";
 import { saveLogsCache } from "./logsCache";
 import { enqueue, flushQueue, provisionalLogs, useQueue } from "./queue";
 import { protectPreferences } from "./profileCopies";
@@ -80,15 +83,34 @@ export function useSavePrefs() {
   });
 }
 
-/** Confirmed sessions from the server + sessions still waiting on this device. */
+/** Confirmed sessions from the server + sessions still waiting on this device.
+    V1.6.6 — Journal longue durée (src/core/web/history-window.js): with a complete copy on the phone a refresh reads the manifest and
+    the changed rows only; otherwise the rows come page by page and the first page is shown at once, marked partial. A correction
+    confirmed while a refresh was reading keeps its newer revision. */
 export function useLogs() {
   const owner = useOwner();
   const queue = useQueue();
+  const qc = useQueryClient();
+  const coverage = useCoverage(owner);
   const q = useQuery({
     queryKey: keys.logs(owner),
     queryFn: async () => {
-      const logs = await api.fetchAllLogs(owner);
-      saveLogsCache(owner, logs).catch(() => {});
+      const shown = () => (qc.getQueryData<TrainingLog[]>(keys.logs(owner)) ?? []).filter((l) => !l.syncStatus || l.syncStatus === "confirmed");
+      const startedFrom = shown();
+      const known = coverageOf(owner);
+      const cached = known?.complete && startedFrom.length ? { rows: startedFrom, coverage: known } : null;
+      let partial = false;
+      const r = await api.refreshLogs(owner, cached, (rows, cov) => {
+        if (partial || coverageOf(owner)?.complete) return;
+        partial = true;
+        const first = HistoryWindow.reconcile(shown(), rows, [], startedFrom);
+        setCoverage(owner, cov);
+        qc.setQueryData(keys.logs(owner), first);
+        saveLogsCache(owner, first, cov).catch(() => {});
+      });
+      const logs = HistoryWindow.reconcile(shown(), r.rows, r.removed, startedFrom);
+      setCoverage(owner, r.coverage);
+      saveLogsCache(owner, logs, r.coverage).catch(() => {});
       return logs;
     },
     staleTime: 30_000,
@@ -97,13 +119,12 @@ export function useLogs() {
     const confirmed = q.data ?? [];
     const ids = new Set(confirmed.map((l) => l.client_event_id || l.details?.client_event_id || l.id));
     const pending = queue.owner === owner ? provisionalLogs(queue.items, ids) : [];
-    const all = [...confirmed.filter((l) => !l.archived_at), ...pending].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const archived = confirmed.filter((l) => l.archived_at);
     // Statistics never count a session the server refused (« error » in the queue): it stays listed in the journal with its
-    // reason, but it is not a measure. A session still waiting to be sent does count, shown as pending.
-    return { logs: all, active: Progress.activeLogs(all.filter((l) => (l as { syncStatus?: string }).syncStatus !== "error")), archived, pending, confirmed };
+    // reason, but it is not a measure. A session still waiting to be sent does count, shown as pending (V1.6.3 matrix).
+    const { logs, active, archived } = historyViews(confirmed, pending);
+    return { logs, active, archived, pending, confirmed };
   }, [q.data, queue, owner]);
-  return { ...q, ...value };
+  return { ...q, ...value, coverage };
 }
 
 export function useGoals() {
@@ -157,7 +178,7 @@ export function useRecordSession() {
       if (build.errors.length) throw Object.assign(new Error(build.errors[0].message), { field: build.errors[0].field });
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
       const payload = toPayload(build, draft.sport, Crypto.randomUUID(), timezone, profile?.is_elite === true);
-      await enqueue(owner, payload, draft.gpsRouteId);
+      await enqueue(owner, payload, draft.gpsRouteId, draft.replaces);
       return payload;
     },
     onSuccess: () => {
@@ -172,6 +193,10 @@ export function syncNow(qc: ReturnType<typeof useQueryClient>, owner: string) {
     if (isOnline()) void flushRoutes(owner, (route) => api.routeSave(owner, route), (id, event) => api.routeLink(owner, id, event)).then(() => {
       qc.invalidateQueries({ queryKey: ["routes", owner] });
       qc.invalidateQueries({ queryKey: ["routes-outbox", owner] });
+    }).catch(() => {});
+    // Imported and planned routes waiting on this phone (V1.7.7) leave with the same synchronisation, not only when « Mes parcours » opens.
+    if (isOnline()) void flushLibraryRoutes(owner, (route) => api.routeSaveV2(owner, route)).then((done) => {
+      if (done.sent > 0) qc.invalidateQueries({ queryKey: ["routes", owner] });
     }).catch(() => {});
     return r;
   });
@@ -192,6 +217,7 @@ export function useUpdateSession() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: keys.logs(owner) });
       qc.invalidateQueries({ queryKey: keys.adventure(owner) });
+      qc.invalidateQueries({ queryKey: ["session-changes", owner] });
     },
   });
 }

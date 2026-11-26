@@ -1,0 +1,645 @@
+{
+ "rulesVersion": "2026.11-v1",
+ "cases": {
+  "run-today": {
+   "selection": {
+    "version": "2026.11-v1",
+    "rule": {
+     "id": "distance.taille-parcours",
+     "label": "Distance voisine et même parcours (Route)",
+     "criteria": [
+      "Même sport : Course à pied",
+      "Distance entre 7,65 km et 13,6 km (à 25 % près)",
+      "Parcours (Surface) : Route",
+      "Dénivelé : écart d’au plus 20 m/km quand il est renseigné des deux côtés",
+      "Durée déclarée des deux côtés : une durée estimée n’est jamais comparée"
+     ],
+     "pilot": true
+    },
+    "status": "ok",
+    "sample": 3,
+    "considered": 10,
+    "retained": [
+     {
+      "id": "run-road-3",
+      "date": "2026-11-01T08:00:00Z",
+      "summary": "10,1 km · 5:27 /km · Route"
+     },
+     {
+      "id": "run-road-2",
+      "date": "2026-10-18T08:00:00Z",
+      "summary": "9,8 km · 5:31 /km · Route · D+ 40 m"
+     },
+     {
+      "id": "run-road-1",
+      "date": "2026-10-04T08:00:00Z",
+      "summary": "10 km · 5:36 /km · Route"
+     }
+    ],
+    "excluded": [
+     {
+      "id": "run-hilly",
+      "date": "2026-11-14T08:00:00Z",
+      "reason": "elevation",
+      "text": "dénivelé trop différent (38 m/km contre 4)"
+     },
+     {
+      "id": "run-noduration",
+      "date": "2026-11-13T08:00:00Z",
+      "reason": "no_duration",
+      "text": "durée non saisie"
+     },
+     {
+      "id": "run-short",
+      "date": "2026-11-12T08:00:00Z",
+      "reason": "size",
+      "text": "distance trop différente (5 km)"
+     },
+     {
+      "id": "run-nosurface",
+      "date": "2026-11-10T08:00:00Z",
+      "reason": "route_unknown",
+      "text": "parcours non renseigné"
+     },
+     {
+      "id": "run-trail",
+      "date": "2026-11-08T08:00:00Z",
+      "reason": "route_other",
+      "text": "autre parcours (Chemin)"
+     }
+    ],
+    "counts": {
+     "elevation": 1,
+     "held": 1,
+     "no_duration": 1,
+     "route_other": 1,
+     "route_unknown": 1,
+     "size": 1,
+     "unsent": 1
+    },
+    "limits": [
+     "Dénivelé non renseigné sur 2 des 3 séances retenues : il n’est pas vérifié pour elles.",
+     "Non prises en compte : 1 en attente d’envoi, 1 en vérification. Seules les séances confirmées dans ton compte servent de référence, les mêmes sur tous tes appareils.",
+     "1 séance de distance voisine sans parcours renseigné est écartée : le terrain n’est pas connu.",
+     "1 séance sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’est jamais comparée."
+    ],
+    "estimates": [
+     {
+      "id": "run-noduration",
+      "minutes": 60
+     }
+    ],
+    "reference": {
+     "kind": "median",
+     "value": 5.51,
+     "unit": "min/km",
+     "display": "5:31 /km",
+     "sessions": 3
+    },
+    "previous": "run-road-3",
+    "signature": "distance.taille-parcours@2026.11-v1:run-road-3,run-road-2,run-road-1"
+   },
+   "comparison": {
+    "previous": "run-road-3",
+    "basis": "Distance comparable (à 25 % près) : 10,1 km, même parcours (Route).",
+    "items": [
+     {
+      "id": "pace",
+      "now": "5:12 /km",
+      "before": "5:27 /km",
+      "direction": "better"
+     }
+    ]
+   }
+  },
+  "run-track": {
+   "selection": {
+    "version": "2026.11-v1",
+    "rule": {
+     "id": "distance.taille-parcours",
+     "label": "Distance voisine et même parcours (Piste)",
+     "criteria": [
+      "Même sport : Course à pied",
+      "Distance entre 7,5 km et 13,33 km (à 25 % près)",
+      "Parcours (Surface) : Piste",
+      "Dénivelé : écart d’au plus 20 m/km quand il est renseigné des deux côtés",
+      "Durée déclarée des deux côtés : une durée estimée n’est jamais comparée"
+     ],
+     "pilot": true
+    },
+    "status": "limited",
+    "sample": 2,
+    "considered": 12,
+    "retained": [
+     {
+      "id": "run-plain",
+      "date": "2026-11-19T08:00:00Z",
+      "summary": "10 km · 5:24 /km"
+     },
+     {
+      "id": "run-nosurface",
+      "date": "2026-11-10T08:00:00Z",
+      "summary": "10 km · 5:48 /km"
+     }
+    ],
+    "excluded": [
+     {
+      "id": "run-today",
+      "date": "2026-11-18T08:00:00Z",
+      "reason": "route_other",
+      "text": "autre parcours (Route)"
+     },
+     {
+      "id": "run-hilly",
+      "date": "2026-11-14T08:00:00Z",
+      "reason": "route_other",
+      "text": "autre parcours (Route)"
+     },
+     {
+      "id": "run-noduration",
+      "date": "2026-11-13T08:00:00Z",
+      "reason": "no_duration",
+      "text": "durée non saisie"
+     },
+     {
+      "id": "run-short",
+      "date": "2026-11-12T08:00:00Z",
+      "reason": "size",
+      "text": "distance trop différente (5 km)"
+     },
+     {
+      "id": "run-trail",
+      "date": "2026-11-08T08:00:00Z",
+      "reason": "route_other",
+      "text": "autre parcours (Chemin)"
+     },
+     {
+      "id": "run-road-3",
+      "date": "2026-11-01T08:00:00Z",
+      "reason": "route_other",
+      "text": "autre parcours (Route)"
+     },
+     {
+      "id": "run-road-2",
+      "date": "2026-10-18T08:00:00Z",
+      "reason": "route_other",
+      "text": "autre parcours (Route)"
+     },
+     {
+      "id": "run-road-1",
+      "date": "2026-10-04T08:00:00Z",
+      "reason": "route_other",
+      "text": "autre parcours (Route)"
+     }
+    ],
+    "counts": {
+     "held": 1,
+     "no_duration": 1,
+     "route_other": 6,
+     "size": 1,
+     "unsent": 1
+    },
+    "limits": [
+     "Aucune séance précédente à distance comparable sur « Piste » : TITAN compare avec 2 séances où le parcours n’est pas renseigné. Ce critère n’est donc pas vérifié.",
+     "Non prises en compte : 1 en attente d’envoi, 1 en vérification. Seules les séances confirmées dans ton compte servent de référence, les mêmes sur tous tes appareils.",
+     "1 séance sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’est jamais comparée."
+    ],
+    "estimates": [
+     {
+      "id": "run-noduration",
+      "minutes": 60
+     }
+    ],
+    "reference": {
+     "kind": "median",
+     "value": 5.6,
+     "unit": "min/km",
+     "display": "5:36 /km",
+     "sessions": 2
+    },
+    "previous": "run-plain",
+    "signature": "distance.taille-parcours@2026.11-v1:run-plain,run-nosurface"
+   },
+   "comparison": {
+    "previous": "run-plain",
+    "basis": "Distance comparable (à 25 % près) : 10 km.",
+    "items": [
+     {
+      "id": "pace",
+      "now": "5:00 /km",
+      "before": "5:24 /km",
+      "direction": "better"
+     }
+    ]
+   }
+  },
+  "run-plain": {
+   "selection": {
+    "version": "2026.11-v1",
+    "rule": {
+     "id": "distance.taille",
+     "label": "Distance voisine",
+     "criteria": [
+      "Même sport : Course à pied",
+      "Distance entre 7,5 km et 13,33 km (à 25 % près)",
+      "Parcours (Surface) : non renseigné sur cette séance, donc non vérifié",
+      "Dénivelé : écart d’au plus 20 m/km quand il est renseigné des deux côtés",
+      "Durée déclarée des deux côtés : une durée estimée n’est jamais comparée"
+     ],
+     "pilot": true
+    },
+    "status": "limited",
+    "sample": 7,
+    "considered": 11,
+    "retained": [
+     {
+      "id": "run-today",
+      "date": "2026-11-18T08:00:00Z",
+      "summary": "10,2 km · 5:12 /km · Route · D+ 45 m"
+     },
+     {
+      "id": "run-hilly",
+      "date": "2026-11-14T08:00:00Z",
+      "summary": "10 km · 6:00 /km · Route · D+ 380 m"
+     },
+     {
+      "id": "run-nosurface",
+      "date": "2026-11-10T08:00:00Z",
+      "summary": "10 km · 5:48 /km"
+     },
+     {
+      "id": "run-trail",
+      "date": "2026-11-08T08:00:00Z",
+      "summary": "10,4 km · 6:55 /km · Chemin · D+ 420 m"
+     },
+     {
+      "id": "run-road-3",
+      "date": "2026-11-01T08:00:00Z",
+      "summary": "10,1 km · 5:27 /km · Route"
+     },
+     {
+      "id": "run-road-2",
+      "date": "2026-10-18T08:00:00Z",
+      "summary": "9,8 km · 5:31 /km · Route · D+ 40 m"
+     },
+     {
+      "id": "run-road-1",
+      "date": "2026-10-04T08:00:00Z",
+      "summary": "10 km · 5:36 /km · Route"
+     }
+    ],
+    "excluded": [
+     {
+      "id": "run-noduration",
+      "date": "2026-11-13T08:00:00Z",
+      "reason": "no_duration",
+      "text": "durée non saisie"
+     },
+     {
+      "id": "run-short",
+      "date": "2026-11-12T08:00:00Z",
+      "reason": "size",
+      "text": "distance trop différente (5 km)"
+     }
+    ],
+    "counts": {
+     "held": 1,
+     "no_duration": 1,
+     "size": 1,
+     "unsent": 1
+    },
+    "limits": [
+     "Le parcours de cette séance n’est pas renseigné (Surface) : TITAN ne peut pas écarter une sortie sur un autre terrain. Renseigne-le pour une comparaison resserrée.",
+     "Non prises en compte : 1 en attente d’envoi, 1 en vérification. Seules les séances confirmées dans ton compte servent de référence, les mêmes sur tous tes appareils.",
+     "1 séance sans durée saisie : TITAN estime leur durée pour l’XP, une estimation n’est jamais comparée."
+    ],
+    "estimates": [
+     {
+      "id": "run-noduration",
+      "minutes": 60
+     }
+    ],
+    "reference": {
+     "kind": "median",
+     "value": 5.6,
+     "unit": "min/km",
+     "display": "5:36 /km",
+     "sessions": 7
+    },
+    "previous": "run-today",
+    "signature": "distance.taille@2026.11-v1:run-today,run-hilly,run-nosurface,run-trail,run-road-3,run-road-2,run-road-1"
+   },
+   "comparison": {
+    "previous": "run-today",
+    "basis": "Distance comparable (à 25 % près) : 10,2 km.",
+    "items": [
+     {
+      "id": "pace",
+      "now": "5:24 /km",
+      "before": "5:12 /km",
+      "direction": "worse"
+     }
+    ]
+   }
+  },
+  "lift-today": {
+   "selection": {
+    "version": "2026.11-v1",
+    "rule": {
+     "id": "force.exercice-variante",
+     "label": "Même exercice et même variante",
+     "criteria": [
+      "Même sport : Musculation en salle",
+      "Même exercice, même variante et même matériel : Squat (Barre)",
+      "Séries mesurées (charge et répétitions) : aucun 1RM estimé"
+     ],
+     "pilot": true
+    },
+    "status": "ok",
+    "sample": 2,
+    "considered": 6,
+    "retained": [
+     {
+      "id": "lift-2",
+      "date": "2026-11-14T18:00:00Z",
+      "summary": "Squat (Barre) 105 kg × 5"
+     },
+     {
+      "id": "lift-1",
+      "date": "2026-10-20T18:00:00Z",
+      "summary": "Squat (Barre) 100 kg × 5"
+     }
+    ],
+    "excluded": [
+     {
+      "id": "lift-nosets",
+      "date": "2026-11-09T18:00:00Z",
+      "reason": "sets_missing",
+      "text": "séries non mesurées"
+     },
+     {
+      "id": "lift-novariant",
+      "date": "2026-11-06T18:00:00Z",
+      "reason": "variant_unknown",
+      "text": "variante non renseignée (squat · sans variante)"
+     },
+     {
+      "id": "lift-front",
+      "date": "2026-11-03T18:00:00Z",
+      "reason": "variant_other",
+      "text": "même nom, autre variante (Squat · Front)"
+     }
+    ],
+    "counts": {
+     "no_exercise": 1,
+     "sets_missing": 1,
+     "variant_other": 1,
+     "variant_unknown": 1
+    },
+    "limits": [
+     "1 séance du même exercice sans variante commune est écartée (Squat) : sans variante renseignée, TITAN ne peut pas savoir s’il s’agit du même mouvement."
+    ],
+    "estimates": [],
+    "reference": null,
+    "previous": "lift-2",
+    "signature": "force.exercice-variante@2026.11-v1:lift-2,lift-1"
+   },
+   "comparison": {
+    "previous": "lift-2",
+    "basis": "Mêmes exercices (Squat (Barre)) que ta séance du 14/11/2026.",
+    "items": [
+     {
+      "id": "top:squat|barre|",
+      "now": "105 kg",
+      "before": "105 kg",
+      "direction": "better"
+     },
+     {
+      "id": "volume:squat|barre|",
+      "now": "1 130 kg",
+      "before": "1 025 kg",
+      "direction": "better"
+     }
+    ]
+   }
+  },
+  "lift-plain": {
+   "selection": {
+    "version": "2026.11-v1",
+    "rule": {
+     "id": "force.exercice-variante",
+     "label": "Même exercice et même variante",
+     "criteria": [
+      "Même sport : Musculation en salle",
+      "Même exercice, même variante et même matériel : Squat",
+      "Séries mesurées (charge et répétitions) : aucun 1RM estimé"
+     ],
+     "pilot": true
+    },
+    "status": "ok",
+    "sample": 1,
+    "considered": 7,
+    "retained": [
+     {
+      "id": "lift-novariant",
+      "date": "2026-11-06T18:00:00Z",
+      "summary": "squat 60 kg × 10"
+     }
+    ],
+    "excluded": [
+     {
+      "id": "lift-today",
+      "date": "2026-11-18T18:00:00Z",
+      "reason": "variant_unknown",
+      "text": "variante non renseignée (Squat · Barre)"
+     },
+     {
+      "id": "lift-2",
+      "date": "2026-11-14T18:00:00Z",
+      "reason": "variant_unknown",
+      "text": "variante non renseignée (Squat · Barre)"
+     },
+     {
+      "id": "lift-nosets",
+      "date": "2026-11-09T18:00:00Z",
+      "reason": "sets_missing",
+      "text": "séries non mesurées"
+     },
+     {
+      "id": "lift-front",
+      "date": "2026-11-03T18:00:00Z",
+      "reason": "variant_unknown",
+      "text": "variante non renseignée (Squat · Front)"
+     },
+     {
+      "id": "lift-1",
+      "date": "2026-10-20T18:00:00Z",
+      "reason": "variant_unknown",
+      "text": "variante non renseignée (Squat · Barre)"
+     }
+    ],
+    "counts": {
+     "no_exercise": 1,
+     "sets_missing": 1,
+     "variant_unknown": 4
+    },
+    "limits": [
+     "4 séances du même exercice sans variante commune sont écartées (Squat) : sans variante renseignée, TITAN ne peut pas savoir s’il s’agit du même mouvement."
+    ],
+    "estimates": [],
+    "reference": null,
+    "previous": "lift-novariant",
+    "signature": "force.exercice-variante@2026.11-v1:lift-novariant"
+   },
+   "comparison": {
+    "previous": "lift-novariant",
+    "basis": "Mêmes exercices (Squat) que ta séance du 06/11/2026.",
+    "items": [
+     {
+      "id": "top:squat||",
+      "now": "60 kg",
+      "before": "60 kg",
+      "direction": "better"
+     },
+     {
+      "id": "volume:squat||",
+      "now": "720 kg",
+      "before": "600 kg",
+      "direction": "better"
+     }
+    ]
+   }
+  },
+  "boulder-today": {
+   "selection": {
+    "version": "2026.11-v1",
+    "rule": {
+     "id": "escalade.echelle-discipline",
+     "label": "Même échelle (Fontainebleau bloc) et même discipline (Bloc)",
+     "criteria": [
+      "Même sport : Escalade bloc",
+      "Échelle : Fontainebleau bloc, sans conversion vers une autre échelle",
+      "Discipline : Bloc",
+      "Meilleure réussite : une cotation seulement tentée n’est jamais comparée"
+     ],
+     "pilot": true
+    },
+    "status": "ok",
+    "sample": 2,
+    "considered": 5,
+    "retained": [
+     {
+      "id": "boulder-2",
+      "date": "2026-11-12T18:00:00Z",
+      "summary": "6B · Bloc"
+     },
+     {
+      "id": "boulder-1",
+      "date": "2026-10-25T18:00:00Z",
+      "summary": "6A · Bloc"
+     }
+    ],
+    "excluded": [
+     {
+      "id": "boulder-tried",
+      "date": "2026-11-09T18:00:00Z",
+      "reason": "grade_missing",
+      "text": "aucune réussite cotée (tentée 7A)"
+     },
+     {
+      "id": "boulder-nodisc",
+      "date": "2026-11-05T18:00:00Z",
+      "reason": "discipline_unknown",
+      "text": "discipline non renseignée"
+     },
+     {
+      "id": "boulder-v",
+      "date": "2026-11-02T18:00:00Z",
+      "reason": "scale_other",
+      "text": "autre échelle de cotation (V-scale bloc)"
+     }
+    ],
+    "counts": {
+     "discipline_unknown": 1,
+     "grade_missing": 1,
+     "scale_other": 1
+    },
+    "limits": [
+     "1 séance dans une autre échelle est écartée : TITAN ne convertit pas les cotations."
+    ],
+    "estimates": [],
+    "reference": {
+     "kind": "best",
+     "value": 63,
+     "unit": "",
+     "display": "6B",
+     "sessions": 2
+    },
+    "previous": "boulder-2",
+    "signature": "escalade.echelle-discipline@2026.11-v1:boulder-2,boulder-1"
+   },
+   "comparison": {
+    "previous": "boulder-2",
+    "basis": "Même système et même discipline (Fontainebleau bloc · Bloc).",
+    "items": [
+     {
+      "id": "grade",
+      "now": "6B+",
+      "before": "6B",
+      "direction": "better"
+     }
+    ]
+   }
+  },
+  "boulder-yds": {
+   "selection": {
+    "version": "2026.11-v1",
+    "rule": {
+     "id": "climbing.indisponible",
+     "label": "Aucune règle applicable à cette séance",
+     "criteria": [],
+     "pilot": true
+    },
+    "status": "insufficient",
+    "sample": 0,
+    "considered": 6,
+    "retained": [],
+    "excluded": [],
+    "counts": {},
+    "limits": [
+     "TITAN ne sait pas ordonner les cotations de l’échelle « YDS » : aucune comparaison, et aucune conversion vers une autre échelle."
+    ],
+    "estimates": [],
+    "reference": null,
+    "previous": null,
+    "signature": "climbing.indisponible@2026.11-v1:"
+   },
+   "comparison": null
+  },
+  "run-noduration": {
+   "selection": {
+    "version": "2026.11-v1",
+    "rule": {
+     "id": "distance.indisponible",
+     "label": "Aucune règle applicable à cette séance",
+     "criteria": [],
+     "pilot": true
+    },
+    "status": "insufficient",
+    "sample": 0,
+    "considered": 6,
+    "retained": [],
+    "excluded": [],
+    "counts": {},
+    "limits": [
+     "Sans durée saisie, TITAN ne compare rien : la durée de 60 min est une estimation pour l’XP, jamais comparée."
+    ],
+    "estimates": [],
+    "reference": null,
+    "previous": null,
+    "signature": "distance.indisponible@2026.11-v1:"
+   },
+   "comparison": null
+  }
+ }
+}

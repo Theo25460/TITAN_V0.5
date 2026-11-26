@@ -25,6 +25,7 @@ const MESSAGES: Record<string, string> = {
   TRAINING_DURATION_OUT_OF_RANGE: "Une séance dure au maximum 24 h.",
   EVENT_CONTENT_CONFLICT: "Cette séance a déjà été envoyée avec un contenu différent.",
   REVISION_CONFLICT: "Cette séance a été modifiée ailleurs. Actualise puis réessaie.",
+  SESSION_MATCH_JOINED: "Cette séance a été réunie avec une autre : la restaurer la compterait deux fois. Ouvre « Sources » et choisis « Séparer en deux séances ».",
   SESSION_VERSION_CONFLICT: "Cette séance a changé sur un autre appareil. Actualise le journal puis recommence.",
   EXERCISE_VOLUME_READ_ONLY: "Le volume d’une séance d’exercices se corrige série par série.",
   EXERCISES_INVALID: "Garde entre 1 et 30 exercices.",
@@ -34,6 +35,8 @@ const MESSAGES: Record<string, string> = {
   DURATION_INVALID: "La durée va de 1 minute à 24 heures.",
   EXTRAS_INVALID: "Un détail d’escalade n’est pas valide.",
   SESSION_INVALID: "Une valeur n’est pas valide pour cette séance.",
+  ELEVATION_INVALID: "Le dénivelé va de 0 à 12 000 m, pour une séance mesurée en km.",
+  PATCH_INVALID: "Le serveur n’accepte pas encore cette correction. Réessaie après sa prochaine mise à jour.",
   // A queued session cannot be edited (« Réessayer » resends the same values): say what really works, as the website does.
   TRAINING_REJECTED: "Le serveur refuse cette séance : une valeur sort des limites acceptées (distance, durée, vitesse ou date). Supprime-la, puis enregistre-la de nouveau avec des valeurs corrigées.",
   TRAINING_RATE_LIMIT: "Beaucoup de séances ou de modifications en peu de temps. Réessaie dans un moment.",

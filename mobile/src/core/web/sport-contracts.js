@@ -165,31 +165,42 @@
     if (Number.isFinite(created) && Math.abs(created - t) <= 10 * 60000 && !traced) out.push([t - minutes * 60000, t]);
     return out;
   }
-  /** The journal session that very likely records the same effort as `candidate` ({ sport, date, minutes }), or null. */
-  function findDuplicate(candidate, logs) {
-    if (!candidate || !candidate.sport) return null;
+  /** Minutes an effort ({ date, minutes }) shares with a journal session, read both ways (start, and « saved now » end reading). */
+  function sharedMinutes(candidate, l) {
     const start = new Date(candidate.date).getTime();
-    if (!Number.isFinite(start)) return null;
+    const t = new Date(l?.date).getTime();
+    if (!Number.isFinite(start) || !Number.isFinite(t)) return 0;
+    const minutes = Number(candidate.minutes) > 0 ? Number(candidate.minutes) : 30;
+    const own = [start, start + minutes * 60000];
+    let best = 0;
+    for (const [a, b] of readings(l, minutesOfLog(l))) best = Math.max(best, Math.min(b, own[1]) - Math.max(a, own[0]));
+    return Math.max(0, best) / 60000;
+  }
+  /** Every journal session that very likely records the same effort as `candidate`, best overlap first (rule V15). */
+  function findDuplicates(candidate, logs) {
+    if (!candidate || !candidate.sport) return [];
+    const start = new Date(candidate.date).getTime();
+    if (!Number.isFinite(start)) return [];
     const minutes = Number(candidate.minutes) > 0 ? Number(candidate.minutes) : 30;
     const group = dedupeGroup(candidate.sport);
-    const own = [start, start + minutes * 60000];
-    let best = null;
+    const out = [];
     for (const l of logs || []) {
       if (!l || l.archived_at || dedupeGroup(l.sport) !== group) continue;
       if (candidate.id && (l.id === candidate.id || l.client_event_id === candidate.id)) continue;
       const t = new Date(l.date).getTime();
       if (!Number.isFinite(t) || Math.abs(t - start) > 86400000) continue;
-      const m = minutesOfLog(l);
-      const need = 0.5 * Math.min(m, minutes) * 60000;
-      for (const [a, b] of readings(l, m)) {
-        const shared = Math.min(b, own[1]) - Math.max(a, own[0]);
-        if (shared >= need && (!best || shared > best.shared)) best = { log: l, shared };
-      }
+      const shared = sharedMinutes({ date: candidate.date, minutes }, l);
+      if (shared >= 0.5 * Math.min(minutesOfLog(l), minutes)) out.push({ log: l, shared });
     }
+    return out.sort((a, b) => b.shared - a.shared);
+  }
+  /** The journal session that very likely records the same effort as `candidate` ({ sport, date, minutes }), or null. */
+  function findDuplicate(candidate, logs) {
+    const best = findDuplicates(candidate, logs)[0];
     return best ? best.log : null;
   }
 
-  const api = { version: 1, FORM_CONTRACTS, SELF_RATED, DEDUPE_GROUPS, contract, structuredKeys, retiredReason, entryFields, audit, dedupeGroup, findDuplicate };
+  const api = { version: 1, FORM_CONTRACTS, SELF_RATED, DEDUPE_GROUPS, contract, structuredKeys, retiredReason, entryFields, audit, dedupeGroup, findDuplicate, findDuplicates, sharedMinutes, minutesOfLog };
   root.TitanSportContracts = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

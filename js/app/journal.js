@@ -18,7 +18,9 @@
   const PREFS = "titan_journal_prefs_v3";
 
   let root = null;
-  let ui = { q: "", family: "all", period: "all", view: "list", archived: false, month: null, day: null };
+  /* V1.6.6: the list shows PAGE rows, then « Afficher plus » adds PAGE more; any change of filter starts again from the first page. */
+  const PAGE = 100;
+  let ui = { q: "", family: "all", period: "all", view: "list", archived: false, month: null, day: null, shown: PAGE };
   try {
     const saved = JSON.parse(localStorage.getItem(PREFS) || "null");
     if (saved) ui = { ...ui, family: saved.family || "all", period: saved.period || "all", view: saved.view === "calendar" ? "calendar" : "list" };
@@ -42,21 +44,25 @@
     return (ui.archived ? window.state?.archivedHistory : window.state?.history) || [];
   }
 
-  function filtered(ignoreDay = false) {
-    const q = norm(ui.q).trim();
-    const since = ui.period === "all" ? -Infinity : Date.now() - Number(ui.period) * DAY;
-    return source()
-      .filter((l) => {
-        const t = new Date(l.date).getTime();
-        if (!Number.isFinite(t) || t < since) return false;
-        if (ui.family !== "all" && SP().familyOf(l.sport) !== ui.family) return false;
-        if (!ignoreDay && ui.day && F().dateKey(l.date) !== ui.day) return false;
-        if (!q) return true;
-        const hay = norm([SP().label(l.sport), l.details?.note, ...(l.details?.exercises || []).map((e) => `${e.name} ${e.variant || ""}`), l.details?.extras?.max_done, l.details?.extras?.location].join(" "));
-        return q.split(/\s+/).every((w) => hay.includes(w));
-      })
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  /* V1.6.6: the rows are sorted and keyed once per history change (js/core/history-window.js buildIndex), so a filter is one pass
+     over the index instead of a sort of the whole history on every chip and keystroke (201 ms at p95 on 10 000 sessions before). */
+  const W = () => window.TitanHistoryWindow;
+  const searchText = (l) => [SP().label(l.sport), l.details?.note, ...(l.details?.exercises || []).map((e) => `${e.name} ${e.variant || ""}`), l.details?.extras?.max_done, l.details?.extras?.location].join(" ");
+  let historyVersion = 0;
+  window.addEventListener("titan:history-updated", () => { historyVersion++; });
+  const indexes = new WeakMap();
+  function indexOf(list) {
+    const known = indexes.get(list);
+    if (known && known.version === historyVersion && known.size === list.length) return known.index;
+    const index = W().buildIndex(list, { familyOf: (s) => SP().familyOf(s), textOf: searchText });
+    indexes.set(list, { index, version: historyVersion, size: list.length });
+    return index;
   }
+  const sinceOf = () => (ui.period === "all" ? -Infinity : Date.now() - Number(ui.period) * DAY);
+  function filtered(ignoreDay = false) {
+    return W().select(indexOf(source()), { since: sinceOf(), family: ui.family, day: ignoreDay ? null : ui.day, q: ui.q });
+  }
+  const coverage = () => (ui.archived ? null : window.titanHistoryCoverageOf?.(window.state?.user?.id) || null);
 
   /* Records of the whole history are computed once per change of the history, not on every render, keystroke and calendar row
      (141 ms for 2 000 sessions each time). The key is cheap and changes on add, edit (revision), archive and confirmation. */
@@ -81,10 +87,29 @@
 
   // Self-explanatory values only: a bare "2" means nothing in a list.
   const LABELLED = { Exercices: (v) => `${v} exercice${v === "1" ? "" : "s"}`, Séries: (v) => `${v} série${v === "1" ? "" : "s"}`, Répétitions: (v) => `${v} rép.`, Réussites: (v) => `${v} réussies`, Meilleure: (v) => `max ${v}` };
+  /* V1.6.1: one vocabulary with Android (js/core/sync-state.js), read from what this device really holds: the queue item of the
+     session (status, attempts, last attempt, reason) and the confirmed server row. */
+  const queueItemOf = (l) => {
+    const id = X().idOf(l);
+    return (window.TitanQueue?.list?.() || []).find((i) => i.payload?.details?.client_event_id === id) || null;
+  };
+  const syncOf = (l) => window.TitanSyncState?.describe({ log: l, item: queueItemOf(l), guest: String(window.state?.user?.id || "").startsWith("guest_"), online: navigator.onLine }) || null;
   function syncBadge(l) {
-    if (l.syncStatus === "error") return `<span class="asc-chip jr-badge err" title="Envoi refusé">${icon("alert")}À vérifier</span>`;
-    if (l.syncStatus === "pending") return `<span class="asc-chip jr-badge" title="En attente de synchronisation">${icon("cloudUp")}En attente</span>`;
-    return "";
+    if (!l.syncStatus || l.syncStatus === "confirmed" || l.syncStatus === "local") return "";
+    const s = syncOf(l);
+    if (!s || s.state === "confirmed") return "";
+    return `<span class="asc-chip jr-badge${s.tone === "err" ? " err" : ""}" data-sync-badge="${esc(s.state)}" title="${esc(s.label)}">${icon(s.tone === "err" ? "alert" : "cloudUp")}${esc(s.short)}</span>`;
+  }
+  function syncHtml(l) {
+    const s = syncOf(l);
+    if (!s) return "";
+    const kind = { send: "asc-btn-secondary", correct: "asc-btn-primary", discard: "asc-btn-ghost", export: "asc-btn-ghost" };
+    const icons = { send: "cloudUp", correct: "edit", discard: "trash", export: "download" };
+    const buttons = s.actions.map((a) => `<button type="button" class="asc-btn ${kind[a.id]} asc-btn-sm" data-sync-action="${esc(a.id)}"${a.id === "send" && !navigator.onLine ? " disabled" : ""}>${icon(icons[a.id])} ${esc(a.label)}</button>`).join("");
+    return `<section class="jr-detail-block jr-sync" data-sync-state="${esc(s.state)}" aria-label="Synchronisation"><p class="asc-eyebrow">Synchronisation</p>
+      <p class="asc-row-flex"><strong class="${s.tone === "err" ? "asc-err" : ""}">${esc(s.label)}</strong></p><p class="asc-small">${esc(s.text)}</p>
+      ${s.facts.length ? `<dl class="jr-kv">${s.facts.map((f) => `<div><dt>${esc(f.label)}</dt><dd>${esc(f.value)}</dd></div>`).join("")}</dl>` : ""}
+      ${buttons ? `<div class="asc-row-flex">${buttons}</div>` : ""}</section>`;
   }
 
   /* ---------- Rendering ---------- */
@@ -113,35 +138,42 @@
       <span class="jr-fig" data-col="Durée">${mins ? esc(F().duration(mins)) : ""}</span>
       <span class="jr-fig" data-col="Distance">${esc(dist)}</span>
       <span class="jr-fig" data-col="Ressenti">${rpe ? `${rpe}<small>/10</small>` : ""}</span>
-      <span class="jr-tags">${rec ? `<span class="asc-chip jr-badge am" title="${esc(rec.map((r) => r.label).join(", "))}">${icon("star")}Record</span>` : ""}${historical(l) ? '<span class="asc-chip jr-badge" title="Ajoutée plus de 30 jours après la séance : sans XP">Historique</span>' : ""}${syncBadge(l)}</span>
+      <span class="jr-tags">${rec ? `<span class="asc-chip jr-badge am" title="${esc(rec.map((r) => r.label).join(", "))}">${icon("star")}Record</span>` : ""}${historical(l) ? '<span class="asc-chip jr-badge" title="Ajoutée plus de 30 jours après la séance : sans XP">Historique</span>' : ""}${syncBadge(l)}${window.TitanMatches?.badge(l, matchRows) || ""}</span>
     </button>`;
   }
 
+  /* V1.6.6: one page of rows at a time (PAGE, then « Afficher plus »), every row reachable; a month header keeps the count and the
+     time of the whole month in the filtered list, even when its rows are split across two pages. */
   function listHtml(list) {
     if (!list.length) return emptyHtml();
     const recs = recordIds();
-    const groups = new Map();
+    const monthOf = (l) => { const d = new Date(l.date); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; };
+    const visible = list.slice(0, Math.max(PAGE, ui.shown));
+    const months = new Map();
+    for (const l of visible) {
+      const key = monthOf(l);
+      if (!months.has(key)) months.set(key, []);
+      months.get(key).push(l);
+    }
+    // Month totals over the whole filtered list, only for the months on screen.
+    const totals = new Map([...months.keys()].map((k) => [k, { n: 0, mins: 0 }]));
     for (const l of list) {
-      const d = new Date(l.date);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(l);
+      const t = totals.get(monthOf(l));
+      if (!t) { if (totals.size && monthOf(l) < [...totals.keys()].at(-1)) break; continue; }
+      t.n++;
+      t.mins += minutes(l) || 0;
     }
     let out = "";
-    let shown = 0;
-    for (const [key, logs] of groups) {
-      if (shown > 400) {
-        out += `<p class="asc-small asc-faint jr-more">${F().number(list.length - shown)} séances plus anciennes : affine la recherche ou la période pour les voir.</p>`;
-        break;
-      }
+    for (const [key, logs] of months) {
       const [y, m] = key.split("-").map(Number);
-      const mins = logs.reduce((n, l) => n + (minutes(l) || 0), 0);
+      const { n, mins } = totals.get(key);
       out += `<section class="jr-month" aria-label="${esc(new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}">
-        <header class="jr-month-head"><h2>${esc(new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: y === new Date().getFullYear() ? undefined : "numeric" }))}</h2><span class="asc-small asc-muted">${logs.length} séance${logs.length > 1 ? "s" : ""}${mins ? ` · ${esc(F().duration(mins))}` : ""}</span></header>
+        <header class="jr-month-head"><h2>${esc(new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: y === new Date().getFullYear() ? undefined : "numeric" }))}</h2><span class="asc-small asc-muted">${n} séance${n > 1 ? "s" : ""}${mins ? ` · ${esc(F().duration(mins))}` : ""}</span></header>
         <div class="jr-cols" aria-hidden="true"><span></span><span></span><span>Séance</span><span>Durée</span><span>Distance</span><span>Ressenti</span><span></span></div>
         <div class="jr-rows">${logs.map((l) => rowHtml(l, recs)).join("")}</div></section>`;
-      shown += logs.length;
     }
+    const rest = list.length - visible.length;
+    if (rest > 0) out += `<div class="jr-more"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-more>${icon("chevronDown")} Afficher ${F().number(Math.min(PAGE, rest))} séance${Math.min(PAGE, rest) > 1 ? "s" : ""} de plus</button><span class="asc-small asc-faint">${F().number(visible.length)} sur ${F().number(list.length)}</span></div>`;
     return out;
   }
 
@@ -207,12 +239,28 @@
       <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-retry ${navigator.onLine ? "" : "disabled"}>${icon("cloudUp")} Réessayer</button><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-export-pending>${icon("download")} Exporter une copie</button>${errors.some((i) => !i.deferred) ? `<button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-discard-refused>${icon("trash")} Retirer les séances refusées</button>` : ""}</div></div></section>`;
   }
 
+  /* V1.6.6: what this device holds, when it is offline or while the history is still arriving (js/core/history-window.js). */
+  function coverageHtml() {
+    const cov = coverage();
+    const d = cov && W().describe(cov, { online: navigator.onLine, loading: window.titanHistoryLoading === true });
+    if (!d) return "";
+    return `<p class="asc-note${d.tone === "warn" ? " warn" : ""} jr-coverage" data-coverage="${esc(d.state)}" role="status">${icon(navigator.onLine ? "cloud" : "offline")}<span>${esc(d.text)}</span></p>`;
+  }
+
   function summaryHtml(list) {
     if (!list.length) return "";
-    const mins = list.reduce((n, l) => n + (minutes(l) || 0), 0);
-    const km = list.filter((l) => l.unit === "km").reduce((n, l) => n + (Number(l.val) || 0), 0);
-    const days = new Set(list.map((l) => F().dateKey(l.date))).size;
-    return `<dl class="jr-summary">
+    let mins = 0, km = 0;
+    const dayKeys = new Set();
+    for (const l of list) {
+      mins += minutes(l) || 0;
+      if (l.unit === "km") km += Number(l.val) || 0;
+      dayKeys.add(F().dateKey(l.date));
+    }
+    const days = dayKeys.size;
+    // V1.6.6: a partial copy (first pages, or offline before the whole history arrived) never reads as a complete total.
+    const cov = coverage();
+    const partial = cov && !W().covers(cov, sinceOf());
+    return `${partial ? `<p class="asc-small asc-faint jr-partial" data-coverage-partial>Totaux partiels : cet appareil n’a pas encore les séances d’avant le ${esc(new Date(cov.oldest || Date.now()).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }))}.</p>` : ""}<dl class="jr-summary"${partial ? ' data-partial="true"' : ""}>
       <div><dt>Séances</dt><dd class="asc-num">${F().number(list.length)}</dd></div>
       <div><dt>Jours actifs</dt><dd class="asc-num">${F().number(days)}</dd></div>
       ${mins ? `<div><dt>Temps</dt><dd class="asc-num">${esc(F().duration(mins))}</dd></div>` : ""}
@@ -228,8 +276,24 @@
   }
 
   let pendingFragmentFocused = false;
+  /* V1.6.2: the account's recent links (js/app/matches.js), read once per history change; a row says « À vérifier » or « 2 sources ». */
+  let matchRows = [];
+  let matchKey = "";
+  function loadMatches() {
+    const key = `${window.state?.user?.id || ""}:${(window.state?.history || []).length}:${(window.state?.archivedHistory || []).length}`;
+    if (key === matchKey || !window.TitanMatches) return;
+    matchKey = key;
+    window.TitanMatches.recent().then((rows) => {
+      if (key !== matchKey || !rows.length || JSON.stringify(rows) === JSON.stringify(matchRows)) return;
+      matchRows = rows;
+      render();
+    });
+  }
+  window.addEventListener("titan:history-updated", () => { matchKey = ""; });
+
   function render() {
     if (!root) return;
+    loadMatches();
     const list = filtered();
     const fams = Object.keys(SP().FAMILY_LABEL);
     const archivedCount = (window.state?.archivedHistory || []).length;
@@ -243,6 +307,7 @@
         return `<div class="jr-add">${hub ? `<a class="asc-btn asc-btn-secondary asc-btn-sm" href="/training?mode=manual" data-journal-manual>${icon("plus")} Ajouter</a><a class="asc-btn asc-btn-secondary asc-btn-sm" href="/training?mode=import" data-journal-import>${icon("upload")} Importer</a>` : ""}${routes ? `<button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-routes-open aria-label="Mes parcours">${icon("route")} Parcours</button>` : ""}</div>`;
       })()}
       ${pendingHtml()}
+      ${coverageHtml()}
       <div class="jr-tools">
         <div class="jr-bar">
           <div class="seance-search jr-search"><label class="sr-only" for="jr-q">Rechercher dans le journal</label><span class="seance-search-icon">${icon("search")}</span>
@@ -262,6 +327,7 @@
       <footer class="jr-foot">
         <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-archived>${icon(ui.archived ? "journal" : "archive")} ${ui.archived ? "Retour au journal" : `Archives${archivedCount ? ` (${archivedCount})` : ""}`}</button>
         <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-export>${icon("download")} Exporter (CSV)</button>
+        <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-history-import>${icon("upload")} Importer un historique</button>
       </footer>`;
     if (focus) {
       const el = document.getElementById(focus);
@@ -328,6 +394,65 @@
     return `<section class="jr-detail-block"><p class="asc-eyebrow">Détails</p><dl class="jr-kv">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>${gpxView}</section>`;
   }
 
+  /* V1.7.7 — the GPS bilan of an outing recorded with the position. `details.gps` is the digest the GPS engine wrote when the session
+     was saved (js/core/gps-engine.js): it is read as it is, never recomputed here, and it is the reference. A session without it
+     keeps the display it always had. Foot sports read a pace, the others a speed (js/core/gps-session.js). */
+  const GPS_TIME = [["moving", "En mouvement"], ["stopped", "À l’arrêt"], ["paused", "En pause"], ["missing", "Sans position"], ["interrupted", "Enregistrement interrompu"]];
+  const gpsSpeed = (l, metres, seconds) => {
+    if (!(seconds >= 30) || !(metres >= 50)) return "–";
+    const GS = window.TitanGpsSession, t = GS?.speedText?.(metres / seconds, !!GS.layout?.(l.sport)?.pace);
+    return t ? `${t.value} ${t.unit}` : `${F().number((metres / seconds) * 3.6, 1)} km/h`;
+  };
+  const gpsBar = (parts, clock) => {
+    const shown = parts.filter((p) => p.seconds > 0);
+    return `<div class="rt-timebar" role="img" aria-label="${esc(`Répartition du temps : ${shown.map((p) => `${p.label.toLowerCase()} ${clock(p.seconds)}`).join(", ")}`)}">${shown.map((p) => `<span class="rt-time rt-time-${p.kind}" style="flex-grow:${Math.max(1, Math.round(p.seconds))}"></span>`).join("")}</div>`;
+  };
+  function gpsBilanHtml(l) {
+    const g = l.details?.gps, E = window.TitanGpsEngine;
+    if (!g || typeof g !== "object" || !E?.clock || !(Number(g.elapsedS) > 0)) return "";
+    const n = (v) => Math.max(0, Number(v) || 0);
+    const times = { moving: n(g.movingS), stopped: n(g.stoppedS), paused: n(g.pausedS), missing: n(g.missingS) };
+    const swatch = (kind) => `<span class="rt-swatch rt-time-${kind}" aria-hidden="true"></span>`;
+    const rows = [
+      [`${swatch("moving")}En mouvement`, E.clock(times.moving)], ["Temps total", E.clock(n(g.elapsedS))], [`${swatch("stopped")}À l’arrêt`, E.clock(times.stopped)], [`${swatch("paused")}En pause`, E.clock(times.paused)],
+      ...(times.missing > 0 ? [[`${swatch("missing")}Sans position`, E.clock(times.missing)]] : []),
+      ["Moyenne en mouvement", gpsSpeed(l, n(g.distanceM), times.moving)], ["Moyenne globale", gpsSpeed(l, n(g.distanceM), n(g.elapsedS))],
+      ["Dénivelé positif", g.ascentM === null || g.ascentM === undefined || g.altitude === "unreliable" ? "pas assez fiable" : `${F().number(g.ascentM)} m · altitude du GPS`],
+    ];
+    return `<section class="jr-detail-block rt-bilan" data-gps-bilan aria-label="Bilan GPS"><p class="asc-eyebrow">Bilan GPS</p>
+      ${gpsBar(GPS_TIME.slice(0, 4).map(([kind, label]) => ({ kind, label, seconds: times[kind] })), E.clock)}
+      <dl class="jr-kv rt-bilan-figures">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
+      <p class="asc-small asc-faint">${g.autoPause === false ? "Pause automatique désactivée : la durée de la séance garde les arrêts détectés, pas les pauses ni les trous." : "Durée de la séance = temps en mouvement."}${times.missing > 0 ? " Le temps sans position fiable n’est pas compté comme effort." : ""}</p>
+      <div class="rt-bilan-detail" data-gps-detail-slot></div></section>`;
+  }
+  /** « Voir le détail »: the engine run again on the trace kept in the library, when that trace carries its times. The library trace
+      is thinned (3,000 points at most), so these figures may differ slightly from the saved bilan above, which stays the reference. */
+  function mountGpsDetail(slot, l, linked) {
+    const E = window.TitanGpsEngine;
+    if (!slot || !slot.isConnected || !linked?.timed || !E?.analyse) return;
+    slot.innerHTML = `<button type="button" class="asc-btn asc-btn-secondary rt-tap" data-gps-detail aria-expanded="false">${icon("chart")} Voir le détail</button><div class="asc-stack-sm" data-gps-detail-out hidden></div>`;
+    const button = slot.querySelector("[data-gps-detail]"), out = slot.querySelector("[data-gps-detail-out]");
+    button.addEventListener("click", () => {
+      const open = button.getAttribute("aria-expanded") !== "true";
+      button.setAttribute("aria-expanded", String(open));
+      out.hidden = !open;
+      if (!open || out.dataset.done) return;
+      out.dataset.done = "1";
+      let a = null;
+      try { a = E.analyse({ sport: l.sport, segs: linked.segs }, { autoPause: l.details?.gps?.autoPause !== false }); } catch { a = null; }
+      if (!a || !(a.elapsedS > 0)) { out.innerHTML = '<p class="asc-small asc-muted">Le détail n’a pas pu être calculé sur cette trace.</p>'; return; }
+      const label = Object.fromEntries(GPS_TIME), pieces = a.timeline.slice(0, 400).map((t) => ({ kind: t.kind, label: label[t.kind] || t.kind, seconds: (t.to - t.from) / 1000 }));
+      const totals = GPS_TIME.map(([kind, text]) => ({ kind, label: text, seconds: a.ms[kind] / 1000 })).filter((p) => p.seconds >= 1);
+      out.innerHTML = `<p class="asc-small asc-muted">Détail recalculé sur la trace de ta bibliothèque, allégée (3 000 points au plus) : ces chiffres peuvent différer légèrement du bilan enregistré ci-dessus, qui reste la référence.</p>
+        <p class="asc-eyebrow">Au fil de la sortie</p>
+        <div class="rt-timebar rt-timebar-line" role="img" aria-label="${esc(`Déroulé : ${totals.map((p) => `${p.label.toLowerCase()} ${E.clock(p.seconds)}`).join(", ")}`)}">${pieces.map((p) => `<span class="rt-time rt-time-${esc(p.kind)}" style="flex-grow:${Math.max(1, Math.round(p.seconds))}"></span>`).join("")}</div>
+        <ul class="rt-time-legend asc-small">${totals.map((p) => `<li><span class="rt-swatch rt-time-${esc(p.kind)}" aria-hidden="true"></span>${esc(p.label)} · <span class="asc-num">${esc(E.clock(p.seconds))}</span></li>`).join("")}</ul>
+        <p class="asc-small">${a.stops.length ? `${a.stops.length} arrêt${a.stops.length > 1 ? "s" : ""} détecté${a.stops.length > 1 ? "s" : ""}` : "Aucun arrêt détecté"} · distance recalculée ${esc(F().distance(a.distanceM / 1000))}</p>
+        ${a.splits.length ? `<div class="rt-table-wrap"><table class="rt-table" data-gps-splits><caption class="asc-eyebrow">Kilomètre par kilomètre · temps en mouvement</caption><thead><tr><th scope="col">Km</th><th scope="col">Temps</th><th scope="col">${window.TitanGpsSession?.layout?.(l.sport)?.pace ? "Allure" : "Vitesse"}</th></tr></thead>
+          <tbody>${a.splits.slice(0, 400).map((s) => `<tr><th scope="row">${s.distanceM >= 1000 ? s.index : esc(`${s.index} (${F().number(s.distanceM)} m)`)}</th><td class="asc-num">${esc(E.clock(s.movingS))}</td><td class="asc-num">${esc(gpsSpeed(l, s.distanceM, s.movingS))}</td></tr>`).join("")}</tbody></table></div>` : ""}`;
+    });
+  }
+
   function compareHtml(l) {
     const p = X().previousOf(l);
     if (!p) return "";
@@ -356,10 +481,34 @@
   }
 
   /* Lot D: the session against the last comparable one (same sport, comparable size, same exercise or grade system), measured
-     figures only (js/core/progression.js). A change below its threshold reads « stable »; shared measures are never judged. */
+     figures only (js/core/progression.js). A change below its threshold reads « stable »; shared measures are never judged.
+     V1.7.1: the selection is shown — the rule applied, the sample, the sessions kept (each opens its sheet), the sessions set aside
+     and why, and the limit when a criterion depends on a value that was not recorded. The same module runs on Android. */
+  const shortDate = (iso) => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+  function selectionHtml(s, P, limits = "") {
+    const n = s.sample;
+    const kept = s.retained.map((r) => `<li><button type="button" class="asc-link" data-open-source="${esc(r.id)}">${esc(shortDate(r.date))}</button> <span class="asc-faint">· ${esc(r.summary)}</span></li>`).join("");
+    const counts = Object.entries(s.counts).map(([k, v]) => `${v} ${P.REASONS[k] || k}`).join(", ");
+    const set = s.excluded.map((x) => `<li><button type="button" class="asc-link" data-open-source="${esc(x.id)}">${esc(shortDate(x.date))}</button> <span class="asc-faint">· ${esc(x.text)}</span></li>`).join("");
+    return `<details class="jr-comparables" data-comparables>
+      <summary>${n ? `Voir ${n > 1 ? `les ${n} séances comparées` : "la séance comparée"}` : "Voir la règle et les séances examinées"}</summary>
+      <p class="asc-small" data-rule="${esc(`${s.rule.id}@${s.rule.version}`)}"><strong>Règle appliquée</strong> · ${esc(s.rule.label)} <span class="asc-faint">(règles ${esc(s.rule.version)})</span></p>
+      ${s.rule.criteria.length ? `<ul class="asc-small jr-criteria">${s.rule.criteria.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
+      <p class="asc-small" data-sample="${n}"><strong>Échantillon</strong> · ${n} séance${n > 1 ? "s" : ""} retenue${n > 1 ? "s" : ""} sur ${s.considered} examinée${s.considered > 1 ? "s" : ""}${counts ? ` <span class="asc-faint">(écartées : ${esc(counts)})</span>` : ""}.</p>
+      ${kept ? `<p class="asc-eyebrow">Séances retenues</p><ol class="asc-small jr-sources" data-retained>${kept}</ol>` : ""}
+      ${set ? `<p class="asc-eyebrow">Séances écartées</p><ul class="asc-small jr-sources" data-excluded>${set}</ul>` : ""}
+      ${limits ? `<p class="asc-eyebrow">Limites</p>${limits}` : ""}
+    </details>`;
+  }
   function comparisonHtml(l) {
     const P = window.TitanProgression;
-    const c = P?.compare?.(l, window.state?.history || []);
+    const history = window.state?.history || [];
+    const s = P?.comparables?.(l, history);
+    if (!s) return "";
+    const limits = s.limits.length ? `<ul class="asc-small jr-limits" data-comparison-limit>${s.limits.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : "";
+    if (s.status === "insufficient")
+      return `<section class="jr-detail-block" data-comparison data-status="insufficient"><p class="asc-eyebrow">Comparaison · données insuffisantes</p>${limits}${selectionHtml(s, P)}</section>`;
+    const c = P.compare(l, history);
     if (!c || !c.items.length) return "";
     // Reuses the metrics list of the session sheet (moment-metrics): the word, not a colour, carries the direction.
     const line = (i) => {
@@ -368,10 +517,14 @@
       const before = i.currentReps !== undefined ? `${P.formatValue(i, "previous")} × ${i.previousReps}` : P.formatValue(i, "previous");
       return `<div><dt>${esc(i.label)}</dt><dd class="asc-num">${esc(now)} <small class="asc-faint">avant ${esc(before)}${word ? ` · ${esc(word)}` : ""}</small></dd></div>`;
     };
-    return `<section class="jr-detail-block" data-comparison><p class="asc-eyebrow">Par rapport à ta séance du ${esc(new Date(c.previous.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</p>
-      <dl class="moment-metrics">${c.items.slice(0, 6).map(line).join("")}</dl><p class="asc-small asc-faint">${esc(c.basis)} Seules les valeurs mesurées sont comparées.</p></section>`;
+    const ref = s.reference ? `<p class="asc-small" data-reference>${s.reference.kind === "best" ? "Meilleure réussite" : "Médiane"} de tes ${s.reference.sessions} séances retenues : <strong>${esc(s.reference.display)}</strong>.</p>` : "";
+    return `<section class="jr-detail-block" data-comparison data-status="${esc(s.status)}"><p class="asc-eyebrow">Par rapport à ta séance du ${esc(new Date(c.previous.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }))}</p>
+      <dl class="moment-metrics">${c.items.slice(0, 6).map(line).join("")}</dl><p class="asc-small asc-faint">${esc(c.basis)} Seules les valeurs mesurées sont comparées.</p>
+      ${ref}${s.status === "limited" ? `<p class="asc-small"><strong>Comparaison élargie</strong> : un critère n’a pas pu être vérifié.</p>${limits}${selectionHtml(s, P)}` : selectionHtml(s, P, limits)}</section>`;
   }
 
+  // A session the server has not confirmed is corrected through « Synchronisation » (the server edit needs a confirmed row).
+  const unsent = (l) => l.syncStatus === "pending" || l.syncStatus === "error";
   function detailHtml(l) {
     const metrics = window.TitanMoment?.metrics(l) || [];
     const rw = rewardLine(l);
@@ -379,17 +532,21 @@
     return `<div class="jr-detail">
       <dl class="moment-metrics">${metrics.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd class="asc-num">${esc(v)}</dd></div>`).join("")}</dl>
       ${recs.length ? `<p class="jr-record">${icon("star")}<span>${recs.length > 1 ? "Records actuels" : "Record actuel"} : ${esc(recs.map((r) => r.label).join(", "))}</span></p>` : ""}
-      <p class="jr-reward ${rw.cls}">${esc(rw.text)}${l.syncStatus === "pending" ? " En attente de synchronisation." : ""}${l.syncStatus === "error" ? (historical(l) ? " Le serveur ne l’a pas encore acceptée : elle reste ici et sera renvoyée automatiquement. Tu peux déjà l’exporter." : " Le serveur a refusé l’envoi : exporte cette séance puis enregistre-la de nouveau.") : ""}</p>
+      <p class="jr-reward ${rw.cls}">${esc(rw.text)}</p>
+      ${syncHtml(l)}
+      <div data-match-slot></div>
+      <div data-changes-slot></div>
       ${comparisonHtml(l)}
       ${exercisesHtml(l)}
       ${extrasHtml(l)}
       ${l.details?.note ? `<section class="jr-detail-block"><p class="asc-eyebrow">Note</p><p class="jr-note">${esc(l.details.note)}</p></section>` : ""}
+      ${gpsBilanHtml(l)}
       <div data-route-slot></div>
       ${l.archived_at ? "" : compareHtml(l)}
       <div class="jr-actions">
-        ${l.archived_at ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-edit>${icon("edit")} Corriger</button>`}
+        ${l.archived_at || unsent(l) ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-edit>${icon("edit")} Corriger</button>`}
         ${l.archived_at ? "" : `<button type="button" class="asc-btn asc-btn-secondary" data-duplicate>${icon("copy")} Refaire</button>`}
-        <button type="button" class="asc-btn asc-btn-ghost" data-toggle-archive>${icon(l.archived_at ? "restore" : "archive")} ${l.archived_at ? "Restaurer" : "Archiver"}</button>
+        ${unsent(l) ? "" : `<button type="button" class="asc-btn asc-btn-ghost" data-toggle-archive>${icon(l.archived_at ? "restore" : "archive")} ${l.archived_at ? "Restaurer" : "Archiver"}</button>`}
       </div>
     </div>`;
   }
@@ -404,6 +561,21 @@
     events.forEach(ev => window.addEventListener(ev, guard));
     d.addEventListener("close", () => events.forEach(ev => window.removeEventListener(ev, guard)), { once: true });
     guard();
+  }
+  /* V1.6.3: what corrections, archives and restores changed on this session, read from the server (titan_session_changes_v1,
+     owner only), worded by js/core/history-ledger.js like on Android. Without the function (bundle v22 not applied) nothing shows. */
+  async function mountChanges(slot, l, isCurrent) {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!slot || !uuid.test(String(l?.id || "")) || !(Number(l.revision) > 1) || (l.syncStatus && l.syncStatus !== "confirmed")) return;
+    if (!window.titanClient?.rpc || !navigator.onLine || String(window.state?.user?.id || "").startsWith("guest_")) return;
+    let data = null;
+    try { ({ data } = await window.titanClient.rpc("titan_session_changes_v1", { p_log_id: l.id })); } catch { return; }
+    if (!isCurrent() || !Array.isArray(data) || !data.length) return;
+    const L = window.TitanLedger;
+    const when = (iso) => new Date(iso).toLocaleString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    slot.innerHTML = `<section class="jr-detail-block" data-changes aria-label="Modifications de la séance"><p class="asc-eyebrow">Modifications</p>
+      <ul class="asc-small jr-changes">${data.map((e) => `<li><span class="asc-faint">${esc(when(e.at))}</span> · ${esc((e.changes || []).map(L.changeText).join(" · "))}</li>`).join("")}</ul>
+      <p class="asc-small asc-faint">Référence ${esc(L.reference(l))}, la même sur tes autres appareils. Les récompenses restent celles de la séance initiale.</p></section>`;
   }
   async function openDetail(id) {
     const request = ++detailRequest;
@@ -421,10 +593,26 @@
     body.innerHTML = detailHtml(l);
     const d = window.titanShell.sheet({ title: SP().label(l.sport), eyebrow: `${new Date(l.date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · ${F().time(l.date)}`, body });
     guardDialog(d, context);
-    window.TitanRoutes?.mountForSession?.(body.querySelector("[data-route-slot]"), l);
+    const linkedRoute = window.TitanRoutes?.mountForSession?.(body.querySelector("[data-route-slot]"), l);
+    if (l.details?.gps) Promise.resolve(linkedRoute).then((linked) => { if (request === detailRequest && currentAccount(context) && d.open) mountGpsDetail(body.querySelector("[data-gps-detail-slot]"), l, linked); }).catch(() => {});
+    window.TitanMatches?.mount(body.querySelector("[data-match-slot]"), l, () => request === detailRequest && currentAccount(context) && d.open);
+    mountChanges(body.querySelector("[data-changes-slot]"), l, () => request === detailRequest && currentAccount(context) && d.open);
     body.addEventListener("click", async (e) => {
       if (!currentAccount(context)) return d.close();
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
+      // V1.7.1: a source of the comparison opens its own sheet (the same journal entry, never a copy).
+      const source = e.target.closest("[data-open-source]");
+      if (source) {
+        d.close();
+        return openDetail(source.getAttribute("data-open-source"));
+      }
+      const matchButton = e.target.closest("[data-match-action]");
+      if (matchButton) {
+        d.close();
+        return window.TitanMatches?.decide(matchButton.getAttribute("data-match-action"), matchButton.getAttribute("data-match-source"), matchButton.getAttribute("data-match-ref"), () => { if (currentAccount(context)) render(); });
+      }
+      const syncAction = e.target.closest("[data-sync-action]")?.getAttribute("data-sync-action");
+      if (syncAction) return runSyncAction(syncAction, l, d, context);
       if (e.target.closest("[data-edit]")) {
         d.close();
         return openEdit(l, context);
@@ -446,6 +634,37 @@
         await confirmation;
       }
     });
+  }
+
+  /* V1.6.1: each recovery action is the existing flow that matches the reason (js/core/sync-state.js). */
+  async function runSyncAction(action, l, d, context) {
+    const item = queueItemOf(l);
+    if (action === "export") return window.titanExportPending?.();
+    if (action === "send") {
+      d.close();
+      return window.flushPendingTrainingLogs?.({ retry: true })
+        .then((r) => { if (currentAccount(context)) window.titanShell.toast({ type: r?.remaining ? "warn" : "ok", title: r?.remaining ? "Envoi incomplet" : "Séance confirmée dans ton compte", message: r?.remaining ? "Elle reste enregistrée sur cet appareil et repartira automatiquement." : "Tu la retrouves sur tes autres appareils." }); })
+        .catch(() => { if (currentAccount(context)) window.titanShell.toast({ type: "warn", title: "Envoi impossible", message: "Ta séance reste enregistrée sur cet appareil." }); })
+        .finally(() => { if (currentAccount(context)) render(); });
+    }
+    if (action === "correct" && item && window.TitanSyncState?.replaceable(item)) return X().duplicate({ ...item.payload, id: X().idOf(l), client_event_id: X().idOf(l) }, { replaces: item.key });
+    if (action === "discard" && item) {
+      d.close();
+      return window.titanShell.confirm({
+        title: "Retirer cette séance de cet appareil ?",
+        message: item.status === "error" ? "Le serveur l’a refusée : elle n’est ni dans ton compte ni récompensée." : "Elle n’a pas encore été confirmée par ton compte.",
+        detail: "Exporte d’abord une copie si tu veux la ressaisir plus tard.",
+        confirmLabel: "Retirer",
+        danger: true,
+        action: async () => {
+          if (!currentAccount(context)) throw new Error("Le compte a changé.");
+          await window.TitanQueue.remove(item.key, context.owner);
+          window.state.history = (window.state.history || []).filter((h) => X().idOf(h) !== X().idOf(l));
+          await window.TitanQueue.saveHistory(context.owner, [...window.state.history, ...(window.state.archivedHistory || [])]).catch(() => {});
+          window.dispatchEvent(new CustomEvent("titan:history-updated"));
+        },
+      }).then(() => { if (currentAccount(context)) render(); });
+    }
   }
 
   /* ---------- Correction ---------- */
@@ -482,6 +701,8 @@
       return `<label class="asc-field" data-metric="${esc(f.id)}"><span>${label}</span>${control}</label>`;
     };
     const timeUnit = ["min", "h"].includes(l.unit);
+    // V1.6.6: the positive elevation of a ride, a run or a hike (details.elevation), corrected like its other measures.
+    const elevated = l.unit === "km" && SP().hasElevation?.(l.sport) === true;
     const body = document.createElement("form");
     body.className = "asc-stack jr-edit";
     body.noValidate = true;
@@ -508,6 +729,7 @@
       }
       ${exercises.length && !editableSets ? `<p class="asc-note">${icon("info")}<span>Les maintiens chronométrés se corrigent en dupliquant la séance puis en archivant celle-ci.</span></p>` : ""}
       <label class="asc-field"><span>Durée (min)${timeUnit ? "" : ' <small class="asc-faint">facultatif</small>'}</span><input class="asc-input" type="number" inputmode="decimal" name="duration" min="1" max="1440" step="any" value="${esc(minutes(l) || "")}" ${timeUnit ? "required" : ""}></label>
+      ${elevated ? `<label class="asc-field"><span>Dénivelé positif (m) <small class="asc-faint">facultatif</small></span><input class="asc-input" type="number" inputmode="numeric" name="elevation" min="0" max="12000" step="1" value="${esc(l.details?.elevation ?? "")}"></label>` : ""}
       ${
         climbing
           ? `<div class="asc-form-grid"><label class="asc-field"><span>Meilleure réussie</span><input class="asc-input" name="max_done" value="${esc(l.details?.extras?.max_done || "")}"></label>
@@ -632,13 +854,31 @@
         if (value !== previousExtras[f.id]) metricPatch[f.id] = value;
       }
       if (Object.keys(metricPatch).length) patch.extras = { ...(patch.extras || {}), ...metricPatch };
+      if (elevated) {
+        const raw = String(fd.get("elevation") ?? "").trim().replace(",", ".");
+        const next = raw === "" ? null : Number(raw);
+        if (next !== null && !(Number.isFinite(next) && next >= 0 && next <= 12000)) return (err.textContent = "Le dénivelé va de 0 à 12 000 m.");
+        const was = l.details?.elevation === undefined || l.details?.elevation === null || l.details?.elevation === "" ? null : Number(l.details.elevation);
+        if ((next === null ? null : Math.round(next)) !== was) patch.elevation = next === null ? null : Math.round(next);
+      }
+      // V1.6.3: only what changed is sent, so the session keeps its date (the form has no seconds), unit and reference, and its
+      // « Modifications » list shows the real correction (same rule as the Android edit screen).
+      if (Math.floor(new Date(l.date).getTime() / 60000) === Math.floor(date.getTime() / 60000)) delete patch.date;
+      if (patch.note === String(l.details?.note || "")) delete patch.note;
+      if ("duration" in patch) {
+        const was = minutes(l);
+        if (patch.duration === null ? was === null || was === undefined : Number(patch.duration) === Number(was)) delete patch.duration;
+      }
+      if ("val" in patch && Number(patch.val) === Number(l.val)) delete patch.val;
+      if (!Object.keys(patch).length) return (err.textContent = "Rien n’a changé : modifie une valeur ou annule.");
       const submit = body.querySelector("[type=submit]");
       submit.disabled = true;
       try {
         const updated = await X().update(l, patch);
         if (!updated || !currentAccount(context)) return;
         d.close();
-        window.titanShell.toast({ type: "ok", title: "Séance corrigée", message: "Statistiques et records sont à jour." });
+        const what = (window.TitanLedger?.changes(l, updated) || []).map(window.TitanLedger.changeText).join(" · ");
+        window.titanShell.toast({ type: "ok", title: "Séance corrigée", message: `${what ? `${what}. ` : ""}Statistiques et records sont à jour.` });
       } catch (error) {
         if (!currentAccount(context)) return;
         err.textContent = error.message;
@@ -654,6 +894,11 @@
     if (!t || !root.contains(t)) return;
     if (t.closest?.("[data-routes-open]")) return window.TitanRoutes?.openLibrary?.();
     if (t.dataset.open) return openDetail(t.dataset.open);
+    if (t.hasAttribute("data-more")) {
+      ui.shown += PAGE;
+      renderResults();
+      return;
+    }
     if (t.dataset.view) {
       ui.view = t.dataset.view;
       ui.day = null;
@@ -662,6 +907,7 @@
     }
     if (t.dataset.family) {
       ui.family = t.dataset.family;
+      ui.shown = PAGE;
       savePrefs();
       return render();
     }
@@ -681,16 +927,19 @@
       return render();
     }
     if (t.hasAttribute("data-reset")) {
-      ui = { ...ui, q: "", family: "all", period: "all", day: null };
+      ui = { ...ui, q: "", family: "all", period: "all", day: null, shown: PAGE };
       savePrefs();
       return render();
     }
     if (t.hasAttribute("data-archived")) {
       ui.archived = !ui.archived;
+      ui.shown = PAGE;
       ui.day = null;
       return render();
     }
     if (t.hasAttribute("data-export")) return window.titanExportSessionsCSV?.(filtered());
+    // V1.6.4: a whole history file (TITAN export, CSV profile, Strava), previewed, resumable and withdrawable (js/app/migration.js).
+    if (t.hasAttribute("data-history-import")) return window.titanHistoryMigration?.open();
     if (t.hasAttribute("data-export-pending")) return window.titanExportPending?.();
     if (t.hasAttribute("data-discard-refused")) {
       const context = accountContext();
@@ -726,6 +975,7 @@
   function onInput(e) {
     if (e.target.id === "jr-q") {
       ui.q = e.target.value;
+      ui.shown = PAGE;
       clearTimeout(inputTimer);
       inputTimer = setTimeout(renderResults, 120);
     }
@@ -733,6 +983,7 @@
   function onChange(e) {
     if (e.target.id === "jr-period") {
       ui.period = e.target.value;
+      ui.shown = PAGE;
       savePrefs();
       render();
     }
@@ -768,7 +1019,7 @@
       start();
     });
   };
-  ["titan:history-updated", "titan:pending-changed", "titan:flags-updated", "online", "offline"].forEach((ev) => window.addEventListener(ev, queue));
+  ["titan:history-updated", "titan:history-error", "titan:pending-changed", "titan:flags-updated", "online", "offline"].forEach((ev) => window.addEventListener(ev, queue));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0));
   else setTimeout(start, 0);
 })();

@@ -147,6 +147,17 @@ from = "/prevoir"
 to = "/prevoir.html"
 status = 200
 
+[[redirects]]
+from = "/sortie.html"
+to = "/sortie"
+status = 301
+force = true
+
+[[redirects]]
+from = "/sortie"
+to = "/sortie.html"
+status = 200
+
 # Garmin OAuth return address, registered exactly like this at Garmin: served by the Garmin function (code, state and error are passed along).
 [[redirects]]
 from = "/auth/garmin/callback"

@@ -1,16 +1,16 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "c295ae6c401ec0e4b6994fc15323bd0a6479404e",
+  "sha": "5b7774d46693a2053b6ddcae5c6f9db5249fcd1f",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
-    "training-store.js": "3d0e4bd61945b6a5a786cb7eef10f3e511b959598682ea858c197f0709219e43",
+    "training-store.js": "0d089fdb88f819fae61b77f0e47ae7259efc2e9a70cf10d27602254d8425ccc5",
     "effort.js": "8e11c4dece0b44299faf1f70fd1ee1a5225d764673cfda816a07d4d57551b756",
     "sports-catalog.js": "6e96795b3face2c78353c804aec29050e07a5aec6cb9671ae176547f03bab290",
     "sports.js": "80e3b094d370cc7b9a5b8309e44943030c2203ed91f4b616f5ee3d453bd37d1b",
-    "sport-contracts.js": "9a420ef0de970bdc4fb6705d6d0a93e9583fb69a7c83c6f46549a0e6a2729d8c",
-    "progression.js": "02233dbdd1b6f8b3dd4403c1a9f64ce95352702a95c8f0ca82a1e72ac8437a3a",
-    "sport-insights.js": "425daa25c78192749f62a704e726b8d1b8c41d68a9cc681b757e06ec3ffa74e5",
-    "progress.js": "48b68e5003a2fbff03ef4347a2323e535e28ba7f1a5f99995d10bb2735073937",
+    "sport-contracts.js": "c44a62d3ab2b31e66de302f9e96beac785299b4993aec6624a8a8d62143d6418",
+    "progression.js": "69b796a183b983040ae0b325b984b8c66222eeeeb2ffd8f13d198228bfee8ffa",
+    "sport-insights.js": "799ad4b7d0c79261c6b91c5f45a1346537cd57cc6c0a71d2eaa6cc9fc7f4267f",
+    "progress.js": "a6c30dd824398952fe9fdaf0f0d16758db78b318a1d976ecb2597b32a2ef8a7c",
     "questions.js": "e957bd84080eb8814cf49e7dd2a54fc8a81a40543af9a6488983c972ce72374a",
     "renaissance-catalog.js": "a9b08c20e48a71878ad9ea7596ec4cb4aa1c52d41ae5c9e917569dbb030ce41e",
     "renaissance-engine.js": "9b482bc363974eef8c27a132b8cefa8b5ba5de9471b04307402ed95c6550075b",
@@ -30,6 +30,19 @@
     "program-grid.js": "0d032a355db6cae62ca41160d70c0518d88ac30897c240d899efa1ceb5ff8db3",
     "periodic-quests.js": "fb9abcdcdc3f1fdd668f9f015cd54da5a25036098948cf9557a0826c63dd6c51",
     "cordee.js": "8f542b0a923c5168d18b74a7345e4e0f7370250dd980a68108b58caac5af1737",
-    "social-digest.js": "4e56fee2d6fb6d7bfad261761ab0028955137b4d1001304cebe0c9f18c2eca1f"
+    "social-digest.js": "4e56fee2d6fb6d7bfad261761ab0028955137b4d1001304cebe0c9f18c2eca1f",
+    "sync-state.js": "65ce3c28f3fdf8c621c154d2d8a088b5edfdbb558bc313224a28caba2b0c5b03",
+    "session-match.js": "13b98abfe0a7ba1b0143043770d84c3cda2a33c22b5df0b4685e62dcef4b0749",
+    "history-ledger.js": "16803afbfe6c3b5d7c769ca1194097670d2ef4ca35e3b8697db850b8c407b898",
+    "history-migration.js": "cb006cefa05a720427091c8cbe8762f4262933b4143d73f9ce11fe2232e8655d",
+    "history-window.js": "515d55701a101c48f344a167493cf4dce50adc4a8c3715fdb285490760eac019",
+    "week-plan.js": "011e9debbbd601612c5893878490a21cf7b9898f01da927806253f301e2587dc",
+    "week-review.js": "20037c60c01eeba792e188b70dc8bf608e2d3441fb37db3fee3ae2905d567f76",
+    "training-block.js": "b4d2acf460f07496769efe9d40d69cb5166152e67dafd8debbac7ba4bc99167c",
+    "block-scenario.js": "a1dd220847f860020edd4dc55db1851db31691f3978e337fa026adc9974e761f",
+    "discipline-analysis.js": "1171421cb012a394218bfef78ed9afe4c387b17b74598b7abdd959f9e6dd3b3d",
+    "gps-engine.js": "828fa0c7effb057260a43336541f6010051b45536b6ca2f61c6313732a9679b3",
+    "gps-nav.js": "3bef75f3a73c422549d736678bfbdb2a60a09dec5337126ca3cb15fec5a437ec",
+    "gps-session.js": "618426f272835edf69d47c07c12d27f01296e8f71e17461adddd8f655f37c40a"
   }
 }

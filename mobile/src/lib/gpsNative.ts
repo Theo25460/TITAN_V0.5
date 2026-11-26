@@ -3,27 +3,33 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
-import { createRecorder, KEY_ACTIVE, type Deps, type Recording } from "./gpsRecorder";
+import { Vibration } from "react-native";
+import { createRecorder, KEY_ACTIVE, type Deps, type RawFix, type Recording, type RecordingV1 } from "./gpsRecorder";
 import { compactFix, type Fix } from "./gpsTrack";
+import { loadRouteForFollow } from "./routeLibrary";
 
 export const GPS_TASK = "titan-gps-recording";
+export const ALERT_STEP = [0, 160, 120, 160];
+export const ALERT_OFF = [0, 600];
 
 const deps: Deps = {
   // A recording that cannot be read is NOT an absent recording: answering null here would offer « Démarrer » and let a new start
   // overwrite the trace. The failure is passed on: the screen says the recording cannot be read and offers to retry.
   read: async (key) => {
     const raw = await AsyncStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as Recording) : null;
+    return raw ? (JSON.parse(raw) as Recording | RecordingV1) : null;
   },
   write: async (key, value) => {
     if (value === null) await AsyncStorage.removeItem(key);
     else await AsyncStorage.setItem(key, JSON.stringify(value));
   },
   startUpdates: async () => {
+    // Time-based updates (V1.7.7): with a distance filter Android delivers nothing at a standstill, so a stop could not be told from a
+    // lost signal. A position every 2 s keeps the heartbeat; the engine stores a halt as two fixes, so a long stop costs no storage.
     await Location.startLocationUpdatesAsync(GPS_TASK, {
       accuracy: Location.Accuracy.BestForNavigation,
       timeInterval: 2000,
-      distanceInterval: 3,
+      distanceInterval: 0,
       activityType: Location.ActivityType.Fitness,
       pausesUpdatesAutomatically: false,
       showsBackgroundLocationIndicator: true,
@@ -40,6 +46,11 @@ const deps: Deps = {
   },
   updatesRunning: () => Location.hasStartedLocationUpdatesAsync(GPS_TASK).catch(() => false),
   now: () => Date.now(),
+  loadRoute: (owner, id) => loadRouteForFollow(owner, id),
+  // A change of step is two short pulses, a route left is one long: told apart in a pocket. No sound, nothing spoken.
+  // Plain vibration (VIBRATE is declared), because it must also run from the background task; whether Android lets it through
+  // with the screen locked is checked on a phone.
+  alert: (kind) => Vibration.vibrate(kind === "step" ? ALERT_STEP : ALERT_OFF),
 };
 
 export const recorder = createRecorder(deps);
@@ -52,6 +63,9 @@ export const toFix = (l: Location.LocationObject): Fix => compactFix({
   acc: l.coords.accuracy ?? null,
   t: l.timestamp,
 });
+
+/** The same position with what only the live screen uses: the receiver's own speed (Doppler) and its course over the ground. */
+export const toRaw = (l: Location.LocationObject): RawFix => ({ ...toFix(l), spd: l.coords.speed ?? null, hdg: l.coords.heading ?? null });
 
 /** The recording is written under the account that started it, whoever is signed in when the batch arrives. */
 export const getActiveOwner = () => AsyncStorage.getItem(KEY_ACTIVE);
@@ -71,7 +85,7 @@ if (!TaskManager.isTaskDefined(GPS_TASK)) {
     if (error || !data?.locations?.length) return;
     try {
       const owner = await getActiveOwner();
-      if (owner) await recorder.append(owner, data.locations.map(toFix));
+      if (owner) await recorder.append(owner, data.locations.map(toRaw));
     } catch {
       // The store did not answer for this batch. Nothing is overwritten; the next batch is written normally.
     }

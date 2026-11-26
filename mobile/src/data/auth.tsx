@@ -10,6 +10,7 @@ import { isOnline } from "../lib/network";
 import { forgetAccountCache } from "../lib/storage";
 import { supabase } from "../lib/supabase";
 import { createProfile, fetchProfile } from "./api";
+import { setCoverage } from "./historyCoverage";
 import { readLogsCache } from "./logsCache";
 import { loadQueue } from "./queue";
 import { queryClient } from "./queryClient";
@@ -61,7 +62,10 @@ async function enterAccount(owner: string | null, previous: string | null) {
   await loadQueue(owner);
   if (owner) {
     const cached = await readLogsCache(owner);
-    if (cached && !queryClient.getQueryData(["logs", owner])) queryClient.setQueryData(["logs", owner], cached.logs, { updatedAt: cached.savedAt });
+    if (cached && !queryClient.getQueryData(["logs", owner])) {
+      setCoverage(owner, cached.coverage);
+      queryClient.setQueryData(["logs", owner], cached.logs, { updatedAt: cached.savedAt });
+    }
   }
 }
 

@@ -1,5 +1,7 @@
 import { AdBanner } from "../../components/AdBanner";
 import { DisciplinesCard, PeriodsCard } from "../../components/ProgressionCards";
+import { DisciplineAnalysisCard } from "../../components/DisciplineAnalysisCard";
+import { deviceZone, todayKey } from "../../lib/weekPlan";
 import { useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -16,7 +18,7 @@ import { SelfComparisonCard } from "../../components/MemoryCard";
 import { YearSquares } from "../../components/HabitCards";
 import { EmptyState, ErrorState, LoadingCards } from "../../components/States";
 import { T } from "../../components/Text";
-import { Codex, Format, Progress, Questions, Sports, Training, type Recap, type WeekChapter } from "../../core";
+import { Codex, Format, Progress, Questions, Sports, Training, TrainingBlock, type Recap, type Schedule, type WeekChapter } from "../../core";
 import { useOwner } from "../../data/auth";
 import { useAdventure, useGoals, useLogs, usePrefs } from "../../data/hooks";
 import { navigateHref } from "../../navigation/href";
@@ -131,10 +133,13 @@ export function ProgressScreen() {
   const [range, setRange] = useState<"26" | "52">("26");
   const { active } = q;
   const now = new Date();
+  // V1.7.5: the journal with its archives (the shared module keeps them out of every value and says how many), and the blocks.
+  const analysisLogs = useMemo(() => { const seen = new Set<string>(); return [...(q.logs ?? []), ...(q.archived ?? [])].filter((l) => (seen.has(String(l.id)) ? false : (seen.add(String(l.id)), true))); }, [q.logs, q.archived]);
+  const analysisBlocks = useMemo(() => { try { return TrainingBlock.list((prefs.schedule ?? {}) as Schedule, analysisLogs, { today: todayKey(), zone: deviceZone() }).filter((b) => b.state !== "removed").map((b) => ({ id: b.id, title: b.title, start: b.start, end: b.end })); } catch { return []; } }, [prefs.schedule, analysisLogs]);
 
-  // Confirmed and counted (not archived, not held, flagged or refused by the server's checks): the same set as the recap and the
-  // website, so the day grid and the km per sport agree with it.
-  const journal = useMemo(() => q.confirmed.filter((log) => Training.counted(log)), [q.confirmed]);
+  // V1.6.3 matrix: the counted set (not archived, not held, flagged or refused; a session still waiting to be sent counts, as on the
+  // website), the same for the weekly recap, the day grid, the km per sport and the 30-day figures below.
+  const journal = active;
   const current = useMemo(() => Progress.recap(journal, { now, goals: goals.data ?? [], current: true }), [journal, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const last = useMemo(() => Progress.recap(journal, { now, goals: goals.data ?? [] }), [journal, goals.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const series = useMemo(() => view === "trends" ? Questions.weeklySeries(active, { weeks: Number(range) }) : [], [active, range, view]);
@@ -221,6 +226,8 @@ export function ProgressScreen() {
               <PeriodsCard logs={active} />
               <DisciplinesCard logs={active} />
             </Section>
+            {/* V1.7.5: the three depth views of the website, side by side with a period, a training block or one session. */}
+            <DisciplineAnalysisCard logs={analysisLogs} blocks={analysisBlocks} onOpen={(id) => navigation.navigate("SessionDetail", { id })} />
             <Section title="Sur la durée">
               <Card style={{ gap: space.s3 }}>
                 <Segmented value={range} onChange={setRange} options={[{ value: "26", label: "6 mois" }, { value: "52", label: "1 an" }]} accessibilityLabel="Période" />

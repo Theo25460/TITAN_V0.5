@@ -122,18 +122,152 @@
       return { key, index: i, sport, minutes: sport ? minutes : null, note: sport ? String(d.note || "").slice(0, 80) : "" };
     });
   }
+  const WP = () => window.TitanWeekPlan;
+  const deviceZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch { return null; } };
+  const todayKey = (now = new Date()) => window.TitanFormat.dateKey(now);
+
+  /* ---------- V1.7.2 — Planifié et réalisé (js/core/week-plan.js) ----------
+     The week as planned on its Monday, the athlete's decisions (move, replace, skip, tie a session) and the sessions really done. */
+  function weekPlan(day, now = new Date()) {
+    if (!WP()) return null;
+    return WP().week(window.state?.user?.schedule || {}, logs(), { week: day ? window.TitanFormat.dateKey(day) : undefined, today: todayKey(now), zone: deviceZone(), pauses: cadenceSettings().pauses });
+  }
+  /** The sport of each day of this week once moves and replacements are applied (the programme grid and the QG read it). */
+  function weekPlanSports(now = new Date()) {
+    const v = weekPlan(null, now);
+    if (!v) return plan().map((p) => p.sport);
+    const out = [null, null, null, null, null, null, null];
+    for (const o of v.occurrences) {
+      if (o.status === "skipped") continue;
+      const i = WP().dayIndex(o.effective.day);
+      if (!out[i]) out[i] = o.effective.sport;
+    }
+    return out;
+  }
+  function decideOccurrence(id, decision) {
+    if (!window.state?.user || !WP()) throw new Error("WEEK_PLAN_UNAVAILABLE");
+    const schedule = WP().decide(window.state.user.schedule || {}, id, decision, { today: todayKey() });
+    saveSettings({ schedule });
+  }
+
+  /* ---------- V1.7.3 — Bilan et ajustements (js/core/week-review.js) ----------
+     The bilan of a week: one observation with its source sessions, the actions on the week after (keep, move a slot, pause), the
+     preview, the confirmed choice with its origin, its undo, and at the next bilan what was observed once it applied. */
+  const WR = () => window.TitanWeekReview;
+  const reviewOpts = (day, now = new Date()) => ({ week: day ? window.TitanFormat.dateKey(day) : undefined, today: todayKey(now), zone: deviceZone(), pauses: cadenceSettings().pauses });
+  function weekReview(day, now = new Date()) {
+    if (!WR() || !WP()) return null;
+    return WR().review(window.state?.user?.schedule || {}, logs(), reviewOpts(day, now));
+  }
+  function previewAdjustment(day, action) {
+    return WR().preview(window.state?.user?.schedule || {}, logs(), reviewOpts(day), action);
+  }
+  function applyAdjustment(day, action) {
+    if (!window.state?.user || !WR()) throw new Error("WEEK_REVIEW_UNAVAILABLE");
+    const r = WR().apply(window.state.user.schedule || {}, logs(), reviewOpts(day), action);
+    saveSettings({ schedule: r.schedule, cadencePauses: r.pauses });
+    return r.review;
+  }
+  function undoAdjustment(day) {
+    if (!window.state?.user || !WR()) throw new Error("WEEK_REVIEW_UNAVAILABLE");
+    const r = WR().undo(window.state.user.schedule || {}, cadenceSettings().pauses, { week: window.TitanFormat.dateKey(day), today: todayKey() });
+    saveSettings({ schedule: r.schedule, cadencePauses: r.pauses });
+    return r;
+  }
+  function adjustments(day) {
+    if (!WR()) return [];
+    return WR().adjustments(window.state?.user?.schedule || {}, { week: day ? window.TitanFormat.dateKey(day) : undefined, today: todayKey() });
+  }
+
+  /* ---------- V1.7.4 — Objectifs et blocs d’entraînement (js/core/training-block.js) ----------
+     Multi-week blocks on the planning: each week of a block is the programme of that week (week-plan.js reads it). Every change is
+     previewed first, applies from the first week that has not begun, and writes the schedule only (sessions are never changed). */
+  const TB = () => window.TitanTrainingBlock;
+  const blockOpts = (now = new Date()) => ({ today: todayKey(now), zone: deviceZone(), pauses: cadenceSettings().pauses, logs: logs() });
+  function blocks(now = new Date()) {
+    if (!TB() || !WP()) return [];
+    return TB().list(window.state?.user?.schedule || {}, logs(), blockOpts(now));
+  }
+  function blockContext(day, now = new Date()) {
+    if (!TB() || !WP()) return null;
+    return TB().weekContext(window.state?.user?.schedule || {}, logs(), { ...blockOpts(now), week: day ? window.TitanFormat.dateKey(day) : undefined });
+  }
+  /** kind: create | week | copy | shift | milestone | remove | duplicate | declare. Returns the module's result; confirm writes it. */
+  function blockChange(kind, id, args, { confirm = false } = {}) {
+    if (!window.state?.user || !TB()) throw new Error("TRAINING_BLOCK_UNAVAILABLE");
+    const schedule = window.state.user.schedule || {};
+    const o = { ...blockOpts(), at: new Date().toISOString() };
+    const r = kind === "create" ? TB().create(schedule, args, o)
+      : kind === "week" ? TB().editWeek(schedule, id, args, o)
+      : kind === "copy" ? TB().duplicateWeek(schedule, id, args, o)
+      : kind === "shift" ? TB().shift(schedule, id, args, o)
+      : kind === "milestone" ? TB().setMilestone(schedule, id, args, o)
+      : kind === "remove" ? TB().remove(schedule, id, o)
+      : kind === "duplicate" ? TB().duplicate(schedule, id, args, o)
+      : kind === "declare" ? TB().declare(schedule, id, args, o)
+      : null;
+    if (!r) throw new Error("TRAINING_BLOCK_BAD_ACTION");
+    if (confirm) saveSettings({ schedule: r.schedule });
+    return r;
+  }
+  /* ---------- V1.7.6 — Scénarios multisports (js/core/block-scenario.js) ----------
+     Two private variants compared; a draft never enters the active programme. Applying and undoing write the schedule only (the
+     block layout the variant becomes, and the record of the decision); sessions are never changed. */
+  const BS = () => window.TitanBlockScenario;
+  function scenarios() {
+    if (!BS() || !TB() || !WP()) return [];
+    return BS().list(window.state?.user?.schedule || {});
+  }
+  function scenarioCompare(id, now = new Date()) {
+    if (!BS()) throw new Error("SCENARIO_UNAVAILABLE");
+    return BS().compare(window.state?.user?.schedule || {}, logs(), id, blockOpts(now));
+  }
+  function scenarioFollowUp(day, now = new Date()) {
+    if (!BS() || !WP()) return null;
+    return BS().followUp(window.state?.user?.schedule || {}, logs(), { ...blockOpts(now), week: day ? window.TitanFormat.dateKey(day) : undefined });
+  }
+  /** Writes a schedule the scenario module returned (after the athlete confirmed its preview). */
+  function scenarioSave(schedule) {
+    if (!window.state?.user || !schedule || typeof schedule !== "object") throw new Error("SCENARIO_UNAVAILABLE");
+    saveSettings({ schedule });
+  }
+  function scenarioMeasure() {
+    return BS() ? BS().measure(window.state?.user?.schedule || {}) : null;
+  }
+
+  function blockMeasure() {
+    if (!TB() || !WP()) return null;
+    return TB().measure(window.state?.user?.schedule || {}, logs(), blockOpts());
+  }
+
   function planToday(now = new Date()) {
+    if (WP()) {
+      const v = weekPlan(null, now);
+      const o = v?.occurrences.find((x) => x.effective.day === todayKey(now) && (x.status === "today" || x.status === "ask"));
+      if (!o) return null;
+      // V1.7.4: in a training block, the minutes and the note are the block week's (its reference), not the typical week's.
+      const p = v.reference.block ? { ...plan()[o.index], sport: o.planned.sport, minutes: o.planned.minutes, note: o.planned.note || "" } : plan()[o.index];
+      return { ...p, sport: o.effective.sport, minutes: o.effective.sport === p.sport ? p.minutes : null, note: o.effective.sport === p.sport ? p.note : "", occurrence: o.id, moved: o.decision?.kind === "move" || o.decision?.kind === "replace", ...(v.reference.block ? { block: v.reference.block } : {}) };
+    }
     const p = plan()[(new Date(now).getDay() + 6) % 7];
     return p.sport ? p : null;
   }
+  /** Edit the typical week. V1.7.2: an edit during a week applies from the next Monday (this week keeps its start); a first plan in a
+      week with nothing planned applies at once. Returns the Monday the change applies from. */
   function setPlanDay(key, value) {
-    if (!window.state?.user || !DAY_KEYS.includes(key)) return;
+    if (!window.state?.user || !DAY_KEYS.includes(key)) return null;
+    if (WP()) {
+      const r = WP().editType(window.state.user.schedule || {}, key, value, { today: todayKey() });
+      saveSettings({ schedule: r.schedule });
+      return r.appliesFrom;
+    }
     const schedule = { ...(window.state.user.schedule || {}) };
     const old = schedule[key] || {};
     schedule[key] = value?.sport
       ? { ...old, sport: value.sport, minutes: Number(value.minutes) > 0 ? Math.min(600, Math.round(Number(value.minutes))) : null, note: String(value.note || "").trim().slice(0, 80) }
       : { ...old, sport: null, minutes: null, note: "" };
     saveSettings({ schedule });
+    return null;
   }
 
   /** True when XP follows the effort rules (1 min ≈ 10 XP): discovery estimates, or an account whose server
@@ -229,5 +363,5 @@
     return list.length;
   }
 
-  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, progression, rulesV300, guestCandidates, importGuestSessions };
+  window.TitanData = { owner, isGuest, logs, archived, pending, sessionDraftKey, sessionDraft, goals, cadenceSettings, setCadenceTarget, togglePause, plan, planToday, setPlanDay, weekPlan, weekPlanSports, decideOccurrence, weekReview, previewAdjustment, applyAdjustment, undoAdjustment, adjustments, blocks, blockContext, blockChange, blockMeasure, blockOptions: blockOpts, scenarios, scenarioCompare, scenarioFollowUp, scenarioSave, scenarioMeasure, progression, rulesV300, guestCandidates, importGuestSessions };
 })();

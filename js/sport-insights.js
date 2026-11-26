@@ -48,14 +48,22 @@
       rir: num(ex.rir),
     }));
   }
+  // V1.6.6: the same key, computed once per spelling (a five-year history repeats the same exercise names thousands of times).
+  const exerciseKeys = new Map();
   function exerciseKey(ex) {
-    return [ex.name, ex.variant || "", ex.equipment || ""]
-      .map((v) =>
-        String(v || "")
-          .trim()
-          .toLocaleLowerCase("fr-FR"),
-      )
-      .join("|");
+    const raw = `${ex.name}\u0000${ex.variant || ""}\u0000${ex.equipment || ""}`;
+    let key = exerciseKeys.get(raw);
+    if (key === undefined) {
+      key = [ex.name, ex.variant || "", ex.equipment || ""]
+        .map((v) =>
+          String(v || "")
+            .trim()
+            .toLocaleLowerCase("fr-FR"),
+        )
+        .join("|");
+      if (exerciseKeys.size < 5000) exerciseKeys.set(raw, key);
+    }
+    return key;
   }
   function strength(logs) {
     const map = new Map();
@@ -74,17 +82,22 @@
             sets: 0,
             maxWeight: null,
             maxReps: null,
+            bySession: new Map(),
           };
         const volume = rows.reduce((n, s) => n + s.weight * s.reps, 0),
           reps = rows.reduce((n, s) => n + s.reps, 0);
-        const previous = group.sessions.find(
-          (s) => s.log === l || (l.id && s.log.id === l.id),
-        );
+        // V1.6.6: the session's entry by identity or id in a map (it was a scan of every session of the exercise, quadratic).
+        const previous = group.bySession.get(l) || (l.id ? group.bySession.get(`id:${l.id}`) : undefined);
         if (previous) {
           previous.volume += volume;
           previous.reps += reps;
           previous.sets += rows.length;
-        } else group.sessions.push({ log: l, volume, reps, sets: rows.length });
+        } else {
+          const entry = { log: l, volume, reps, sets: rows.length };
+          group.sessions.push(entry);
+          group.bySession.set(l, entry);
+          if (l.id) group.bySession.set(`id:${l.id}`, entry);
+        }
         group.volume += volume;
         group.reps += reps;
         group.sets += rows.length;
@@ -99,7 +112,8 @@
         }
         map.set(key, group);
       }
-    return [...map.values()].sort(
+    // The lookup map stays internal: the groups have the shape they always had.
+    return [...map.values()].map(({ bySession, ...group }) => group).sort(
       (a, b) =>
         b.sessions.length - a.sessions.length || a.name.localeCompare(b.name),
     );

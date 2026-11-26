@@ -1,18 +1,58 @@
 {
   "_": "Published versions of the versioned legal documents (tools/build-public-docs.mjs), oldest first. sha256 fingerprints the body as tests/v13-legal-assets.test.mjs computes it (visible text and link targets, without the shared navigation). A new wording is a new entry appended with a new version line; a published entry is never rewritten. History starts on 18 November 2026.",
   "legal_cgu": [
-    { "ref": "Version 10", "updated": "18 novembre 2026", "sha256": "119dc16064a7e130d600858b2e07e00104ff972595c3a2e54f51528cc3171df9" }
+    {
+      "ref": "Version 10",
+      "updated": "18 novembre 2026",
+      "sha256": "119dc16064a7e130d600858b2e07e00104ff972595c3a2e54f51528cc3171df9"
+    }
   ],
   "legal_mentions": [
-    { "ref": "Informations éditeur", "updated": "18 novembre 2026", "sha256": "270fd91115b536e627f04ff202a6902ea732b2b308c005477f14d0413c630451" }
+    {
+      "ref": "Informations éditeur",
+      "updated": "18 novembre 2026",
+      "sha256": "270fd91115b536e627f04ff202a6902ea732b2b308c005477f14d0413c630451"
+    }
   ],
   "legal_privacy": [
-    { "ref": "Version 14", "updated": "18 novembre 2026", "sha256": "a963800ef6606d99166b181d474aacb047956bc1e86317dea1c579f7901c6f72" }
+    {
+      "ref": "Version 14",
+      "updated": "18 novembre 2026",
+      "sha256": "a963800ef6606d99166b181d474aacb047956bc1e86317dea1c579f7901c6f72"
+    },
+    {
+      "ref": "Version 15",
+      "updated": "23 novembre 2026",
+      "sha256": "6a7a955a316923746ba313fca5cfc2ef42b39a52441d990fecf6ad86c9a2061b"
+    },
+    {
+      "ref": "Version 16",
+      "updated": "25 novembre 2026",
+      "sha256": "18723323e4e3b604788050388a53184616d5626b12820451c8169c2ce6710333"
+    }
   ],
   "regles-communaute": [
-    { "ref": "Version 2", "updated": "14 novembre 2026", "sha256": "87a2365ba4965f443a81b71514726a3415a0b314137b89992ea5309f9e091d8f" }
+    {
+      "ref": "Version 2",
+      "updated": "14 novembre 2026",
+      "sha256": "87a2365ba4965f443a81b71514726a3415a0b314137b89992ea5309f9e091d8f"
+    }
   ],
   "supprimer-mon-compte": [
-    { "ref": "Version 4", "updated": "18 novembre 2026", "sha256": "88716a6ec27933f3507f98f5e39eb3a99b690e60466e0010891a4140127910b1" }
+    {
+      "ref": "Version 4",
+      "updated": "18 novembre 2026",
+      "sha256": "88716a6ec27933f3507f98f5e39eb3a99b690e60466e0010891a4140127910b1"
+    },
+    {
+      "ref": "Version 5",
+      "updated": "23 novembre 2026",
+      "sha256": "6a508676759023c251967a0b09064a697a31bbeea521e748cb2f16dd815a2ef0"
+    },
+    {
+      "ref": "Version 6",
+      "updated": "25 novembre 2026",
+      "sha256": "f12cc051dee674e446b83a41e9ccf0274922ab88f5a2e01d18cd202d1d71303d"
+    }
   ]
 }

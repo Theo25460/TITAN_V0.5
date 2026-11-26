@@ -22,6 +22,19 @@ require("./web/sport-navigation.js");
 require("./web/gpx.js");
 require("./web/career.js");
 require("./web/periodic-quests.js");
+require("./web/sync-state.js");
+require("./web/session-match.js");
+require("./web/history-ledger.js");
+require("./web/history-migration.js");
+require("./web/history-window.js");
+require("./web/week-plan.js");
+require("./web/week-review.js");
+require("./web/training-block.js");
+require("./web/block-scenario.js");
+require("./web/discipline-analysis.js");
+require("./web/gps-engine.js");
+require("./web/gps-nav.js");
+require("./web/gps-session.js");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,6 +80,102 @@ export const Format = g.TitanFormat as {
   addDays(date: Date | string, days: number): Date;
   recordValue(unit: string, value: number): string;
   clock(minutes: number): string;
+};
+
+/** V1.6.1: the sync state of a session, worded as on the website journal (src/core/web/sync-state.js). */
+export type SyncStateId = "local" | "stored" | "sending" | "pending" | "confirmed" | "refused";
+export type SyncActionId = "send" | "correct" | "discard" | "export";
+export type SyncView = { state: SyncStateId; label: string; short: string; tone: "ok" | "warn" | "err" | "muted"; text: string; kind: string; facts: { label: string; value: string }[]; actions: { id: SyncActionId; label: string }[] };
+type SyncQueueItem = { status: "pending" | "error"; reason?: string; code?: string; queuedAt?: string; attempts?: number; lastAttemptAt?: string; deferred?: boolean; payload?: { details?: { client_event_id?: string } } };
+export const SyncState = g.TitanSyncState as {
+  describe(input: { log?: Partial<TrainingLog> | null; item?: SyncQueueItem | null; sending?: boolean; guest?: boolean; online?: boolean; now?: number }): SyncView;
+  stateOf(input: { log?: Partial<TrainingLog> | null; item?: SyncQueueItem | null; sending?: boolean; guest?: boolean }): SyncStateId;
+  replaceable(item: SyncQueueItem | null | undefined): boolean;
+  reasonKind(code: string | null | undefined, refused?: boolean): string;
+};
+
+/** V1.6.2: one link between a journal session and an import, as the server keeps it (titan_session_matches_v1). */
+export type SessionMatchRow = {
+  source: string; external_id: string; status: "imported" | "linked"; log_id: string; linked_log_id?: string | null; split_log_id?: string | null;
+  sport?: string | null; started_at?: string | null; duration_minutes?: number | null; distance_km?: number | null; imported_at?: string | null;
+  match_rule?: string | null; match_overlap?: number | null; needs_review?: boolean; reasons?: string[]; decision?: "same" | "distinct" | null; decided_at?: string | null;
+  events?: { action: string; actor: "engine" | "user"; at: string }[];
+};
+export type MatchDecision = "same" | "distinct";
+export type MatchVerdict = "same" | "ambiguous" | "distinct";
+export type MatchFacts = { kind: "log" | "import"; id: string; source: string; sport: string; start: number; minutes: number | null; km: number | null; savedAt: number | null; note: string; raw?: TrainingLog };
+export type MatchResult = { verdict: MatchVerdict; rule: string | null; reasons: string[]; sharedMinutes: number; overlap: number; divergences: { field: string; label: string; a: string; b: string; missing?: boolean }[]; a: MatchFacts; b: MatchFacts };
+export type MatchView = {
+  state: "review" | "linked" | "split" | "imported" | "unknown"; tone?: "ok" | "warn"; title: string; text: string; rule?: string; overlap?: number; source?: string; ref?: string;
+  sources: { role: "journal" | "import"; label: string; at: string; saved: string; duration: string; distance: string; note: string }[];
+  rows: { field: string; label: string; value: string; from: "counted" | "other"; other: string; shownOnly: boolean }[];
+  divergences: MatchResult["divergences"]; reasons: string[]; events: { text: string; by: string; at: string }[]; actions: { id: MatchDecision; label: string }[];
+};
+/** V1.6.2 — Rapprochement des séances, the same rules and words as the website (src/core/web/session-match.js). */
+export const SessionMatch = g.TitanSessionMatch as {
+  THRESHOLDS: Record<string, number>;
+  SOURCES: Record<string, string>;
+  REASONS: Record<string, string>;
+  RULE: string;
+  classify(candidate: Partial<TrainingLog> & { sport: string; date: string }, logs: TrainingLog[]): MatchResult | null;
+  compare(a: unknown, b: unknown): MatchResult;
+  describe(row: SessionMatchRow, log: TrainingLog | null, logs: TrainingLog[]): MatchView;
+  gpxFingerprint(g: { start?: string | null; distanceKm?: number | null; points?: number | null } | null | undefined): string | null;
+  toKm(val: unknown, unit: unknown): number | null;
+};
+
+/** V1.6.3 — Contrôle et réconciliation: the state matrix and its controls, the same as the website (src/core/web/history-ledger.js). */
+export type LedgerState = "confirmed" | "local" | "stored" | "sending" | "pending" | "refused" | "held" | "archived";
+export type LedgerChange = { field: "val" | "unit" | "date" | "duration" | "elevation" | "note" | "archived"; before: unknown; after: unknown; unit?: string };
+export type LedgerControls = {
+  journal: number; archives: number; period: { sessions: number; minutes: number; km: number };
+  records: { id: string; value: number; ref: string }[]; csv: { journal: number; archives: number }; json: { trainingLogs: number; archived: number };
+};
+export type SessionChangeEntry = { revision: number; at: string; changes: LedgerChange[] };
+export const Ledger = g.TitanLedger as {
+  STATES: Record<LedgerState, string>;
+  MATRIX: Record<LedgerState, { journal: "journal" | "archives"; totals: boolean; records: boolean; csv: "journal" | "archives" | null; json: boolean | "device" }>;
+  CSV_HEAD: string[];
+  canonicalId(log: Partial<TrainingLog>): string;
+  reference(log: Partial<TrainingLog>): string;
+  stateOf(log: Partial<TrainingLog>, opts?: { guest?: boolean }): LedgerState;
+  split<L extends Partial<TrainingLog>>(confirmed: L[], provisional: L[]): { logs: L[]; archived: L[] };
+  csvRows(logs: Partial<TrainingLog>[], scope?: "journal" | "archives" | "all", opts?: { guest?: boolean; label?: (sport: string) => string }): unknown[][];
+  controls(logs: Partial<TrainingLog>[], opts?: { now?: number; from?: number; to?: number; guest?: boolean; serverRows?: Partial<TrainingLog>[] | null }): LedgerControls;
+  gaps(expected: unknown, actual: unknown): string[];
+  changes(before: Partial<TrainingLog>, after: Partial<TrainingLog>): LedgerChange[];
+  changeText(change: LedgerChange): string;
+  sourceLimit(source: string | null | undefined): string | null;
+};
+
+/** V1.6.4 — Migration de l’historique: the same reader of history files as the website (src/core/web/history-migration.js). */
+export type MigrationFormat = "titan_csv" | "titan_json" | "csv_profile" | "strava_csv";
+export type MigrationItem = { id: string; sport: string; startedAt: string; minutes: number; km: number | null; value?: number; unit?: "kg" | "reps"; rpe?: number; note?: string };
+export type MigrationRow = { row: number; status: "ready" | "skip"; reason?: string; item?: MigrationItem; sport?: string | null; sportRaw?: string; dst?: "gap" | "repeated" | null };
+export type MigrationParsed = { format: MigrationFormat; head: string[]; order: "dmy" | "mdy"; tz: string; rows: MigrationRow[]; unknownSports: Record<string, number>; total: number; mapping: Record<string, unknown> | null };
+export type MigrationPlan = MigrationRow & { plan: "add" | "link" | "review" | "skip"; with?: { id: string | null; date: string; sport: string; inFile: boolean } | null; reasons?: string[] };
+export type MigrationPreview = { counts: { add: number; link: number; review: number; skip: number; total: number }; reasons: Record<string, number>; rows: MigrationPlan[] };
+export type MigrationOptions = { format?: MigrationFormat | null; name?: string; mapping?: Record<string, unknown> | null; tz?: string; order?: "dmy" | "mdy" | null; allowDateOnly?: boolean; sportMap?: Record<string, string>; now?: number };
+export type ImportBatch = {
+  id: string; format: MigrationFormat; file_name: string | null; total_rows: number; status: "open" | "done" | "withdrawn"; created_at: string; finished_at: string | null;
+  withdrawn_at: string | null; withdraw_report: Record<string, number> | null; done_rows: number; next_row: number;
+  counts: { added: number; linked: number; duplicate: number; skipped: number; review: number }; reasons: Record<string, number>;
+  resumed?: boolean; processed?: number; replayed?: number; limited?: boolean; busy?: boolean;
+};
+export type ImportBatchRow = { row: number; outcome: "added" | "linked" | "duplicate" | "skipped"; reason: string | null; external_id: string | null; log_id: string | null; needs_review: boolean; withdrawn: string | null; session: { date: string; sport: string; val: number; unit: string; archived: boolean; corrected: boolean } | null };
+export const Migration = g.TitanMigration as {
+  LIMITS: { historyDays: number; batchSize: number; maxRows: number; maxBytes: number };
+  FORMATS: Record<MigrationFormat, string>;
+  REASONS: Record<string, string>;
+  OUTCOMES: Record<string, string>;
+  FIELDS: { column: string | null; json: string; reimport: boolean | string; to: string }[];
+  detect(text: string, name?: string): MigrationFormat;
+  parse(text: string, opts?: MigrationOptions): MigrationParsed;
+  preview(parsed: MigrationParsed, logs: Partial<TrainingLog>[]): MigrationPreview;
+  fileHash(text: string): string;
+  chunks(parsed: MigrationParsed, nextRow?: number, size?: number): Record<string, unknown>[][];
+  measure(batch: Partial<ImportBatch>): { total: number; explained: number; rate: number; duplicates: number; review: number; seconds: number | null };
+  withdrawText(effects: Record<string, number> | null | undefined): string[];
 };
 
 export type MeasureIssue = { code: string; field: string; message: string };
@@ -122,9 +231,33 @@ export type ProgressionItem = { id: string; label: string; unit: string; current
 export type ProgressionTrend = { label: string; unit: string; enough: boolean; sessions?: number; before?: number; after?: number; beforeDisplay?: string; afterDisplay?: string; beforeSessions?: number; afterSessions?: number; direction?: ProgressionItem["direction"] };
 export type PeriodSlice = { sessions: number; activeDays: number; minutes: number; unmeasuredSessions: number; estimatedMinutes: number };
 export type PeriodSport = { sport: string; label: string; family: Family; sessions: number; minutes: number; distanceKm: number };
+/** V1.7.1: the selection behind a comparison — versioned rule, sample, sources, exclusions with their reason, limits. */
+export type ComparableSource = { log: TrainingLog; id: string; ref: string; date: string; summary: string };
+export type ComparableExclusion = { log: TrainingLog; id: string; ref: string; date: string; reason: string; text: string };
+export type Comparables = {
+  version: string;
+  sport: string;
+  rule: { id: string; version: string; label: string; criteria: string[]; pilot: boolean };
+  status: "ok" | "limited" | "insufficient";
+  sample: number;
+  considered: number;
+  truncated: boolean;
+  retained: ComparableSource[];
+  excluded: ComparableExclusion[];
+  counts: Record<string, number>;
+  limits: string[];
+  estimates: { id: string; ref: string; date: string; minutes: number }[];
+  previous: TrainingLog | null;
+  reference: { kind: "median" | "best"; value: number; unit: string; display: string; sessions: number } | null;
+  signature: string;
+};
 /** Personal progression from measured values only (js/core/progression.js, shared with the website). */
 export const Progression = g.TitanProgression as {
-  compare(log: TrainingLog, logs: TrainingLog[]): { previous: TrainingLog; items: ProgressionItem[]; basis: string } | null;
+  RULES_VERSION: string;
+  REASONS: Record<string, string>;
+  comparables(log: TrainingLog, logs: TrainingLog[]): Comparables | null;
+  snapshot(selection: Comparables | null): Record<string, unknown> | null;
+  compare(log: TrainingLog, logs: TrainingLog[]): { previous: TrainingLog; items: ProgressionItem[]; basis: string; selection: Comparables } | null;
   disciplines(logs: TrainingLog[], opts?: { now?: Date; weeks?: number; min?: number }): { sport: string; label: string; family: Family; sessions: number; minutes: number; measuredSessions: number; trend: ProgressionTrend | null }[];
   periods(logs: TrainingLog[], opts?: { now?: Date; days?: number }): { days: number; current: PeriodSlice; previous: PeriodSlice & { partial: boolean }; delta: { sessions: number; activeDays: number; minutes: number } | null; sports: { sport: string; label: string; family: Family; current: PeriodSport | null; previous: PeriodSport | null }[] };
   formatValue(item: Partial<ProgressionItem> & { unit: string }, which?: "current" | "previous"): string;
@@ -224,4 +357,308 @@ export type Career = {
 export const CareerRules = g.TitanCareer as {
   build(logs: TrainingLog[], opts?: { now?: Date | number; range?: CareerRange; stepDays?: { day: string; steps: number }[] | null; rank?: { level?: number; id?: string; name?: string } | null; xp?: number | null }): Career;
   STEP_KM: number;
+};
+
+/** V1.6.6 — Journal longue durée: paged reading by key, refresh by manifest, coverage of the device copy, the same as the website
+    (src/core/web/history-window.js). The readers take the app's Supabase client (the same supabase-js as the website). */
+export type HistoryCoverage = { complete: boolean; count: number; total: number | null; oldest: string | null; newest: string | null; checkedAt: string | null; mode: string };
+export type HistoryRefresh = { rows: TrainingLog[]; removed: string[]; coverage: HistoryCoverage; stats: { mode: "manifest" | "pages"; requests: number; read: number; removed: number; kept: number } };
+export const HistoryWindow = g.TitanHistoryWindow as {
+  PAGE: number;
+  MANIFEST_COLUMNS: string;
+  order(a: Partial<TrainingLog>, b: Partial<TrainingLog>): number;
+  fingerprint(row: Partial<TrainingLog>): string;
+  diff(cached: Partial<TrainingLog>[], manifest: Partial<TrainingLog>[]): { fetch: string[]; remove: string[]; kept: number };
+  merge<L extends Partial<TrainingLog>>(cached: L[], fetched: L[], removed?: string[]): L[];
+  reconcile<L extends Partial<TrainingLog>>(current: L[], refreshed: L[], removed?: string[], startedFrom?: L[]): L[];
+  coverageOf(rows: Partial<TrainingLog>[], opts?: { complete?: boolean; total?: number | null; checkedAt?: number | string | null; mode?: string }): HistoryCoverage;
+  covers(coverage: HistoryCoverage | null | undefined, since?: number): boolean;
+  describe(coverage: HistoryCoverage | null | undefined, opts?: { online?: boolean; loading?: boolean }): { state: "complete" | "partial" | "none"; tone: "info" | "warn"; short: string; text: string } | null;
+  refresh(client: unknown, owner: string, cached: { rows: TrainingLog[]; coverage: HistoryCoverage } | null, opts?: { onPage?: (rows: TrainingLog[], coverage: HistoryCoverage) => unknown; timeout?: <T>(p: PromiseLike<T>) => Promise<T>; now?: () => number }): Promise<HistoryRefresh>;
+};
+
+/** V1.7.2 — Planifié et réalisé: occurrences of the typical week tied to the sessions really done, the same rules and words as the
+    website (src/core/web/week-plan.js). The schedule is game_state.user.schedule (monday … sunday, revisions, weeks). */
+export type PlanDay = { sport: string; minutes: number | null; note: string } | null;
+export type WeekDecisionKind = "move" | "replace" | "skip" | "link" | "none" | "reset";
+export type WeekDecision = { kind: WeekDecisionKind; day?: string; sport?: string; session?: string };
+export type WeekOccurrence = {
+  id: string; index: number;
+  planned: { day: string; sport: string; minutes: number | null; note: string };
+  decision: { kind: WeekDecisionKind; at: string | null; day?: string; sport?: string; session?: string; origin?: string } | null;
+  effective: { day: string; sport: string };
+  status: "done" | "skipped" | "ask" | "paused" | "missed" | "today" | "planned";
+  gap: "moved" | "replaced" | "skipped" | "missed" | null;
+  link: { session: string; how: "auto" | "manual" } | null;
+  candidates: string[]; otherSport?: boolean; notice: "removed" | "not-counted" | "other-week" | "taken" | null; declined?: boolean;
+  actual?: { day: string; sport: string };
+};
+export type WeekPlanView = {
+  version: number; week: string; to: string; current: boolean; past: boolean; paused: boolean;
+  reference: { source: "week" | "revision" | "type" | "reconstructed" | "block"; at: string | null; days: PlanDay[]; block?: { id: string; index: number; from: string; kind: string | null; label: string | null } };
+  occurrences: WeekOccurrence[]; extra: { id: string; day: string; sport: string; ask: boolean }[];
+  summary: { planned: number; done: number; asPlanned: number; moved: number; replaced: number; skipped: number; missed: number; toDecide: number; upcoming: number; extra: number; gaps: number };
+  signature: string;
+};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Schedule = Record<string, any>;
+export const WeekPlan = g.TitanWeekPlan as {
+  VERSION: number; MAX_WEEKS: number; DAY_KEYS: string[]; DAY_NAMES: string[]; RULES: Record<"reference" | "link" | "gap" | "pause", string>;
+  addDays(key: string, n: number): string; weekOf(key: string): string; dayIndex(key: string): number;
+  localKey(instant: string | number | Date, zone?: string | null): string | null;
+  sessionDay(log: Partial<TrainingLog>, zone?: string | null): string | null; sessionId(log: Partial<TrainingLog>): string;
+  typeDays(schedule: Schedule): PlanDay[];
+  revisions(schedule: Schedule): { from: string | null; days: PlanDay[]; at: string | null }[];
+  reference(schedule: Schedule, week: string, opts?: { current?: string }): WeekPlanView["reference"];
+  editType(schedule: Schedule, dayKey: string, value: { sport: string | null; minutes?: number | string | null; note?: string } | null, opts: { today: string; at?: string }): { schedule: Schedule; appliesFrom: string };
+  decide(schedule: Schedule, occurrenceId: string, decision: WeekDecision, opts: { today: string; at?: string }): Schedule;
+  merge(local: Schedule, remote: Schedule): Schedule;
+  week(schedule: Schedule, logs: Partial<TrainingLog>[], opts: { week?: string; today: string; zone?: string | null; pauses?: string[] }): WeekPlanView;
+  snapshot(view: WeekPlanView): unknown;
+  describe(o: WeekOccurrence, opts?: { label?: (sport: string) => string }): { plan: string; status: string; notice: string | null; gap: string | null };
+  summarize(view: WeekPlanView): { start: string; changes: string; result: string };
+};
+
+/** V1.7.4 — Objectifs et blocs d’entraînement: multi-week blocks on the planning (each week of a block is the programme of that week),
+    models by type of project, milestones measured by a real session or declared, the revision of one week, the copy of a week, the
+    shift with its preview, the duplication and the removal of a block, the same rules and words as the website
+    (src/core/web/training-block.js). Stored in schedule.blocks. */
+export type BlockWeekPlan = { days: (PlanDay | null)[]; kind?: "plan" | "report" | "copy"; n?: number; of?: number; light?: boolean; milestones?: string[] };
+export type BlockMeasure = { kind: "measure" | "declared"; sport?: string | null; metric?: "distance" | "duration" | "elevation" | "sessions" | null; target?: number | null };
+export type BlockMilestoneState = BlockMeasure & { id: string; title: string; week: string; index: number | null; closed: boolean; state: "reached" | "late" | "missed" | "pending"; session: string | null; day: string | null; declared: { at: string } | null; how?: "session" | "declared"; before?: boolean; best?: number };
+export type BlockGoalState = BlockMeasure & { title: string; date: string | null; state: "reached" | "passed" | "pending"; session: string | null; day: string | null; how?: string; daysLeft?: number; best?: number };
+export type BlockWeek = { index: number; week: string; label: string; kind: string; light: boolean; days: (string | null)[]; minutes: (number | null)[]; plan: (string | null)[]; applied: boolean; before: boolean; state: "closed" | "current" | "upcoming"; paused: boolean; milestones: string[]; summary?: { planned: number; done: number; asPlanned: number; gaps: number; extra: number; source: string } };
+export type BlockLogEntry = { at: string; kind: string; from: string; origin: string; effect: { weeks?: { week: string; before: string | null; after: string | null }[]; milestones?: { id: string; title: string; before: string | null; after: string | null }[]; exceptions?: { week: string; occurrence: string; state: string }[]; pauses?: string[]; detail?: Record<string, unknown> } | null };
+export type BlockView = {
+  version: number; id: string; title: string; intent: string; template: string | null; sports: string[]; created: string; copyOf: string | null;
+  start: string; end: string; activation: string | null; removed: string | null; state: "active" | "upcoming" | "finished" | "removed"; currentIndex: number;
+  weeks: BlockWeek[]; milestones: BlockMilestoneState[]; goal: BlockGoalState | null; log: BlockLogEntry[]; open: string; conflict: boolean; signature: string;
+};
+export type BlockPreview = {
+  kind: string; from: string; detail?: Record<string, unknown>;
+  weeks: { week: string; state: string; changed: boolean; before: { days: (string | null)[]; source: string; label: string | null }; after: { days: (string | null)[]; source: string; label: string | null }; paused: boolean }[];
+  milestones: { id: string; title: string; before: string | null; after: string | null }[];
+  goal: { title: string; date: string | null; kept: boolean; endsAfter: boolean; late: string[] } | null;
+  pauses: string[]; exceptions: { week: string; occurrence: string; kind: string; origin: string | null; before: string | null; after: string | null; state: string }[]; closed: number; current: boolean;
+};
+export type BlockChange = { at: string; kind: string; from: string; origin: string; here: { week: string; before: string | null; after: string | null } | null; milestones: { id: string; title: string; before: string | null; after: string | null }[]; exceptions: { week: string; occurrence: string; state: string }[]; detail: Record<string, unknown> | null };
+export type BlockContext = { id: string; title: string; state: BlockView["state"]; goal: BlockGoalState | null; week: string; index: number | null; count: number; label: string | null; applied: boolean; before: boolean; changes: BlockChange[]; milestones: BlockMilestoneState[]; removed: string | null; signature: string };
+export type BlockInput = { id?: string; title: string; intent?: string; template?: string; sports?: string[]; start: string; weeks: BlockWeekPlan[]; goal?: (BlockMeasure & { title: string; date?: string | null }) | null; milestones?: (BlockMeasure & { id?: string; title: string; week: number })[] };
+type BlockOpts = { today: string; zone?: string | null; pauses?: string[]; at?: string; logs?: Partial<TrainingLog>[] };
+type BlockResult = { schedule: Schedule; block: Schedule; from: string; preview: BlockPreview };
+export const TrainingBlock = g.TitanTrainingBlock as {
+  VERSION: number; MIN_WEEKS: number; MAX_WEEKS: number; MAX_SHIFT: number; RULES: Record<"event" | "start" | "journal" | "preview", string>;
+  TEMPLATES: { id: string; title: string; weeks: number; text: string }[];
+  draft(template: string, opts: { type?: (PlanDay | null)[]; sport?: string; weeks?: number; peak?: number; longDay?: number; midDay?: number }): BlockWeekPlan[];
+  suggest(template: string, opts: { weeks?: number; sport?: string; goal?: BlockInput["goal"]; type?: (PlanDay | null)[] }): NonNullable<BlockInput["milestones"]>;
+  firstOpen(schedule: Schedule, today: string): string;
+  weekLabel(week: BlockWeekPlan | undefined, index: number): string;
+  create(schedule: Schedule, input: BlockInput, opts: BlockOpts): BlockResult;
+  editWeek(schedule: Schedule, id: string, args: { index: number; days: (PlanDay | null)[] }, opts: BlockOpts): BlockResult;
+  duplicateWeek(schedule: Schedule, id: string, args: { from: number; to: number }, opts: BlockOpts): BlockResult;
+  shift(schedule: Schedule, id: string, args: { from: number; weeks?: number }, opts: BlockOpts): BlockResult;
+  setMilestone(schedule: Schedule, id: string, args: Record<string, unknown>, opts: BlockOpts): BlockResult;
+  declare(schedule: Schedule, id: string, args: { milestone?: string; goal?: boolean; done?: boolean }, opts: BlockOpts): { schedule: Schedule; block: Schedule };
+  remove(schedule: Schedule, id: string, opts: BlockOpts): BlockResult;
+  duplicate(schedule: Schedule, id: string, args: { start: string; title?: string; newId?: string }, opts: BlockOpts): BlockResult;
+  view(schedule: Schedule, logs: Partial<TrainingLog>[], id: string, opts: BlockOpts): BlockView | null;
+  list(schedule: Schedule, logs: Partial<TrainingLog>[], opts: BlockOpts): BlockView[];
+  weekContext(schedule: Schedule, logs: Partial<TrainingLog>[], opts: BlockOpts & { week?: string }): BlockContext | null;
+  measure(schedule: Schedule, logs: Partial<TrainingLog>[], opts: BlockOpts): { blocks: number; activated: number; milestones: number; linked: number; declared: number; interrupted: number; kept: number };
+  snapshot(view: BlockView | null): unknown;
+  unitText(metric: string, target: number): string;
+  describeMeasure(m: BlockMeasure, opts?: Words): string;
+  describeMilestone(m: BlockMilestoneState, opts?: Words): { title: string; what: string; when: string; state: string };
+  describeGoal(g: BlockGoalState | null, opts?: Words): { title: string; what: string; date: string; state: string } | null;
+  describePreview(p: BlockPreview, opts?: Words): { lines: string[]; notes: string[]; where: string };
+  describeChange(c: BlockChange, opts?: Words): { source: string; effect: string };
+};
+
+/** V1.7.6 — Scénarios multisports: two private variants of a few weeks compared on what the plan gives (time per sport, free days,
+    overlaps, milestones that move), the chosen one applied from an explicit Monday through a preview, then undone, the same rules and
+    words as the website (src/core/web/block-scenario.js). Drafts in schedule.scenarios; applying writes the V1.7.4 block. */
+export type ScenarioSlot = { sport: string; minutes: number | null; note: string } | null;
+export type ScenarioSports = Record<string, { minutes: number; sessions: number; unknown: number }>;
+export type ScenarioConflict = { week: string; day: number; sport: string; kind: "pause" | "cadence" | "unavailable" | "decision"; occurrence?: string; moved?: string };
+export type ScenarioPlan = { sports: ScenarioSports; minutes: number; sessions: number; unknown: number; free: number; weeks: { week: string; minutes: number; sessions: number; unknown: number; free: number; days: ScenarioSlot[] }[]; conflicts: ScenarioConflict[]; exceptions: unknown[]; milestones: Record<string, string | null>; name?: string; same?: boolean };
+export type ScenarioApplied = { at: string; variant: "a" | "b"; name: string; from: string; block: string; created: boolean; undone: { at: string; from: string } | null };
+export type ScenarioComparison = {
+  version: number; id: string; title: string; base: string | null; baseTitle: string | null; start: string; end: string; count: number; weeks: string[]; open: string;
+  availability: { week: string; pause: boolean; days: boolean[] | null }[]; plans: { active: ScenarioPlan; a: ScenarioPlan; b: ScenarioPlan };
+  rows: { sport: string; delta: number | null }[]; free: { active: number; a: number; b: number; delta: number }; conflicts: { active: number; a: number; b: number }; moved: { a: number; b: number };
+  milestones: { id: string; title: string; active: string | null; a: string | null; b: string | null; moved: { a: boolean; b: boolean } }[]; hypotheses: string[]; applied: ScenarioApplied | null;
+};
+export type ScenarioPreview = { kind: "apply" | "undo"; scenario: string; variant: string | null; name: string | null; from: string; occurrences: { id: string; week: string; change: string }[]; kept: number; lived: string[] };
+export type ScenarioFollowUp = { id: string; title: string; variant: string; name: string; week: string; undone: boolean; lived: boolean; summary: { planned: number; done: number; gaps: number } };
+type ScenarioOpts = { today: string; zone?: string | null; pauses?: string[]; at?: string };
+type ScenarioResult = { schedule: Schedule; scenario: Schedule; preview: ScenarioPreview };
+type ScenarioWords = { label?: (s: string) => string; dayLong?: (k: string) => string };
+type Line = { active: string; a: string; b: string; delta: string };
+export const BlockScenario = g.TitanBlockScenario as {
+  VERSION: number; KEYS: ("a" | "b")[]; LETTER: Record<"a" | "b", string>; HYPOTHESES: string[]; RULES: Record<"draft" | "apply" | "undo", string>;
+  list(schedule: Schedule): { id: string; title: string; start: string; count: number; base: string | null; applied: ScenarioApplied | null; names: { a: string; b: string } }[];
+  compare(schedule: Schedule, logs: Partial<TrainingLog>[], id: string, opts: ScenarioOpts): ScenarioComparison;
+  apply(schedule: Schedule, logs: Partial<TrainingLog>[], id: string, args: { variant: "a" | "b"; from: string }, opts: ScenarioOpts): ScenarioResult;
+  undo(schedule: Schedule, logs: Partial<TrainingLog>[], id: string, opts: ScenarioOpts): ScenarioResult;
+  fit(schedule: Schedule, id: string, args: { variant: "a" | "b"; week: number }, opts: ScenarioOpts): { schedule: Schedule };
+  followUp(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ScenarioOpts & { week?: string }): ScenarioFollowUp | null;
+  measure(schedule: Schedule): { scenarios: number; compared: number; applied: number; undone: number; decisions: number; conflictsAvoided: number };
+  snapshot(c: ScenarioComparison | null): unknown;
+  describeComparison(c: ScenarioComparison, opts?: ScenarioWords): { names: Record<"active" | "a" | "b", string>; sports: (Line & { sport: string; label: string })[]; total: Line; free: Line; conflicts: Record<"active" | "a" | "b", string[]>; milestones: { id: string; title: string; active: string; a: string; b: string }[]; fields: string[]; weeks: { week: string; title: string; availability: string | null; active: string; a: string; b: string }[]; observed: { title: string; lines: string[] }; planned: string; same: string[] };
+  describePreview(p: ScenarioPreview, opts?: ScenarioWords): { lines: string[]; notes: string[]; where: string };
+  describeFollowUp(f: ScenarioFollowUp | null, opts?: ScenarioWords): { lead: string; planned: string; done: string; result: string } | null;
+};
+
+/** V1.7.3 — Bilan et ajustements: one observation of the followed weeks with its source sessions, the actions on the week after
+    (keep, move a slot, pause), the preview, the choice with its origin, its undo, and the follow-up at the next bilan, the same rules
+    and words as the website (src/core/web/week-review.js). Stored in schedule.reviews and the cadence pauses. */
+export type ReviewAction = { kind: "keep" | "pause" } | { kind: "move"; from: number; to: number; scope: "next" | "type" };
+export type ReviewSlot = { index: number; sport: string; weeks: number; asPlanned: number; adjusted: number; moved: number; replaced: number; skipped: number; missed: number };
+export type ReviewObservation = {
+  kind: "short" | "moved" | "missed" | "regular" | "mixed"; week: string; window: number; followed: number; weeks: string[];
+  slot: { index: number; sport: string; weeks: number; moved: number; missed: number; days: { day: number; n: number }[]; occurrences: string[] } | null;
+  slots: ReviewSlot[]; sources: string[]; total?: number; asPlanned?: number; regular?: number[];
+  suggestion: { kind: "keep" } | { kind: "move"; from: number; to: number | null; scope: "next" | "type" };
+};
+export type ReviewRecord = {
+  v: number; week: string; target: string; at: string;
+  observation: { kind: ReviewObservation["kind"]; slot: { index: number; sport: string } | null; sources: string[]; suggested: boolean };
+  action: { kind: "keep" | "pause"; scope: "next" } | { kind: "move"; from: number; to: number; scope: "next" | "type" };
+  applied: { occurrence?: string; prior?: unknown; days?: Record<string, unknown>; wrote?: Record<string, unknown>; from?: string; pause?: string };
+  undone: string | null;
+};
+export type ReviewFollowUp = { week: string; target: string; review: ReviewRecord; undone: boolean; state: string | null; session: string | null; occurrence: string | null; summary: WeekPlanView["summary"]; paused: boolean; actualDay?: number; extraDay?: number };
+export type WeekReviewView = {
+  version: number; week: string; target: string; observation: ReviewObservation;
+  actions: { week: string; target: string; open: boolean; decided: ReviewRecord | null; keep: boolean; move: { from: number[]; to: number[] } | null; pause: boolean; alreadyPaused: boolean };
+  followUp: ReviewFollowUp | null; signature: string;
+};
+export type ReviewPreview = { week: string; target: string; appliesFrom: string; scope: "next" | "type"; action: ReviewRecord["action"]; before: { days: (string | null)[]; paused: boolean }; after: { days: (string | null)[]; paused: boolean }; changes: { index: number; before: string | null; after: string | null }[] };
+type ReviewOpts = { week?: string; today: string; zone?: string | null; pauses?: string[]; at?: string };
+type Words = { label?: (sport: string) => string; dayLong?: (key: string) => string };
+export const WeekReview = g.TitanWeekReview as {
+  VERSION: number; WINDOW: number; MIN_WEEKS: number; RULES: Record<"window" | "short" | "shift" | "count" | "choice", string>;
+  review(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ReviewOpts): WeekReviewView;
+  preview(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ReviewOpts, action: ReviewAction): ReviewPreview;
+  apply(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ReviewOpts, action: ReviewAction): { schedule: Schedule; pauses: string[]; review: ReviewRecord };
+  undo(schedule: Schedule, pauses: string[], opts: { week: string; today: string; at?: string }): { schedule: Schedule; pauses: string[]; review: ReviewRecord; kept: string[] };
+  adjustments(schedule: Schedule, opts: { week?: string; today: string }): ReviewRecord[];
+  measure(schedule: Schedule, logs: Partial<TrainingLog>[], opts: ReviewOpts): { confirmed: number; undone: number; found: number };
+  snapshot(view: WeekReviewView): unknown;
+  measureOf(log: Partial<TrainingLog> | undefined): string;
+  describeObservation(o: ReviewObservation, opts?: Words): { title: string; text: string; lines?: string[] };
+  describeAction(a: ReviewAction | ReviewRecord["action"], opts?: Words & { sport?: string | null }): string;
+  describePreview(p: ReviewPreview, opts?: Words): { lines: string[]; where: string; undo: string };
+  describeFollowUp(f: ReviewFollowUp | null, opts?: Words): { decided: string; observed: string; tone: "ok" | "warn" | "muted" } | null;
+};
+
+/** V1.7.5 — Analyse avancée par discipline: the three depth views of the website (src/core/web/discipline-analysis.js). */
+export type AnalysisDiscipline = "endurance" | "strength" | "climbing";
+export type AnalysisSide = { value: number | null; display: string; measured: number; total: number; sessions: string[]; from?: string; missing?: string };
+export type AnalysisRow = { id: string; label: string; rule: string; provenance: string; current: AnalysisSide; reference: AnalysisSide | null; direction: "better" | "worse" | "stable" | "neutral"; significant: boolean; change?: number; reason?: "short"; better?: "higher" | "lower"; status: "measured" | "partial" | "absent" };
+export type AnalysisGroup = { id: string; discipline: AnalysisDiscipline; sport: string; label: string; sessions: number; criteria: string[]; limits: string[]; anchor?: string; scale?: string; ordered?: boolean; exercise?: string };
+export type AnalysisLevel = { grade: string; score: number; done: number; tried: number; attempts: number; successes: number; measured: number; sessions: string[] };
+export type AnalysisReference = { kind: "period" } | { kind: "block"; id?: string; title: string; start: string; end: string } | { kind: "session"; id: string } | null;
+export type AnalysisView = {
+  version: string; discipline: AnalysisDiscipline; label: string; sport: string | null; group: AnalysisGroup | null; groups: number; status: "ok" | "limited" | "insufficient";
+  current: { label: string; sessions: string[] };
+  reference: { kind: "period" | "block" | "session"; label: string; sessions: string[]; status: "ok" | "empty" | "missing" | "excluded" | "incomparable"; note?: string; id?: string } | null;
+  rows: AnalysisRow[]; levels: { current: AnalysisLevel[] | null; reference: AnalysisLevel[] | null } | null;
+  series: { id: string; date: string; side: "current" | "reference" | "both"; value: number | null; display: string }[]; seriesMetric?: string;
+  limits: string[]; states: Record<string, number>; signature: string;
+};
+export const DisciplineAnalysis = g.TitanDisciplineAnalysis as {
+  VERSION: string; MIN_SESSIONS: number; MIN_SPLITS: number; DISCIPLINES: Record<AnalysisDiscipline, string>; DIRECTION: Record<string, string>;
+  sports(logs: Partial<TrainingLog>[], discipline: AnalysisDiscipline): { sport: string; label: string; sessions: number }[];
+  groups(logs: Partial<TrainingLog>[], discipline: AnalysisDiscipline, opts?: { sport?: string }): AnalysisGroup[];
+  view(logs: Partial<TrainingLog>[], opts: { discipline: AnalysisDiscipline; sport?: string; group?: string; now?: Date; weeks?: number; reference?: AnalysisReference }): AnalysisView | null;
+  reading(view: AnalysisView | null): string[];
+  dateText(t: number, now?: number): string;
+};
+
+/* ---- V1.7.7 GPS: recording engine, route geometry, session rules (js/core/gps-*.js, same files as the website) ---- */
+export type GpsFix = { lat: number; lon: number; alt: number | null; altAcc: number | null; acc: number | null; t: number };
+export type GpsWhy = { accuracy: number; speed: number; order: number; invalid: number; full: number };
+export type GpsTrackState = { segs: GpsFix[][]; rejected: number; every?: number; why?: GpsWhy; cand?: GpsFix[] };
+export type GpsStretch = { s: number; e: number | null; why: "pause" | "interrupted" | "finish" };
+export type GpsFamily = "walk" | "run" | "bike" | "mtb" | "roll" | "snow" | "water";
+export type GpsTimeKind = "moving" | "stopped" | "paused" | "interrupted" | "missing";
+export type GpsSplit = { index: number; distanceM: number; movingS: number };
+export type GpsAnalysis = {
+  rules: string; family: GpsFamily; autoPause: boolean;
+  params: { stopDelayS: number; stopSpeedMs: number; stopRadiusM: number; gapS: number; maxAccuracyM: number; maxSpeedMs: number };
+  ms: Record<GpsTimeKind | "elapsed", number>;
+  elapsedS: number; movingS: number; stoppedS: number; pausedS: number; interruptedS: number; missingS: number; recordingS: number; effortS: number;
+  distanceM: number; distanceKm: number; gapDistanceM: number; avgMovingKmh: number | null; avgOverallKmh: number | null;
+  ascentM: number | null; descentM: number | null;
+  altitude: { source: "gnss"; method: string; coverage: number; reliable: boolean; gain: number | null; loss: number | null; min: number | null; max: number | null };
+  stops: { at: number; seconds: number; distanceM: number }[]; gaps: { at: number; seconds: number; straightM: number; distanceM: number }[];
+  splits: GpsSplit[]; timeline: { from: number; to: number; kind: GpsTimeKind }[];
+  points: number; rejected: number; why: GpsWhy; accuracyM: number | null; start: number | null; end: number | null; firstFixAt: number | null; lastFixAt: number | null; thinnedEveryMs: number | null;
+};
+export type GpsDigest = { v: 1; rules: string; family: GpsFamily; autoPause: boolean; elapsedS: number; movingS: number; stoppedS: number; pausedS: number; missingS: number; distanceM: number; gapDistanceM: number; ascentM: number | null; descentM: number | null; altitude: "gnss" | "unreliable"; points: number; rejected: number };
+export type GpsLive = { t: number; lat?: number; lon?: number; acc?: number | null; spd?: number | null; hdg?: number | null; alt?: number | null };
+export type GpsSignal = { state: "searching" | "lost" | "weak" | "fair" | "good"; label: string; accuracyM: number | null };
+export const GpsEngine = g.TitanGpsEngine as {
+  RULES_VERSION: string; GPS_SPORTS: string[]; MAX_ACCURACY_M: number; GAP_S: number; DWELL_M: number; MAX_POINTS: number;
+  FAMILIES: Record<GpsFamily, { label: string; stopDelayS: number; stopSpeedMs: number; stopRadiusM: number; maxSpeedMs: number; minSpeedMs: number; offRouteM: number }>;
+  haversine(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number;
+  isGpsSport(sport: string): boolean; familyOf(sport: string): GpsFamily; validFix(f: GpsFix): boolean;
+  ingest(track: GpsTrackState, fix: GpsFix, opts?: { sport?: string; family?: GpsFamily; newSegment?: boolean; maxPoints?: number }): GpsTrackState;
+  analyse(rec: { sport: string; startedAt?: number | null; endedAt?: number | null; segs: GpsFix[][]; stretches?: GpsStretch[]; rejected?: number; why?: GpsWhy; every?: number }, opts?: { now?: number; autoPause?: boolean }): GpsAnalysis;
+  currentSpeed(segs: GpsFix[][], now: number, live?: GpsLive | null): number | null;
+  signal(live: GpsLive | null | undefined, now: number): GpsSignal;
+  digest(a: GpsAnalysis): GpsDigest; explain(a: GpsAnalysis): string[]; clock(seconds: number): string;
+};
+
+export type NavPoint = { lat: number; lon: number; ele?: number | null; t?: number };
+export type NavRoute = { v: 1; name: string; sport: string | null; origin: "imported" | "recorded" | "planned" | "backtrack"; segs: NavPoint[][]; distanceM: number; ascentM: number | null; descentM: number | null; points: number };
+export type NavEncoded = { v: 1; t0: number; segs: (number | null)[][][] };
+export type NavCourse = { pts: { lat: number; lon: number; ele: number | null; cum: number; seg: number }[]; totalM: number; start: NavPoint | null; end: NavPoint | null };
+export type NavFollow = { edge: number; alongM: number; offM: number | null; marginM?: number; joined: boolean; off: boolean; offSince: number | null; offCount: number; remainingM?: number; progress?: number; done: boolean; bearingNext?: number };
+export type NavEta = { seconds: number; lowS: number; highS: number; speedMs: number; basis: string; note: string };
+export type NavEffort = { id: string; date?: string; movingS: number; elapsedS?: number; missingS?: number; distanceM: number; direction?: "same" | "reverse" | "unknown" | null };
+export const GpsNav = g.TitanGpsNav as {
+  MAX_ROUTE_POINTS: number; SHARE_TRIM_M: number; SAME: { corridorM: number; stepM: number; coverage: number; length: number; text: string };
+  bearing(a: NavPoint, b: NavPoint): number; cardinal(deg: number): string; simplify<T extends NavPoint>(points: T[], tolM: number): T[]; lengthOf(points: NavPoint[]): number;
+  makeRoute(segs: NavPoint[][], meta?: { name?: string; sport?: string | null; origin?: NavRoute["origin"] }): NavRoute | null;
+  importGpx(text: string, gpx: unknown, meta?: { name?: string; sport?: string | null }): { ok: false; error: string } | { ok: true; route: NavRoute; facts: { points: number; ignoredPoints: number; segments: number; kind: string; hasTime: boolean; hasAltitude: boolean; cut: number } };
+  fit(route: NavRoute, max?: number): NavRoute; encode(route: NavRoute, t0?: number): NavEncoded; decode(doc: NavEncoded, meta?: { name?: string; sport?: string | null; origin?: NavRoute["origin"] }): NavRoute | null;
+  fromFixes(segs: GpsFix[][], meta?: { name?: string; sport?: string | null }): NavRoute | null;
+  toGpx(segs: (NavPoint | GpsFix)[][], name: string, opts?: { time?: boolean; ele?: boolean }): string; trimEnds<T extends NavPoint>(segs: T[][], meters?: number): T[][] | null;
+  course(route: NavRoute): NavCourse; startFollow(): NavFollow; follow(c: NavCourse, state: NavFollow | null, fix: { lat: number; lon: number; acc?: number | null; t: number }, opts?: { sport?: string; family?: GpsFamily }): NavFollow;
+  backtrack(segs: GpsFix[][], opts?: { sport?: string; toleranceM?: number }): { route: NavRoute; start: { lat: number; lon: number } | null; holes: number; holesStraightM: number } | null;
+  straight(from: NavPoint, to: NavPoint): { distanceM: number; bearing: number; cardinal: string };
+  eta(distanceM: number, a: Pick<GpsAnalysis, "movingS" | "distanceM"> & { splits?: GpsSplit[] }): NavEta | null;
+  sameRoute(a: NavRoute | null, b: NavRoute | null): { match: boolean; direction: "same" | "reverse" | "unknown" | null; coverageAB?: number; coverageBA?: number; lengthGap?: number; reason: string };
+  compareEfforts(routeDistanceM: number, efforts: NavEffort[]): { comparable: (NavEffort & { speedKmh: number })[]; excluded: (NavEffort & { reason: string })[]; best: (NavEffort & { speedKmh: number }) | null; criteria: string; note: string };
+  profile(route: NavRoute, n?: number): { km: number; ele: number }[];
+  nearRoute<T extends { lat: number; lon: number }>(pois: T[], route: NavRoute, maxM: number): (T & { offM: number; alongM: number })[];
+};
+
+export type GpsFieldKey = "moving" | "elapsed" | "stopped" | "distance" | "speed" | "avgMoving" | "avgOverall" | "ascent" | "altitude" | "remaining" | "clock";
+export type GpsCell = { key: string; label: string; short: string; value: string; unit: string; note?: string };
+export type GpsGoal = { kind: "distance"; km: number } | { kind: "time"; minutes: number } | { kind: "return"; at: number };
+export type GpsGoalView = { kind: GpsGoal["kind"]; title: string; ratio: number | null; reached: boolean; line: string; estimate: string | null; note: string | null; status?: "ok" | "tight" | "late" | "unknown"; marginS?: number };
+export type GpsStep = { kind: "warmup" | "work" | "recover" | "cooldown" | "free"; by: "time" | "distance" | "manual"; value: number; label: string };
+export type GpsLap = { index: number; kind: GpsStep["kind"]; label: string; seconds: number; metres: number; manual: boolean };
+export type GpsCursor = { index: number; fromS: number; fromM: number; laps: GpsLap[] };
+export type GpsPlanView = { finished: boolean; step: GpsStep | null; next: GpsStep | null; remaining: { value: string; unit: string; manual?: boolean } | null; ratio: number | null; position: string };
+export type GpsStepInput = { by: "time" | "distance" | "manual"; value?: number };
+export type GpsExpedition = { world: string; title: string; line: string; opened: { ordinal: number; kind: string; text: string }[]; next: string; note: string };
+export const GpsSession = g.TitanGpsSession as {
+  FIELDS: Record<GpsFieldKey, { label: string; short: string; kind: string }>; STEP_KINDS: Record<GpsStep["kind"], string>; WORLD_NAMES: Record<string, string>;
+  layout(sport: string, chosen?: string[] | null): { pace: boolean; main: GpsFieldKey[]; more: GpsFieldKey[]; options: GpsFieldKey[] };
+  cell(key: GpsFieldKey, a: GpsAnalysis, live: { speedMs?: number | null; altitudeM?: number | null; remainingM?: number | null; now?: number } | null, pace: boolean): GpsCell;
+  chrono(seconds: number): string; km(m: number): string; speedText(ms: number | null, pace: boolean): { value: string; unit: string }; span(seconds: number): string; hhmm(t: number): string;
+  goalOf(g: unknown): GpsGoal | null;
+  goalProgress(goal: GpsGoal | null, a: GpsAnalysis, ctx: { now?: number; eta?: (distanceM: number) => NavEta | null; backM?: number | null }): GpsGoalView | null;
+  plannedGoal(weekView: unknown, sport: string): { goal: GpsGoal; occurrence: string; label: string } | null;
+  stepOf(s: unknown): GpsStep | null; buildPlan(f: { warmup?: GpsStepInput | null; reps?: number; work?: GpsStepInput | null; recover?: GpsStepInput | null; cooldown?: GpsStepInput | null }): GpsStep[];
+  planOf(steps: unknown): GpsStep[]; startPlan(): GpsCursor;
+  runPlan(steps: GpsStep[], cursor: GpsCursor | null, a: Pick<GpsAnalysis, "recordingS" | "distanceM">): GpsPlanView & { cursor: GpsCursor; changed: boolean };
+  skipStep(steps: GpsStep[], cursor: GpsCursor | null, a: Pick<GpsAnalysis, "recordingS" | "distanceM">): GpsCursor;
+  planSummary(steps: GpsStep[], cursor: GpsCursor | null): { total: number; done: number; complete: boolean; laps: (GpsLap & { text: string })[]; missed: string[] };
+  describeStep(s: GpsStep): string;
+  expedition(world: string, before: unknown, after: unknown): GpsExpedition | null;
 };

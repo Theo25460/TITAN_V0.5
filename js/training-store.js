@@ -222,6 +222,15 @@
       // Same rule: storage or content problems never stop the purge.
     }
   };
+  /* V1.6.6: what this page holds of each account's history (js/core/history-window.js coverageOf), for the views that must not
+     present a partial copy as a complete total. Kept per owner, so a coverage never crosses accounts. */
+  const coverages = new Map();
+  root.titanHistoryCoverageOf = (ownerId) => coverages.get(String(ownerId)) || null;
+  root.titanSetHistoryCoverage = (ownerId, coverage) => {
+    if (coverage) coverages.set(String(ownerId), coverage);
+    else coverages.delete(String(ownerId));
+    if (String(ownerId) === String(root.state?.user?.id)) root.titanHistoryCoverage = coverage || null;
+  };
   if (!root.indexedDB) return;
   let connection,
     cache = [];
@@ -229,12 +238,15 @@
   const open = () =>
     connection ||
     (connection = new Promise((resolve, reject) => {
-      const request = indexedDB.open("titan-training", 2);
+      const request = indexedDB.open("titan-training", 3);
       request.onupgradeneeded = () => {
         if (!request.result.objectStoreNames.contains("operations"))
           request.result.createObjectStore("operations", { keyPath: "key" });
         if (!request.result.objectStoreNames.contains("history"))
           request.result.createObjectStore("history", { keyPath: "ownerId" });
+        // V1.6.6: an account history is kept in blocks of CHUNK_ROWS sessions, key « owner:n ».
+        if (!request.result.objectStoreNames.contains("historyChunks"))
+          request.result.createObjectStore("historyChunks", { keyPath: "key" });
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -267,6 +279,79 @@
       tx.oncomplete = () => {
         if (receipt.result?.erased) reject(Object.assign(new Error("Compte supprimé sur cet appareil."), { code: "TRAINING_OWNER_ERASED" }));
         else resolve();
+      };
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || new Error("STORAGE_ABORT"));
+    });
+  }
+  /* V1.6.6 — the account copy in blocks. Rows are sorted by id, so a correction, an archive or a confirmation changes one block and
+     only that block is written again (the whole copy was rewritten each time: 345 ms of main thread on 10 000 sessions). The head
+     record (store « history », key ownerId) holds the number of blocks and the coverage; a discovery account keeps its single
+     record (saveGuestSession). A block is written again when one of its rows changed what the server can change. */
+  const CHUNK_ROWS = 500;
+  const written = new Map();
+  const byId = (a, b) => (String(a?.id) < String(b?.id) ? -1 : String(a?.id) > String(b?.id) ? 1 : 0);
+  const rowSig = (r) => `${r?.id}~${r?.revision ?? ""}~${r?.syncStatus ?? ""}~${r?.archived_at ?? ""}~${r?.status ?? ""}~${r?.is_suspicious ? 1 : 0}~${r?.date ?? ""}~${r?.val ?? ""}~${r?.xp ?? ""}`;
+  const chunkKeys = (ownerId, n) => Array.from({ length: Math.max(0, Number(n) || 0) }, (_, i) => `${ownerId}:${i}`);
+  async function saveChunked(ownerId, logs, coverage) {
+    if (String(ownerId).startsWith("guest_")) return writeForOwner(ownerId, "history", (s) => s.put({ ownerId, logs, coverage }));
+    const rows = [...(logs || [])].sort(byId);
+    const blocks = [];
+    for (let i = 0; i < rows.length; i += CHUNK_ROWS) blocks.push(rows.slice(i, i + CHUNK_ROWS));
+    const sigs = blocks.map((b) => b.map(rowSig).join("|"));
+    const before = written.get(ownerId) || null;
+    const db = await open();
+    let wrote = 0;
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(["history", "historyChunks"], "readwrite");
+      const head = tx.objectStore("history").get(ownerId);
+      head.onsuccess = () => {
+        if (head.result?.erased) return;
+        const chunks = tx.objectStore("historyChunks");
+        const known = head.result?.chunked ? before : null;
+        blocks.forEach((b, i) => {
+          if (known && known[i] === sigs[i]) return;
+          chunks.put({ key: `${ownerId}:${i}`, ownerId, i, rows: b });
+          wrote++;
+        });
+        const had = Math.max(Number(head.result?.chunks) || 0, known?.length || 0);
+        for (let i = blocks.length; i < had; i++) chunks.delete(`${ownerId}:${i}`);
+        tx.objectStore("history").put({ ownerId, chunked: true, chunks: blocks.length, count: rows.length, coverage, savedAt: Date.now() });
+      };
+      tx.oncomplete = () => {
+        if (head.result?.erased) reject(Object.assign(new Error("Compte supprimé sur cet appareil."), { code: "TRAINING_OWNER_ERASED" }));
+        else { written.set(ownerId, sigs); resolve(); }
+      };
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || new Error("STORAGE_ABORT"));
+    });
+    root.titanHistoryWriteStats = { blocks: blocks.length, wrote };
+  }
+  async function readEntry(ownerId) {
+    const db = await open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(["history", "historyChunks"], "readonly");
+      const head = tx.objectStore("history").get(ownerId);
+      let blocks = null;
+      head.onsuccess = () => {
+        if (!head.result?.chunked) return;
+        blocks = [];
+        const store = tx.objectStore("historyChunks");
+        for (const key of chunkKeys(ownerId, head.result.chunks)) {
+          const one = store.get(key);
+          one.onsuccess = () => { if (one.result) blocks.push(one.result); };
+        }
+      };
+      tx.oncomplete = () => {
+        const e = head.result;
+        if (!e || e.erased) return resolve(null);
+        if (!e.chunked) return resolve(Array.isArray(e.logs) ? { logs: e.logs, coverage: e.coverage, legacy: true } : null);
+        // A missing block (storage cleared halfway) makes the copy partial, never silently complete.
+        const parts = (blocks || []).filter((b) => b.i < e.chunks).sort((a, b) => a.i - b.i);
+        const logs = parts.flatMap((b) => b.rows || []);
+        const whole = parts.length === e.chunks;
+        if (whole) written.set(ownerId, parts.map((b) => (b.rows || []).map(rowSig).join("|")));
+        resolve({ logs, coverage: whole ? e.coverage : e.coverage && { ...e.coverage, complete: false, count: logs.length } });
       };
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error || new Error("STORAGE_ABORT"));
@@ -345,9 +430,14 @@
       root.titanForgetOwnerDrafts(ownerId);
       const db = await open();
       await new Promise((resolve, reject) => {
-        const tx = db.transaction(["history", "operations"], "readwrite");
+        const tx = db.transaction(["history", "historyChunks", "operations"], "readwrite");
         // Keep only the owner marker so older asynchronous writes cannot restore erased records.
-        tx.objectStore("history").put({ ownerId, erased: true });
+        const head = tx.objectStore("history").get(ownerId);
+        head.onsuccess = () => {
+          for (const key of chunkKeys(ownerId, head.result?.chunks)) tx.objectStore("historyChunks").delete(key);
+          tx.objectStore("history").put({ ownerId, erased: true });
+        };
+        written.delete(ownerId);
         const request = tx.objectStore("operations").openCursor();
         request.onsuccess = () => {
           const cursor = request.result;
@@ -361,11 +451,19 @@
       });
       await refresh(ownerId);
     },
-    saveHistory: (ownerId, logs) =>
-      writeForOwner(ownerId, "history", (s) => s.put({ ownerId, logs })),
-    readHistory: async (ownerId) =>
-      (await transaction("readonly", (s) => s.get(ownerId), "history"))?.logs ||
-      [],
+    /* V1.6.6: the copy keeps its coverage (js/core/history-window.js): complete or not, from which date, checked when. A write
+       without one keeps the coverage this page holds for the owner (a correction does not change what the device covers). */
+    saveHistory: (ownerId, logs, coverage) =>
+      saveChunked(ownerId, logs, coverage === undefined ? root.titanHistoryCoverageOf?.(ownerId) ?? null : coverage),
+    readHistory: async (ownerId) => (await readEntry(ownerId))?.logs || [],
+    /** { logs, coverage } of the owner's copy, or null. A copy saved before V1.6.6 has no coverage: those were only ever written
+        after a complete read, so it is a complete copy whose check date is unknown (the next refresh verifies it). */
+    readHistoryEntry: async (ownerId) => {
+      const e = await readEntry(ownerId);
+      if (!e) return null;
+      const coverage = e.coverage || (e.legacy && e.logs.length ? { complete: true, count: e.logs.length, total: null, oldest: null, newest: null, checkedAt: null, mode: "legacy" } : null);
+      return { logs: e.logs, coverage };
+    },
     list: () => cache.filter((x) => x.ownerId === owner()),
   };
   root.TitanQueue.saveGuestSession = saveGuestSession;

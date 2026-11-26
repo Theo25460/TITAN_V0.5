@@ -3,6 +3,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import type { Recording } from "../src/lib/gpsRecorder";
 import type { Fix } from "../src/lib/gpsTrack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const mockStore = new Map<string, Recording | null>();
 const mockState = { permission: "ok" as "ok" | "denied" | "blocked" | "unavailable", updates: false, active: null as string | null };
@@ -37,6 +38,8 @@ jest.mock("../src/lib/haptics", () => ({ haptic: jest.fn() }));
 // Notification permission asked at the first start (V1.3.1): granted unless a test says otherwise.
 const mockNotice = jest.fn(async (_explain?: () => Promise<boolean>) => true);
 jest.mock("../src/lib/reminders", () => ({ ensurePermission: (explain?: () => Promise<boolean>) => mockNotice(explain) }));
+// V1.7.7: the screen reads the week plan to offer today's planned duration as a goal; nothing is planned in these tests.
+jest.mock("../src/lib/weekPlan", () => ({ useWeekPlan: () => ({ occurrences: [] }) }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { SafeAreaProvider } = require("react-native-safe-area-context");
@@ -50,10 +53,18 @@ const { recorder: mockRecorder } = require("../src/lib/gpsNative");
 
 const metrics = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 24, left: 0, right: 0, bottom: 16 } };
 const nav = { replace: jest.fn(), goBack: jest.fn(), navigate: jest.fn() };
-const show = () => render(<SafeAreaProvider initialMetrics={metrics}><ToastProvider><GpsRecordScreen navigation={nav} route={{ params: { sport: "running" } }} /></ToastProvider></SafeAreaProvider>);
+// V1.7.7: « Terminer » asks for a confirmation, so the dialog host is always mounted and the tests answer it.
+const show = () => render(<SafeAreaProvider initialMetrics={metrics}><ToastProvider><GpsRecordScreen navigation={nav} route={{ params: { sport: "running" } }} /><DialogHost /></ToastProvider></SafeAreaProvider>);
+const finishOuting = async () => {
+  fireEvent.press(screen.getByTestId("gps-finish"));
+  fireEvent.press(await screen.findByText("Oui, terminer"));
+  await screen.findByText(/Séance terminée/);
+};
 const fix = (i: number): Fix => ({ lat: 48.85 + i * 0.000045, lon: 2.35, alt: 100, altAcc: 5, acc: 5, t: Date.now() + i * 1000 });
 
-beforeEach(() => {
+beforeEach(async () => {
+  resetDialogs();
+  await AsyncStorage.clear();
   mockStore.clear();
   mockAuth = { status: "signedIn", owner: "owner-a" };
   mockGuard.mockClear();
@@ -92,12 +103,11 @@ test("start, pause, resume, finish, then the totals become the form draft and th
   expect(mockState.active).toBe("owner-a");
   await act(async () => void (await mockRecorder.append("owner-a", Array.from({ length: 31 }, (_, i) => fix(i)))));
   fireEvent.press(screen.getByTestId("gps-toggle"));
-  await screen.findByText(/En pause/);
+  await screen.findByText(/^En pause · /);
   expect(mockState.updates).toBe(false);
   fireEvent.press(screen.getByTestId("gps-toggle"));
   await screen.findByText(/Enregistrement en cours/);
-  fireEvent.press(screen.getByTestId("gps-finish"));
-  await screen.findByText(/Séance terminée/);
+  await finishOuting();
   fireEvent.press(screen.getByText("Exporter la trace GPX"));
   await waitFor(() => expect(exportFile.shareTextFile).toHaveBeenCalled());
   expect(exportFile.shareTextFile.mock.calls[0][1]).toContain("<trkpt");
@@ -119,8 +129,7 @@ test("Lot A (review): when another recording already waits as the draft, « Gard
   fireEvent.press(await screen.findByTestId("gps-start"));
   await screen.findByText(/Enregistrement en cours/);
   await act(async () => void (await mockRecorder.append("owner-a", Array.from({ length: 12 }, (_, i) => fix(i)))));
-  fireEvent.press(screen.getByTestId("gps-finish"));
-  await screen.findByText(/Séance terminée/);
+  await finishOuting();
   fireEvent.press(screen.getByTestId("gps-keep"));
   expect(await screen.findByText(/Une autre séance GPS attend/)).toBeTruthy();
   expect(nav.replace).not.toHaveBeenCalled();
@@ -133,8 +142,7 @@ test("abandoning a finished outing asks first: « Garder » keeps the trace, onl
   fireEvent.press(await screen.findByTestId("gps-start"));
   await screen.findByText(/Enregistrement en cours/);
   await act(async () => void (await mockRecorder.append("owner-a", Array.from({ length: 12 }, (_, i) => fix(i)))));
-  fireEvent.press(screen.getByTestId("gps-finish"));
-  await screen.findByText(/Séance terminée/);
+  await finishOuting();
   fireEvent.press(screen.getByText("Abandonner cette séance"));
   expect(await screen.findByText("Abandonner cette séance ?")).toBeTruthy();
   fireEvent.press(screen.getByText("Garder"));
@@ -158,7 +166,7 @@ test("a recording left running by a lost service is shown as interrupted, not ex
   mockState.updates = false;
   show();
   expect(await screen.findByText(/Enregistrement interrompu/)).toBeTruthy();
-  expect(screen.getByText(/En pause/)).toBeTruthy();
+  expect(screen.getByText(/^En pause · /)).toBeTruthy();
 });
 
 test("resuming after sign-out reconnects background fixes to the recording owner", async () => {
@@ -178,7 +186,7 @@ test("a revoked location permission keeps an existing trace paused and offers An
   show();
   fireEvent.press(await screen.findByTestId("gps-toggle"));
   expect(await screen.findByText("Ouvrir les réglages")).toBeTruthy();
-  expect(screen.getByText(/En pause/)).toBeTruthy();
+  expect(screen.getByText(/^En pause · /)).toBeTruthy();
   expect(mockState.updates).toBe(false);
   expect((await mockRecorder.load("owner-a")).track.segs[0]).toHaveLength(2);
 });
@@ -209,7 +217,7 @@ test("the recording notification is asked for at the first start only, and a ref
   expect(screen.getByTestId("gps-no-notification")).toBeTruthy();
   // Pause and resume do not ask again.
   fireEvent.press(screen.getByTestId("gps-toggle"));
-  await screen.findByText(/En pause/);
+  await screen.findByText(/^En pause · /);
   fireEvent.press(screen.getByTestId("gps-toggle"));
   await screen.findByText(/Enregistrement en cours/);
   expect(mockNotice).toHaveBeenCalledTimes(1);

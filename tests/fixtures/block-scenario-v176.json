@@ -1,0 +1,5532 @@
+{
+  "version": 1,
+  "about": "V1.7.6 — Scénarios multisports. Synthetic sessions; replayed by tests/block-scenario.test.mjs and mobile/__tests__/blockScenario.test.tsx through tools/block-scenario/replay.cjs.",
+  "zone": "Europe/Paris",
+  "type": {
+    "tuesday": {
+      "sport": "bouldering",
+      "minutes": 90,
+      "note": "Bloc"
+    },
+    "thursday": {
+      "sport": "badminton",
+      "minutes": 60,
+      "note": "Club"
+    },
+    "saturday": {
+      "sport": "cycling",
+      "minutes": 180,
+      "note": "Sortie"
+    },
+    "revisions": {
+      "2026-10-26": {
+        "days": [
+          null,
+          {
+            "sport": "bouldering",
+            "minutes": 90,
+            "note": "Bloc"
+          },
+          null,
+          {
+            "sport": "badminton",
+            "minutes": 60,
+            "note": "Club"
+          },
+          null,
+          {
+            "sport": "cycling",
+            "minutes": 180,
+            "note": "Sortie"
+          },
+          null
+        ],
+        "at": "2026-10-26T08:00:00.000Z"
+      }
+    }
+  },
+  "logs": [
+    {
+      "id": "bloc-1",
+      "client_event_id": "bloc-1",
+      "sport": "bouldering",
+      "date": "2026-11-03T18:00:00.000Z",
+      "val": 90,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "bloc-1",
+        "duration": 90,
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6A"
+        }
+      }
+    },
+    {
+      "id": "bad-1",
+      "client_event_id": "bad-1",
+      "sport": "badminton",
+      "date": "2026-11-05T19:00:00.000Z",
+      "val": 60,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "bad-1",
+        "duration": 60
+      }
+    },
+    {
+      "id": "velo-1",
+      "client_event_id": "velo-1",
+      "sport": "cycling",
+      "date": "2026-11-07T09:00:00.000Z",
+      "val": 55,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "velo-1",
+        "duration": 170
+      }
+    },
+    {
+      "id": "bloc-2",
+      "client_event_id": "bloc-2",
+      "sport": "bouldering",
+      "date": "2026-11-10T18:00:00.000Z",
+      "val": 85,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "bloc-2",
+        "duration": 85,
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6A"
+        }
+      }
+    },
+    {
+      "id": "bad-2",
+      "client_event_id": "bad-2",
+      "sport": "badminton",
+      "date": "2026-11-12T19:00:00.000Z",
+      "val": 60,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "bad-2",
+        "duration": 60
+      }
+    },
+    {
+      "id": "velo-2",
+      "client_event_id": "velo-2",
+      "sport": "cycling",
+      "date": "2026-11-14T09:00:00.000Z",
+      "val": 64,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "velo-2",
+        "duration": 185
+      }
+    },
+    {
+      "id": "bloc-3",
+      "client_event_id": "bloc-3",
+      "sport": "bouldering",
+      "date": "2026-11-17T18:00:00.000Z",
+      "val": 90,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "bloc-3",
+        "duration": 90,
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6A"
+        }
+      }
+    },
+    {
+      "id": "velo-3",
+      "client_event_id": "velo-3",
+      "sport": "cycling",
+      "date": "2026-11-21T08:30:00.000Z",
+      "val": 82,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "velo-3",
+        "duration": 215
+      }
+    },
+    {
+      "id": "bloc-4",
+      "client_event_id": "bloc-4",
+      "sport": "bouldering",
+      "date": "2026-11-24T18:00:00.000Z",
+      "val": 90,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "bloc-4",
+        "duration": 90,
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6A"
+        }
+      }
+    },
+    {
+      "id": "bloc-5",
+      "client_event_id": "bloc-5",
+      "sport": "bouldering",
+      "date": "2026-12-01T18:00:00.000Z",
+      "val": 90,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "bloc-5",
+        "duration": 90,
+        "extras": {
+          "grade_system": "Fontainebleau bloc",
+          "climbing_discipline": "Bloc",
+          "max_done": "6A"
+        }
+      }
+    },
+    {
+      "id": "velo-5a",
+      "client_event_id": "velo-5a",
+      "sport": "cycling",
+      "date": "2026-12-02T17:00:00.000Z",
+      "val": 22,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "velo-5a",
+        "duration": 60
+      }
+    },
+    {
+      "id": "bad-5",
+      "client_event_id": "bad-5",
+      "sport": "badminton",
+      "date": "2026-12-03T19:00:00.000Z",
+      "val": 55,
+      "unit": "min",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "bad-5",
+        "duration": 55
+      }
+    },
+    {
+      "id": "velo-5b",
+      "client_event_id": "velo-5b",
+      "sport": "cycling",
+      "date": "2026-12-05T08:30:00.000Z",
+      "val": 88,
+      "unit": "km",
+      "details": {
+        "timezone": "Europe/Paris",
+        "client_event_id": "velo-5b",
+        "duration": 220
+      }
+    }
+  ],
+  "weeks": [
+    "2026-10-26",
+    "2026-11-02",
+    "2026-11-09",
+    "2026-11-16",
+    "2026-11-23",
+    "2026-11-30",
+    "2026-12-07",
+    "2026-12-14",
+    "2026-12-21",
+    "2026-12-28"
+  ],
+  "cases": [
+    {
+      "name": "0 — programme actif sans scénario (référence des calendriers)",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        }
+      ],
+      "read": {
+        "today": "2026-11-24",
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    },
+    {
+      "name": "1 — deux variantes comparées sur quatre semaines : temps par sport, jours libres, chevauchements, jalons déplacés",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        }
+      ],
+      "read": {
+        "today": "2026-11-24",
+        "compare": [
+          "velo-badminton"
+        ],
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    },
+    {
+      "name": "2 — modifier un brouillon n’altère pas le programme actif",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 6,
+            "value": {
+              "sport": "badminton",
+              "minutes": 45
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:20:00.000Z"
+        },
+        {
+          "op": "sc-name",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "name": "Deux longues + badminton dimanche"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:21:00.000Z"
+        },
+        {
+          "op": "sc-add",
+          "id": "velo-badminton",
+          "args": {
+            "newId": "sm-col",
+            "title": "Repérer le col",
+            "kind": "declared",
+            "week": 3,
+            "variants": [
+              "a"
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:22:00.000Z"
+        },
+        {
+          "op": "sc-copy",
+          "id": "velo-badminton",
+          "args": {
+            "from": "b",
+            "to": "a"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:23:00.000Z"
+        }
+      ],
+      "read": {
+        "today": "2026-11-24",
+        "compare": [
+          "velo-badminton"
+        ],
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    },
+    {
+      "name": "3 — appliquer « Une longue et une courte » à partir du lundi 30 novembre, avec aperçu",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-30"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:00:00.000Z",
+          "preview": true
+        }
+      ],
+      "read": {
+        "today": "2026-11-24",
+        "compare": [
+          "velo-badminton"
+        ],
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07",
+          "2026-12-14",
+          "2026-12-21"
+        ],
+        "context": [
+          "2026-11-30"
+        ],
+        "followUp": [
+          "2026-11-30"
+        ]
+      }
+    },
+    {
+      "name": "4 — puis annuler le jeudi 26 novembre : le programme d’avant revient, les séances restent",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-30"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:00:00.000Z",
+          "preview": true
+        },
+        {
+          "op": "sc-undo",
+          "id": "velo-badminton",
+          "today": "2026-11-26",
+          "at": "2026-11-26T20:00:00.000Z",
+          "preview": true
+        }
+      ],
+      "read": {
+        "today": "2026-11-26",
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ],
+        "context": [
+          "2026-11-30"
+        ],
+        "followUp": [
+          "2026-11-30"
+        ]
+      }
+    },
+    {
+      "name": "4 bis — le même journal sans scénario, lu le jeudi 26 novembre",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        }
+      ],
+      "read": {
+        "today": "2026-11-26",
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    },
+    {
+      "name": "5 — une semaine vécue avec le scénario puis annulation : la semaine commencée le garde, la suite revient",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4",
+        "bloc-5",
+        "velo-5a",
+        "bad-5",
+        "velo-5b"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-30"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:00:00.000Z",
+          "preview": true
+        },
+        {
+          "op": "sc-undo",
+          "id": "velo-badminton",
+          "today": "2026-12-03",
+          "at": "2026-12-03T21:00:00.000Z",
+          "preview": true
+        }
+      ],
+      "read": {
+        "today": "2026-12-06",
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ],
+        "context": [
+          "2026-11-30",
+          "2026-12-07"
+        ],
+        "followUp": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    },
+    {
+      "name": "6 — bilan suivant : la semaine du 30 novembre relit la décision et ce qui a été fait",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4",
+        "bloc-5",
+        "velo-5a",
+        "bad-5",
+        "velo-5b"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-30"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:00:00.000Z",
+          "preview": true
+        }
+      ],
+      "read": {
+        "today": "2026-12-06",
+        "weeks": [
+          "2026-11-30"
+        ],
+        "context": [
+          "2026-11-30"
+        ],
+        "followUp": [
+          "2026-11-30"
+        ]
+      }
+    },
+    {
+      "name": "7 — date explicite : « Deux sorties longues » à partir du lundi 7 décembre, la semaine du 30 novembre ne bouge pas",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "from": "2026-12-07"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:00:00.000Z",
+          "preview": true
+        }
+      ],
+      "read": {
+        "today": "2026-11-24",
+        "compare": [
+          "velo-badminton"
+        ],
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    },
+    {
+      "name": "8 — sur la semaine type, sans bloc : appliquer crée un bloc, annuler le retire",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "type-4",
+            "title": "Semaine type, quatre semaines",
+            "start": "2026-11-30",
+            "count": 4
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "type-4",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "type-4",
+          "args": {
+            "variant": "b",
+            "week": 1,
+            "day": 6,
+            "value": {
+              "sport": "badminton"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-apply",
+          "id": "type-4",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-30"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:00:00.000Z",
+          "preview": true
+        },
+        {
+          "op": "sc-undo",
+          "id": "type-4",
+          "today": "2026-11-24",
+          "at": "2026-11-24T19:00:00.000Z",
+          "preview": true
+        }
+      ],
+      "read": {
+        "today": "2026-11-24",
+        "compare": [
+          "type-4"
+        ],
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    },
+    {
+      "name": "8 bis — le même journal sur la semaine type, sans scénario",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [],
+      "read": {
+        "today": "2026-11-24",
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    },
+    {
+      "name": "9 — refus : semaine commencée, deux applications, bloc modifié depuis, période à cheval sur la fin du bloc",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "late",
+            "title": "Fin d’année",
+            "start": "2026-12-21",
+            "count": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:30:00.000Z",
+          "expect": "SCENARIO_OUTSIDE_BLOCK"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-23"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:31:00.000Z",
+          "expect": "SCENARIO_BAD_FROM"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-30"
+          },
+          "today": "2026-12-01",
+          "at": "2026-12-01T08:00:00.000Z",
+          "expect": "SCENARIO_WEEK_STARTED"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-30"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:00:00.000Z",
+          "preview": true
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "from": "2026-12-07"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:05:00.000Z",
+          "expect": "SCENARIO_ALREADY_APPLIED"
+        },
+        {
+          "op": "shift",
+          "block": "cyclo-100",
+          "args": {
+            "from": 6,
+            "weeks": 1
+          },
+          "today": "2026-11-25",
+          "at": "2026-11-25T08:00:00.000Z"
+        },
+        {
+          "op": "sc-undo",
+          "id": "velo-badminton",
+          "today": "2026-11-25",
+          "at": "2026-11-25T09:00:00.000Z",
+          "expect": "SCENARIO_CHANGED_SINCE"
+        }
+      ],
+      "read": {
+        "today": "2026-11-25"
+      }
+    },
+    {
+      "name": "10 — deux appareils : le site applique B pendant que le téléphone modifie le brouillon A",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-30"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:00:00.000Z",
+          "preview": true
+        }
+      ],
+      "split": 1,
+      "remote": [
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 0,
+            "value": {
+              "sport": "running",
+              "minutes": 40
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:50:00.000Z"
+        }
+      ],
+      "read": {
+        "today": "2026-11-24",
+        "compare": [
+          "velo-badminton"
+        ],
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    },
+    {
+      "name": "11 — deux appareils : le téléphone annule ce que le site a appliqué",
+      "journal": [
+        "bloc-1",
+        "bad-1",
+        "velo-1",
+        "bloc-2",
+        "bad-2",
+        "velo-2",
+        "bloc-3",
+        "velo-3",
+        "bloc-4"
+      ],
+      "ops": [
+        {
+          "op": "block",
+          "input": {
+            "id": "cyclo-100",
+            "title": "Cyclo 100 km",
+            "intent": "Monter à 100 km en gardant le bloc et le badminton.",
+            "template": "routine",
+            "sports": [
+              "cycling",
+              "bouldering",
+              "badminton"
+            ],
+            "start": "2026-11-02",
+            "weeks": [
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 1
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 2
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 3
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 4
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 5
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 6
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 7
+              },
+              {
+                "days": [
+                  null,
+                  {
+                    "sport": "bouldering",
+                    "minutes": 90,
+                    "note": "Bloc"
+                  },
+                  null,
+                  {
+                    "sport": "badminton",
+                    "minutes": 60,
+                    "note": "Club"
+                  },
+                  null,
+                  {
+                    "sport": "cycling",
+                    "minutes": 180,
+                    "note": "Sortie"
+                  },
+                  null
+                ],
+                "kind": "plan",
+                "n": 8
+              }
+            ],
+            "goal": {
+              "title": "Sortie vélo de 100 km",
+              "date": "2026-12-20",
+              "kind": "measure",
+              "sport": "cycling",
+              "metric": "distance",
+              "target": 100
+            },
+            "milestones": [
+              {
+                "id": "m80",
+                "title": "Sortie de 80 km",
+                "week": 3,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 80
+              },
+              {
+                "id": "m100",
+                "title": "Sortie de 100 km",
+                "week": 6,
+                "kind": "measure",
+                "sport": "cycling",
+                "metric": "distance",
+                "target": 100
+              }
+            ]
+          },
+          "today": "2026-11-01",
+          "at": "2026-11-01T18:00:00.000Z"
+        },
+        {
+          "op": "decide",
+          "id": "2026-12-07/1",
+          "decision": {
+            "kind": "move",
+            "day": "2026-12-10"
+          },
+          "today": "2026-11-22",
+          "at": "2026-11-22T19:00:00.000Z"
+        },
+        {
+          "op": "sc-create",
+          "input": {
+            "id": "velo-badminton",
+            "title": "Vélo ou badminton",
+            "start": "2026-11-30",
+            "count": 4,
+            "names": {
+              "a": "Deux sorties longues",
+              "b": "Une longue et une courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:00:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 150,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:01:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 3,
+            "value": null
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:02:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:03:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 2,
+            "value": {
+              "sport": "cycling",
+              "minutes": 60,
+              "note": "Sortie courte"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:04:00.000Z"
+        },
+        {
+          "op": "sc-day",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": "all",
+            "day": 5,
+            "value": {
+              "sport": "cycling",
+              "minutes": 210,
+              "note": "Sortie longue"
+            }
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:05:00.000Z"
+        },
+        {
+          "op": "sc-place",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "a",
+            "milestone": "m100",
+            "week": 1
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:06:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 2,
+            "days": [
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:07:00.000Z"
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 3,
+            "pause": true
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:08:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 2
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:09:00.000Z"
+        },
+        {
+          "op": "sc-fit",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "week": 3
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T17:10:00.000Z"
+        },
+        {
+          "op": "sc-apply",
+          "id": "velo-badminton",
+          "args": {
+            "variant": "b",
+            "from": "2026-11-30"
+          },
+          "today": "2026-11-24",
+          "at": "2026-11-24T18:00:00.000Z",
+          "preview": true
+        },
+        {
+          "op": "sc-avail",
+          "id": "velo-badminton",
+          "args": {
+            "week": 1,
+            "days": [
+              true,
+              true,
+              true,
+              true,
+              false,
+              true,
+              true
+            ]
+          },
+          "today": "2026-11-25",
+          "at": "2026-11-25T10:00:00.000Z"
+        }
+      ],
+      "split": 1,
+      "remote": [
+        {
+          "op": "sc-undo",
+          "id": "velo-badminton",
+          "today": "2026-11-25",
+          "at": "2026-11-25T11:00:00.000Z"
+        }
+      ],
+      "read": {
+        "today": "2026-11-25",
+        "compare": [
+          "velo-badminton"
+        ],
+        "weeks": [
+          "2026-11-30",
+          "2026-12-07"
+        ]
+      }
+    }
+  ]
+}

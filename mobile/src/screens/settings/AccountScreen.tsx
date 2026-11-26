@@ -10,7 +10,7 @@ import { Screen } from "../../components/Screen";
 import { Section } from "../../components/Section";
 import { T } from "../../components/Text";
 import { useToast } from "../../components/Toast";
-import { Format, Progress, Sports } from "../../core";
+import { Format, Ledger, Sports } from "../../core";
 import { assertOwner, exportOwnData } from "../../data/api";
 import { useAuth } from "../../data/auth";
 import { useLogs, useProfile, useSavePrefs } from "../../data/hooks";
@@ -26,7 +26,7 @@ export function AccountScreen() {
   const save = useSavePrefs();
   const toast = useToast();
   const online = useOnline();
-  const { confirmed } = useLogs();
+  const { logs, archived } = useLogs();
   const [name, setName] = useState(profile.data?.username ?? "");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -59,9 +59,10 @@ export function AccountScreen() {
   async function exportCsv() {
     setBusy("csv");
     try {
-      const rows: unknown[][] = [["date", "sport", "valeur", "unité", "durée (min)", "minutes d’effort", "RPE", "XP", "note", "archivée"]];
-      for (const l of [...confirmed].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
-        rows.push([new Date(l.date).toISOString(), Sports.label(l.sport), l.val, l.unit, Number(l.details?.duration || l.details?.val2) || "", Math.round(Progress.effortOf(l).effortMinutes), l.details?.bio?.rpe ?? "", l.xp, l.details?.note ?? "", l.archived_at ? "oui" : ""]);
+      // V1.6.3: the journal and its archives, each row with its state and its canonical reference: the same columns and rows as the
+      // website export (src/core/web/history-ledger.js). A refused entry is not part of the history (it has its own copy).
+      const all = [...logs, ...archived].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const rows: unknown[][] = [Ledger.CSV_HEAD, ...Ledger.csvRows(all, "all", { label: (s) => Sports.label(s) })];
       await shareTextFile(`titan-journal-${Format.dateKey(new Date())}.csv`, toCsv(rows), "text/csv");
     } catch (e) {
       toast({ kind: "err", title: "Export impossible", message: errorMessage(e) });
@@ -102,7 +103,7 @@ export function AccountScreen() {
       </Card>
       <Section title="Mes données">
         <Group>
-          <ListRow icon="download" title="Exporter mon journal (CSV)" subtitle={`${confirmed.length} séances synchronisées`} onPress={busy ? undefined : exportCsv} />
+          <ListRow icon="download" title="Exporter mon journal (CSV)" subtitle={`${Ledger.csvRows([...logs, ...archived], "all").length} séances : journal et archives, avec leur état`} onPress={busy ? undefined : exportCsv} />
           <ListRow icon="layers" title="Exporter toutes mes données (JSON)" subtitle="Profil, séances, progression : copie complète préparée par le serveur." onPress={busy ? undefined : exportAll} last />
         </Group>
       </Section>

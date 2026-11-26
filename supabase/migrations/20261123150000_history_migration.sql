@@ -1,0 +1,513 @@
+-- TITAN V1.6.4 — Migration de l’historique. Applies after 20261123120000 (V1.6.3). Additive: two private tables, two nullable columns
+-- on private.titan_imported_activities, a private import core that also carries the note, the feeling and a kg / repetitions value,
+-- and five RPCs for the account owner. NOT APPLIED TO PRODUCTION by the session that wrote it: it needs the owner's release approval.
+--
+-- 1. A batch (private.titan_import_batches) is one file the athlete imports: its format (TITAN export CSV or JSON, the documented CSV
+--    profile, Strava activities.csv), a hash of its content and its number of rows. The same file opened again — on this device after
+--    a restart, or on another one — resumes the same batch (one live batch per account and file).
+-- 2. Every row of the file gets one result row (private.titan_import_batch_rows): added, linked to a session already in the journal,
+--    already imported, or skipped with a reason code (the client's reasons for rows it could not read, the server's for rows the journal
+--    rules refuse). A row already recorded is never processed twice (lost answer, replayed call): the stored result is kept.
+--    An added or linked row also writes its provenance on the import row (batch_id, batch_row).
+-- 3. Each item goes through the journal path of every import: private.titan_import_core (V15 rule, V1.6.2 link journal, same creation
+--    through titan_submit_training_session). History only (older than 30 days, so 0 XP and no credit) and the existing daily history
+--    budget of the training trigger (300 sessions a day): when it is reached the call stops cleanly, says which row comes next, and the
+--    batch resumes from there later. Nothing of a session the athlete already has is overwritten: a replay answers « duplicate ».
+-- 4. Withdrawing a batch removes ONLY what it added and the athlete never touched: sessions created by the batch, not corrected or
+--    archived since (revision unchanged), carrying no reward, and to which no other source is linked. Their receipts go with them, so
+--    a corrected file can be imported again. A row linked to a session that was already in the journal only loses its link: that
+--    session stays exactly as it is. A session the athlete corrected, split (V1.6.2) or that another source joined is kept and listed.
+--    The preview (p_apply = false) gives the same counts without changing anything. Deletion is never rate-limited elsewhere either.
+-- Rollback: drop function public.titan_import_batch_open_v1(text,text,integer,text), public.titan_import_batch_rows_v1(uuid,jsonb),
+-- public.titan_import_batch_v1(uuid,text,integer,integer), public.titan_import_batches_v1(), public.titan_import_batch_withdraw_v1(uuid,
+-- boolean), private.titan_import_batch_json(private.titan_import_batches), private.titan_import_batch_plan(uuid, uuid),
+-- private.titan_import_core(uuid,text,text,text,timestamptz,numeric,numeric,jsonb); re-apply private.titan_import_core (7 arguments)
+-- from 20261123090000_session_match_review.sql; alter table private.titan_imported_activities drop column batch_id, drop column
+-- batch_row; drop table private.titan_import_batch_rows, private.titan_import_batches.
+
+create table if not exists private.titan_import_batches (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  format text not null check (format in ('titan_csv', 'titan_json', 'csv_profile', 'strava_csv')),
+  file_hash text not null check (file_hash ~ '^[0-9a-f]{16}$'),
+  file_name text check (char_length(file_name) <= 120),
+  total_rows integer not null check (total_rows between 1 and 20000),
+  status text not null default 'open' check (status in ('open', 'done', 'withdrawn')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  finished_at timestamptz,
+  withdrawn_at timestamptz,
+  withdraw_report jsonb
+);
+create unique index if not exists titan_import_batches_live_file on private.titan_import_batches (user_id, file_hash) where status <> 'withdrawn';
+create index if not exists titan_import_batches_user_idx on private.titan_import_batches (user_id, created_at desc);
+alter table private.titan_import_batches enable row level security;
+revoke all on private.titan_import_batches from public, anon, authenticated;
+
+create table if not exists private.titan_import_batch_rows (
+  batch_id uuid not null references private.titan_import_batches(id) on delete cascade,
+  row_no integer not null check (row_no between 1 and 20001),
+  outcome text not null check (outcome in ('added', 'linked', 'duplicate', 'skipped')),
+  reason text check (reason ~ '^[a-z_]{1,40}$'),
+  external_id text check (external_id ~ '^[A-Za-z0-9_.:-]{1,128}$'),
+  log_id uuid references public.training_logs(id) on delete set null,
+  log_revision integer,
+  needs_review boolean not null default false,
+  withdrawn text check (withdrawn in ('removed', 'detached', 'kept_corrected', 'kept_linked', 'kept_split', 'kept_rewarded', 'gone', 'none')),
+  at timestamptz not null default now(),
+  primary key (batch_id, row_no)
+);
+create index if not exists titan_import_batch_rows_log_idx on private.titan_import_batch_rows (log_id) where log_id is not null;
+alter table private.titan_import_batch_rows enable row level security;
+revoke all on private.titan_import_batch_rows from public, anon, authenticated;
+
+alter table private.titan_imported_activities
+  add column if not exists batch_id uuid references private.titan_import_batches(id) on delete set null,
+  add column if not exists batch_row integer;
+create index if not exists titan_imported_activities_batch_idx on private.titan_imported_activities (batch_id) where batch_id is not null;
+
+-- The import core of V1.6.2, unchanged, with what a history file adds to a session it creates: the note, the feeling (details.bio.rpe)
+-- and, for a sport measured in kg or repetitions, its value. Matching, idempotence and the decision journal are the V1.6.2 ones.
+create or replace function private.titan_import_core(
+  p_uid uuid, p_source text, p_external_id text, p_sport text, p_started_at timestamptz,
+  p_duration_minutes numeric, p_distance_km numeric, p_extra jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_prev record;
+  v_dup record;
+  v_details jsonb;
+  v_event uuid;
+  v_res record;
+  v_end timestamptz;
+  v_n integer;
+  v_log_minutes numeric;
+  v_log_km numeric;
+  v_reasons text[];
+  v_sport_unit text;
+  v_extra jsonb := coalesce(p_extra, '{}'::jsonb);
+  v_claims text := current_setting('request.jwt.claims', true);
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_uid::text || ':' || p_source || ':' || p_external_id, 0));
+
+  select i.log_id, i.status, i.decision, i.started_at into v_prev from private.titan_imported_activities i
+   where i.user_id = p_uid and i.source = p_source and i.external_id = p_external_id;
+  if found then
+    -- A replay answers with the decision in force. A link made before V1.6.2 learns what the source says (nothing else changes).
+    if v_prev.started_at is null then
+      update private.titan_imported_activities i set sport = p_sport, started_at = p_started_at, duration_minutes = p_duration_minutes, distance_km = p_distance_km
+       where i.user_id = p_uid and i.source = p_source and i.external_id = p_external_id;
+    end if;
+    return jsonb_build_object('status', 'duplicate', 'log_id', v_prev.log_id, 'previous', v_prev.status, 'decision', v_prev.decision);
+  end if;
+
+  -- V15 rule, unchanged: same account, same group of neighbouring sport ids, not archived, at least half of the shorter effort shared.
+  v_end := p_started_at + (p_duration_minutes * interval '1 minute');
+  select l.id, l.unit, l.val, l.details, x.shared into v_dup
+    from public.training_logs l
+    cross join lateral (select coalesce(public.titan_numeric_from_json(l.details, 'duration'), case when l.unit = 'min' then l.val end, 30) as m) d
+    cross join lateral (select private.titan_session_shared_minutes(l, p_started_at, p_duration_minutes) as shared) x
+   where l.user_id = p_uid and l.archived_at is null
+     and private.titan_sport_dedupe_group(l.sport) = private.titan_sport_dedupe_group(p_sport)
+     and l.date < v_end + interval '24 hours' and l.date > p_started_at - interval '24 hours'
+     and x.shared >= 0.5 * least(p_duration_minutes, d.m)
+   order by l.date
+   limit 1
+   -- Deletion and moderation can hold the workout before trying to lock the profile.
+   -- Retry instead of waiting on that row while holding the profile lock.
+   for key share of l nowait;
+  if found then
+    select count(*) into v_n
+      from public.training_logs l
+     where l.user_id = p_uid and l.archived_at is null
+       and private.titan_sport_dedupe_group(l.sport) = private.titan_sport_dedupe_group(p_sport)
+       and l.date < v_end + interval '24 hours' and l.date > p_started_at - interval '24 hours'
+       and private.titan_session_shared_minutes(l, p_started_at, p_duration_minutes)
+           >= 0.5 * least(p_duration_minutes, coalesce(public.titan_numeric_from_json(l.details, 'duration'), case when l.unit = 'min' then l.val end, 30));
+    v_log_minutes := coalesce(public.titan_numeric_from_json(v_dup.details, 'duration'), public.titan_numeric_from_json(v_dup.details, 'val2'), case when v_dup.unit = 'min' then v_dup.val end);
+    v_log_km := case when coalesce(v_dup.details -> 'extras' ->> 'distance_unknown', 'false') = 'true' then null
+                     when v_dup.unit = 'km' then v_dup.val when v_dup.unit = 'm' then v_dup.val / 1000 when v_dup.unit = 'mi' then v_dup.val * 1.609344 end;
+    v_reasons := private.titan_session_match_reasons(v_dup.shared, p_duration_minutes, v_log_minutes, p_distance_km, v_log_km, v_n);
+    insert into private.titan_imported_activities(user_id, source, external_id, log_id, status, sport, started_at, duration_minutes, distance_km,
+        match_rule, match_overlap, needs_review, review_reasons, linked_log_id, events)
+      values (p_uid, p_source, p_external_id, v_dup.id, 'linked', p_sport, p_started_at, p_duration_minutes, p_distance_km,
+        'v15_group_overlap', round(least(1, v_dup.shared / nullif(least(p_duration_minutes, coalesce(v_log_minutes, 30)), 0)), 3),
+        cardinality(v_reasons) > 0, v_reasons, v_dup.id,
+        jsonb_build_array(private.titan_session_match_event(case when cardinality(v_reasons) > 0 then 'flagged' else 'linked' end, 'engine', v_dup.id, null, v_reasons)));
+    return jsonb_build_object('status', 'linked', 'log_id', v_dup.id, 'needs_review', cardinality(v_reasons) > 0, 'reasons', to_jsonb(v_reasons));
+  end if;
+
+  -- The session is created by the very same function as a manual one, for this account (identity set for this transaction only, then restored).
+  perform set_config('request.jwt.claims', json_build_object('sub', p_uid, 'role', 'authenticated')::text, true);
+  v_event := md5(p_uid::text || ':' || p_source || ':' || p_external_id)::uuid;
+  v_details := jsonb_build_object('duration', p_duration_minutes, 'client_event_id', v_event::text)
+    || case when coalesce(v_extra ->> 'note', '') <> '' then jsonb_build_object('note', left(v_extra ->> 'note', 500)) else '{}'::jsonb end
+    || case when (v_extra ->> 'rpe') ~ '^([1-9]|10)$' then jsonb_build_object('bio', jsonb_build_object('rpe', (v_extra ->> 'rpe')::integer)) else '{}'::jsonb end;
+  select s.unit into v_sport_unit from public.sports s where s.id = p_sport;
+  if (v_extra ->> 'unit') in ('kg', 'reps') and (v_extra ->> 'unit') = v_sport_unit and (v_extra ->> 'value') ~ '^[0-9]+(\.[0-9]+)?$' and (v_extra ->> 'value')::numeric > 0 then
+    -- A sport measured in kg or repetitions keeps the value of the export (TITAN reimport); its duration stays in details.duration.
+    select * into v_res from public.titan_submit_training_session(p_sport, (select s.category from public.sports s where s.id = p_sport), (v_extra ->> 'value')::numeric, v_extra ->> 'unit', v_details, p_started_at);
+  elsif p_distance_km is null then
+    select * into v_res from public.titan_submit_training_session(p_sport, (select s.category from public.sports s where s.id = p_sport), p_duration_minutes, 'min', v_details, p_started_at);
+  elsif v_sport_unit = 'm' then
+    -- A sport measured in metres (swimming): a watch distance is stored in metres like a hand-typed swim, never as « 2 km ».
+    select * into v_res from public.titan_submit_training_session(p_sport, (select s.category from public.sports s where s.id = p_sport), round(p_distance_km * 1000), 'm', v_details, p_started_at);
+  else
+    select * into v_res from public.titan_submit_training_session(p_sport, (select s.category from public.sports s where s.id = p_sport), p_distance_km, 'km', v_details, p_started_at);
+  end if;
+  perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
+  insert into private.titan_imported_activities(user_id, source, external_id, log_id, status, sport, started_at, duration_minutes, distance_km)
+    values (p_uid, p_source, p_external_id, v_res.log_id::uuid, 'imported', p_sport, p_started_at, p_duration_minutes, p_distance_km);
+  return jsonb_build_object('status', 'imported', 'log_id', v_res.log_id, 'xp', v_res.xp, 'reward_held', v_res.reward_held);
+end;
+$function$;
+revoke all on function private.titan_import_core(uuid, text, text, text, timestamptz, numeric, numeric, jsonb) from public, anon, authenticated;
+
+-- The 7-argument core every connector calls (Santé Connect, Garmin, titan_import_history_v1): the same path, with nothing extra.
+create or replace function private.titan_import_core(
+  p_uid uuid, p_source text, p_external_id text, p_sport text, p_started_at timestamptz,
+  p_duration_minutes numeric, p_distance_km numeric)
+returns jsonb
+language sql
+security definer
+set search_path = ''
+as $function$
+  select private.titan_import_core(p_uid, p_source, p_external_id, p_sport, p_started_at, p_duration_minutes, p_distance_km, '{}'::jsonb);
+$function$;
+revoke all on function private.titan_import_core(uuid, text, text, text, timestamptz, numeric, numeric) from public, anon, authenticated;
+
+-- One batch as the clients read it, with its counts (per outcome and per reason) and the next row it expects.
+create or replace function private.titan_import_batch_json(p_b private.titan_import_batches)
+returns jsonb
+language sql
+stable
+set search_path = ''
+as $function$
+  select jsonb_build_object(
+    'id', p_b.id, 'format', p_b.format, 'file_hash', p_b.file_hash, 'file_name', p_b.file_name, 'total_rows', p_b.total_rows,
+    'status', p_b.status, 'created_at', p_b.created_at, 'updated_at', p_b.updated_at, 'finished_at', p_b.finished_at,
+    'withdrawn_at', p_b.withdrawn_at, 'withdraw_report', p_b.withdraw_report,
+    'done_rows', coalesce(c.n, 0), 'next_row', coalesce(c.last_row, 0) + 1,
+    'counts', jsonb_build_object('added', coalesce(c.added, 0), 'linked', coalesce(c.linked, 0), 'duplicate', coalesce(c.duplicate, 0),
+      'skipped', coalesce(c.skipped, 0), 'review', coalesce(c.review, 0)),
+    'reasons', coalesce((select jsonb_object_agg(x.reason, x.n) from (select r.reason, count(*) as n from private.titan_import_batch_rows r
+                          where r.batch_id = p_b.id and r.reason is not null group by r.reason) x), '{}'::jsonb))
+  from (select count(*) as n, max(r.row_no) as last_row,
+               count(*) filter (where r.outcome = 'added') as added, count(*) filter (where r.outcome = 'linked') as linked,
+               count(*) filter (where r.outcome = 'duplicate') as duplicate, count(*) filter (where r.outcome = 'skipped') as skipped,
+               count(*) filter (where r.needs_review) as review
+          from private.titan_import_batch_rows r where r.batch_id = p_b.id) c;
+$function$;
+revoke all on function private.titan_import_batch_json(private.titan_import_batches) from public, anon, authenticated;
+
+create or replace function public.titan_import_batch_open_v1(p_format text, p_file_hash text, p_total integer, p_file_name text default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  b private.titan_import_batches%rowtype;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if p_format is null or p_format not in ('titan_csv', 'titan_json', 'csv_profile', 'strava_csv') or p_file_hash is null or p_file_hash !~ '^[0-9a-f]{16}$'
+     or p_total is null or p_total not between 1 and 20000 then
+    raise exception 'IMPORT_BATCH_INVALID' using errcode = '22023';
+  end if;
+  perform 1 from public.profiles p where p.id = v_uid and not coalesce(p.is_suspended, false);
+  if not found then raise exception 'PROFILE_UNAVAILABLE' using errcode = '42501'; end if;
+  perform pg_advisory_xact_lock(hashtextextended(v_uid::text || ':import_batch:' || p_file_hash, 0));
+  -- The same file opened again (restart, other device) resumes its batch, or shows the report of the one already done.
+  select * into b from private.titan_import_batches x where x.user_id = v_uid and x.file_hash = p_file_hash and x.status <> 'withdrawn';
+  if found then return private.titan_import_batch_json(b) || jsonb_build_object('resumed', true); end if;
+  perform private.titan_rate_limit(v_uid, 'history_batch_open', 20);
+  if (select count(*) from private.titan_import_batches x where x.user_id = v_uid and x.status = 'open') >= 5 then
+    raise exception 'IMPORT_BATCH_TOO_MANY' using errcode = '22023';
+  end if;
+  insert into private.titan_import_batches(user_id, format, file_hash, file_name, total_rows)
+    values (v_uid, p_format, p_file_hash, nullif(left(regexp_replace(coalesce(p_file_name, ''), '[[:cntrl:]]', '', 'g'), 120), ''), p_total)
+    returning * into b;
+  return private.titan_import_batch_json(b) || jsonb_build_object('resumed', false);
+end;
+$function$;
+revoke all on function public.titan_import_batch_open_v1(text, text, integer, text) from public, anon;
+grant execute on function public.titan_import_batch_open_v1(text, text, integer, text) to authenticated;
+
+create or replace function public.titan_import_batch_rows_v1(p_batch uuid, p_items jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  b private.titan_import_batches%rowtype;
+  v_item jsonb;
+  v_row integer;
+  v_started timestamptz;
+  v_minutes numeric;
+  v_km numeric;
+  v_sport text;
+  v_id text;
+  v_extra jsonb;
+  v_res jsonb;
+  v_reason text;
+  v_log uuid;
+  v_processed integer := 0;
+  v_replayed integer := 0;
+  v_limited boolean := false;
+  v_busy boolean := false;
+  v_client_reasons constant text[] := array['unknown_sport', 'sport_ignored', 'invalid_date', 'missing_time', 'invalid_duration', 'invalid_distance',
+    'recent', 'future', 'too_old', 'archived_in_export', 'duplicate_in_file', 'empty'];
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if p_batch is null or jsonb_typeof(p_items) is distinct from 'array' or jsonb_array_length(p_items) not between 1 and 100 then
+    raise exception 'IMPORT_BATCH_INVALID' using errcode = '22023';
+  end if;
+  perform 1 from public.profiles p where p.id = v_uid and not coalesce(p.is_suspended, false);
+  if not found then raise exception 'PROFILE_UNAVAILABLE' using errcode = '42501'; end if;
+  -- One sender at a time per batch: a second device or a replayed call waits, then finds the rows already recorded.
+  select * into b from private.titan_import_batches x where x.id = p_batch and x.user_id = v_uid for update;
+  if not found then raise exception 'IMPORT_BATCH_UNKNOWN' using errcode = '22023'; end if;
+  if b.status = 'withdrawn' then raise exception 'IMPORT_BATCH_WITHDRAWN' using errcode = '22023'; end if;
+  perform private.titan_rate_limit(v_uid, 'history_batch', 60);
+
+  for v_item in select value from jsonb_array_elements(p_items) loop
+    begin
+      v_row := (v_item ->> 'row')::integer;
+    exception when others then
+      raise exception 'IMPORT_ROW_INVALID' using errcode = '22023';
+    end;
+    if v_row is null or v_row < 1 or v_row > b.total_rows + 1 then raise exception 'IMPORT_ROW_INVALID' using errcode = '22023'; end if;
+    if exists (select 1 from private.titan_import_batch_rows r where r.batch_id = b.id and r.row_no = v_row) then
+      v_replayed := v_replayed + 1;
+      continue;
+    end if;
+
+    v_reason := null;
+    v_id := null;
+    v_res := null;
+    if v_item ? 'skip' then
+      v_reason := case when (v_item ->> 'skip') = any (v_client_reasons) then v_item ->> 'skip' else 'server_invalid' end;
+    else
+      v_id := v_item ->> 'id';
+      v_sport := v_item ->> 'sport';
+      begin
+        v_started := (v_item ->> 'startedAt')::timestamptz;
+        v_minutes := round((v_item ->> 'minutes')::numeric, 1);
+        v_km := nullif(round(coalesce((v_item ->> 'km')::numeric, 0), 3), 0);
+      exception when others then
+        v_reason := 'server_invalid';
+      end;
+      if v_reason is null then
+        v_reason := case
+          when v_id is null or v_id !~ '^[A-Za-z0-9_.:-]{1,128}$' then 'server_invalid'
+          when v_started is null then 'invalid_date'
+          when v_started > now() + interval '10 minutes' then 'future'
+          when v_started < timestamptz '1990-01-01' then 'too_old'
+          when v_started > now() - interval '30 days' then 'recent'
+          when v_minutes is null or v_minutes < 1 or v_minutes > 1440 then 'invalid_duration'
+          when v_km is not null and (v_km <= 0 or v_km > 1000) then 'invalid_distance'
+          when not exists (select 1 from public.sports s where s.id = v_sport and coalesce(s.is_active, true)) then 'unknown_sport'
+        end;
+      end if;
+      if v_reason is null then
+        v_extra := jsonb_strip_nulls(jsonb_build_object(
+          'note', case when jsonb_typeof(v_item -> 'note') = 'string' then left(regexp_replace(v_item ->> 'note', '[\x01-\x08\x0b\x0c\x0e-\x1f]', '', 'g'), 500) end,
+          'rpe', case when (v_item ->> 'rpe') ~ '^([1-9]|10)$' then (v_item ->> 'rpe')::integer end,
+          'value', case when (v_item ->> 'value') ~ '^[0-9]+(\.[0-9]+)?$' then v_item ->> 'value' end,
+          'unit', case when (v_item ->> 'unit') in ('kg', 'reps') then v_item ->> 'unit' end));
+        begin
+          v_res := private.titan_import_core(v_uid, 'archive', v_id, v_sport, v_started, v_minutes, v_km, v_extra);
+        exception
+          when sqlstate '23514' then
+            if sqlerrm = 'TRAINING_RATE_LIMIT' then v_limited := true; exit; end if;
+            v_reason := 'server_invalid';
+          when sqlstate '22023' then
+            v_reason := 'server_invalid';
+          when sqlstate '55P03' then
+            -- A session of the journal is being modified elsewhere: stop here, the next call resumes from this row.
+            v_busy := true; exit;
+        end;
+      end if;
+    end if;
+
+    if v_reason is not null then
+      insert into private.titan_import_batch_rows(batch_id, row_no, outcome, reason, external_id)
+        values (b.id, v_row, 'skipped', v_reason, case when v_id ~ '^[A-Za-z0-9_.:-]{1,128}$' and not (v_item ? 'skip') then v_id end);
+    else
+      v_log := nullif(v_res ->> 'log_id', '')::uuid;
+      insert into private.titan_import_batch_rows(batch_id, row_no, outcome, external_id, log_id, log_revision, needs_review)
+        values (b.id, v_row,
+          case v_res ->> 'status' when 'imported' then 'added' when 'linked' then 'linked' else 'duplicate' end,
+          v_id, v_log, (select l.revision from public.training_logs l where l.id = v_log),
+          coalesce((v_res ->> 'needs_review')::boolean, false));
+      if v_res ->> 'status' in ('imported', 'linked') then
+        update private.titan_imported_activities i set batch_id = b.id, batch_row = v_row
+         where i.user_id = v_uid and i.source = 'archive' and i.external_id = v_id and i.batch_id is null;
+      end if;
+    end if;
+    v_processed := v_processed + 1;
+  end loop;
+
+  update private.titan_import_batches x set updated_at = now(),
+         status = case when x.status = 'open' and (select count(*) from private.titan_import_batch_rows r where r.batch_id = x.id) >= x.total_rows then 'done' else x.status end,
+         finished_at = case when x.finished_at is null and (select count(*) from private.titan_import_batch_rows r where r.batch_id = x.id) >= x.total_rows then now() else x.finished_at end
+   where x.id = b.id returning * into b;
+  return private.titan_import_batch_json(b) || jsonb_build_object('processed', v_processed, 'replayed', v_replayed, 'limited', v_limited, 'busy', v_busy);
+end;
+$function$;
+revoke all on function public.titan_import_batch_rows_v1(uuid, jsonb) from public, anon;
+grant execute on function public.titan_import_batch_rows_v1(uuid, jsonb) to authenticated;
+
+-- What withdrawing would do to each row of a batch, from the current state of its sessions and links (read-only).
+create or replace function private.titan_import_batch_plan(p_uid uuid, p_batch uuid)
+returns table(row_no integer, action text, log_id uuid, external_id text)
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select r.row_no,
+    case
+      when r.outcome = 'added' then
+        case
+          when l.id is null then 'gone'
+          when i.split_log_id is not null and i.split_log_id = l.id then 'kept_split'
+          when l.revision > coalesce(r.log_revision, 1) then 'kept_corrected'
+          when coalesce(l.xp, 0) > 0 then 'kept_rewarded'
+          when exists (select 1 from private.titan_imported_activities j
+                        where j.user_id = p_uid and (j.log_id = l.id or j.linked_log_id = l.id)
+                          and not (j.source = 'archive' and j.external_id = r.external_id)) then 'kept_linked'
+          else 'removed'
+        end
+      when r.outcome = 'linked' then
+        case
+          when i.external_id is null then 'gone'
+          when i.status = 'imported' and i.split_log_id is not null then 'kept_split'
+          else 'detached'
+        end
+      else 'none'
+    end,
+    coalesce(l.id, i.log_id), r.external_id
+  from private.titan_import_batch_rows r
+  left join private.titan_imported_activities i on i.user_id = p_uid and i.source = 'archive' and i.external_id = r.external_id and i.batch_id = p_batch
+  left join public.training_logs l on l.id = case when r.outcome = 'added' then coalesce(i.log_id, r.log_id) end and l.user_id = p_uid
+  where r.batch_id = p_batch;
+$function$;
+revoke all on function private.titan_import_batch_plan(uuid, uuid) from public, anon, authenticated;
+
+create or replace function public.titan_import_batch_withdraw_v1(p_batch uuid, p_apply boolean default false)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  b private.titan_import_batches%rowtype;
+  v_report jsonb;
+  p record;
+  v_log public.training_logs%rowtype;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if p_batch is null then raise exception 'IMPORT_BATCH_UNKNOWN' using errcode = '22023'; end if;
+  if coalesce(p_apply, false) then
+    -- The session writer's lock first (as an import or a decision), then the batch.
+    perform 1 from public.profiles x where x.id = v_uid for update;
+  end if;
+  select * into b from private.titan_import_batches x where x.id = p_batch and x.user_id = v_uid for update;
+  if not found then raise exception 'IMPORT_BATCH_UNKNOWN' using errcode = '22023'; end if;
+  if b.status = 'withdrawn' then
+    return private.titan_import_batch_json(b) || jsonb_build_object('applied', true, 'effects', b.withdraw_report);
+  end if;
+  select jsonb_build_object(
+      'remove', count(*) filter (where action = 'removed'), 'detach', count(*) filter (where action = 'detached'),
+      'kept_corrected', count(*) filter (where action = 'kept_corrected'), 'kept_linked', count(*) filter (where action = 'kept_linked'),
+      'kept_split', count(*) filter (where action = 'kept_split'), 'kept_rewarded', count(*) filter (where action = 'kept_rewarded'),
+      'gone', count(*) filter (where action = 'gone'), 'untouched', count(*) filter (where action = 'none'))
+    into v_report from private.titan_import_batch_plan(v_uid, b.id);
+  if not coalesce(p_apply, false) then
+    return private.titan_import_batch_json(b) || jsonb_build_object('applied', false, 'effects', v_report);
+  end if;
+  perform private.titan_rate_limit(v_uid, 'history_batch_withdraw', 10);
+
+  for p in select * from private.titan_import_batch_plan(v_uid, b.id) order by row_no loop
+    if p.action = 'removed' then
+      select * into v_log from public.training_logs l where l.id = p.log_id and l.user_id = v_uid for update;
+      -- Re-checked under the row lock: a correction made in between keeps the session.
+      if found and v_log.revision = coalesce((select r.log_revision from private.titan_import_batch_rows r where r.batch_id = b.id and r.row_no = p.row_no), 1) and coalesce(v_log.xp, 0) = 0 then
+        delete from public.training_receipts t where t.user_id = v_uid and t.client_event_id = v_log.client_event_id;
+        delete from public.training_logs l where l.id = v_log.id;
+      else
+        p.action := 'kept_corrected';
+      end if;
+    elsif p.action = 'detached' then
+      delete from private.titan_imported_activities i where i.user_id = v_uid and i.source = 'archive' and i.external_id = p.external_id and i.batch_id = b.id;
+    end if;
+    update private.titan_import_batch_rows r set withdrawn = p.action where r.batch_id = b.id and r.row_no = p.row_no;
+  end loop;
+
+  select jsonb_build_object(
+      'remove', count(*) filter (where withdrawn = 'removed'), 'detach', count(*) filter (where withdrawn = 'detached'),
+      'kept_corrected', count(*) filter (where withdrawn = 'kept_corrected'), 'kept_linked', count(*) filter (where withdrawn = 'kept_linked'),
+      'kept_split', count(*) filter (where withdrawn = 'kept_split'), 'kept_rewarded', count(*) filter (where withdrawn = 'kept_rewarded'),
+      'gone', count(*) filter (where withdrawn = 'gone'), 'untouched', count(*) filter (where withdrawn = 'none'))
+    into v_report from private.titan_import_batch_rows r where r.batch_id = b.id;
+  update private.titan_import_batches x set status = 'withdrawn', withdrawn_at = now(), updated_at = now(), withdraw_report = v_report
+   where x.id = b.id returning * into b;
+  return private.titan_import_batch_json(b) || jsonb_build_object('applied', true, 'effects', v_report);
+end;
+$function$;
+revoke all on function public.titan_import_batch_withdraw_v1(uuid, boolean) from public, anon;
+grant execute on function public.titan_import_batch_withdraw_v1(uuid, boolean) to authenticated;
+
+-- The report of one batch: its counts and its rows (paged, optionally one outcome), each with the current state of its session.
+create or replace function public.titan_import_batch_v1(p_batch uuid, p_outcome text default null, p_offset integer default 0, p_limit integer default 200)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  b private.titan_import_batches%rowtype;
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  select * into b from private.titan_import_batches x where x.id = p_batch and x.user_id = v_uid;
+  if not found then raise exception 'IMPORT_BATCH_UNKNOWN' using errcode = '22023'; end if;
+  return private.titan_import_batch_json(b) || jsonb_build_object('rows', coalesce((
+    select jsonb_agg(jsonb_build_object('row', r.row_no, 'outcome', r.outcome, 'reason', r.reason, 'external_id', r.external_id,
+             'log_id', r.log_id, 'needs_review', r.needs_review, 'withdrawn', r.withdrawn,
+             'session', case when l.id is null then null else jsonb_build_object('date', l.date, 'sport', l.sport, 'val', l.val, 'unit', l.unit,
+               'archived', l.archived_at is not null, 'corrected', l.revision > coalesce(r.log_revision, l.revision)) end) order by r.row_no)
+      from (select * from private.titan_import_batch_rows r0 where r0.batch_id = b.id and (p_outcome is null or r0.outcome = p_outcome)
+             order by r0.row_no offset greatest(0, coalesce(p_offset, 0)) limit least(500, greatest(1, coalesce(p_limit, 200)))) r
+      left join public.training_logs l on l.id = r.log_id and l.user_id = v_uid), '[]'::jsonb));
+end;
+$function$;
+revoke all on function public.titan_import_batch_v1(uuid, text, integer, integer) from public, anon;
+grant execute on function public.titan_import_batch_v1(uuid, text, integer, integer) to authenticated;
+
+create or replace function public.titan_import_batches_v1()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  return coalesce((select jsonb_agg(private.titan_import_batch_json(x) order by x.created_at desc)
+                     from (select * from private.titan_import_batches y where y.user_id = v_uid order by y.created_at desc limit 20) x), '[]'::jsonb);
+end;
+$function$;
+revoke all on function public.titan_import_batches_v1() from public, anon;
+grant execute on function public.titan_import_batches_v1() to authenticated;

@@ -42,9 +42,9 @@ import { useSteps } from "../../data/steps";
 import { dayOfYear, voiceLine } from "../../lib/voice";
 import { navigateHref } from "../../navigation/href";
 import { Program } from "../../core/program";
+import { effectiveSports, todayKey as weekDayKey, useWeekPlan } from "../../lib/weekPlan";
 import { colors, space, spaces, TOUCH } from "../../theme/tokens";
 
-const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
 /** A door to a place the tab bar does not reach: its name, one line on what is behind it right now, in the colour of that place. */
 function Access({ icon, label, hint, onPress, testID, last }: { icon: IconName; label: string; hint: string; onPress: () => void; stacked?: boolean; testID?: string; last?: boolean }) {
@@ -80,10 +80,15 @@ export function HomeScreen() {
   const steps = useSteps();
   const { active } = logsQ;
 
+  // V1.7.2: this week as planned on Monday with the athlete's moves and replacements (src/core/web/week-plan.js).
+  const weekPlan = useWeekPlan();
   const planToday = useMemo(() => {
-    const day = prefs.schedule?.[DAY_KEYS[(new Date().getDay() + 6) % 7]];
-    return day?.sport && Sports.conf(day.sport) ? { sport: day.sport, minutes: day.minutes ?? null } : null;
-  }, [prefs.schedule]);
+    const today = weekDayKey();
+    const o = weekPlan.occurrences.find((x) => x.effective.day === today && (x.status === "today" || x.status === "ask"));
+    if (!o || !Sports.conf(o.effective.sport)) return null;
+    const moved = o.decision?.kind === "move" || o.decision?.kind === "replace";
+    return { sport: o.effective.sport, minutes: o.effective.sport === o.planned.sport ? o.planned.minutes : null, moved };
+  }, [weekPlan]);
   const ctx = useMemo(
     () => ({
       logs: active, goals: goals.data ?? [], cadenceTarget: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses,
@@ -99,7 +104,7 @@ export function HomeScreen() {
   const cadence = useMemo(() => Progress.cadence(active, { target: prefs.weeklyGoalSessions, pauses: prefs.cadencePauses }), [active, prefs]);
   const week = useMemo(() => Progress.summarize(Progress.weekLogs(active, new Date())), [active]);
   // The week as a programme: one line per sport, one column per day, with the days of the usual week still to come.
-  const grid = useMemo(() => Program.week(active, { maxRows: 4, plan: DAY_KEYS.map((k) => { const d = prefs.schedule?.[k]; return d?.sport && Sports.conf(d.sport) ? d.sport : null; }) }), [active, prefs.schedule]);
+  const grid = useMemo(() => Program.week(active, { maxRows: 4, plan: effectiveSports(weekPlan).map((s) => (s && Sports.conf(s) ? s : null)) }), [active, weekPlan]);
   const previousGrid = useMemo(() => Program.week(active, { maxRows: 4, start: new Date(Date.now() - 7 * 86_400_000) }), [active]);
 
   const snap = adventure.data;

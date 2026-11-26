@@ -55,9 +55,9 @@ appId: fr.titanapp.app
     id: "session-save"
 - runFlow:
     when:
-      visible: "Cette séance semble déjà dans ton journal"
+      visible: ".*(déjà dans ton journal|Même séance \? À vérifier).*"
     commands:
-      - tapOn: "Enregistrer quand même"
+      - tapOn: "Ce sont deux séances"
 - extendedWaitUntil:
     visible: ".*(TITAN a confirmé|Récompense en vérification).*"
     timeout: 30000

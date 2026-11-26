@@ -42,6 +42,19 @@ export const MODULES = [
   "js/core/periodic-quests.js",
   "js/core/cordee.js",
   "js/core/social-digest.js",
+  "js/core/sync-state.js",
+  "js/core/session-match.js",
+  "js/core/history-ledger.js",
+  "js/core/history-migration.js",
+  "js/core/history-window.js",
+  "js/core/week-plan.js",
+  "js/core/week-review.js",
+  "js/core/training-block.js",
+  "js/core/block-scenario.js",
+  "js/core/discipline-analysis.js",
+  "js/core/gps-engine.js",
+  "js/core/gps-nav.js",
+  "js/core/gps-session.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

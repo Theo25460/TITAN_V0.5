@@ -37,6 +37,8 @@
     seance: [
       { label: "Enregistrer", href: "/training" },
       { label: "Prévoir", href: "/prevoir" },
+      // V1.7.7: listed when the flag screens.gps is on for this account, and always on the page itself (it says « bientôt » honestly).
+      { label: "Sortie GPS", href: "/sortie", flag: "screens.gps" },
     ],
   };
   const AVATARS = NAV.AVATARS;
@@ -154,7 +156,8 @@
     if (sub && pages) {
       const here = location.pathname.replace(/\.html$/, "").replace(/\/$/, "") || "/";
       sub.setAttribute("aria-label", "Pages de " + (TERRITORIES.find((t) => t.id === territory())?.label || "la section"));
-      put(sub, pages.map((p) => `<a href="${p.href}"${here === p.href ? ' aria-current="page"' : ""}>${esc(p.label)}</a>`).join(""));
+      const shown = pages.filter((p) => !p.flag || here === p.href || window.titanFlags?.enabled?.(p.flag, false) === true);
+      put(sub, shown.map((p) => `<a href="${p.href}"${here === p.href ? ' aria-current="page"' : ""}>${esc(p.label)}</a>`).join(""));
     }
 
     if (!document.querySelector(".asc-toasts")) {
@@ -447,7 +450,7 @@
     refresh();
   };
 
-  ["titan:adventure-updated", "titan:history-updated", "titan:pending-changed", "online", "offline"].forEach((ev) =>
+  ["titan:adventure-updated", "titan:history-updated", "titan:pending-changed", "titan:flags-updated", "online", "offline"].forEach((ev) =>
     window.addEventListener(ev, () => {
       if (ev === "online") explicitSync = null;
       refresh();

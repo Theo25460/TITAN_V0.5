@@ -1,0 +1,2512 @@
+{
+ "about": "V1.7.5 — Analyse avancée par discipline. One synthetic history read unchanged by tests/discipline-analysis.test.mjs (website module), mobile/__tests__/disciplineAnalysis.test.tsx (Android copy) and tests/e2e/discipline-analysis.e2e.mjs (Progrès page). Each case is a call of TitanDisciplineAnalysis.view with now and weeks below. The expected output is discipline-analysis-v175.expected.json.",
+ "version": "2026.11-a1",
+ "now": "2026-11-20T12:00:00Z",
+ "weeks": 6,
+ "block": {
+  "kind": "block",
+  "id": "blk-base",
+  "title": "Base aérobie",
+  "start": "2026-09-14",
+  "end": "2026-10-11"
+ },
+ "schedule": {
+  "saturday": {
+   "sport": "gravel",
+   "minutes": 210,
+   "note": "Sortie longue"
+  },
+  "blocks": {
+   "blk-base": {
+    "v": 1,
+    "id": "blk-base",
+    "at": "2026-09-10T08:00:00.000Z",
+    "created": "2026-09-10T08:00:00.000Z",
+    "title": "Base aérobie",
+    "intent": "",
+    "template": "blank",
+    "sports": [
+     "gravel"
+    ],
+    "goal": null,
+    "layouts": {
+     "2026-09-14": {
+      "start": "2026-09-14",
+      "weeks": [
+       {
+        "days": [
+         null,
+         null,
+         null,
+         null,
+         null,
+         {
+          "sport": "gravel",
+          "minutes": 210,
+          "note": "Sortie longue"
+         },
+         null
+        ],
+        "kind": "plan",
+        "n": 1,
+        "milestones": []
+       },
+       {
+        "days": [
+         null,
+         null,
+         null,
+         null,
+         null,
+         {
+          "sport": "gravel",
+          "minutes": 210,
+          "note": "Sortie longue"
+         },
+         null
+        ],
+        "kind": "plan",
+        "n": 2,
+        "milestones": []
+       },
+       {
+        "days": [
+         null,
+         null,
+         null,
+         null,
+         null,
+         {
+          "sport": "gravel",
+          "minutes": 210,
+          "note": "Sortie longue"
+         },
+         null
+        ],
+        "kind": "plan",
+        "n": 3,
+        "milestones": []
+       },
+       {
+        "days": [
+         null,
+         null,
+         null,
+         null,
+         null,
+         {
+          "sport": "gravel",
+          "minutes": 210,
+          "note": "Sortie longue"
+         },
+         null
+        ],
+        "kind": "plan",
+        "n": 4,
+        "milestones": []
+       }
+      ],
+      "at": "2026-09-10T08:00:00.000Z",
+      "origin": "create",
+      "base": null
+     }
+    },
+    "milestones": {},
+    "log": {
+     "2026-09-10T08:00:00.000Z#create": {
+      "at": "2026-09-10T08:00:00.000Z",
+      "kind": "create",
+      "from": "2026-09-14",
+      "origin": "block:blk-base",
+      "effect": {
+       "weeks": [
+        {
+         "week": "2026-09-14",
+         "before": null,
+         "after": "Semaine 1"
+        },
+        {
+         "week": "2026-09-21",
+         "before": null,
+         "after": "Semaine 2"
+        },
+        {
+         "week": "2026-09-28",
+         "before": null,
+         "after": "Semaine 3"
+        },
+        {
+         "week": "2026-10-05",
+         "before": null,
+         "after": "Semaine 4"
+        }
+       ],
+       "milestones": [],
+       "exceptions": [],
+       "pauses": []
+      }
+     }
+    },
+    "removed": null
+   }
+  }
+ },
+ "history": [
+  {
+   "id": "g-r1",
+   "client_event_id": "g-r1",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 68,
+   "date": "2026-09-05T08:00:00Z",
+   "details": {
+    "duration": 210,
+    "elevation": 600,
+    "extras": {
+     "surface": "Chemin roulant",
+     "avg_hr": 142
+    },
+    "gpxStats": {
+     "distanceKm": 68,
+     "movingMinutes": 210,
+     "splits": [
+      {
+       "index": 0,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 1,
+       "distanceKm": 1,
+       "durationSeconds": 183.7
+      },
+      {
+       "index": 2,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 3,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 4,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 5,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 6,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 7,
+       "distanceKm": 1,
+       "durationSeconds": 183.7
+      },
+      {
+       "index": 8,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 9,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 10,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 11,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 12,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 13,
+       "distanceKm": 1,
+       "durationSeconds": 183.7
+      },
+      {
+       "index": 14,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 15,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 16,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 17,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 18,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 19,
+       "distanceKm": 1,
+       "durationSeconds": 183.7
+      },
+      {
+       "index": 20,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 21,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 22,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 23,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 24,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 25,
+       "distanceKm": 1,
+       "durationSeconds": 183.7
+      },
+      {
+       "index": 26,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 27,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 28,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 29,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 30,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 31,
+       "distanceKm": 1,
+       "durationSeconds": 183.7
+      },
+      {
+       "index": 32,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 33,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 34,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 35,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 36,
+       "distanceKm": 1,
+       "durationSeconds": 189.5
+      },
+      {
+       "index": 37,
+       "distanceKm": 1,
+       "durationSeconds": 196.7
+      },
+      {
+       "index": 38,
+       "distanceKm": 1,
+       "durationSeconds": 191.5
+      },
+      {
+       "index": 39,
+       "distanceKm": 1,
+       "durationSeconds": 198.9
+      },
+      {
+       "index": 40,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 41,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 42,
+       "distanceKm": 1,
+       "durationSeconds": 189.5
+      },
+      {
+       "index": 43,
+       "distanceKm": 1,
+       "durationSeconds": 196.7
+      },
+      {
+       "index": 44,
+       "distanceKm": 1,
+       "durationSeconds": 191.5
+      },
+      {
+       "index": 45,
+       "distanceKm": 1,
+       "durationSeconds": 198.9
+      },
+      {
+       "index": 46,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 47,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 48,
+       "distanceKm": 1,
+       "durationSeconds": 189.5
+      },
+      {
+       "index": 49,
+       "distanceKm": 1,
+       "durationSeconds": 196.7
+      },
+      {
+       "index": 50,
+       "distanceKm": 1,
+       "durationSeconds": 191.5
+      },
+      {
+       "index": 51,
+       "distanceKm": 1,
+       "durationSeconds": 198.9
+      },
+      {
+       "index": 52,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 53,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 54,
+       "distanceKm": 1,
+       "durationSeconds": 189.5
+      },
+      {
+       "index": 55,
+       "distanceKm": 1,
+       "durationSeconds": 196.7
+      },
+      {
+       "index": 56,
+       "distanceKm": 1,
+       "durationSeconds": 191.5
+      },
+      {
+       "index": 57,
+       "distanceKm": 1,
+       "durationSeconds": 198.9
+      },
+      {
+       "index": 58,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 59,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 60,
+       "distanceKm": 1,
+       "durationSeconds": 189.5
+      },
+      {
+       "index": 61,
+       "distanceKm": 1,
+       "durationSeconds": 196.7
+      },
+      {
+       "index": 62,
+       "distanceKm": 1,
+       "durationSeconds": 191.5
+      },
+      {
+       "index": 63,
+       "distanceKm": 1,
+       "durationSeconds": 198.9
+      },
+      {
+       "index": 64,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 65,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 66,
+       "distanceKm": 1,
+       "durationSeconds": 189.5
+      },
+      {
+       "index": 67,
+       "distanceKm": 1,
+       "durationSeconds": 196.7
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "g-r2",
+   "client_event_id": "g-r2",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 72,
+   "date": "2026-09-19T08:00:00Z",
+   "details": {
+    "duration": 220,
+    "elevation": 650,
+    "extras": {
+     "surface": "Chemin roulant",
+     "avg_hr": 145
+    },
+    "gpxStats": {
+     "distanceKm": 72,
+     "movingMinutes": 220,
+     "splits": [
+      {
+       "index": 0,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 1,
+       "distanceKm": 1,
+       "durationSeconds": 180.9
+      },
+      {
+       "index": 2,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 3,
+       "distanceKm": 1,
+       "durationSeconds": 182.7
+      },
+      {
+       "index": 4,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 5,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 6,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 7,
+       "distanceKm": 1,
+       "durationSeconds": 180.9
+      },
+      {
+       "index": 8,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 9,
+       "distanceKm": 1,
+       "durationSeconds": 182.7
+      },
+      {
+       "index": 10,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 11,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 12,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 13,
+       "distanceKm": 1,
+       "durationSeconds": 180.9
+      },
+      {
+       "index": 14,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 15,
+       "distanceKm": 1,
+       "durationSeconds": 182.7
+      },
+      {
+       "index": 16,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 17,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 18,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 19,
+       "distanceKm": 1,
+       "durationSeconds": 180.9
+      },
+      {
+       "index": 20,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 21,
+       "distanceKm": 1,
+       "durationSeconds": 182.7
+      },
+      {
+       "index": 22,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 23,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 24,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 25,
+       "distanceKm": 1,
+       "durationSeconds": 180.9
+      },
+      {
+       "index": 26,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 27,
+       "distanceKm": 1,
+       "durationSeconds": 182.7
+      },
+      {
+       "index": 28,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 29,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 30,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 31,
+       "distanceKm": 1,
+       "durationSeconds": 180.9
+      },
+      {
+       "index": 32,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 33,
+       "distanceKm": 1,
+       "durationSeconds": 182.7
+      },
+      {
+       "index": 34,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 35,
+       "distanceKm": 1,
+       "durationSeconds": 179.1
+      },
+      {
+       "index": 36,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 37,
+       "distanceKm": 1,
+       "durationSeconds": 192.5
+      },
+      {
+       "index": 38,
+       "distanceKm": 1,
+       "durationSeconds": 187.5
+      },
+      {
+       "index": 39,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 40,
+       "distanceKm": 1,
+       "durationSeconds": 186.5
+      },
+      {
+       "index": 41,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 42,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 43,
+       "distanceKm": 1,
+       "durationSeconds": 192.5
+      },
+      {
+       "index": 44,
+       "distanceKm": 1,
+       "durationSeconds": 187.5
+      },
+      {
+       "index": 45,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 46,
+       "distanceKm": 1,
+       "durationSeconds": 186.5
+      },
+      {
+       "index": 47,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 48,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 49,
+       "distanceKm": 1,
+       "durationSeconds": 192.5
+      },
+      {
+       "index": 50,
+       "distanceKm": 1,
+       "durationSeconds": 187.5
+      },
+      {
+       "index": 51,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 52,
+       "distanceKm": 1,
+       "durationSeconds": 186.5
+      },
+      {
+       "index": 53,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 54,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 55,
+       "distanceKm": 1,
+       "durationSeconds": 192.5
+      },
+      {
+       "index": 56,
+       "distanceKm": 1,
+       "durationSeconds": 187.5
+      },
+      {
+       "index": 57,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 58,
+       "distanceKm": 1,
+       "durationSeconds": 186.5
+      },
+      {
+       "index": 59,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 60,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 61,
+       "distanceKm": 1,
+       "durationSeconds": 192.5
+      },
+      {
+       "index": 62,
+       "distanceKm": 1,
+       "durationSeconds": 187.5
+      },
+      {
+       "index": 63,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 64,
+       "distanceKm": 1,
+       "durationSeconds": 186.5
+      },
+      {
+       "index": 65,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      },
+      {
+       "index": 66,
+       "distanceKm": 1,
+       "durationSeconds": 185.6
+      },
+      {
+       "index": 67,
+       "distanceKm": 1,
+       "durationSeconds": 192.5
+      },
+      {
+       "index": 68,
+       "distanceKm": 1,
+       "durationSeconds": 187.5
+      },
+      {
+       "index": 69,
+       "distanceKm": 1,
+       "durationSeconds": 194.6
+      },
+      {
+       "index": 70,
+       "distanceKm": 1,
+       "durationSeconds": 186.5
+      },
+      {
+       "index": 71,
+       "distanceKm": 1,
+       "durationSeconds": 190.5
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "g-r3",
+   "client_event_id": "g-r3",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 70,
+   "date": "2026-10-03T08:00:00Z",
+   "details": {
+    "duration": 212,
+    "elevation": 620,
+    "extras": {
+     "surface": "Chemin roulant"
+    }
+   }
+  },
+  {
+   "id": "g-c1",
+   "client_event_id": "g-c1",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 74,
+   "date": "2026-10-17T08:00:00Z",
+   "details": {
+    "duration": 215,
+    "elevation": 700,
+    "extras": {
+     "surface": "Chemin roulant",
+     "avg_hr": 144
+    },
+    "gpxStats": {
+     "distanceKm": 74,
+     "movingMinutes": 215,
+     "splits": [
+      {
+       "index": 0,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 1,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 2,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 3,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 4,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 5,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 6,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 7,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 8,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 9,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 10,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 11,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 12,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 13,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 14,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 15,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 16,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 17,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 18,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 19,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 20,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 21,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 22,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 23,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 24,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 25,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 26,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 27,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 28,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 29,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 30,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 31,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 32,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 33,
+       "distanceKm": 1,
+       "durationSeconds": 176.5
+      },
+      {
+       "index": 34,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 35,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 36,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 37,
+       "distanceKm": 1,
+       "durationSeconds": 180
+      },
+      {
+       "index": 38,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 39,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 40,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 41,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 42,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 43,
+       "distanceKm": 1,
+       "durationSeconds": 180
+      },
+      {
+       "index": 44,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 45,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 46,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 47,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 48,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 49,
+       "distanceKm": 1,
+       "durationSeconds": 180
+      },
+      {
+       "index": 50,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 51,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 52,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 53,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 54,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 55,
+       "distanceKm": 1,
+       "durationSeconds": 180
+      },
+      {
+       "index": 56,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 57,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 58,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 59,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 60,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 61,
+       "distanceKm": 1,
+       "durationSeconds": 180
+      },
+      {
+       "index": 62,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 63,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 64,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 65,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 66,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 67,
+       "distanceKm": 1,
+       "durationSeconds": 180
+      },
+      {
+       "index": 68,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 69,
+       "distanceKm": 1,
+       "durationSeconds": 181.8
+      },
+      {
+       "index": 70,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 71,
+       "distanceKm": 1,
+       "durationSeconds": 178.2
+      },
+      {
+       "index": 72,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 73,
+       "distanceKm": 1,
+       "durationSeconds": 180
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "g-hilly",
+   "client_event_id": "g-hilly",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 72,
+   "date": "2026-10-24T08:00:00Z",
+   "details": {
+    "duration": 260,
+    "elevation": 2200,
+    "extras": {
+     "surface": "Chemin roulant"
+    }
+   }
+  },
+  {
+   "id": "g-c2",
+   "client_event_id": "g-c2",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 76,
+   "date": "2026-10-31T08:00:00Z",
+   "details": {
+    "duration": 218,
+    "elevation": 640,
+    "extras": {
+     "surface": "Chemin roulant"
+    },
+    "gpxStats": {
+     "distanceKm": 76,
+     "movingMinutes": 218,
+     "splits": [
+      {
+       "index": 0,
+       "distanceKm": 1,
+       "durationSeconds": 167.4
+      },
+      {
+       "index": 1,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 2,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 3,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 4,
+       "distanceKm": 1,
+       "durationSeconds": 168.2
+      },
+      {
+       "index": 5,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 6,
+       "distanceKm": 1,
+       "durationSeconds": 167.4
+      },
+      {
+       "index": 7,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 8,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 9,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 10,
+       "distanceKm": 1,
+       "durationSeconds": 168.2
+      },
+      {
+       "index": 11,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 12,
+       "distanceKm": 1,
+       "durationSeconds": 167.4
+      },
+      {
+       "index": 13,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 14,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 15,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 16,
+       "distanceKm": 1,
+       "durationSeconds": 168.2
+      },
+      {
+       "index": 17,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 18,
+       "distanceKm": 1,
+       "durationSeconds": 167.4
+      },
+      {
+       "index": 19,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 20,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 21,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 22,
+       "distanceKm": 1,
+       "durationSeconds": 168.2
+      },
+      {
+       "index": 23,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 24,
+       "distanceKm": 1,
+       "durationSeconds": 167.4
+      },
+      {
+       "index": 25,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 26,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 27,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 28,
+       "distanceKm": 1,
+       "durationSeconds": 168.2
+      },
+      {
+       "index": 29,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 30,
+       "distanceKm": 1,
+       "durationSeconds": 167.4
+      },
+      {
+       "index": 31,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 32,
+       "distanceKm": 1,
+       "durationSeconds": 169
+      },
+      {
+       "index": 33,
+       "distanceKm": 1,
+       "durationSeconds": 174.8
+      },
+      {
+       "index": 34,
+       "distanceKm": 1,
+       "durationSeconds": 168.2
+      },
+      {
+       "index": 35,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 36,
+       "distanceKm": 1,
+       "durationSeconds": 167.4
+      },
+      {
+       "index": 37,
+       "distanceKm": 1,
+       "durationSeconds": 173.1
+      },
+      {
+       "index": 38,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 39,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 40,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 41,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 42,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 43,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 44,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 45,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 46,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 47,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 48,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 49,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 50,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 51,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 52,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 53,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 54,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 55,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 56,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 57,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 58,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 59,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 60,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 61,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 62,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 63,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 64,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 65,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 66,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 67,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 68,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 69,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      },
+      {
+       "index": 70,
+       "distanceKm": 1,
+       "durationSeconds": 170.6
+      },
+      {
+       "index": 71,
+       "distanceKm": 1,
+       "durationSeconds": 173.9
+      },
+      {
+       "index": 72,
+       "distanceKm": 1,
+       "durationSeconds": 169.8
+      },
+      {
+       "index": 73,
+       "distanceKm": 1,
+       "durationSeconds": 175.6
+      },
+      {
+       "index": 74,
+       "distanceKm": 1,
+       "durationSeconds": 171.4
+      },
+      {
+       "index": 75,
+       "distanceKm": 1,
+       "durationSeconds": 177.3
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "g-arch",
+   "client_event_id": "g-arch",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 80,
+   "date": "2026-11-01T08:00:00Z",
+   "details": {
+    "duration": 200,
+    "elevation": 650,
+    "extras": {
+     "surface": "Chemin roulant"
+    }
+   },
+   "archived_at": "2026-11-02T10:00:00Z"
+  },
+  {
+   "id": "g-c4",
+   "client_event_id": "g-c4",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 75,
+   "date": "2026-11-07T08:00:00Z",
+   "details": {
+    "elevation": 660,
+    "extras": {
+     "surface": "Chemin roulant"
+    }
+   }
+  },
+  {
+   "id": "g-road",
+   "client_event_id": "g-road",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 72,
+   "date": "2026-11-10T08:00:00Z",
+   "details": {
+    "duration": 160,
+    "elevation": 300,
+    "extras": {
+     "surface": "Route"
+    }
+   }
+  },
+  {
+   "id": "g-short",
+   "client_event_id": "g-short",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 30,
+   "date": "2026-11-12T08:00:00Z",
+   "details": {
+    "duration": 85,
+    "elevation": 200,
+    "extras": {
+     "surface": "Chemin roulant"
+    }
+   }
+  },
+  {
+   "id": "g-c3",
+   "client_event_id": "g-c3",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 78,
+   "date": "2026-11-14T08:00:00Z",
+   "details": {
+    "duration": 222,
+    "elevation": 690,
+    "extras": {
+     "surface": "Chemin roulant",
+     "avg_hr": 146
+    }
+   }
+  },
+  {
+   "id": "g-pending",
+   "client_event_id": "g-pending",
+   "sport": "gravel",
+   "unit": "km",
+   "val": 73,
+   "date": "2026-11-16T08:00:00Z",
+   "details": {
+    "duration": 205,
+    "elevation": 640,
+    "extras": {
+     "surface": "Chemin roulant"
+    }
+   },
+   "syncStatus": "pending"
+  },
+  {
+   "id": "run-1",
+   "client_event_id": "run-1",
+   "sport": "running",
+   "unit": "km",
+   "val": 10,
+   "date": "2026-11-15T07:00:00Z",
+   "details": {
+    "duration": 52,
+    "extras": {
+     "surface": "Route"
+    }
+   }
+  },
+  {
+   "id": "s-r1",
+   "client_event_id": "s-r1",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-09-08T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 90,
+        "reps": 5,
+        "rir": 2
+       },
+       {
+        "weight": 90,
+        "reps": 5,
+        "rir": 2
+       },
+       {
+        "weight": 90,
+        "reps": 5,
+        "rir": 2
+       }
+      ]
+     },
+     {
+      "name": "Développé couché",
+      "setRows": [
+       {
+        "weight": 60,
+        "reps": 8
+       },
+       {
+        "weight": 60,
+        "reps": 8
+       },
+       {
+        "weight": 60,
+        "reps": 8
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "s-r2",
+   "client_event_id": "s-r2",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-09-22T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 92.5,
+        "reps": 5,
+        "rir": 2
+       },
+       {
+        "weight": 92.5,
+        "reps": 5,
+        "rir": 2
+       },
+       {
+        "weight": 92.5,
+        "reps": 5,
+        "rir": 1
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "s-r3",
+   "client_event_id": "s-r3",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-10-06T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 95,
+        "reps": 5
+       },
+       {
+        "weight": 95,
+        "reps": 5
+       },
+       {
+        "weight": 95,
+        "reps": 4
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "s-c1",
+   "client_event_id": "s-c1",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-10-13T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 95,
+        "reps": 5,
+        "rir": 2
+       },
+       {
+        "weight": 95,
+        "reps": 5,
+        "rir": 2
+       },
+       {
+        "weight": 95,
+        "reps": 5,
+        "rir": 2
+       },
+       {
+        "weight": 95,
+        "reps": 5,
+        "rir": 1
+       }
+      ]
+     },
+     {
+      "name": "Tractions",
+      "setRows": [
+       {
+        "weight": 0,
+        "reps": 8
+       },
+       {
+        "weight": 0,
+        "reps": 7
+       },
+       {
+        "weight": 0,
+        "reps": 6
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "s-c2",
+   "client_event_id": "s-c2",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-10-27T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 100,
+        "reps": 5,
+        "rir": 1
+       },
+       {
+        "weight": 100,
+        "reps": 5,
+        "rir": 1
+       },
+       {
+        "weight": 100,
+        "reps": 5,
+        "rir": 1
+       },
+       {
+        "weight": 102.5,
+        "reps": 3,
+        "rir": 0
+       }
+      ]
+     },
+     {
+      "name": "Tractions",
+      "setRows": [
+       {
+        "weight": 0,
+        "reps": 9
+       },
+       {
+        "weight": 0,
+        "reps": 8
+       },
+       {
+        "weight": 0,
+        "reps": 7
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "s-front",
+   "client_event_id": "s-front",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-03T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Front",
+      "setRows": [
+       {
+        "weight": 70,
+        "reps": 5
+       },
+       {
+        "weight": 70,
+        "reps": 5
+       },
+       {
+        "weight": 70,
+        "reps": 5
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "s-novar",
+   "client_event_id": "s-novar",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-05T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "squat ",
+      "setRows": [
+       {
+        "weight": 60,
+        "reps": 8
+       },
+       {
+        "weight": 60,
+        "reps": 8
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "s-c3",
+   "client_event_id": "s-c3",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-10T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 102.5,
+        "reps": 5
+       },
+       {
+        "weight": 102.5,
+        "reps": 5
+       },
+       {
+        "weight": 102.5,
+        "reps": 5
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "s-arch",
+   "client_event_id": "s-arch",
+   "sport": "muscu_gym",
+   "unit": "kg",
+   "val": 1,
+   "date": "2026-11-12T18:00:00Z",
+   "details": {
+    "duration": 60,
+    "exercises": [
+     {
+      "name": "Squat",
+      "variant": "Barre",
+      "setRows": [
+       {
+        "weight": 110,
+        "reps": 5
+       },
+       {
+        "weight": 110,
+        "reps": 5
+       }
+      ]
+     }
+    ]
+   },
+   "archived_at": "2026-11-13T08:00:00Z"
+  },
+  {
+   "id": "c-r1",
+   "client_event_id": "c-r1",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-09-10T19:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "location": "Salle",
+     "attempts": 20,
+     "successful_routes": 10,
+     "flashes": 3,
+     "max_done": "6A",
+     "max_tried": "6B"
+    }
+   }
+  },
+  {
+   "id": "c-r2",
+   "client_event_id": "c-r2",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-09-24T19:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "location": "Salle",
+     "attempts": 18,
+     "successful_routes": 9,
+     "max_done": "6A+",
+     "max_tried": "6B"
+    }
+   }
+  },
+  {
+   "id": "c-r3",
+   "client_event_id": "c-r3",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-10-08T19:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "location": "Salle",
+     "attempts": 22,
+     "successful_routes": 12,
+     "flashes": 2,
+     "max_done": "6B"
+    }
+   }
+  },
+  {
+   "id": "c-c1",
+   "client_event_id": "c-c1",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-10-15T19:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "location": "Salle",
+     "attempts": 20,
+     "successful_routes": 12,
+     "flashes": 2,
+     "max_done": "6B",
+     "max_tried": "6C"
+    }
+   }
+  },
+  {
+   "id": "c-c2",
+   "client_event_id": "c-c2",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-10-29T19:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "location": "Salle",
+     "attempts": 24,
+     "successful_routes": 15,
+     "flashes": 4,
+     "max_done": "6B+"
+    }
+   }
+  },
+  {
+   "id": "c-yds",
+   "client_event_id": "c-yds",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-11-02T19:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "YDS",
+     "climbing_discipline": "Bloc",
+     "location": "Salle",
+     "attempts": 12,
+     "successful_routes": 7,
+     "max_done": "5.10a"
+    }
+   }
+  },
+  {
+   "id": "c-vscale",
+   "client_event_id": "c-vscale",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-11-05T19:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "V-scale bloc",
+     "climbing_discipline": "Bloc",
+     "location": "Salle",
+     "attempts": 15,
+     "successful_routes": 8,
+     "max_done": "V4"
+    }
+   }
+  },
+  {
+   "id": "c-arch",
+   "client_event_id": "c-arch",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-11-08T19:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "location": "Salle",
+     "attempts": 10,
+     "successful_routes": 5,
+     "max_done": "7A"
+    }
+   },
+   "archived_at": "2026-11-09T08:00:00Z"
+  },
+  {
+   "id": "c-c3",
+   "client_event_id": "c-c3",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 90,
+   "date": "2026-11-12T19:00:00Z",
+   "details": {
+    "duration": 90,
+    "extras": {
+     "grade_system": "Fontainebleau bloc",
+     "climbing_discipline": "Bloc",
+     "location": "Salle",
+     "max_done": "6C",
+     "max_tried": "7A"
+    }
+   }
+  },
+  {
+   "id": "c-noscale",
+   "client_event_id": "c-noscale",
+   "sport": "bouldering",
+   "unit": "min",
+   "val": 60,
+   "date": "2026-11-18T19:00:00Z",
+   "details": {
+    "duration": 60,
+    "extras": {
+     "attempts": 8,
+     "successful_routes": 4
+    }
+   }
+  }
+ ],
+ "cases": [
+  {
+   "name": "Endurance — long gravel outings on « Chemin roulant », the last 6 weeks against the 6 before",
+   "options": {
+    "discipline": "endurance",
+    "sport": "gravel",
+    "group": "endurance:g-c3",
+    "reference": {
+     "kind": "period"
+    }
+   }
+  },
+  {
+   "name": "Endurance — the same group against the training block « Base aérobie »",
+   "options": {
+    "discipline": "endurance",
+    "sport": "gravel",
+    "group": "endurance:g-c3",
+    "reference": {
+     "kind": "block",
+     "id": "blk-base",
+     "title": "Base aérobie",
+     "start": "2026-09-14",
+     "end": "2026-10-11"
+    }
+   }
+  },
+  {
+   "name": "Endurance — against one reference outing (19 September)",
+   "options": {
+    "discipline": "endurance",
+    "sport": "gravel",
+    "group": "endurance:g-c3",
+    "reference": {
+     "kind": "session",
+     "id": "g-r2"
+    }
+   }
+  },
+  {
+   "name": "Endurance — a road outing as reference is not comparable to the « Chemin roulant » group",
+   "options": {
+    "discipline": "endurance",
+    "sport": "gravel",
+    "group": "endurance:g-c3",
+    "reference": {
+     "kind": "session",
+     "id": "g-road"
+    }
+   }
+  },
+  {
+   "name": "Endurance — an archived outing as reference is refused",
+   "options": {
+    "discipline": "endurance",
+    "sport": "gravel",
+    "group": "endurance:g-c3",
+    "reference": {
+     "kind": "session",
+     "id": "g-arch"
+    }
+   }
+  },
+  {
+   "name": "Endurance — history too short (one run)",
+   "options": {
+    "discipline": "endurance",
+    "sport": "running",
+    "reference": {
+     "kind": "period"
+    }
+   }
+  },
+  {
+   "name": "Force — Squat (Barre), the last 6 weeks against the 6 before",
+   "options": {
+    "discipline": "strength",
+    "group": "strength:muscu_gym|squat|barre|",
+    "reference": {
+     "kind": "period"
+    }
+   }
+  },
+  {
+   "name": "Force — a Squat (Front) session as reference is not merged with Squat (Barre)",
+   "options": {
+    "discipline": "strength",
+    "group": "strength:muscu_gym|squat|barre|",
+    "reference": {
+     "kind": "session",
+     "id": "s-front"
+    }
+   }
+  },
+  {
+   "name": "Force — Squat without variant, one session: values without a trend",
+   "options": {
+    "discipline": "strength",
+    "group": "strength:muscu_gym|squat||",
+    "reference": {
+     "kind": "period"
+    }
+   }
+  },
+  {
+   "name": "Force — Tractions without load: repetitions, reference period empty",
+   "options": {
+    "discipline": "strength",
+    "group": "strength:muscu_gym|tractions||",
+    "reference": {
+     "kind": "period"
+    }
+   }
+  },
+  {
+   "name": "Escalade — Fontainebleau bloc, attempts, successes and levels, the last 6 weeks against the 6 before",
+   "options": {
+    "discipline": "climbing",
+    "group": "climbing:bouldering|Fontainebleau bloc|bloc",
+    "reference": {
+     "kind": "period"
+    }
+   }
+  },
+  {
+   "name": "Escalade — a V-scale session as reference is not converted",
+   "options": {
+    "discipline": "climbing",
+    "group": "climbing:bouldering|Fontainebleau bloc|bloc",
+    "reference": {
+     "kind": "session",
+     "id": "c-vscale"
+    }
+   }
+  },
+  {
+   "name": "Escalade — YDS, a scale TITAN does not order: only attempts and successes",
+   "options": {
+    "discipline": "climbing",
+    "group": "climbing:bouldering|YDS|bloc",
+    "reference": {
+     "kind": "period"
+    }
+   }
+  }
+ ]
+}

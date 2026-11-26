@@ -92,6 +92,60 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v18 bundle (v19, the coach-places decision of PR #155, is not part of this chain).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
   },
+  // V1.6.2 — Rapprochement des séances (23 November 2026): a link keeps what the source said, the rule and why it is uncertain; the
+  // athlete's reversible decision (split / rejoin) is journaled on the import row; a replayed import keeps the decision. NOT APPLIED:
+  // owner's approval required. Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_session_match_review.sql).
+  v21: {
+    out: "supabase/release-v21", after: "20261122090000", until: "20261123090000",
+    before: { private: [120, "0c180d72fbc0", "d8ef8377869f"], public: [324, "39442f678587", "81ad6534245e"] },
+    expected: { private: [125, "3ee797232f74", "4711201906bc"], public: [326, "cecf92935b00", "99408d5e7398"] },
+    beforeNote: "This is the state production reaches at the end of the v20 bundle (registry 141, head 20261122090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
+  // V1.6.3 — Contrôle et réconciliation (23 November 2026): the owner reads what a correction, an archive or a restore changed
+  // (titan_session_changes_v1, from training_revisions); the journal restore of a session a V1.6.2 rejoin archived is refused
+  // (« Séparer » restores it), so the same effort never counts twice. NOT APPLIED: owner's approval required. Requires v21.
+  // Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_history_reconcile.sql).
+  v22: {
+    out: "supabase/release-v22", after: "20261123090000", until: "20261123120000",
+    before: { private: [125, "3ee797232f74", "4711201906bc"], public: [326, "cecf92935b00", "99408d5e7398"] },
+    expected: { private: [126, "1a34100c4a43", "30801c0daf70"], public: [327, "37814c491e87", "bbf3b0c5b47f"] },
+    beforeNote: "This is the state production reaches at the end of the v21 bundle (head 20261123090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },  // V1.6.4 — Migration de l’historique (23 November 2026): batches of a history file with one result per row, resumable from the
+  // row the server expects, a per-batch report, and the withdrawal of only the untouched sessions a batch added (preview first).
+  // NOT APPLIED: owner's approval required. Requires v22. Additive, rehearsed on a replica (tools/db/test-migrations.sh,
+  // sql/tests/300_history_migration.sql, tools/db/test-history-migration.mjs: 5 000 rows).
+  v23: {
+    out: "supabase/release-v23", after: "20261123120000", until: "20261123150000",
+    before: { private: [126, "1a34100c4a43", "30801c0daf70"], public: [327, "37814c491e87", "bbf3b0c5b47f"] },
+    expected: { private: [129, "8534c00d26df", "23f008c37b34"], public: [332, "fb59f2b689b9", "e20872688661"] },
+    beforeNote: "This is the state production reaches at the end of the v22 bundle (head 20261123120000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
+  // V1.6.6 — Journal longue durée (23 November 2026): the elevation of a session can be corrected (one revision, one snapshot) and the
+  // change list names it. The long journal itself (paged reading by key, refresh by manifest, coverage) needs no schema change.
+  // NOT APPLIED: owner's approval required. Requires v23. Rehearsed on a replica (tools/db/test-migrations.sh,
+  // sql/tests/300_journal_long_duration.sql).
+  v24: {
+    out: "supabase/release-v24", after: "20261123150000", until: "20261123180000",
+    before: { private: [129, "8534c00d26df", "23f008c37b34"], public: [332, "fb59f2b689b9", "e20872688661"] },
+    expected: { private: [130, "6588576b84de", "263683b3f84f"], public: [332, "fb59f2b689b9", "dca2a744f579"] },
+    beforeNote: "This is the state production reaches at the end of the v23 bundle (head 20261123150000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
+  // V1.7.7 — GPS et navigation sportive (25 November 2026): the route library gains a name, an origin and the digest of the GPS
+  // engine (titan_route_save_v2 through v1, titan_routes_v2, titan_route_get_v2, titan_route_rename_v1); personal points
+  // (private.titan_places, 300 per account, private by construction); the per-account quotas of the route-plan and poi-nearby
+  // Netlify functions; points and the new route columns in the account export. NOT APPLIED: owner's approval required. Requires v24.
+  // Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_gps_navigation.sql).
+  v25: {
+    out: "supabase/release-v25", after: "20261123180000", until: "20261125170000",
+    before: { private: [130, "6588576b84de", "263683b3f84f"], public: [332, "fb59f2b689b9", "dca2a744f579"] },
+    expected: { private: [132, "bbccf194ac43", "7a252d3ccf96"], public: [341, "d126eb93aed9", "351dd6eb7e5d"] },
+    beforeNote: "This is the state production reaches at the end of the v24 bundle (head 20261123180000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);

@@ -2,6 +2,8 @@
    rewards, credits, possession and progression are only ever written by SECURITY DEFINER functions on the server. */
 import { supabase } from "../lib/supabase";
 import type { AdventureSnapshot, Goal, Privacy, Profile, TrainingLog, TrainingPayload } from "../core/types";
+import type { HistoryCoverage, ImportBatch, ImportBatchRow } from "../core";
+import { HistoryWindow } from "../core";
 
 import { listProfileCopies, preferenceBase, preferenceSignature, protectPreferences, removeProfileCopy } from "./profileCopies";
 import { isOnline } from "../lib/network";
@@ -114,32 +116,19 @@ export function savePreferences(profile: Profile, prefs: Preferences, opts: { us
 }
 
 /* ---------- Training log ---------- */
+/** A server row as the app holds it. */
+export const toClientLog = (l: TrainingLog): TrainingLog => ({ ...l, cat: l.category ?? l.cat, client_event_id: l.client_event_id ?? l.details?.client_event_id, syncStatus: "confirmed" as const });
+
+/** V1.6.6 — the account history for this phone (src/core/web/history-window.js): with a complete copy, the manifest and the changed
+    rows only; otherwise every row, page by page by key, onPage publishing the first page. */
+export async function refreshLogs(owner: string, cached: { rows: TrainingLog[]; coverage: HistoryCoverage } | null, onPage?: (rows: TrainingLog[], coverage: HistoryCoverage) => unknown) {
+  const r = await HistoryWindow.refresh(supabase, owner, cached, { timeout: (p) => withTimeout(p, 30000), onPage: onPage ? (rows, cov) => onPage(rows.map(toClientLog), cov) : undefined });
+  return { ...r, rows: r.rows.map(toClientLog) };
+}
+
+/** Every row of the account, read page by page by key (V1.6.6; the offset pages were read again from the start by the server). */
 export async function fetchAllLogs(owner: string): Promise<TrainingLog[]> {
-  const logs: TrainingLog[] = [];
-  const pageSize = 500;
-  let offset = 0;
-  let total: number | null = null;
-  for (;;) {
-    const result = await withTimeout(
-      supabase
-        .from("training_logs")
-        .select("*", { count: "exact" })
-        .eq("user_id", owner)
-        .order("date", { ascending: false })
-        .order("id", { ascending: false })
-        .range(offset, offset + pageSize - 1),
-      30000,
-    );
-    if (result.error) throw result.error;
-    const page = (result.data ?? []) as TrainingLog[];
-    if (result.count !== null && result.count !== undefined) total = result.count;
-    for (const row of page) if (row.user_id && row.user_id !== owner) throw new Error("LOG_OWNER_MISMATCH");
-    logs.push(...page);
-    offset += page.length;
-    if (!page.length && total !== null && offset < total) throw new Error("Historique incomplet. Réessaie la synchronisation.");
-    if (!page.length || (total !== null && offset >= total) || (total === null && page.length < pageSize)) break;
-  }
-  return logs.map((l) => ({ ...l, cat: l.category, client_event_id: l.client_event_id ?? l.details?.client_event_id, syncStatus: "confirmed" as const }));
+  return (await refreshLogs(owner, null)).rows;
 }
 
 export type SubmitReceipt = {
@@ -178,7 +167,7 @@ export async function submitSession(owner: string, payload: TrainingPayload): Pr
   return row;
 }
 
-export type SessionPatch = { val?: number; date?: string; note?: string; duration?: number | null; exercises?: unknown[]; extras?: Record<string, unknown>; archived?: boolean };
+export type SessionPatch = { val?: number; date?: string; note?: string; duration?: number | null; elevation?: number | null; exercises?: unknown[]; extras?: Record<string, unknown>; archived?: boolean };
 
 export async function updateSession(log: TrainingLog, patch: SessionPatch): Promise<TrainingLog> {
   const data = await rpc<TrainingLog>("titan_update_training_session", { p_id: log.id, p_revision: log.revision || 1, p_patch: patch });
@@ -354,9 +343,16 @@ export const seasonJoin = (owner: string, id: string, join: boolean) => ownerRpc
 export const worldGoalJoin = (owner: string, id: string, join: boolean) => ownerRpc(owner, "titan_world_goal_join_v1", { p_goal: id, p_join: join });
 
 /* ---------- History import (AUD-43) ---------- */
-export type HistoryImportResult = { imported: number; linked: number; duplicate: number; skipped: number; done: number; remaining: number; limited: boolean };
-export const importHistory = (owner: string, items: { id: string; sport: string; startedAt: string; minutes: number; km: number | null }[]) =>
-  ownerRpc<HistoryImportResult>(owner, "titan_import_history_v1", { p_items: items }, undefined, 60000);
+/* V1.6.4 — Migration de l’historique: one batch per file, one result per row, resumable from the row the server expects. */
+export const importBatchOpen = (owner: string, p: { format: string; hash: string; total: number; name: string }) =>
+  ownerRpc<ImportBatch>(owner, "titan_import_batch_open_v1", { p_format: p.format, p_file_hash: p.hash, p_total: p.total, p_file_name: p.name });
+export const importBatchRows = (owner: string, batch: string, items: Record<string, unknown>[]) =>
+  ownerRpc<ImportBatch>(owner, "titan_import_batch_rows_v1", { p_batch: batch, p_items: items }, undefined, 60000);
+export const importBatchReport = (owner: string, batch: string, outcome: string | null = null, offset = 0) =>
+  ownerRpc<ImportBatch & { rows: ImportBatchRow[] }>(owner, "titan_import_batch_v1", { p_batch: batch, p_outcome: outcome, p_offset: offset, p_limit: 200 });
+export const importBatches = (owner: string) => ownerRpc<ImportBatch[]>(owner, "titan_import_batches_v1", {});
+export const importBatchWithdraw = (owner: string, batch: string, apply: boolean) =>
+  ownerRpc<ImportBatch & { applied: boolean; effects: Record<string, number> }>(owner, "titan_import_batch_withdraw_v1", { p_batch: batch, p_apply: apply }, undefined, 60000);
 
 /* ---------- Community lot 8 (C4 ranking, C5 intents, C7 clubs) ---------- */
 export type Ranking = { optedIn: boolean; entries?: { rank: number; name: string; score: number; activeDays: number; progressPct: number | null; me: boolean }[]; me?: { score: number; activeDays: number; progressPct: number | null } | null };
@@ -415,6 +411,14 @@ export async function importDailySteps(owner: string, day: string, steps: number
   if (result?.day !== day || result.steps !== steps) throw new Error("STEPS_IMPORT_UNCONFIRMED");
   return result;
 }
+/* V1.6.2: the server links of one session (or the account's recent links) and the athlete's reversible decision. */
+/** V1.6.3: what corrections, archives and restores changed on one session (titan_session_changes_v1, owner only, bundle v22). */
+export const sessionChanges = (owner: string, logId: string, current?: () => boolean) =>
+  ownerRpc<import("../core").SessionChangeEntry[]>(owner, "titan_session_changes_v1", { p_log_id: logId }, current);
+export const sessionMatches = (owner: string, logId?: string, current?: () => boolean) =>
+  ownerRpc<import("../core").SessionMatchRow[]>(owner, "titan_session_matches_v1", logId ? { p_log_id: logId } : {}, current);
+export const resolveSessionMatch = (owner: string, source: string, ref: string, decision: import("../core").MatchDecision, current?: () => boolean) =>
+  ownerRpc<import("../core").SessionMatchRow>(owner, "titan_resolve_session_match_v1", { p_source: source, p_external_id: ref, p_decision: decision }, current);
 export const archiveImported = (owner: string, source: "health_connect" | "garmin", current?: () => boolean) =>
   ownerRpc<number>(owner, "titan_archive_imported_v1", { p_source: source }, current);
 
@@ -429,8 +433,10 @@ export async function ownerRpc<T>(owner: string, name: string, params: Record<st
   if (error) throw error;
   return data as T;
 }
-export const routeSave = (owner: string, p: { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: unknown }) =>
-  ownerRpc<{ id: string; created: boolean }>(owner, "titan_route_save_v1", { p_client_route_id: p.clientRouteId, p_sport: p.sport, p_started_at: p.startedAt, p_distance_m: p.distanceM, p_duration_s: p.durationS, p_ascent_m: p.ascentM, p_track: p.track });
+/** A recorded trace joins the private library. With the v2 library (V1.7.7) it carries the summary of the GPS engine, so outings on the
+    same route can be compared on moving time; a server that only has v1 keeps the trace without it (same route, same id, no duplicate). */
+export const routeSave = (owner: string, p: { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: unknown; summary?: Record<string, unknown> | null }) =>
+  routeSaveV2(owner, { clientRouteId: p.clientRouteId, sport: p.sport, startedAt: p.startedAt, distanceM: p.distanceM, durationS: p.durationS, ascentM: p.ascentM, track: p.track, origin: "recorded", summary: (p.summary ?? null) as RouteSummary | null });
 export const routeLink = (owner: string, clientRouteId: string, eventId: string) => ownerRpc<boolean>(owner, "titan_route_link_v1", { p_client_route_id: clientRouteId, p_event_id: eventId });
 export const routeForEvent = (owner: string, eventId: string) => ownerRpc<RouteMeta | null>(owner, "titan_route_for_event_v1", { p_event_id: eventId });
 export const routesList = (owner: string) => ownerRpc<RouteMeta[]>(owner, "titan_routes_v1", { p_limit: 100 });
@@ -444,4 +450,110 @@ export async function fetchMyPlan(owner: string): Promise<MyPlan> {
   const data = await ownerRpc<Partial<MyPlan> | null>(owner, "titan_my_plan_v1", {});
   if (!data || typeof data.own !== "boolean" || typeof data.viaCoach !== "boolean") throw new Error("PLAN_UNREADABLE");
   return { titanPlus: data.titanPlus === true, own: data.own, viaCoach: data.viaCoach };
+}
+
+/* ---------- V1.7.7 route library v2, personal points, outside services ---------- */
+// eslint-disable-next-line import/first -- kept with the block that uses it (several branches add to this file)
+import { SITE_URL } from "../lib/config";
+/** True when the server does not know this function yet (migration not applied): PostgREST answers PGRST202 / HTTP 404.
+    Every V1.7.7 call falls back on it instead of failing: the screens then say what stays on the phone. */
+export function rpcMissing(e: unknown): boolean {
+  const o = (e ?? {}) as { code?: unknown; status?: unknown; message?: unknown };
+  return o.code === "PGRST202" || o.status === 404 || /Could not find the function/i.test(String(o.message ?? ""));
+}
+// A function found missing is not asked again for five minutes: one extra request per reading would be paid on every screen.
+const MISSING_TTL_MS = 5 * 60 * 1000;
+let missingAt = new Map<string, number>();
+/** Test helper: forget which functions were found missing. */
+export const _resetRpcMissing = () => { missingAt = new Map(); };
+async function newerRpc<T>(owner: string, name: string, params: Record<string, unknown>): Promise<{ ok: true; data: T } | { ok: false }> {
+  const seen = missingAt.get(name);
+  if (seen !== undefined && Date.now() - seen < MISSING_TTL_MS) return { ok: false };
+  try {
+    const data = await ownerRpc<T>(owner, name, params);
+    missingAt.delete(name);
+    return { ok: true, data };
+  } catch (e) {
+    if (!rpcMissing(e)) throw e;
+    missingAt.set(name, Date.now());
+    return { ok: false };
+  }
+}
+
+export type RouteOrigin = "recorded" | "imported" | "planned";
+/** The digest of the GPS engine saved with a recorded route (a flat object; every field may be absent on an older row). */
+export type RouteSummary = { v?: number; elapsedS?: number; movingS?: number; stoppedS?: number; pausedS?: number; missingS?: number; distanceM?: number } & Record<string, unknown>;
+/** `origin` is null when the server only has the v1 functions: the phone then knows it from its own notes, else the route was recorded. */
+export type LibraryRoute = RouteMeta & { name: string | null; origin: RouteOrigin | null; summary: RouteSummary | null };
+export type LibraryRouteFull = LibraryRoute & { track: import("../lib/gpsTrack").EncodedTrack };
+export type RouteSaveInput = { clientRouteId: string; sport: string; startedAt: string; distanceM: number; durationS: number; ascentM: number | null; track: unknown; name?: string | null; origin?: RouteOrigin; summary?: RouteSummary | null };
+const asLibrary = <R extends RouteMeta>(r: R, legacy: boolean): R & LibraryRoute => {
+  const x = r as R & Partial<LibraryRoute>;
+  return { ...r, name: legacy ? null : (x.name ?? null), origin: legacy ? null : (x.origin ?? "recorded"), summary: legacy ? null : (x.summary ?? null) };
+};
+/** Saves a route with its name, origin and summary. `legacy`: the server only has v1, the route is saved without them. */
+export async function routeSaveV2(owner: string, p: RouteSaveInput): Promise<{ id: string; created: boolean; legacy: boolean }> {
+  const base = { p_client_route_id: p.clientRouteId, p_sport: p.sport, p_started_at: p.startedAt, p_distance_m: p.distanceM, p_duration_s: p.durationS, p_ascent_m: p.ascentM, p_track: p.track };
+  const v2 = await newerRpc<{ id: string; created: boolean }>(owner, "titan_route_save_v2", { ...base, p_name: p.name?.trim() || null, p_origin: p.origin ?? "recorded", p_summary: p.summary ?? null });
+  if (v2.ok) return { ...v2.data, legacy: false };
+  return { ...(await ownerRpc<{ id: string; created: boolean }>(owner, "titan_route_save_v1", base)), legacy: true };
+}
+/** The whole private library (the server gives 100 routes a page and keeps 200 at most: two pages). */
+export async function routesLibrary(owner: string): Promise<{ routes: LibraryRoute[]; legacy: boolean }> {
+  const page = async (before: string | null): Promise<{ rows: LibraryRoute[]; legacy: boolean }> => {
+    const params = { p_limit: 100, p_before: before };
+    const v2 = await newerRpc<LibraryRoute[]>(owner, "titan_routes_v2", params);
+    if (v2.ok) return { rows: (v2.data ?? []).map((r) => asLibrary(r, false)), legacy: false };
+    return { rows: ((await ownerRpc<RouteMeta[]>(owner, "titan_routes_v1", params)) ?? []).map((r) => asLibrary(r, true)), legacy: true };
+  };
+  const first = await page(null);
+  if (first.rows.length < 100) return { routes: first.rows, legacy: first.legacy };
+  const second = await page(first.rows[first.rows.length - 1]!.startedAt);
+  const seen = new Set(first.rows.map((r) => r.id));
+  return { routes: [...first.rows, ...second.rows.filter((r) => !seen.has(r.id))], legacy: first.legacy || second.legacy };
+}
+export async function routeGetV2(owner: string, id: string): Promise<LibraryRouteFull & { legacy: boolean }> {
+  const v2 = await newerRpc<LibraryRouteFull>(owner, "titan_route_get_v2", { p_id: id });
+  if (v2.ok) return { ...asLibrary(v2.data, false), legacy: false };
+  return { ...asLibrary(await ownerRpc<RouteFull>(owner, "titan_route_get_v1", { p_id: id }), true), legacy: true };
+}
+/** "server": renamed on the account. "local": the server cannot rename yet, the caller keeps the name on the phone. */
+export async function routeRename(owner: string, id: string, name: string): Promise<"server" | "local"> {
+  const r = await newerRpc<boolean>(owner, "titan_route_rename_v1", { p_id: id, p_name: name });
+  if (!r.ok) return "local";
+  if (r.data === false) throw Object.assign(new Error("ROUTE_NOT_FOUND"), { code: "ROUTE_NOT_FOUND" });
+  return "server";
+}
+
+export type ServerPlace = { id: string; clientPlaceId: string; name: string; kind: string; lat: number; lon: number; note: string; updatedAt: string };
+/** Personal points on the account. Each answers `null` when the server does not have the function yet: the points then stay on the phone. */
+export async function placesList(owner: string): Promise<ServerPlace[] | null> {
+  const r = await newerRpc<ServerPlace[]>(owner, "titan_places_v1", {});
+  return r.ok ? (r.data ?? []) : null;
+}
+export async function placeSave(owner: string, p: { clientPlaceId: string; name: string; kind: string; lat: number; lon: number; note: string }): Promise<{ id: string; created: boolean } | null> {
+  const r = await newerRpc<{ id: string; created: boolean }>(owner, "titan_place_save_v1", { p_client_place_id: p.clientPlaceId, p_name: p.name, p_kind: p.kind, p_lat: p.lat, p_lon: p.lon, p_note: p.note });
+  return r.ok ? r.data : null;
+}
+export async function placeDelete(owner: string, id: string): Promise<boolean | null> {
+  const r = await newerRpc<boolean>(owner, "titan_place_delete_v1", { p_id: id });
+  return r.ok ? r.data : null;
+}
+
+/** One of TITAN's own server functions on the website (route computation, points of interest), called with the checked owner's token.
+    Never throws for an HTTP status: the caller reads `status` and the JSON body (null when the answer is not JSON, e.g. a function that
+    is not deployed yet). A request that cannot leave or does not come back in time throws (network error). */
+export async function siteFunction(owner: string, name: string, body: unknown, network: typeof fetch = fetch, timeoutMs = 25000): Promise<{ status: number; body: Record<string, unknown> | null }> {
+  const session = await assertOwner(owner);
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), timeoutMs);
+  try {
+    const response = await network(`${SITE_URL}/.netlify/functions/${name}`, {
+      method: "POST", headers: { Authorization: `Bearer ${session!.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(body), signal: abort.signal,
+    });
+    const json = await response.json().catch(() => null);
+    return { status: response.status, body: json && typeof json === "object" ? (json as Record<string, unknown>) : null };
+  } finally {
+    clearTimeout(timer);
+  }
 }

@@ -12,6 +12,7 @@ if (process.env.TITAN_PREVIEW === "1") {
     "src/data/auth": "preview/mocks/auth.tsx",
     "src/data/journey": "preview/mocks/journey.ts",
     "src/lib/supabase": "preview/mocks/supabase.ts",
+    "src/lib/gpsNative": "preview/mocks/gpsNative.ts",
   };
   // Native-only SDKs cannot be bundled for the browser: the preview gets an inert stub instead.
   const nativeOnly = new Set(["react-native-google-mobile-ads", "expo-iap", "react-native-health-connect"]);

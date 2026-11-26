@@ -40,7 +40,13 @@
     const start = F().weekStart(new Date()).getTime();
     const todayIdx = (new Date().getDay() + 6) % 7;
     const logs = P().activeLogs(window.state?.history || []);
-    return D().plan().map((p, i) => {
+    // V1.7.2: this week as planned on Monday, with the athlete's moves and replacements (skipped occurrences leave the day free).
+    const sports = D().weekPlanSports ? D().weekPlanSports() : null;
+    // V1.7.4: in a training block, the planned minutes and note of a day are the block week's.
+    const view = D().weekPlan ? D().weekPlan() : null;
+    const base = view?.reference?.block ? D().plan().map((t, i) => { const o = view.occurrences.find((x) => x.index === i); return o ? { ...t, sport: o.planned.sport, minutes: o.planned.minutes, note: o.planned.note || "" } : { ...t, sport: null, minutes: null, note: "" }; }) : D().plan();
+    return base.map((t, i) => {
+      const p = sports ? { ...t, sport: sports[i], minutes: sports[i] === t.sport ? t.minutes : null, note: sports[i] === t.sport ? t.note : "" } : t;
       const date = new Date(start + i * DAY);
       const key = F().dateKey(date);
       const done = logs.filter((l) => F().dateKey(l.date) === key);
@@ -68,6 +74,8 @@
     const focusedPause = current(account) && root.contains(document.activeElement) && document.activeElement.matches("[data-cadence-pause]");
     const ctx = adopt(); if (!ctx || !window.state?.user) return;
     const week = weekState();
+    const type = D().plan();
+    const view = D().weekPlan ? D().weekPlan() : null;
     const planned = week.filter((d) => d.sport).length;
     const { target, pauses } = D().cadenceSettings();
     const paused = pauses.includes(F().dateKey(F().weekStart()));
@@ -78,15 +86,20 @@
       <section class="asc-section"><div class="asc-section-head"><h2>Cette semaine</h2><span class="asc-small asc-muted">${doneDays} jour${doneDays > 1 ? "s" : ""} actif${doneDays > 1 ? "s" : ""} · ${planned} prévu${planned > 1 ? "s" : ""}</span></div>
         ${planned ? "" : `<div class="sig-empty pv-none">${icon("calendar")}<h3>Aucune séance prévue</h3><p>Place une séance type sur un jour : le QG te la rappellera ce jour-là. Rien n’est obligatoire, et un jour sauté ne coûte rien.</p><button type="button" class="asc-btn asc-btn-primary" data-day="${today?.key || week[0].key}" data-plan-first>${icon("plus")} Prévoir ${today ? "aujourd’hui" : "un jour"}</button></div>`}
         <div class="pv-week">${week.map(dayCard).join("")}</div>
+        ${view && window.TitanWeekPlanView ? window.TitanWeekPlanView.html(view, { title: "Prévu et réalisé cette semaine" }) : ""}
+        ${window.TitanWeekReviewView ? window.TitanWeekReviewView.adjustmentsHtml(F().dateKey(F().weekStart()), { title: "Ajustement de cette semaine" }) : ""}
         ${!paused && planned && planned < target ? `<p class="asc-note">${icon("info")}<span>Ta cadence vise ${target} jours actifs par semaine et ta semaine type en prévoit ${planned}. Les jours libres comptent aussi dès que tu bouges.</span></p>` : ""}
       </section>
+      ${nextHtml()}
+      ${window.TitanTrainingBlockView ? window.TitanTrainingBlockView.html() : ""}
+      ${window.TitanBlockScenarioView ? window.TitanBlockScenarioView.html() : ""}
       <section class="asc-section"><div class="asc-section-head"><h2>Ta semaine type</h2><span class="asc-small asc-muted">Touchez un jour pour le modifier</span></div>
-        <div class="asc-list">${week
+        <div class="asc-list">${type
           .map(
             (d) => `<button type="button" class="asc-row" data-day="${d.key}"><span class="asc-row-icon"${d.sport ? ` data-family="${esc(SP().familyOf(d.sport))}"` : ""}>${icon(d.sport ? SP().iconOf(d.sport) : "moon")}</span><span class="asc-row-main"><span class="asc-row-title">${NAMES[d.index]}</span><span class="asc-row-sub">${d.sport ? `${esc(SP().label(d.sport))}${d.minutes ? ` · ${esc(F().duration(d.minutes))}` : ""}${d.note ? ` · ${esc(d.note)}` : ""}` : "Repos ou libre"}</span></span>${icon("edit")}</button>`,
           )
           .join("")}</div>
-        <p class="asc-small asc-faint pv-foot">Un repère, pas une obligation : une séance différente de celle prévue compte tout autant. Rien n’est perdu si un jour saute.</p>
+        <p class="asc-small asc-faint pv-foot">Un repère, pas une obligation : une séance différente de celle prévue compte tout autant. Rien n’est perdu si un jour saute. Une modification faite en cours de semaine s’applique dès le lundi suivant : pour cette semaine, déplace, remplace ou écarte une séance prévue ci-dessus.</p>
       </section>
       <section class="asc-section" aria-labelledby="pv-cadence-title"><div class="asc-section-head"><h2 id="pv-cadence-title">${paused ? "Cadence en pause" : "Ma cadence"}</h2>
         <button type="button" class="asc-btn asc-btn-secondary asc-btn-sm" data-cadence-pause>${paused ? "Reprendre la cadence" : "Mettre la cadence en pause"}</button></div>
@@ -95,6 +108,24 @@
     root.setAttribute("aria-busy", "false");
     if (current(ctx)) restoreDay(focusedDay);
     if (focusedPause) root.querySelector("[data-cadence-pause]")?.focus({ preventScroll: true });
+  }
+
+  // V1.7.3: the week after this one, when a bilan chose an adjustment for it — its programme, the origin of the choice, its undo.
+  function nextHtml() {
+    const V = window.TitanWeekReviewView;
+    if (!V) return "";
+    const next = F().dateKey(F().addDays(F().weekStart(), 7));
+    const list = V.adjustmentsHtml(next, { title: "La semaine prochaine" });
+    return list ? list.replace("</section>", `${V.nextWeekHtml(next)}</section>`) : "";
+  }
+
+  // V1.7.2: say when an edit of the typical week takes effect.
+  function appliesText(from) {
+    // V1.7.4: during a training block, its weeks keep their programme; the typical week applies again after it.
+    const live = window.TitanTrainingBlock && D().blocks ? D().blocks().find((v) => (v.state === "active" || v.state === "upcoming") && v.end >= (from || F().dateKey(F().weekStart()))) : null;
+    const block = live ? ` Le bloc « ${live.title} » garde ses semaines jusqu’au ${new Date(`${live.end}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}.` : "";
+    if (!from || from === F().dateKey(F().weekStart())) return block ? block.trim() : undefined;
+    return `S’applique à partir du ${new Date(`${from}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}. Cette semaine garde son programme de départ.${block}`;
   }
 
   function openDay(key, opener) {
@@ -182,10 +213,10 @@
         return;
       }
       if (b.hasAttribute("data-clear")) {
-        ctx.data.setPlanDay(key, null);
+        const from = ctx.data.setPlanDay(key, null);
         dialog.close();
         if (!current(ctx)) return;
-        window.titanShell.toast({ type: "ok", title: `${NAMES[d.index]} libre` });
+        window.titanShell.toast({ type: "ok", title: `${NAMES[d.index]} libre`, message: appliesText(from) });
       }
     });
     form.addEventListener("submit", (e) => {
@@ -195,10 +226,10 @@
       if (!sport) return showError(search, "Choisis un sport, ou laisse ce jour libre.");
       const minutes = duration.value;
       if (duration.validity.badInput || (minutes && !(Number(minutes) >= 5 && Number(minutes) <= 600))) return showError(duration, "Une durée entre 5 minutes et 10 heures.");
-      ctx.data.setPlanDay(key, { sport, minutes, note: form.querySelector("[name=note]").value });
+      const from = ctx.data.setPlanDay(key, { sport, minutes, note: form.querySelector("[name=note]").value });
       dialog.close();
       if (!current(ctx)) return;
-      window.titanShell.toast({ type: "ok", title: `${NAMES[d.index]} : ${SP().label(sport)}` });
+      window.titanShell.toast({ type: "ok", title: `${NAMES[d.index]} : ${SP().label(sport)}`, message: appliesText(from) });
     });
   }
 
@@ -209,11 +240,16 @@
     if (!booted) {
       booted = true;
       SP().ensure();
+      window.TitanWeekPlanView?.bind(root, () => (current(account) && D().weekPlan ? D().weekPlan() : null));
+      window.TitanWeekReviewView?.bind(root, () => null);
+      window.TitanTrainingBlockView?.bind(root);
+      window.TitanBlockScenarioView?.bind(root);
       root.addEventListener("click", (e) => {
         if (e.target.closest("[data-cadence-pause]")) {
           if (current(account)) account.data.togglePause(F().dateKey(F().weekStart()));
           return;
         }
+        if (e.target.closest("[data-occurrence-act], [data-review-undo], [data-block-act], [data-block-declare], [data-block-undeclare], [data-blocks], [data-sc-act], [data-scenarios]")) return;
         const b = e.target.closest("[data-day]");
         if (b) openDay(b.dataset.day, b);
       });

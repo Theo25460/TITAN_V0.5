@@ -1,0 +1,2189 @@
+{
+  "version": 1,
+  "cases": {
+    "1a — run planned Tuesday, ridden Thursday, nothing recorded: Tuesday is missed (one gap) and the ride is a question on Thursday, where weights were planned": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "type",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "ask",
+            "gap": null,
+            "link": null,
+            "candidates": [
+              "ride-thu"
+            ],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [
+          {
+            "id": "ride-thu",
+            "day": "2026-11-19",
+            "sport": "cycling",
+            "ask": true
+          }
+        ],
+        "summary": {
+          "planned": 3,
+          "done": 0,
+          "asPlanned": 0,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 1,
+          "toDecide": 1,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 1
+        },
+        "signature": "2026-11-16|type|2026-11-16/1:missed:missed::|2026-11-16/3:ask:-::ride-thu|2026-11-16/5:today:-::|+ride-thu"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Une autre séance ce jour-là : remplacement ou séance en plus ?",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 0/3 faite, 1 non faite, 1 à trancher, 1 à venir. Écarts : 1."
+      }
+    },
+    "1b — scenario of the brief: the athlete ties the Thursday ride to the Tuesday run; it counts once, as replaced, and keeps its measures": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": "link",
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "done",
+            "gap": "replaced",
+            "link": {
+              "session": "ride-thu",
+              "how": "manual"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-19",
+              "sport": "cycling"
+            }
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 0,
+          "moved": 0,
+          "replaced": 1,
+          "skipped": 0,
+          "missed": 1,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 2
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:done:replaced:ride-thu:|2026-11-16/3:missed:missed::|2026-11-16/5:today:-::"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Remplacée par Vélo jeudi (reliée par toi)",
+          "notice": null,
+          "gap": "Remplacée"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Changements : 1 remplacée.",
+        "result": "Résultat : 1/3 faite, 1 non faite, 1 à venir. Écarts : 2."
+      }
+    },
+    "2 — move: Tuesday run moved to Thursday, then run on Thursday; tied automatically, counted once (moved), no session outside the plan": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": "move",
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "running"
+            },
+            "status": "done",
+            "gap": "moved",
+            "link": {
+              "session": "run-thu",
+              "how": "auto"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-19",
+              "sport": "running"
+            }
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "done",
+            "gap": null,
+            "link": {
+              "session": "gym-thu",
+              "how": "auto"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            }
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 2,
+          "asPlanned": 1,
+          "moved": 1,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 0,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 1
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:done:moved:run-thu:|2026-11-16/3:done:-:gym-thu:|2026-11-16/5:today:-::"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Déplacée jeudi, faite (reliée automatiquement)",
+          "notice": null,
+          "gap": "Déplacée"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Faite (reliée automatiquement)",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Changements : 1 déplacée.",
+        "result": "Résultat : 2/3 faites, 1 à venir. Écarts : 1."
+      }
+    },
+    "3a — two eligible sessions on Tuesday: TITAN asks, nothing is tied, no gap is counted yet": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "type",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "ask",
+            "gap": null,
+            "link": null,
+            "candidates": [
+              "run-tue-am",
+              "run-tue-pm"
+            ],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [
+          {
+            "id": "run-tue-am",
+            "day": "2026-11-17",
+            "sport": "running",
+            "ask": true
+          },
+          {
+            "id": "run-tue-pm",
+            "day": "2026-11-17",
+            "sport": "running",
+            "ask": true
+          }
+        ],
+        "summary": {
+          "planned": 3,
+          "done": 0,
+          "asPlanned": 0,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 1,
+          "toDecide": 1,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 1
+        },
+        "signature": "2026-11-16|type|2026-11-16/1:ask:-::run-tue-am+run-tue-pm|2026-11-16/3:missed:missed::|2026-11-16/5:today:-::|+run-tue-am|+run-tue-pm"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "2 séances possibles : laquelle correspond ?",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 0/3 faite, 1 non faite, 1 à trancher, 1 à venir. Écarts : 1."
+      }
+    },
+    "3b — two eligible sessions: the athlete chooses the evening run; the morning one stays outside the plan": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": "link",
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "done",
+            "gap": null,
+            "link": {
+              "session": "run-tue-pm",
+              "how": "manual"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-17",
+              "sport": "running"
+            }
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [
+          {
+            "id": "run-tue-am",
+            "day": "2026-11-17",
+            "sport": "running",
+            "ask": false
+          }
+        ],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 1,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 1,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 1,
+          "gaps": 1
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:done:-:run-tue-pm:|2026-11-16/3:missed:missed::|2026-11-16/5:today:-::|+run-tue-am"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Faite (reliée par toi)",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 1/3 faite, 1 non faite, 1 à venir, 1 séance hors programme. Écarts : 1."
+      }
+    },
+    "4a — change of week: the typical week is edited on Wednesday; this week keeps its start, the change applies next Monday": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "done",
+            "gap": null,
+            "link": {
+              "session": "gym-thu",
+              "how": "auto"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            }
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 1,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 1,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 1
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:missed:missed::|2026-11-16/3:done:-:gym-thu:|2026-11-16/5:today:-::"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Faite (reliée automatiquement)",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 1/3 faite, 1 non faite, 1 à venir. Écarts : 1."
+      }
+    },
+    "4b — change of week: the following week starts from the edited typical week": {
+      "view": {
+        "week": "2026-11-23",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "revision",
+          "days": [
+            null,
+            "swimming",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-23/1",
+            "planned": {
+              "day": "2026-11-24",
+              "sport": "swimming"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-24",
+              "sport": "swimming"
+            },
+            "status": "planned",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-23/3",
+            "planned": {
+              "day": "2026-11-26",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-26",
+              "sport": "muscu_gym"
+            },
+            "status": "planned",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-23/5",
+            "planned": {
+              "day": "2026-11-28",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-28",
+              "sport": "cycling"
+            },
+            "status": "planned",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 0,
+          "asPlanned": 0,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 0,
+          "toDecide": 0,
+          "upcoming": 3,
+          "extra": 0,
+          "gaps": 0
+        },
+        "signature": "2026-11-23|revision|2026-11-23/1:planned:-::|2026-11-23/3:planned:-::|2026-11-23/5:planned:-::"
+      },
+      "words": [
+        {
+          "plan": "Natation mardi",
+          "status": "À venir",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "À venir",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "À venir",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 0/3 faite, 3 à venir. Écarts : 0."
+      }
+    },
+    "4c — past week before tracking: its reference is reconstituted from the plan known when tracking started, and survives the edit": {
+      "view": {
+        "week": "2026-11-09",
+        "current": false,
+        "past": true,
+        "paused": false,
+        "reference": {
+          "source": "reconstructed",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-09/1",
+            "planned": {
+              "day": "2026-11-10",
+              "sport": "running"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-10",
+              "sport": "running"
+            },
+            "status": "done",
+            "gap": null,
+            "link": {
+              "session": "run-prev",
+              "how": "auto"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-10",
+              "sport": "running"
+            }
+          },
+          {
+            "id": "2026-11-09/3",
+            "planned": {
+              "day": "2026-11-12",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-12",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-09/5",
+            "planned": {
+              "day": "2026-11-14",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-14",
+              "sport": "cycling"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [
+          {
+            "id": "swim-prev",
+            "day": "2026-11-13",
+            "sport": "swimming",
+            "ask": false
+          }
+        ],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 1,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 2,
+          "toDecide": 0,
+          "upcoming": 0,
+          "extra": 1,
+          "gaps": 2
+        },
+        "signature": "2026-11-09|reconstructed|2026-11-09/1:done:-:run-prev:|2026-11-09/3:missed:missed::|2026-11-09/5:missed:missed::|+swim-prev"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Faite (reliée automatiquement)",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues (programme reconstitué : la semaine est antérieure au suivi).",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 1/3 faite, 2 non faites, 1 séance hors programme. Écarts : 2."
+      }
+    },
+    "5a — time zone: a run at 23:40 in Paris on Tuesday (22:40 UTC) read from New York stays on Tuesday and is tied": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "type",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "done",
+            "gap": null,
+            "link": {
+              "session": "run-tue-late",
+              "how": "auto"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-17",
+              "sport": "running"
+            }
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 1,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 1,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 1
+        },
+        "signature": "2026-11-16|type|2026-11-16/1:done:-:run-tue-late:|2026-11-16/3:missed:missed::|2026-11-16/5:today:-::"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Faite (reliée automatiquement)",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 1/3 faite, 1 non faite, 1 à venir. Écarts : 1."
+      }
+    },
+    "5b — time zone: a ride at 23:50 in Paris on Sunday 22 November (22:50 UTC) belongs to this week, read from Tokyo where it is already Monday": {
+      "view": {
+        "week": "2026-11-16",
+        "current": false,
+        "past": true,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": "move",
+            "effective": {
+              "day": "2026-11-22",
+              "sport": "cycling"
+            },
+            "status": "done",
+            "gap": "moved",
+            "link": {
+              "session": "ride-sun-late",
+              "how": "auto"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-22",
+              "sport": "cycling"
+            }
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 0,
+          "moved": 1,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 2,
+          "toDecide": 0,
+          "upcoming": 0,
+          "extra": 0,
+          "gaps": 3
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:missed:missed::|2026-11-16/3:missed:missed::|2026-11-16/5:done:moved:ride-sun-late:"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Déplacée dimanche, faite (reliée automatiquement)",
+          "notice": null,
+          "gap": "Déplacée"
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Changements : 1 déplacée.",
+        "result": "Résultat : 1/3 faite, 2 non faites. Écarts : 3."
+      }
+    },
+    "6a — remote modification: the phone skips Saturday while the website moves Tuesday; both decisions are kept": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": "move",
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "running"
+            },
+            "status": "done",
+            "gap": "moved",
+            "link": {
+              "session": "run-thu",
+              "how": "auto"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-19",
+              "sport": "running"
+            }
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": "skip",
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "skipped",
+            "gap": "skipped",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 0,
+          "moved": 1,
+          "replaced": 0,
+          "skipped": 1,
+          "missed": 1,
+          "toDecide": 0,
+          "upcoming": 0,
+          "extra": 0,
+          "gaps": 3
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:done:moved:run-thu:|2026-11-16/3:missed:missed::|2026-11-16/5:skipped:skipped::"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Déplacée jeudi, faite (reliée automatiquement)",
+          "notice": null,
+          "gap": "Déplacée"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Écartée",
+          "notice": null,
+          "gap": "Écartée"
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Changements : 1 déplacée, 1 écartée.",
+        "result": "Résultat : 1/3 faite, 1 non faite. Écarts : 3."
+      }
+    },
+    "6b — remote modification of the same occurrence: the most recent decision wins on both devices": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": "skip",
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "skipped",
+            "gap": "skipped",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "ask",
+            "gap": null,
+            "link": null,
+            "candidates": [
+              "ride-thu"
+            ],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [
+          {
+            "id": "ride-thu",
+            "day": "2026-11-19",
+            "sport": "cycling",
+            "ask": true
+          }
+        ],
+        "summary": {
+          "planned": 3,
+          "done": 0,
+          "asPlanned": 0,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 1,
+          "missed": 0,
+          "toDecide": 1,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 1
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:skipped:skipped::|2026-11-16/3:ask:-::ride-thu|2026-11-16/5:today:-::|+ride-thu"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Écartée",
+          "notice": null,
+          "gap": "Écartée"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Une autre séance ce jour-là : remplacement ou séance en plus ?",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Changements : 1 écartée.",
+        "result": "Résultat : 0/3 faite, 1 à trancher, 1 à venir. Écarts : 1."
+      }
+    },
+    "6c — remote edit of a tied session: the ride is moved to the next week on another device; the tie is said broken, the occurrence is open again": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": "link",
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": "other-week"
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 0,
+          "asPlanned": 0,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 2,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 2
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:missed:missed::|2026-11-16/3:missed:missed::|2026-11-16/5:today:-::"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Non faite",
+          "notice": "La séance reliée a changé de semaine.",
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 0/3 faite, 2 non faites, 1 à venir. Écarts : 2."
+      }
+    },
+    "6d — remote edit of a tied session inside the week: the ride becomes a run; the tie is kept and the occurrence is now as planned but moved": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": "link",
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "done",
+            "gap": "moved",
+            "link": {
+              "session": "ride-thu",
+              "how": "manual"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-19",
+              "sport": "running"
+            }
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 0,
+          "moved": 1,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 1,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 2
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:done:moved:ride-thu:|2026-11-16/3:missed:missed::|2026-11-16/5:today:-::"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Déplacée jeudi, faite (reliée par toi)",
+          "notice": null,
+          "gap": "Déplacée"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Changements : 1 déplacée.",
+        "result": "Résultat : 1/3 faite, 1 non faite, 1 à venir. Écarts : 2."
+      }
+    },
+    "7 — paused week: nothing done is not a gap; the session done is still tied": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": true,
+        "reference": {
+          "source": "type",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "paused",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "done",
+            "gap": null,
+            "link": {
+              "session": "gym-thu",
+              "how": "auto"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            }
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 1,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 0,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 0
+        },
+        "signature": "2026-11-16|type|2026-11-16/1:paused:-::|2026-11-16/3:done:-:gym-thu:|2026-11-16/5:today:-::"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Semaine en pause : non faite, sans écart",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Faite (reliée automatiquement)",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 1/3 faite, 1 à venir · semaine en pause, sans écart pour ce qui n’a pas été fait. Écarts : 0."
+      }
+    },
+    "8 — another sport on the planned day: a question, not an automatic replacement": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": "move",
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "running"
+            },
+            "status": "ask",
+            "gap": null,
+            "link": null,
+            "candidates": [
+              "ride-thu"
+            ],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "ask",
+            "gap": null,
+            "link": null,
+            "candidates": [
+              "ride-thu"
+            ],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [
+          {
+            "id": "ride-thu",
+            "day": "2026-11-19",
+            "sport": "cycling",
+            "ask": true
+          }
+        ],
+        "summary": {
+          "planned": 3,
+          "done": 0,
+          "asPlanned": 0,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 0,
+          "toDecide": 2,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 0
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:ask:-::ride-thu|2026-11-16/3:ask:-::ride-thu|2026-11-16/5:today:-::|+ride-thu"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Une autre séance ce jour-là : remplacement ou séance en plus ?",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Une autre séance ce jour-là : remplacement ou séance en plus ?",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 0/3 faite, 2 à trancher, 1 à venir. Écarts : 0."
+      }
+    },
+    "9 — sessions waiting to be sent count, sessions under review do not: the pending run is tied, the reviewed one is ignored": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "type",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "done",
+            "gap": null,
+            "link": {
+              "session": "run-pending",
+              "how": "auto"
+            },
+            "candidates": [],
+            "notice": null,
+            "actual": {
+              "day": "2026-11-17",
+              "sport": "running"
+            }
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [],
+        "summary": {
+          "planned": 3,
+          "done": 1,
+          "asPlanned": 1,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 0,
+          "missed": 1,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 0,
+          "gaps": 1
+        },
+        "signature": "2026-11-16|type|2026-11-16/1:done:-:run-pending:|2026-11-16/3:missed:missed::|2026-11-16/5:today:-::"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Faite (reliée automatiquement)",
+          "notice": null,
+          "gap": null
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Aucun changement de programme.",
+        "result": "Résultat : 1/3 faite, 1 non faite, 1 à venir. Écarts : 1."
+      }
+    },
+    "10 — skip, then the athlete says « none of these » on Thursday: one skipped, one missed, the gym session stays outside the plan": {
+      "view": {
+        "week": "2026-11-16",
+        "current": true,
+        "past": false,
+        "paused": false,
+        "reference": {
+          "source": "week",
+          "days": [
+            null,
+            "running",
+            null,
+            "muscu_gym",
+            null,
+            "cycling",
+            null
+          ]
+        },
+        "occurrences": [
+          {
+            "id": "2026-11-16/1",
+            "planned": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "decision": "skip",
+            "effective": {
+              "day": "2026-11-17",
+              "sport": "running"
+            },
+            "status": "skipped",
+            "gap": "skipped",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/3",
+            "planned": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "decision": "none",
+            "effective": {
+              "day": "2026-11-19",
+              "sport": "muscu_gym"
+            },
+            "status": "missed",
+            "gap": "missed",
+            "link": null,
+            "candidates": [],
+            "notice": null
+          },
+          {
+            "id": "2026-11-16/5",
+            "planned": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "decision": null,
+            "effective": {
+              "day": "2026-11-21",
+              "sport": "cycling"
+            },
+            "status": "today",
+            "gap": null,
+            "link": null,
+            "candidates": [],
+            "notice": null
+          }
+        ],
+        "extra": [
+          {
+            "id": "gym-thu",
+            "day": "2026-11-19",
+            "sport": "muscu_gym",
+            "ask": false
+          }
+        ],
+        "summary": {
+          "planned": 3,
+          "done": 0,
+          "asPlanned": 0,
+          "moved": 0,
+          "replaced": 0,
+          "skipped": 1,
+          "missed": 1,
+          "toDecide": 0,
+          "upcoming": 1,
+          "extra": 1,
+          "gaps": 2
+        },
+        "signature": "2026-11-16|week|2026-11-16/1:skipped:skipped::|2026-11-16/3:missed:missed::|2026-11-16/5:today:-::|+gym-thu"
+      },
+      "words": [
+        {
+          "plan": "Course à pied mardi",
+          "status": "Écartée",
+          "notice": null,
+          "gap": "Écartée"
+        },
+        {
+          "plan": "Musculation en salle jeudi",
+          "status": "Non faite",
+          "notice": null,
+          "gap": "Non faite"
+        },
+        {
+          "plan": "Vélo samedi",
+          "status": "Prévue aujourd’hui",
+          "notice": null,
+          "gap": null
+        }
+      ],
+      "bilan": {
+        "start": "Au départ : 3 séances prévues.",
+        "changes": "Changements : 1 écartée.",
+        "result": "Résultat : 0/3 faite, 1 non faite, 1 à venir, 1 séance hors programme. Écarts : 2."
+      }
+    }
+  }
+}
