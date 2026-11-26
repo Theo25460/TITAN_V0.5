@@ -517,6 +517,12 @@ export function buildConnectedData({ now = new Date(), live = false, flags: with
     titan_showcase_v1: [{ key: "exp:automne-2026", label: "Passe-brume" }, { key: "chapter:aube:9", label: null }],
     titan_pioneer_v1: { granted: true, cohort: "Fondateurs 2026", grantedAt: iso(-170) },
     titan_sources_v1: sourcesRows, titan_garmin_status_v1: { linked: true, dailies_authorized: true },
+    // V2.0 (A2): this account stands on the PRODUCTION server (registry head 20261122090000), where the canonical packages
+    // release-v2-* are not applied yet. The functions the new clients read on these pages answer as production does today (function
+    // not found): the pages must live without them, with no error and no sideways scroll (tests/e2e/real-account.e2e.mjs).
+    ...Object.fromEntries(["titan_session_matches_v1", "titan_source_center_v1", "titan_adventure_branch_snapshot_v1", "titan_adventure_guardian_snapshot_v1",
+      "titan_adventure_campaign_snapshot_v1", "titan_adventure_consequences_v1", "titan_adventure_quests_v1", "titan_adventure_chronicles_v1"]
+      .map((name) => [name, { __error: { code: "PGRST202", message: `Could not find the function public.${name} in the schema cache`, details: null, hint: null } }])),
     titan_coach_portal: coachPortal,
     titan_coach_messages_v1: { __by: "p_link", cases: { [linkAthlete.id]: messages }, default: { more: false, rows: [] } },
     titan_coach_checkins_v1: { __by: "p_link", cases: { [linkAthlete.id]: checkins }, default: { rows: [checkins.rows[1]] } },

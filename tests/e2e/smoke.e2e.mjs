@@ -3583,7 +3583,8 @@ test("assistance: Profile gives a direct visible entry on mobile and desktop", a
     assert.equal(await link.isVisible(), true);
     const box = await link.boundingBox();
     assert.ok(box.y >= 0 && box.y + box.height <= page.viewportSize().height);
-    await link.click();
+    // V2.0 (A2): the URL changes before the next page is parsed; read its heading once it has loaded (flaky on main as well).
+    await Promise.all([page.waitForURL(u => new URL(u).pathname === "/service", { waitUntil: "load" }), link.click()]);
     assert.equal(new URL(page.url()).pathname, "/service");
     assert.equal(await page.getByRole("heading", { name: "Assistance", exact: true }).count(), 1);
     assert.deepEqual(errors, []);

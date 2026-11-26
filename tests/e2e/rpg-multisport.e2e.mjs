@@ -45,7 +45,7 @@ test('multisport journey: swimming, running, strength and optional variety confi
  for(const width of [360,1280])for(const practice of practices){const {page,context,errors}=await newPage(width);page.setDefaultTimeout(3000);try{
   await seed(page,practice);
   for(const world of ['aube','marees','forge','aurores']){
-   await page.locator(`[data-world="${world}"]`).click();
+   await page.locator(`.av-worlds [data-world="${world}"]`).click();
    const c=await page.evaluate(world=>window.TitanAdventure.snapshot.campaigns.find(c=>c.id===world),world);
    assert.equal(c.evidence.days,3);assert.equal(c.evidence.effort,150);assert.equal(c.target,3);assert.equal(c.effort_target,150);
    await page.locator('[data-claim="9"]').click();
