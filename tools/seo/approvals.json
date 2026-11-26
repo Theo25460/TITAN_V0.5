@@ -1,0 +1,4 @@
+{
+  "$comment": "Approved intentional changes of public pages (tools/seo-guard.mjs, docs/seo/SEO_GUARD.md). One entry = one URL, one rule, the exact new value, a reason, a reference and who approved it. Never a pattern, never a global switch.",
+  "approvals": []
+}
