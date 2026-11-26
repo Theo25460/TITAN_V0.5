@@ -13,7 +13,9 @@ const mockIdentity = { owner: "owner-a" };
 const mockRights = { is_elite: false };
 const mockAds = { phase: "ready", canRequestAds: true, privacyOptions: false };
 const mockInter = { prepare: jest.fn(), ready: true, show: jest.fn(async () => true) };
+const mockFlags: Record<string, boolean> = {};
 jest.mock("../src/data/auth", () => ({ useOwner: () => mockIdentity.owner }));
+jest.mock("../src/data/flags", () => ({ useServerFlag: (key: string, enabled = true) => enabled && mockFlags[key] === true }));
 jest.mock("../src/data/hooks", () => ({ useProfile: () => ({ data: mockRights }) }));
 jest.mock("../src/data/drafts", () => ({ useDrafts: () => ({ ready: true, timer: { elapsed: 0, started: null } }) }));
 jest.mock("../src/lib/network", () => ({ useOnline: () => true }));
@@ -32,16 +34,16 @@ jest.mock("../src/ads/sdk", () => ({
 const { useSessionInterstitial } = require("../src/ads/useSessionInterstitial");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
-function Probe({ id, confirmed = true, countable = true, onResult }: { id: string; confirmed?: boolean; countable?: boolean; onResult: (v: boolean) => void }) {
+function Probe({ id, confirmed = true, countable = true, celebrate = false, onResult }: { id: string; confirmed?: boolean; countable?: boolean; celebrate?: boolean; onResult: (v: boolean) => void }) {
   const go = useSessionInterstitial(id, confirmed, countable);
   return (
-    <Pressable testID="done" onPress={() => go().then(onResult)}>
+    <Pressable testID="done" onPress={() => go({ celebrate }).then(onResult)}>
       <Text>Terminer</Text>
     </Pressable>
   );
 }
 const state = () => mockDisk.get("ads:owner-a") as { sessions: number; today: number; lastShownSession: number } | undefined;
-async function finishSession(id: string, over: Partial<{ confirmed: boolean; countable: boolean }> = {}) {
+async function finishSession(id: string, over: Partial<{ confirmed: boolean; countable: boolean; celebrate: boolean }> = {}) {
   const results: boolean[] = [];
   const view = render(<Probe id={id} {...over} onResult={(v) => results.push(v)} />);
   await act(async () => {});
@@ -52,6 +54,8 @@ async function finishSession(id: string, over: Partial<{ confirmed: boolean; cou
 }
 
 beforeEach(() => {
+  for (const k of Object.keys(mockFlags)) delete mockFlags[k];
+  Object.assign(mockFlags, { "ads.android": true, "ads.android.interstitial": true });
   mockDisk.clear();
   mockStorage.failWrites = false;
   mockIdentity.owner = "owner-a";
@@ -173,4 +177,26 @@ test("failed durable frequency writes suppress the ad", async () => {
   mockStorage.failWrites = true;
   expect(await finishSession("e")).toBe(false);
   expect(mockInter.show).not.toHaveBeenCalled();
+});
+
+test("server switch ads.android.interstitial closed (absent or false): sessions still counted, nothing preloaded or shown", async () => {
+  delete mockFlags["ads.android.interstitial"];
+  for (const id of ["a", "b", "c", "d", "e", "f"]) expect(await finishSession(id)).toBe(false);
+  expect(state()?.sessions).toBe(6);
+  expect(mockInter.prepare).not.toHaveBeenCalled();
+  expect(mockInter.show).not.toHaveBeenCalled();
+});
+
+test("master switch ads.android closed: the interstitial switch alone opens nothing", async () => {
+  mockFlags["ads.android"] = false;
+  for (const id of ["a", "b", "c", "d", "e"]) expect(await finishSession(id)).toBe(false);
+  expect(mockInter.show).not.toHaveBeenCalled();
+});
+
+test("a new record is celebrated, never followed by an interstitial; the next eligible session can show one", async () => {
+  for (const id of ["a", "b", "c", "d"]) await finishSession(id);
+  expect(await finishSession("record", { celebrate: true })).toBe(false);
+  expect(mockInter.show).not.toHaveBeenCalled();
+  expect(state()).toMatchObject({ sessions: 5, today: 0, lastShownSession: 0 });
+  expect(await finishSession("next")).toBe(true);
 });

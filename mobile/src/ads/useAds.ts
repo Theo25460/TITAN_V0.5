@@ -7,7 +7,8 @@ import { useProfile } from "../data/hooks";
 import { recorder } from "../lib/gpsNative";
 import type { Recording } from "../lib/gpsRecorder";
 import { useOnline } from "../lib/network";
-import { ADS_BUILD } from "./adIds";
+import { useServerFlag } from "../data/flags";
+import { ADS_BUILD, ADS_FLAG, INTERSTITIAL_FLAG } from "./adIds";
 import { adsManager } from "./sdk";
 import { bannerAllowed, type Context, type Verdict } from "./policy";
 
@@ -30,8 +31,16 @@ export function useEffortActive(): boolean {
   return !loaded || loaded.owner !== owner || (loaded.rec !== null && loaded.rec.status !== "ended");
 }
 
+/** The build switch AND the server switches. Nothing is read from the server in a build without ads. */
+export function useAdsRemote(): { banners: boolean; interstitial: boolean } {
+  const built = ADS_BUILD && Platform.OS === "android";
+  const banners = useServerFlag(ADS_FLAG, built);
+  const interstitial = useServerFlag(INTERSTITIAL_FLAG, built);
+  return { banners: built && banners, interstitial: built && banners && interstitial };
+}
+
 /** What the advertising policy needs to know right now. Premium comes from the server-validated profile (is_elite also covers a seat included by a coach). */
-export function useAdContext(): Context & { enabled: boolean } {
+export function useAdContext(): Context & { enabled: boolean; interstitial: boolean } {
   const owner = useOwner();
   const draft = useDrafts();
   const tutorial = useSyncExternalStore(adsSuppression.subscribe, () => adsSuppression.get(owner));
@@ -39,10 +48,13 @@ export function useAdContext(): Context & { enabled: boolean } {
   const online = useOnline();
   const effort = useEffortActive();
   const state = useSyncExternalStore(adsManager.subscribe, adsManager.get);
-  const enabled = ADS_BUILD && Platform.OS === "android";
+  const remote = useAdsRemote();
+  const enabled = remote.banners;
+  const interstitial = remote.interstitial;
   return useMemo(
     () => ({
       enabled,
+      interstitial,
       now: Date.now(),
       premium: !!profile?.is_elite,
       profileKnown: profile !== undefined && profile !== null,
@@ -52,7 +64,7 @@ export function useAdContext(): Context & { enabled: boolean } {
       sessionActive: effort || tutorial || !draft.ready || draft.timer.started !== null || draft.timer.elapsed > 0,
       busy: false,
     }),
-    [enabled, profile, online, effort, state, tutorial, draft.ready, draft.timer.started, draft.timer.elapsed],
+    [enabled, interstitial, profile, online, effort, state, tutorial, draft.ready, draft.timer.started, draft.timer.elapsed],
   );
 }
 

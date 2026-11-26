@@ -21,5 +21,13 @@ export type Placement = "hq" | "journal" | "stats";
 export const ADS_BUILD = process.env.EXPO_PUBLIC_TITAN_ADS === "1";
 export const ADS_LIVE = ADS_BUILD && process.env.EXPO_PUBLIC_TITAN_ADS_LIVE === "1" && !(typeof __DEV__ !== "undefined" && __DEV__);
 
+/** Server switches (public.titan_feature_flags_v1, set in titan-app.fr/admin › Drapeaux, with an optional rollout percentage).
+    Absent, false, unreadable or offline = closed: a build with ads shows NOTHING until the owner opens them, and closing one
+    stops new ad requests within minutes (flags are re-read at most every 10 minutes), without a new build or a Play review.
+    - ads.android: every advertising surface (banners, interstitial, Google's consent form, the privacy-settings card);
+    - ads.android.interstitial: the after-session interstitial only, on top of ads.android. */
+export const ADS_FLAG = "ads.android";
+export const INTERSTITIAL_FLAG = "ads.android.interstitial";
+
 export const bannerUnit = (p: Placement, live = ADS_LIVE) => (live ? LIVE_UNITS[p] : TEST_UNITS.banner);
 export const interstitialUnit = (live = ADS_LIVE) => (live ? LIVE_UNITS.sessionEnd : TEST_UNITS.interstitial);
