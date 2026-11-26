@@ -396,6 +396,12 @@
     if (!root) return;
     const active = document.activeElement;
     const focusId = root.contains(active) && ["wk-title", "wk-previous", "wk-next"].includes(active.id) ? active.id : null;
+    // V2.0 (A2): a re-render that lands just after a change of the V1.7.5 analysis controls (a refresh of the journal, a plan read)
+    // used to drop the focus the control had just been given; the same control gets it back, whatever render redrew it.
+    const analysisKey = root.contains(active) && active?.matches?.("[data-analysis] select, [data-analysis-discipline]")
+      ? ["data-analysis-sport", "data-analysis-group", "data-analysis-weeks", "data-analysis-reference"].find((a) => active.hasAttribute(a))
+        || (active.dataset.analysisDiscipline ? `data-analysis-discipline="${active.dataset.analysisDiscipline}"` : null)
+      : null;
     const r = recapFor(offset);
     const questions = [qVolume(), qShare(), qPeriods(), qPace(), qStrength(), qClimb(), qDisciplines(), qLoad(), qCadence()].filter(Boolean);
     const any = P().activeLogs(logs()).length > 0;
@@ -412,6 +418,7 @@
       <div class="wk-cols wk-periods">${periodHtml("month")}${periodHtml("year")}</div>
       ${window.TitanStepsCard?.monthHtml?.() || ""}`;
     root.setAttribute("aria-busy", "false");
+    if (analysisKey) root.querySelector(`[${analysisKey}]`)?.focus({ preventScroll: true });
     if (focusId) {
       const target = document.getElementById(focusId);
       (target?.disabled ? root.querySelector("#wk-title") : target)?.focus();
