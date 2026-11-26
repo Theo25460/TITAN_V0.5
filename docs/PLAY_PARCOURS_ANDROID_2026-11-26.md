@@ -53,7 +53,7 @@ Aucun nouvel événement n'est créé : il n'existe pas de mesure des clics sur 
 - `tests/e2e/play-store-link.e2e.mjs` (6, Chromium) : téléphone Android 360 × 640 (bouton au premier écran, cibles ≥ 44 px, rien de fixe, pas de défilement horizontal) ; clavier (Web puis Play, anneau de focus visible, Entrée suit l'adresse exacte) ; tablette 768 et ordinateur 1024/1440 ; application Android et PWA installée (rien) ; adresse invalide (rien) ; carte d'athlète (lien exact, absent dans l'application).
 - `tests/asset-cache-keys.test.mjs` : retrait de la référence `play-store.js → play-store.css`, que le code ne fait plus.
 - Mesures à 320, 360, 412, 768, 1024 et 1440 px sur `/`, `/journal-course-a-pied`, `/titan-plus`, `/service` : liens exacts, aucun débordement, aucun défilement horizontal.
-- Suite navigateur complète `pnpm run test:e2e` : résultat dans le compte rendu de livraison.
+- Suite navigateur complète `pnpm run test:e2e` (Chromium, 26,6 min) : **1094/1095**. Seul échec : `smoke.e2e.mjs` « assistance: Profile gives a direct visible entry on mobile and desktop » (après le clic depuis `/profile`, aucun titre « Assistance » trouvé sur `/service`). **Préexistant** : reproduit à l'identique sur `main` `0dae9af` sans ce chantier, et le titre de `/service` n'est pas modifié ici. À traiter séparément.
 
 ## 6. Limites et étapes manuelles
 
