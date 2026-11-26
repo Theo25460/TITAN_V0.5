@@ -1,0 +1,4601 @@
+{
+  "schema": "titan-v2-integration-manifest/1",
+  "mission": "A1 — Inventaire & architecture",
+  "generated_on": "2026-11-26",
+  "generated_by": {
+    "tool": "Claude Code (session cloud)",
+    "model_configured": "claude-opus-5-5",
+    "effort": "non exposé à l’agent ; voir compte rendu",
+    "note": "Aucune fusion fonctionnelle effectuée dans A1."
+  },
+  "repository": "Theo25460/TITAN_V0.5",
+  "pins": {
+    "main": {
+      "sha": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "verified": "git fetch --all --prune + unshallow, 26/11/2026"
+    },
+    "production_web": {
+      "sha": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "netlify_site": "titano-app (0a553bc3-458a-415d-9173-538faa0ac1e6)",
+      "deploy_id": "6afec02bcf8ca878e98133e6",
+      "published_at": "2026-11-19T09:24:21Z",
+      "context": "production",
+      "functions": 6,
+      "redirect_rules": 137,
+      "header_rules": 71,
+      "source": "API Netlify (lecture)"
+    },
+    "production_db": {
+      "project": "oubmftfufwwzwpgvrcag",
+      "registry_count": 141,
+      "head_version": "20261122090000",
+      "equals_main_migrations": true,
+      "pending_from_v15_v19": "aucune appliquée",
+      "source": "Supabase list_migrations (lecture seule, aucune donnée utilisateur)"
+    },
+    "play": {
+      "status": "INCONNU — aucun accès Play Console dans cette session",
+      "repo_claims": {
+        "last_signed_aab": "titan-1.4.0-1400-upload.aab (versionCode 1400, SHA-256 7988fcc778df205b647df785dd9dc15134ff7fb9cff71cd6ac5f9ccbf161e99d), construit avant 0dae9af",
+        "review_blocker": "Play Console a bloqué la revue de 1.4.0 (1400) pour orientation requise ; correctif 0dae9af (plugin with-optional-screen-features) ; un nouvel AAB > 1400 est nécessaire",
+        "mobile/docs/last-version-code.txt": "1304 (non porté à 1400 malgré la consigne du rapport ABSOLUTE ONE)",
+        "android_ci_run_on_0dae9af": "44491283286 (workflow_dispatch, succès, 27 min)"
+      },
+      "action": "Le propriétaire relève dans Play Console : piste, versionCode publié, SHA du commit source."
+    },
+    "seo_baseline": {
+      "file": "tools/seo/baseline/production.json (branche claude/dreamy-rubin-h0bac5)",
+      "commit": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "deploy_id": "6afec02bcf8ca878e98133e6",
+      "captured_at": "2026-11-26T11:25:53Z",
+      "sitemap_urls": 27
+    },
+    "integration_branch": {
+      "name": "integration/v2.0-all-versions",
+      "existed_before_A1": false,
+      "created_from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "content_A1": "documents A1 uniquement (docs/v2), aucune fonctionnalité"
+    }
+  },
+  "counts": {
+    "remote_branches": 192,
+    "merged_into_main": 141,
+    "not_merged": 51,
+    "not_merged_based_on_current_main": 38,
+    "not_merged_legacy": 13,
+    "open_prs": 53,
+    "open_prs_head_in_main": 49,
+    "tags": 0,
+    "releases": 0
+  },
+  "chains": [
+    {
+      "id": "RPG",
+      "head": "claude/gracious-feynman-q190d7",
+      "head_sha": "52e83b24283e7809d38ce4e828e014db79f3442f",
+      "base": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "lots": [
+        "V1.5.0",
+        "V1.5.1",
+        "V1.5.2",
+        "V1.5.3",
+        "V1.5.4",
+        "V1.5.5"
+      ],
+      "commits": 12,
+      "files": 174
+    },
+    {
+      "id": "JOURNAL+SPORT+GPS",
+      "head": "claude/gifted-brahmagupta-mg28j8",
+      "head_sha": "52a209bdbb1a2aba95e6864f61060fa805384c6a",
+      "base": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "lots": [
+        "V1.6.1",
+        "V1.6.2",
+        "V1.6.3",
+        "V1.6.4",
+        "V1.6.6",
+        "V1.7.1",
+        "V1.7.2",
+        "V1.7.3",
+        "V1.7.4",
+        "V1.7.5",
+        "V1.7.6",
+        "V1.7.7"
+      ],
+      "commits": 40,
+      "note": "V1.7.7 = 17 commits au-dessus de V1.7.6 (21a0cbad)."
+    },
+    {
+      "id": "JOURNAL-FORK-A",
+      "head": "claude/hopeful-fermat-o35c8o",
+      "head_sha": "29424d8f0ea0f73f2e9488ac0d949f3b5d37ff6e",
+      "base": "0730d3c0fe19aeb4cab98e4efe81570e0e995375",
+      "lots": [
+        "V1.6.5"
+      ],
+      "commits_above_fork": 4,
+      "files_above_fork": 35,
+      "fork_point": "V1.6.4 0730d3c0fe19aeb4cab98e4efe81570e0e995375"
+    },
+    {
+      "id": "COOP",
+      "head": "claude/sweet-cannon-ulls05",
+      "head_sha": "c7e0223ffaf87fe7c78dc94905735e216da56b8d",
+      "base": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "lots": [
+        "V1.8.1",
+        "V1.8.2",
+        "V1.8.3",
+        "V1.8.4",
+        "V1.8.5",
+        "V1.8.6"
+      ],
+      "commits": 12,
+      "files": 163
+    },
+    {
+      "id": "COACH",
+      "head": "claude/bold-pasteur-n7zeg3",
+      "head_sha": "3229bdceccf29b0db9359763ee4d37b33fb24e2b",
+      "base": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "lots": [
+        "V1.9.1",
+        "V1.9.2",
+        "V1.9.3",
+        "V1.9.4",
+        "V1.9.5",
+        "V1.9.6"
+      ],
+      "commits": 21,
+      "files": 153
+    }
+  ],
+  "lots": [
+    {
+      "lot": "V1.5.0",
+      "title": "Bifurcations",
+      "chain": "RPG",
+      "branch": "claude/determined-dijkstra-vxipm5",
+      "head_sha": "1933f36dffefdfd129d31b6a1637773a3a14287d",
+      "head_date": "2026-11-19T13:08:46+00:00",
+      "parent": "main",
+      "parent_sha": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 2
+      },
+      "own_commits": [
+        "1933f36dffefdfd129d31b6a1637773a3a14287d",
+        "a503a4ff1f29294f400aa1edff990321830349b3"
+      ],
+      "contained_in_chain_head": "claude/gracious-feynman-q190d7",
+      "contained_proof": "git merge-base --is-ancestor 1933f36dffef 52e83b24283e → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 4,
+        "sample": [
+          "adventure.html",
+          "css/adventure-rpg.css",
+          "js/app/aventure-rpg.js",
+          "js/core/adventure-branches.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 9
+      },
+      "sql": {
+        "migration": "20261123090000_adventure_branches_v1.sql",
+        "version": "20261123090000",
+        "package": "release-v21",
+        "sql_test": "300_adventure_branches.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.6.2"
+        ]
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "pnpm test : 788 tests, 0 échec. pnpm run typecheck : OK.",
+        "bash tools/db/test-migrations.sh : « OK: migrations and tests passed on a clean replica. »",
+        "tools/db/test-branch-concurrency.py : « OK: two simultaneous confirmations observed a real lock; one canonical route, read back by the waiting and the resuming device. »",
+        "Web, Playwright (tests/e2e/adventure-branches.e2e.mjs, 4/4)",
+        "E2E Playwright : 41/41 (4 nouveaux et les parcours aventure existants : adventure-rpg, rpg-*, one-aventure-live, csp-browser)",
+        "Android, Jest (mobile/__tests__/adventureBranch.test.tsx, 6/6)",
+        "Android : npx jest, 115 suites et 1 020 tests, 0 échec. tsc : OK. expo export:embed (bundle Android release) : OK",
+        "Mutation des tests SQL : sans le déclencheur, l’échec attendu « old client skipped the branch condition » apparaît"
+      ],
+      "failures_known_by_report": null,
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Le paquet v21 n’est pas appliqué en production : l’application reste une décision du propriétaire.",
+        "Aucun test n’a tourné sur la base de production ni avec de vrais comptes de recette.",
+        "Android a été vérifié par Jest et par le bundle release, pas sur émulateur ni sur appareil. Aucun AAB ni publication Play.",
+        "Aucune nouvelle illustration (registre graphique non sollicité). Textes en français seulement",
+        "Le gardien (V1.5.1) n’exploite pas encore l’indice."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #4 (après journal/sport et V1.6.5)"
+    },
+    {
+      "lot": "V1.5.1",
+      "title": "Gardiens",
+      "chain": "RPG",
+      "branch": "claude/eager-hopper-0up873",
+      "head_sha": "f27a635e7d7c0c075dd3a24cb467c2d0f2742768",
+      "head_date": "2026-11-19T14:00:46+00:00",
+      "parent": "claude/determined-dijkstra-vxipm5",
+      "parent_sha": "1933f36dffefdfd129d31b6a1637773a3a14287d",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 4
+      },
+      "own_commits": [
+        "f27a635e7d7c0c075dd3a24cb467c2d0f2742768",
+        "ca55ff243c403096277966d582909018f87718f4"
+      ],
+      "contained_in_chain_head": "claude/gracious-feynman-q190d7",
+      "contained_proof": "git merge-base --is-ancestor f27a635e7d7c 52e83b24283e → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 4,
+        "sample": [
+          "adventure.html",
+          "css/adventure-rpg.css",
+          "js/app/aventure-rpg.js",
+          "js/core/adventure-guardian.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 9
+      },
+      "sql": {
+        "migration": "20261124090000_adventure_guardian_v1.sql",
+        "version": "20261124090000",
+        "package": "release-v22",
+        "sql_test": "300_adventure_guardian.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.6.5",
+          "V1.8.1"
+        ]
+      },
+      "tests_files_changed": 6,
+      "tests_claimed_by_report": [
+        "pnpm test : 795 tests, 0 échec. pnpm run typecheck : OK.",
+        "bash tools/db/test-migrations.sh : « OK: migrations and tests passed on a clean replica. »",
+        "tools/db/test-guardian-concurrency.py : « OK: two simultaneous resolutions observed a real lock; one outcome and one reward, read back by the waiting and the resuming device. »",
+        "Paquet v22 répété sur réplique : 00-check-before ok ; 01 s’applique ; second passage refusé ; 99-check-after ok ; lignes d’export postflights v11 et v13 vraies",
+        "E2E Playwright : 48/48 ; tests du gardien stables sur 3 exécutions consécutives",
+        "Android : npx jest, 116 suites et 1 025 tests, 0 échec. tsc : OK. expo export:embed : OK",
+        "Mutation : sans le déclencheur, le test SQL échoue bien (« old client skipped the resolution »)"
+      ],
+      "failures_known_by_report": "Une séance corrigée en baissant sa durée, sans être archivée, garde l’effort attribué à l’import (40 points avant comme après une correction à 10 minutes) : comportement existant du moteur v1.",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Aucun test sur des personnes.",
+        "Les paquets v21 et v22 ne sont pas appliqués en production. Aucun test n’a tourné sur la base de production ni avec de vrais comptes de recette.",
+        "Android a été vérifié par Jest et par le bundle release, pas sur émulateur ni sur appareil ; aucun AAB. Les captures sont celles du Web uniquement.",
+        "Aucun délai n’est imposé entre l’observation et la préparation"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #4 (après journal/sport et V1.6.5)"
+    },
+    {
+      "lot": "V1.5.2",
+      "title": "Camp et conséquences",
+      "chain": "RPG",
+      "branch": "claude/zen-hypatia-uhzjpb",
+      "head_sha": "e48cf1d6ebc3b81bf9286053438600a11c6158fc",
+      "head_date": "2026-11-19T14:35:58+00:00",
+      "parent": "claude/eager-hopper-0up873",
+      "parent_sha": "f27a635e7d7c0c075dd3a24cb467c2d0f2742768",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 6
+      },
+      "own_commits": [
+        "e48cf1d6ebc3b81bf9286053438600a11c6158fc",
+        "9d9ee6db860f9355942a9817eaf09d2c7de7aef0"
+      ],
+      "contained_in_chain_head": "claude/gracious-feynman-q190d7",
+      "contained_proof": "git merge-base --is-ancestor e48cf1d6ebc3 52e83b24283e → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 8,
+        "sample": [
+          "adventure.html",
+          "css/adventure-rpg.css",
+          "css/live.css",
+          "js/app/aventure-retour.js",
+          "js/app/aventure.js",
+          "js/app/live.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 11
+      },
+      "sql": {
+        "migration": "20261125090000_adventure_consequence_v1.sql",
+        "version": "20261125090000",
+        "package": "release-v23",
+        "sql_test": "300_adventure_consequence.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.8.2"
+        ]
+      },
+      "tests_files_changed": 4,
+      "tests_claimed_by_report": [
+        "pnpm test : 802 tests, 0 échec. pnpm run typecheck : OK.",
+        "bash tools/db/test-migrations.sh : « OK: migrations and tests passed on a clean replica. »",
+        "tools/db/test-consequence-concurrency.py : « OK: two simultaneous discoveries observed a real lock; one discovery, the late answer not counted, read back by the waiting and the resuming device. »",
+        "Paquet v23 répété sur réplique : 00-check-before ok ; second passage refusé (« migration 20261125090000 is already registered ») ; 99-check-after ok ; lignes d’export postflights v11 et v13 vraies",
+        "E2E Playwright : 5/5 nouveaux parcours ; parcours voisins 42/42",
+        "Android : npx jest, 117 suites et 1 030 tests, 0 échec. tsc : OK. expo export:embed : OK"
+      ],
+      "failures_known_by_report": null,
+      "flags_claimed_by_report": [
+        "screens.live : « actif à 100 % en production » (ouvre le Camp de base)"
+      ],
+      "not_done_by_report": [
+        "Aucun test sur des personnes. La mesure des visites sous 14 jours n’a pas commencé",
+        "Les paquets v21, v22 et v23 ne sont pas appliqués en production. Aucun test n’a tourné sur la base de production ni avec de vrais comptes de recette.",
+        "Android a été vérifié par Jest et par le bundle release, pas sur émulateur ni sur appareil ; aucun AAB. Les captures sont celles du Web uniquement.",
+        "l’emplacement en tête de la vue Chapitre est vérifié, pas le rendu complet d’une page connectée"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #4 (après journal/sport et V1.6.5)"
+    },
+    {
+      "lot": "V1.5.3",
+      "title": "Quatre mondes, quatre mécaniques",
+      "chain": "RPG",
+      "branch": "claude/upbeat-feynman-vzjuj1",
+      "head_sha": "c9eed983c67e13f69459a6c14f64fad4407c7867",
+      "head_date": "2026-11-19T15:38:44+00:00",
+      "parent": "claude/zen-hypatia-uhzjpb",
+      "parent_sha": "e48cf1d6ebc3b81bf9286053438600a11c6158fc",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 8
+      },
+      "own_commits": [
+        "c9eed983c67e13f69459a6c14f64fad4407c7867",
+        "5cf1670ab9d5248621c4a4d75c8e1c2b2d2aac04"
+      ],
+      "contained_in_chain_head": "claude/gracious-feynman-q190d7",
+      "contained_proof": "git merge-base --is-ancestor c9eed983c67e 52e83b24283e → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 4,
+        "sample": [
+          "adventure.html",
+          "css/adventure-rpg.css",
+          "js/app/aventure-rpg.js",
+          "js/core/adventure-campaigns.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 10
+      },
+      "sql": {
+        "migration": "20261126090000_adventure_campaigns_v1.sql",
+        "version": "20261126090000",
+        "package": "release-v24",
+        "sql_test": "300_adventure_campaigns.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.8.3"
+        ]
+      },
+      "tests_files_changed": 9,
+      "tests_claimed_by_report": [
+        "pnpm test : 811 tests, 0 échec. pnpm run typecheck : OK.",
+        "bash tools/db/test-migrations.sh : « OK: migrations and tests passed on a clean replica. »",
+        "tools/db/test-campaign-concurrency.py : « OK: two simultaneous answers observed a real lock; one solved mechanic, the late answer not counted, read back by the waiting and the resuming device. »",
+        "Playwright tests/e2e/adventure-campaigns.e2e.mjs, 6/6, deux exécutions consécutives",
+        "E2E Playwright : 64/65 sur les parcours aventure et voisins",
+        "Chemins morts : « 8 resolutions reachable, 0 problem(s) » ; douze mutations détectées",
+        "Android : npx jest, 118 suites et 1 035 tests, 0 échec. tsc : OK. expo export:embed : OK"
+      ],
+      "failures_known_by_report": "rpg-multisport « all4guardians » échoue à l’identique sur la branche V1.5.2 sans ce lot (sélecteur [data-world=\"aube\"] devenu ambigu avec l’hôte de conséquence de la V1.5.2) : hors périmètre, non corrigé.",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Aucun test sur des personnes ; la mesure demandée n’a pas commencé.",
+        "Les paquets v21 à v24 ne sont pas appliqués en production ; aucun test sur la base de production ni avec de vrais comptes.",
+        "Android n’a tourné ni sur émulateur ni sur appareil ; aucun AAB ; captures Web uniquement.",
+        "Appareil Android : aucun (aucun téléphone ni émulateur disponible dans l’environnement)"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #4 (après journal/sport et V1.6.5)"
+    },
+    {
+      "lot": "V1.5.4",
+      "title": "Quêtes entre les mondes",
+      "chain": "RPG",
+      "branch": "claude/gallant-franklin-5i5du0",
+      "head_sha": "721cc47ce9693e5e1ebb98efef29aeb51fd41377",
+      "head_date": "2026-11-19T16:31:14+00:00",
+      "parent": "claude/upbeat-feynman-vzjuj1",
+      "parent_sha": "c9eed983c67e13f69459a6c14f64fad4407c7867",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 10
+      },
+      "own_commits": [
+        "721cc47ce9693e5e1ebb98efef29aeb51fd41377",
+        "e4cad4c50bb7ccb11af9cb425d8b10035403dff1"
+      ],
+      "contained_in_chain_head": "claude/gracious-feynman-q190d7",
+      "contained_proof": "git merge-base --is-ancestor 721cc47ce969 52e83b24283e → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 5,
+        "sample": [
+          "adventure.html",
+          "css/adventure-rpg.css",
+          "js/app/aventure-indices.js",
+          "js/app/aventure.js",
+          "js/core/adventure-quests.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 9
+      },
+      "sql": {
+        "migration": "20261127090000_adventure_quest_chains_v1.sql",
+        "version": "20261127090000",
+        "package": "release-v25",
+        "sql_test": "300_adventure_quest_chains.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.8.4"
+        ]
+      },
+      "tests_files_changed": 4,
+      "tests_claimed_by_report": [
+        "pnpm test : 820 tests, 0 échec. pnpm run typecheck : OK. node tools/check-quest-graph.mjs : 0 problème.",
+        "Graphe : « 2 chains, 4 clues, 0 chain dependencies, 0 problem(s) » ; 27 mutations détectées",
+        "bash tools/db/test-migrations.sh : « OK: migrations and tests passed on a clean replica. »",
+        "tools/db/test-quest-concurrency.py : « OK: two simultaneous manners observed a real lock; one manner, the late choice not applied, one clue, read back by the waiting and the resuming device. »",
+        "E2E Playwright : adventure-quests 4/4 ; parcours voisins 67/69 en une passe",
+        "Android : npx jest, 119 suites et 1 038 tests, 0 échec. tsc : OK. expo export:embed : OK"
+      ],
+      "failures_known_by_report": "rpg-multisport « all4guardians », identique sur la branche V1.5.3 sans ce lot (déjà signalé), hors périmètre ; one-aventure-live « moments », réussi 3 fois sur 3 en isolé : instabilité ; test Android V1.5.3 « Marées first » a dépassé 5 s une fois ; postflights : « seules les lignes du registre sont fausses, parce que cette réplique de répétition n’enregistre pas l’historique des migrations ».",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Aucun test sur des personnes ; la mesure n’a pas commencé.",
+        "Les paquets v21 à v25 ne sont pas appliqués en production ; aucun test sur la base de production ni avec de vrais comptes.",
+        "Android n’a tourné ni sur émulateur ni sur appareil ; aucun AAB ; captures Web uniquement ; « le parc distant n’a pas été utilisé sans ton accord »",
+        "les fonctions de chaîne par un faux serveur ; le rendu d’une page connectée à la vraie base n’est pas vérifié."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #4 (après journal/sport et V1.6.5)"
+    },
+    {
+      "lot": "V1.5.5",
+      "title": "Chroniques et aventures rejouables",
+      "chain": "RPG",
+      "branch": "claude/gracious-feynman-q190d7",
+      "head_sha": "52e83b24283e7809d38ce4e828e014db79f3442f",
+      "head_date": "2026-11-23T08:42:23+00:00",
+      "parent": "claude/gallant-franklin-5i5du0",
+      "parent_sha": "721cc47ce9693e5e1ebb98efef29aeb51fd41377",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 12
+      },
+      "own_commits": [
+        "52e83b24283e7809d38ce4e828e014db79f3442f",
+        "931eb8349f5943f280f1a4720ac965a55c12a4ad"
+      ],
+      "contained_in_chain_head": "claude/gracious-feynman-q190d7",
+      "contained_proof": "git merge-base --is-ancestor 52e83b24283e 52e83b24283e → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 5,
+        "sample": [
+          "adventure.html",
+          "css/adventure-rpg.css",
+          "js/app/aventure-chroniques.js",
+          "js/app/aventure.js",
+          "js/core/adventure-chronicles.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 10
+      },
+      "sql": {
+        "migration": "20261128090000_adventure_chronicles_v1.sql",
+        "version": "20261128090000",
+        "package": "release-v26",
+        "sql_test": "300_adventure_chronicles.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.8.5"
+        ]
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "pnpm test : 829 tests, 0 échec. pnpm run typecheck : OK. Contrôle audit() des règles : 0 problème, 13 mutations détectées.",
+        "bash tools/db/test-migrations.sh : « OK: migrations and tests passed on a clean replica. »",
+        "tools/db/test-chronicle-concurrency.py : « OK: two simultaneous starts observed a real lock; one run, then two simultaneous routes, one route, read back by the waiting and the resuming device, no reward. »",
+        "Paquet v26 : second passage refusé (« migration 20261128090000 is already registered: nothing to do »)",
+        "E2E Playwright : adventure-chronicles 3/3. Parcours voisins avec le nouveau : 45/45 en une passe.",
+        "Android : npx jest, 120 suites et 1 041 tests, 0 échec (option --forceExit). tsc : OK. expo export:embed : OK",
+        "12 mutations de la migration font toutes échouer le test SQL"
+      ],
+      "failures_known_by_report": "« un handle ouvert existant retient déjà Jest après la fin, y compris sur le test V1.5.4 » ; postflights v11, v13 et v131 : « les lignes du registre sont fausses parce que cette réplique n’enregistre pas l’historique des migrations ».",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Aucun test sur des personnes ; la mesure n’a pas commencé.",
+        "Les paquets v21 à v26 ne sont pas appliqués en production ; aucun test sur la base de production ni avec de vrais comptes.",
+        "Android n’a tourné ni sur émulateur ni sur appareil ; aucun AAB ; captures Web uniquement.",
+        "les nouvelles parties sont servies par un faux serveur aux mêmes règles que le SQL ; le rendu d’une page connectée à la vraie base n’est pas vérifié."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #4 (après journal/sport et V1.6.5)"
+    },
+    {
+      "lot": "V1.6.1",
+      "title": "État de synchronisation",
+      "chain": "JOURNAL",
+      "branch": "claude/quirky-darwin-xu2xb2",
+      "head_sha": "b75161f552ba2a7b28d993699385c4ee04ada9ba",
+      "head_date": "2026-11-23T09:21:56+00:00",
+      "parent": "main",
+      "parent_sha": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 2
+      },
+      "own_commits": [
+        "b75161f552ba2a7b28d993699385c4ee04ada9ba",
+        "0851452dd9060ea7bba9e676f2fb4e4bef617463"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor b75161f552ba 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 7,
+        "sample": [
+          "journal.html",
+          "js/app/journal.js",
+          "js/app/seance.js",
+          "js/app/sessions.js",
+          "js/core/sync-state.js",
+          "js/main.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 17
+      },
+      "sql": {
+        "migration": null,
+        "version": null,
+        "package": null,
+        "sql_test": null,
+        "applied_in_production": null,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 4,
+      "tests_claimed_by_report": [
+        "tests/e2e/sync-state.e2e.mjs : 1/1",
+        "Parcours navigateur voisins rejoués avec lui (queue-503-retry, first-session-confirmation, journal-calendar-filters, one-seance-progres, session-local-date, authenticated-session-resume) : 34/34.",
+        "pnpm test (Web) : 786/786.",
+        "Android : npx jest 1 021/1 021 sur 115 suites, dont __tests__/syncState.test.ts 7/7 et les 2 tests d’écran V1.6.1 ; npx tsc --noEmit sans erreur."
+      ],
+      "failures_known_by_report": "Web : le remplacement d’une séance refusée se fait en deux écritures IndexedDB ; interrompu entre les deux, les deux entrées restent visibles. Le Web n’affiche pas « Envoi en cours ».",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Vérification sur faux serveur local, navigateur et Jest. Pas de recette sur le S23 ni contre Supabase de production",
+        "La mesure « compris du premier coup » demande des utilisateurs et n’a pas été mesurée.",
+        "le scénario GPS n’a pas été rejoué sur appareil.",
+        "Le Playwright épinglé (1.56.1) ne trouve pas son navigateur dans ce conteneur : PW_CHROMIUM=/opt/pw-browsers/chromium",
+        "La CI GitHub n’a pas encore tourné sur ces commits."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Tronc commun des deux fourches ; contenu à la fois dans V1.6.5 et V1.7.7 (une seule intégration via V1.7.7).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.6.2",
+      "title": "Rapprochement des séances",
+      "chain": "JOURNAL",
+      "branch": "claude/sweet-pascal-fm01fi",
+      "head_sha": "18c062b0ce1acd7904d3a52eb88a4f17382582d4",
+      "head_date": "2026-11-23T10:05:33+00:00",
+      "parent": "claude/quirky-darwin-xu2xb2",
+      "parent_sha": "b75161f552ba2a7b28d993699385c4ee04ada9ba",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 4
+      },
+      "own_commits": [
+        "18c062b0ce1acd7904d3a52eb88a4f17382582d4",
+        "0e962d08d52b61a63346068bf1b42ad24c2ebd1b"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor 18c062b0ce1a 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 9,
+        "sample": [
+          "css/ascension-app.css",
+          "journal.html",
+          "js/app/journal.js",
+          "js/app/matches.js",
+          "js/app/seance.js",
+          "js/app/sessions.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 14
+      },
+      "sql": {
+        "migration": "20261123090000_session_match_review.sql",
+        "version": "20261123090000",
+        "package": "release-v21",
+        "sql_test": "300_session_match_review.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.5.0"
+        ]
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "pnpm run test:db (réplique vierge, toutes les migrations, tests SQL, imports concurrents Garmin et Santé Connect) : vert.",
+        "pnpm test (Web) : 796/796, dont tests/session-match.test.mjs 8/8. Typage, build, audit et garde de publication : verts.",
+        "Parcours navigateur : session-match 2/2. Avec les parcours voisins : 47/47.",
+        "Android : npx jest 1 027/1 027 sur 116 suites, dont __tests__/sessionMatch.test.tsx 6/6 ; npx tsc --noEmit sans erreur.",
+        "Mesure 30 paires annotées (node tools/measure-session-match.mjs) : V1.6.2 0 doublon manqué et 1 faux rapprochement silencieux (M13) ; « Les 30 verdicts sont conformes à l’annotation. »"
+      ],
+      "failures_known_by_report": "Le piège M13 (séance du matin saisie le soir avec « maintenant ») reste rapproché sans alerte ; Santé Connect n’envoie pas encore de distance depuis Android (p_distance_km vide) ; Android n’a pas encore de badge « À vérifier » dans la liste du journal.",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "La migration n’est pas appliquée en production : le paquet supabase/release-v21 attend la décision du propriétaire.",
+        "Aucune recette sur le S23, avec une vraie base Santé Connect ou un compte Garmin réel",
+        "L’empreinte GPX n’a pas été comparée entre un même fichier importé sur le Web et sur Android.",
+        "Le Playwright épinglé (1.56.1) ne trouve pas son navigateur : PW_CHROMIUM=/opt/pw-browsers/chromium. La CI GitHub n’a pas tourné sur ces commits."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Tronc commun des deux fourches ; contenu à la fois dans V1.6.5 et V1.7.7 (une seule intégration via V1.7.7).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.6.3",
+      "title": "Contrôle et réconciliation",
+      "chain": "JOURNAL",
+      "branch": "claude/upbeat-ramanujan-088mfd",
+      "head_sha": "1e684f1c3d181f9b64f676ed0989097df8e79cfa",
+      "head_date": "2026-11-23T10:39:48+00:00",
+      "parent": "claude/sweet-pascal-fm01fi",
+      "parent_sha": "18c062b0ce1acd7904d3a52eb88a4f17382582d4",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 6
+      },
+      "own_commits": [
+        "1e684f1c3d181f9b64f676ed0989097df8e79cfa",
+        "2793457a4146edf63b7a5d7d0ec2fcfd33862ae7"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor 1e684f1c3d18 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 8,
+        "sample": [
+          "journal.html",
+          "js/app/journal.js",
+          "js/app/matches.js",
+          "js/app/profil.js",
+          "js/app/sessions.js",
+          "js/core/history-ledger.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 18
+      },
+      "sql": {
+        "migration": "20261123120000_history_reconcile.sql",
+        "version": "20261123120000",
+        "package": "release-v22",
+        "sql_test": "300_history_reconcile.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 6,
+      "tests_claimed_by_report": [
+        "pnpm run test:db : vert.",
+        "pnpm test (Web) : 805/805, dont tests/history-reconcile.test.mjs 7/7. Typage, build, audit et garde de publication : verts.",
+        "Parcours navigateur : history-reconcile 1/1. Rejoué avec 12 suites de parcours voisines : 430/431.",
+        "Android : npx jest 1 034/1 034 sur 117 suites, dont historyReconcile 7/7 ; npx tsc --noEmit sans erreur.",
+        "Jeu d’essai : 0 écart à chacune des 9 vérifications (S0 à S7, plus le cache de S4), sur les deux appareils"
+      ],
+      "failures_known_by_report": "« assistance: Profile gives a direct visible entry on mobile and desktop », échoue aussi sur le commit V1.6.2 sans ces changements (vérifié dans un arbre de travail séparé).",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Les paquets v21 et v22 ne sont pas appliqués en production : ils attendent la décision du propriétaire.",
+        "Aucune recette n’a été faite sur le S23, avec un compte de test réel ou une activité Garmin réelle",
+        "Une modification faite chez Garmin ou dans Santé Connect après l’import n’est toujours pas reportée",
+        "Le Playwright épinglé (1.56.1) : PW_CHROMIUM=/opt/pw-browsers/chromium. La CI GitHub n’a pas tourné sur ces commits."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Tronc commun des deux fourches ; contenu à la fois dans V1.6.5 et V1.7.7 (une seule intégration via V1.7.7).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.6.4",
+      "title": "Migration de l’historique",
+      "chain": "JOURNAL",
+      "branch": "claude/great-brahmagupta-ujjwsf",
+      "head_sha": "0730d3c0fe19aeb4cab98e4efe81570e0e995375",
+      "head_date": "2026-11-23T11:35:01+00:00",
+      "parent": "claude/upbeat-ramanujan-088mfd",
+      "parent_sha": "1e684f1c3d181f9b64f676ed0989097df8e79cfa",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 8
+      },
+      "own_commits": [
+        "0730d3c0fe19aeb4cab98e4efe81570e0e995375",
+        "e7c56967d048a7bbec569204e577e95472deb84a"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor 0730d3c0fe19 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 8,
+        "sample": [
+          "changelog.html",
+          "css/ascension-app.css",
+          "journal.html",
+          "js/app/journal.js",
+          "js/app/migration.js",
+          "js/core/history-migration.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 11
+      },
+      "sql": {
+        "migration": "20261123150000_history_migration.sql",
+        "version": "20261123150000",
+        "package": "release-v23",
+        "sql_test": "300_history_migration.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 6,
+      "tests_claimed_by_report": [
+        "pnpm run verify (typage, pnpm test, build, audit, garde de publication) : vert, 817/817, dont tests/history-migration.test.mjs 10/10.",
+        "pnpm run test:db : vert, avec les 15 contrôles de la preuve à 5 000 lignes (2 min 38 s).",
+        "Parcours navigateur history-migration 1/1. Avec 7 suites voisines : 376/377.",
+        "Android : npx jest 1 033/1 033 sur 117 suites, dont historyMigration 5/5 ; npx tsc --noEmit sans erreur.",
+        "Lignes importées ou expliquées : 100 % (5 000/5 000)."
+      ],
+      "failures_known_by_report": "« assistance: Profile gives a direct visible entry on mobile and desktop », échoue aussi sur le commit V1.6.3 1e684f1 sans ce lot.",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Le paquet v23 n’est pas appliqué en production. Il suppose v21 et v22, eux aussi non appliqués",
+        "Aucune recette sur le S23 ni sur un compte réel",
+        "Le budget de 300 séances d’historique par jour est conservé tel quel ; le relever est une décision produit hors de ce lot.",
+        "Les rapports de lot ne figurent pas encore dans l’export « toutes mes données »",
+        "Le Playwright épinglé (1.56.1) : PW_CHROMIUM=/opt/pw-browsers/chromium. La CI GitHub n’a pas tourné sur ces commits."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Tronc commun des deux fourches ; contenu à la fois dans V1.6.5 et V1.7.7 (une seule intégration via V1.7.7).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.6.5",
+      "title": "Centre des sources connectées",
+      "chain": "JOURNAL-FORK-A",
+      "branch": "claude/hopeful-fermat-o35c8o",
+      "head_sha": "29424d8f0ea0f73f2e9488ac0d949f3b5d37ff6e",
+      "head_date": "2026-11-23T12:33:30+00:00",
+      "parent": "claude/great-brahmagupta-ujjwsf",
+      "parent_sha": "0730d3c0fe19aeb4cab98e4efe81570e0e995375",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 12
+      },
+      "own_commits": [
+        "29424d8f0ea0f73f2e9488ac0d949f3b5d37ff6e",
+        "b32f8509d9d6ab17990f8763865c89f0a9fd0f85",
+        "fcba9e9e34fd740b25f1e8d838c1f895cd55f02e",
+        "017de5009ea9524287429929a7cec5ab950c9d9f"
+      ],
+      "contained_in_chain_head": "claude/hopeful-fermat-o35c8o",
+      "contained_proof": "git merge-base --is-ancestor 29424d8f0ea0 29424d8f0ea0 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 6,
+        "sample": [
+          "css/ascension-app.css",
+          "js/app/profil.js",
+          "js/core/source-center.js",
+          "legal_privacy.html",
+          "profile.html",
+          "supprimer-mon-compte.html"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 11
+      },
+      "sql": {
+        "migration": "20261124090000_source_center.sql",
+        "version": "20261124090000",
+        "package": "release-v24 (variante A)",
+        "sql_test": "300_source_center.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.5.1",
+          "V1.8.1"
+        ]
+      },
+      "tests_files_changed": 7,
+      "tests_claimed_by_report": [
+        "pnpm run verify : vert, 828/828, dont tests/source-center.test.mjs 9/9.",
+        "pnpm run test:db : vert (dont 300_source_center.sql, tests Garmin existants, preuves V1.6.4 à 5 000 lignes).",
+        "Parcours navigateur : source-center 3/3. Avec 9 suites voisines rejouées : 393/394.",
+        "Android : npx jest 1 040/1 040 sur 118 suites, dont __tests__/sourceCenter.test.tsx 7/7 ; npx tsc --noEmit sans erreur.",
+        "Mesure : synchronisations interrompues reprises 100 %"
+      ],
+      "failures_known_by_report": "« assistance: Profile gives a direct visible entry on mobile and desktop », échoue aussi sur le commit V1.6.4 0730d3c sans ce lot ; « sur le commit V1.6.4 0730d3c, tests/coherence-offers.test.mjs échouait déjà, car il attendait l’ancien écran d’import Strava. L’assertion suit maintenant l’écran V1.6.4. »",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Aucune recette sur appareil ni compte réel : ni S23, ni vraie base Santé Connect, ni activité Garmin réelle. … aucune source n’est annoncée validée dans le produit.",
+        "Le paquet v24 n’est pas appliqué en production. Il suppose v21, v22 et v23, eux aussi non appliqués",
+        "Garmin reste hors pilote, faute d’activité réelle autorisée",
+        "Les lectures enregistrées ne figurent pas encore dans l’export « toutes mes données »",
+        "Le Playwright épinglé (1.56.1) : PW_CHROMIUM=/opt/pw-browsers/chromium. La CI GitHub n’a pas tourné sur ces commits."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Fourche A du journal, non contenue dans la chaîne sportive ; à réintégrer explicitement après V1.7.7 (conflits release-v24, manifest Android, textes légaux, coherence-offers).",
+      "v2_slot": "merge #3 (V1.6.5)"
+    },
+    {
+      "lot": "V1.6.6",
+      "title": "Journal longue durée",
+      "chain": "JOURNAL-FORK-B→SPORT",
+      "branch": "claude/kind-knuth-lqt1vg",
+      "head_sha": "897b731620a15eba9b72e8e8ebf9718310c71adb",
+      "head_date": "2026-11-23T13:52:05+00:00",
+      "parent": "claude/great-brahmagupta-ujjwsf",
+      "parent_sha": "0730d3c0fe19aeb4cab98e4efe81570e0e995375",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 10
+      },
+      "own_commits": [
+        "897b731620a15eba9b72e8e8ebf9718310c71adb",
+        "6cb9d6320f53cf0b6b829b15d920a380f247ce33"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor 897b731620a1 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 27,
+        "sample": [
+          "adventure.html",
+          "aujourdhui.html",
+          "boutique.html",
+          "carriere.html",
+          "coaching.html",
+          "css/ascension-app.css"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 21
+      },
+      "sql": {
+        "migration": "20261123180000_journal_long_duration.sql",
+        "version": "20261123180000",
+        "package": "release-v24 (variante B)",
+        "sql_test": "300_journal_long_duration.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 7,
+      "tests_claimed_by_report": [
+        "pnpm test : 825/826. Typage, build, audit (17 avertissements SEO existants) et garde de publication : verts.",
+        "pnpm run test:db : vert (dont 300_journal_long_duration.sql).",
+        "Parcours navigateur : journal-long-duration 1/1, avec 16 suites voisines : 432/438 au premier passage ; quatre parcours smoke corrigés passent (4/4).",
+        "Android : npx jest 1 037/1 038 sur 118 suites, dont journalLongDuration 5/5 ; après synchronisation depuis 6cb9d63 : 51/51. npx tsc --noEmit sans erreur.",
+        "Contrôle des agrégats : 15 contrôles sur deux appareils, 0 écart"
+      ],
+      "failures_known_by_report": "« privacy: the limits and the device-side features the policy quotes are the ones of the code », échoue aussi sur 0730d3c sans ce lot ; « Profil at 1440 px » a échoué une fois sous charge ; « assistance: Profile gives a direct visible entry » échoue aussi sur 0730d3c ; échec Android = empreinte provisoire du manifeste avant le commit Web.",
+      "flags_claimed_by_report": null,
+      "not_done_by_report": [
+        "Aucune recette sur le S23, ni avec un compte réel. Le réseau faible est un modèle, pas une mesure radio.",
+        "Le paquet v24 n’est pas appliqué : il suppose v21, v22 et v23, eux aussi non appliqués. D’ici là, une correction du dénivelé est refusée par le serveur",
+        "Les statistiques, objectifs et carrière ne signalent pas encore une copie partielle. La correction du dénivelé n’a pas été mesurée sur réseau faible.",
+        "Chiffres Android = modules partagés sous Node (V8, pas Hermes)",
+        "Le Playwright épinglé (1.56.1) : PW_CHROMIUM=/opt/pw-browsers/chromium. La CI GitHub n’a pas tourné sur ces commits."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Fourche B du journal ; contenue dans V1.7.7 (tête de chaîne).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.7.1",
+      "title": "Comparaisons justes",
+      "chain": "SPORT",
+      "branch": "claude/magical-darwin-p4e6cz",
+      "head_sha": "819fcfd84d0baa3203ee687c5b2c748bc4700ca4",
+      "head_date": "2026-11-23T14:17:49+00:00",
+      "parent": "claude/kind-knuth-lqt1vg",
+      "parent_sha": "897b731620a15eba9b72e8e8ebf9718310c71adb",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 12
+      },
+      "own_commits": [
+        "819fcfd84d0baa3203ee687c5b2c748bc4700ca4",
+        "8f78b3b40ff23d839ee01222cbc85ce470cf5950"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor 819fcfd84d0b 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 3,
+        "sample": [
+          "css/ascension-app.css",
+          "js/app/journal.js",
+          "js/core/progression.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 8
+      },
+      "sql": {
+        "migration": null,
+        "version": null,
+        "package": null,
+        "sql_test": null,
+        "applied_in_production": null,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "pnpm test : 842/843",
+        "tests/comparables.test.mjs 17/17",
+        "tests/progression.test.mjs 9/9",
+        "Typage, build et garde de publication : verts.",
+        "tests/e2e/comparables.e2e.mjs 3/3 (Chromium du conteneur, 390 × 900, PW_CHROMIUM=/opt/pw-browsers/chromium)",
+        "Suites voisines progression, one-seance-progres, journal-long-duration, sync-state, session-match et records-detail-context : 31/31.",
+        "Android : npx jest 1 051/1 051 sur 119 suites, dont comparables 13/13 et progression 3/3.",
+        "npx tsc --noEmit sans erreur.",
+        "Jeu d’épreuve partagé tests/fixtures/comparables-v171.json : 29 séances synthétiques, 8 cas."
+      ],
+      "failures_known_by_report": [
+        "« privacy: the limits and the device-side features the policy quotes are the ones of the code » (tests/coherence-offers.test.mjs), échoue aussi sur 897b731 sans ce lot (vérifié dans un arbre de travail séparé)."
+      ],
+      "flags_claimed_by_report": [],
+      "not_done_by_report": [
+        "Aucune recette sur un appareil ou un émulateur Android : aucun appareil n’est attaché à ce conteneur.",
+        "Le format des dates sous Hermes n’est pas vérifié.",
+        "Aucun compte réel ni historique de production : le jeu est synthétique.",
+        "La mesure du cahier des charges (part des testeurs qui retrouvent la comparaison source et en expliquent la limite) n’a pas été faite.",
+        "L’évolution par discipline et la comparaison de périodes de la page Statistiques gardent leur calcul : la médiane d’allure par discipline mélange encore distances et parcours.",
+        "Les accents des noms d’exercices ne sont pas normalisés",
+        "La CI GitHub n’a pas tourné sur ces commits."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Contenu dans V1.7.7 ; aucune migration propre (état client game_state.user.schedule via titan_save_profile_state).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.7.2",
+      "title": "Planifié et réalisé",
+      "chain": "SPORT",
+      "branch": "claude/kind-wright-0fxi1d",
+      "head_sha": "fcb8e33fee2003a4b7a7db56f9293edec6b7fe34",
+      "head_date": "2026-11-23T14:49:39+00:00",
+      "parent": "claude/magical-darwin-p4e6cz",
+      "parent_sha": "819fcfd84d0baa3203ee687c5b2c748bc4700ca4",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 14
+      },
+      "own_commits": [
+        "fcb8e33fee2003a4b7a7db56f9293edec6b7fe34",
+        "9871a4235f11ad4720bb880118f827119f5cec35"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor fcb8e33fee20 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 12,
+        "sample": [
+          "aujourdhui.html",
+          "css/ascension-app.css",
+          "js/app/data.js",
+          "js/app/prevoir.js",
+          "js/app/qg.js",
+          "js/app/semaine.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 13
+      },
+      "sql": {
+        "migration": null,
+        "version": null,
+        "package": null,
+        "sql_test": null,
+        "applied_in_production": null,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tests/week-plan.test.mjs 32/32",
+        "pnpm test : 874/875",
+        "Typage, build, audit (0 erreur) et garde de publication : verts.",
+        "tests/e2e/week-plan.e2e.mjs 7/7 (Chromium du conteneur, 390 × 1400, horloge fixée au samedi 21 novembre 2026)",
+        "Suites voisines planner-context, planner-keyboard, weekly-detail, qg-context, qg-shortcuts, week-focus, progression, one-seance-progres, profile-sync et comparables : 68/68.",
+        "Android : npx jest 1 075/1 075 sur 120 suites, dont weekPlan 24/24",
+        "npx tsc --noEmit sans erreur.",
+        "Jeu d’épreuve partagé tests/fixtures/week-plan-v172.json : 11 séances synthétiques ; 18 cas."
+      ],
+      "failures_known_by_report": [
+        "« privacy: the limits and the device-side features the policy quotes are the ones of the code » (tests/coherence-offers.test.mjs), échoue aussi sans ce lot : vérifié en remisant les modifications sur 819fcfd."
+      ],
+      "flags_claimed_by_report": [],
+      "not_done_by_report": [
+        "Aucune recette sur un appareil ou un émulateur Android : aucun appareil n’est attaché à ce conteneur.",
+        "le calcul du jour dans un autre fuseau sous Hermes (Intl avec timeZone) n’est pas vérifié.",
+        "Aucun compte réel ni donnée de production : le jeu est synthétique.",
+        "La mesure du cahier des charges (part des occurrences dont l’état est compris et corrigé spontanément) n’a pas été faite.",
+        "« Mêmes décisions sur les deux appareils » ... n’a pas été observé entre deux appareils réels.",
+        "Android affiche « Non enregistré » et il faut refaire le choix après actualisation. Il n’y a pas de fusion automatique en arrière-plan. Hors ligne, Android n’enregistre pas une décision",
+        "Les propositions coach ne sont pas touchées.",
+        "La CI GitHub n’a pas tourné sur ces commits."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Contenu dans V1.7.7 ; aucune migration propre (état client game_state.user.schedule via titan_save_profile_state).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.7.3",
+      "title": "Bilan et ajustements",
+      "chain": "SPORT",
+      "branch": "claude/zen-lamport-vhfm6h",
+      "head_sha": "4de371f507a761b91d43b9b626cf83f8f436d474",
+      "head_date": "2026-11-23T15:17:27+00:00",
+      "parent": "claude/kind-wright-0fxi1d",
+      "parent_sha": "fcb8e33fee2003a4b7a7db56f9293edec6b7fe34",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 16
+      },
+      "own_commits": [
+        "4de371f507a761b91d43b9b626cf83f8f436d474",
+        "118fce851ff63dd6d138b1741965977a82aba7f5"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor 4de371f507a7 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 10,
+        "sample": [
+          "css/ascension-app.css",
+          "js/app/data.js",
+          "js/app/prevoir.js",
+          "js/app/semaine.js",
+          "js/app/week-plan-view.js",
+          "js/app/week-review-view.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 11
+      },
+      "sql": {
+        "migration": null,
+        "version": null,
+        "package": null,
+        "sql_test": null,
+        "applied_in_production": null,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tests/week-review.test.mjs 33/33",
+        "tests/week-plan.test.mjs (V1.7.2) toujours vert, 65/65 avec le bilan",
+        "pnpm test : 907/908",
+        "Typage, build, garde de publication : verts.",
+        "Audit public : 0 erreur, 17 avertissements, nombre identique avant et après le lot.",
+        "tests/e2e/week-review.e2e.mjs 5/5 (Chromium du conteneur, 390 × 1600, horloge fixée aux dimanches 22 et 29 novembre 2026, fuseau Europe/Paris)",
+        "Suites voisines week-plan, planner-context, weekly-detail, qg-context, week-focus, profile-sync et planner-keyboard : 62/62.",
+        "Android : npx jest 1 099/1 099 sur 121 suites, dont weekReview 24/24",
+        "weekPlan (V1.7.2) reste à 24/24. npx tsc --noEmit sans erreur.",
+        "Jeu d’épreuve partagé tests/fixtures/week-review-v173.json : 18 séances synthétiques, 18 cas."
+      ],
+      "failures_known_by_report": [
+        "« privacy: the limits and the device-side features the policy quotes are the ones of the code » (tests/coherence-offers.test.mjs), est le même qu’en V1.7.1 et V1.7.2, déjà présent sans ce lot.",
+        "Sur le site, Progrès › Semaine se redessine à l’arrivée des objectifs et des quêtes, ce qui referme la liste des séances sources si elle était ouverte (comportement de rendu existant)."
+      ],
+      "flags_claimed_by_report": [],
+      "not_done_by_report": [
+        "Aucune recette sur un appareil ou un émulateur Android : aucun appareil n’est attaché à ce conteneur.",
+        "La preuve Android repose sur Jest (Node, pas Hermes) et React Native Testing Library.",
+        "Aucun compte réel ni donnée de production : le jeu est synthétique.",
+        "La mesure du cahier des charges est calculable depuis les données enregistrées avec measure(), mais aucun événement d’analyse n’est envoyé, et elle n’a pas été mesurée auprès de sportifs.",
+        "Sur Android, un conflit de version à l’enregistrement affiche toujours « Non enregistré », comme en V1.7.2, et hors ligne rien n’est enregistré.",
+        "La CI GitHub n’a pas tourné sur ces commits."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Contenu dans V1.7.7 ; aucune migration propre (état client game_state.user.schedule via titan_save_profile_state).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.7.4",
+      "title": "Objectifs et blocs d’entraînement",
+      "chain": "SPORT",
+      "branch": "claude/lucid-bardeen-p44mhj",
+      "head_sha": "0572d7422f3510be8200ab8aafe4c995ea06e185",
+      "head_date": "2026-11-23T15:53:48+00:00",
+      "parent": "claude/zen-lamport-vhfm6h",
+      "parent_sha": "4de371f507a761b91d43b9b626cf83f8f436d474",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 18
+      },
+      "own_commits": [
+        "0572d7422f3510be8200ab8aafe4c995ea06e185",
+        "5ee050fe3e2c05aa957d87a90381959d9f5e2aca"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor 0572d7422f35 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 11,
+        "sample": [
+          "aujourdhui.html",
+          "css/ascension-app.css",
+          "js/app/data.js",
+          "js/app/prevoir.js",
+          "js/app/semaine.js",
+          "js/app/training-block-view.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 10
+      },
+      "sql": {
+        "migration": null,
+        "version": null,
+        "package": null,
+        "sql_test": null,
+        "applied_in_production": null,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tests/training-block.test.mjs 31/31",
+        "tests/week-plan.test.mjs et tests/week-review.test.mjs restent verts, 65/65",
+        "pnpm test : 938/939",
+        "Typage, build : verts. Audit public : 0 erreur, 17 avertissements, comme en V1.7.3.",
+        "tests/e2e/training-block.e2e.mjs 8/8 (Chromium du conteneur, 390 × 1800, fuseau Europe/Paris, horloge fixée du 1er novembre au 13 décembre 2026)",
+        "Suites voisines week-plan, week-review, planner-context, planner-keyboard, weekly-detail, qg-context, qg-shortcuts, week-focus, profile-sync, one-seance-progres, progression et goals-views : 86/86.",
+        "Android : npx jest 1 118/1 118 sur 122 suites, dont trainingBlock 19/19",
+        "npx tsc --noEmit sans erreur. Weekplan et weekReview restent verts.",
+        "Jeu d’épreuve partagé tests/fixtures/training-block-v174.json : 13 séances synthétiques, 14 cas."
+      ],
+      "failures_known_by_report": [
+        "« privacy: the limits and the device-side features the policy quotes are the ones of the code » (tests/coherence-offers.test.mjs), échoue aussi sur 4de371f sans ce lot : vérifié dans une copie de travail de ce commit.",
+        "Pendant un bloc, l’ajustement V1.7.3 « ma semaine type » ne change que les semaines d’après le bloc et son aperçu peut indiquer « Aucun jour ne change » : la phrase n’a pas été reprise dans ce lot."
+      ],
+      "flags_claimed_by_report": [],
+      "not_done_by_report": [
+        "Aucune recette sur un appareil ou un émulateur Android : aucun appareil n’est attaché à ce conteneur.",
+        "La preuve Android repose sur Jest (Node, pas Hermes) et React Native Testing Library.",
+        "Aucun compte réel ni donnée de production : le jeu est synthétique.",
+        "La mesure du cahier des charges est calculable avec measure() ... mais aucun événement d’analyse n’est envoyé et elle n’a pas été mesurée auprès de sportifs.",
+        "La CI GitHub n’a pas tourné sur ces commits.",
+        "« Cohérent entre appareils » est prouvé par le module partagé, la fusion dans les deux ordres et la relecture du même schedule, pas entre deux appareils réels.",
+        "Sur Android, réviser une semaine jour par jour, ajouter ou modifier un jalon et dupliquer un bloc se font sur le site"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Contenu dans V1.7.7 ; aucune migration propre (état client game_state.user.schedule via titan_save_profile_state).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.7.5",
+      "title": "Analyse avancée par discipline",
+      "chain": "SPORT",
+      "branch": "claude/awesome-mayer-cohg7j",
+      "head_sha": "a07e25e2c65412db8904a5ffa3def62104f6b0c4",
+      "head_date": "2026-11-23T16:25:05+00:00",
+      "parent": "claude/lucid-bardeen-p44mhj",
+      "parent_sha": "0572d7422f3510be8200ab8aafe4c995ea06e185",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 21
+      },
+      "own_commits": [
+        "a07e25e2c65412db8904a5ffa3def62104f6b0c4",
+        "8e090f317c6626d3cf44760b7eb1c561e0501f50",
+        "6c573b650a3c5b89a7f987a3e372e28f4768d6f5"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor a07e25e2c654 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 7,
+        "sample": [
+          "css/ascension-app.css",
+          "journal.html",
+          "js/app/discipline-analysis-view.js",
+          "js/app/semaine.js",
+          "js/core/discipline-analysis.js",
+          "js/core/progression.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 10
+      },
+      "sql": {
+        "migration": null,
+        "version": null,
+        "package": null,
+        "sql_test": null,
+        "applied_in_production": null,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tests/discipline-analysis.test.mjs 24/24",
+        "pnpm test : 962/963",
+        "Typage, build, garde de publication : verts. Audit public : 0 erreur, 17 avertissements, comme en V1.7.4.",
+        "tests/e2e/discipline-analysis.e2e.mjs 5/5 (Chromium du conteneur, 390 × 2200, fuseau UTC, horloge fixée au 20 novembre 2026) ; axe-core sans violation WCAG A ou AA dans les trois vues remplies",
+        "Suites voisines progression, comparables, training-block, week-review, week-plan, weekly-detail, one-seance-progres et week-focus : 43/43 avec ce lot ; accessibility-axe et viewports : 3/3.",
+        "Android : npx jest 1 136/1 136 sur 123 suites, dont disciplineAnalysis 18/18",
+        "npx tsc --noEmit sans erreur.",
+        "tests/fixtures/discipline-analysis-v175.json : 32 séances synthétiques ..., 13 cas"
+      ],
+      "failures_known_by_report": [
+        "« privacy: the limits and the device-side features the policy quotes are the ones of the code », échoue aussi sur 0572d74 sans ce lot (vérifié dans une copie de travail de ce commit)."
+      ],
+      "flags_claimed_by_report": [],
+      "not_done_by_report": [
+        "Aucune recette sur un appareil ou un émulateur Android : aucun appareil n’est attaché à ce conteneur (liste des appareils locaux vide).",
+        "La preuve Android repose sur Jest (Node, pas Hermes) et React Native Testing Library.",
+        "Aucun compte réel ni donnée de production : le jeu est synthétique.",
+        "La CI GitHub n’a pas tourné sur ces commits.",
+        "La mesure du cahier des charges (test observé) n’a pas été faite.",
+        "Tenue et écart entre kilomètres n’existent qu’avec une trace GPS découpée au kilomètre, que le site garde et qu’Android n’enregistre pas lors d’une saisie sur le téléphone."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Contenu dans V1.7.7 ; aucune migration propre (état client game_state.user.schedule via titan_save_profile_state).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.7.6",
+      "title": "Scénarios multisports",
+      "chain": "SPORT",
+      "branch": "claude/blissful-albattani-wms5p8",
+      "head_sha": "21a0cbad3db3b6bbb2411fe2e75a93224ee68996",
+      "head_date": "2026-11-24T08:12:17+00:00",
+      "parent": "claude/awesome-mayer-cohg7j",
+      "parent_sha": "a07e25e2c65412db8904a5ffa3def62104f6b0c4",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 23
+      },
+      "own_commits": [
+        "21a0cbad3db3b6bbb2411fe2e75a93224ee68996",
+        "ce4a5c0b196d5ea1373f9db1ee655fc5f3c1ddd3"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor 21a0cbad3db3 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 11,
+        "sample": [
+          "aujourdhui.html",
+          "css/ascension-app.css",
+          "js/app/block-scenario-view.js",
+          "js/app/data.js",
+          "js/app/prevoir.js",
+          "js/app/semaine.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 11
+      },
+      "sql": {
+        "migration": null,
+        "version": null,
+        "package": null,
+        "sql_test": null,
+        "applied_in_production": null,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tests/block-scenario.test.mjs 28/28",
+        "tests/training-block.test.mjs, tests/week-plan.test.mjs et tests/week-review.test.mjs restent verts, 96/96",
+        "pnpm test : 990/991",
+        "Contrôles des scripts et des ressources publiques, jetons CSS : verts.",
+        "tests/e2e/block-scenario.e2e.mjs 6/6 (Chromium du conteneur (/opt/pw-browsers/chromium), 390 × 1800, fuseau Europe/Paris, horloge fixée du 24 novembre au 6 décembre 2026)",
+        "Avec les suites voisines training-block, week-plan, week-review, planner-context et qg-context : 62/62.",
+        "Android : npx jest 1 155/1 155 sur 124 suites, dont blockScenario 19/19",
+        "npx tsc --noEmit sans erreur.",
+        "Jeu d’épreuve partagé tests/fixtures/block-scenario-v176.json : 13 séances synthétiques, 14 cas."
+      ],
+      "failures_known_by_report": [
+        "« privacy: the limits and the device-side features the policy quotes are the ones of the code » (tests/coherence-offers.test.mjs), échoue aussi sur a07e25e sans ce lot : vérifié dans une copie de travail de ce commit.",
+        "Après une annulation, une semaine qui porte une décision V1.7.2 garde les mêmes jours, occurrences, décisions et liaisons, mais sa référence est étiquetée « bloc » au lieu de « semaine gardée » dans les données ; le texte affiché est le même."
+      ],
+      "flags_claimed_by_report": [],
+      "not_done_by_report": [
+        "Aucune recette sur un appareil ou un émulateur Android : aucun appareil n’est attaché à ce conteneur.",
+        "La preuve Android repose sur Jest (Node, pas Hermes) et React Native Testing Library.",
+        "Aucun compte réel ni donnée de production : le jeu est synthétique.",
+        "La CI GitHub n’a pas tourné sur ces commits.",
+        "Sur Android, créer une comparaison et modifier une variante jour par jour se font sur le site.",
+        "la compréhension des hypothèses n’est pas mesurable dans le code et aucun événement d’analyse n’est envoyé."
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Contenu dans V1.7.7 ; aucune migration propre (état client game_state.user.schedule via titan_save_profile_state).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.7.7",
+      "title": "GPS et navigation sportive",
+      "chain": "SPORT",
+      "branch": "claude/gifted-brahmagupta-mg28j8",
+      "head_sha": "52a209bdbb1a2aba95e6864f61060fa805384c6a",
+      "head_date": "2026-11-26T08:01:38+00:00",
+      "parent": "claude/blissful-albattani-wms5p8",
+      "parent_sha": "21a0cbad3db3b6bbb2411fe2e75a93224ee68996",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 40
+      },
+      "own_commits": [
+        "52a209bdbb1a2aba95e6864f61060fa805384c6a",
+        "807786915a12916a2148bba8f385de984198cc36",
+        "2710d38b26de32b09427cbd4b329959a5ded5043",
+        "53806593f2aaddeac90f86adf72d22657d2d04df",
+        "92658d329a6a5a85f45161b9184ce592eae1af27",
+        "5b7774d46693a2053b6ddcae5c6f9db5249fcd1f",
+        "1302e665afa59b5ec5845c5acb24b72586654b9e",
+        "6f394fe568f49c8d0e68de2250b2692ed93f4597",
+        "149990f3cb58d03c9dc54d2b6c4de463b043c231",
+        "9899c18a68102a537c1db896c3f4ff0a8391822a",
+        "cd3e7187a54ea7220ee26cb86c108b01532b7d60",
+        "fec22da2e46cffec2e6a17dd8a6671db3489d898",
+        "131526b68acc8a41e99c6211ff79107e21d85606",
+        "e37904a4637bc7983097270521d362b8a9be4b04",
+        "f09813bfde6f8d35bf75fc0e70c2cf4fc9f96e18",
+        "d207dcbff4fb5fbd0677f016a59f409d55810e30",
+        "240f011a9da9cdae61c9ee98c9d3464441c3c329"
+      ],
+      "contained_in_chain_head": "claude/gifted-brahmagupta-mg28j8",
+      "contained_proof": "git merge-base --is-ancestor 52a209bdbb1a 52a209bdbb1a → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 18,
+        "sample": [
+          "css/ascension-app.css",
+          "css/ascension.css",
+          "journal.html",
+          "js/app/journal.js",
+          "js/app/lieux.js",
+          "js/app/parcours.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 52
+      },
+      "sql": {
+        "migration": "20261125170000_gps_navigation.sql",
+        "version": "20261125170000",
+        "package": "release-v25 (journal/GPS)",
+        "sql_test": "300_gps_navigation.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 35,
+      "tests_claimed_by_report": [
+        "Moteur partagé : 32 tests sur des sorties synthétiques aux résultats calculés à l’avance",
+        "Web, pnpm test sur la tête finale : 1 114 tests, 1 113 réussis",
+        "Contrôle de types du moteur : sans erreur.",
+        "Fonctions route-plan et poi-nearby : 32/32",
+        "Parcours navigateur V1.7.7 : 29/29",
+        "Parcours navigateur voisins (navigation, journal, accessibilité, V1.6–V1.7.6) : 415 parcours ..., 412 réussis.",
+        "Android : tsc sans erreur ; Jest 136 suites, 1 276 tests réussis (124 suites et 1 155 tests avant ce lot)",
+        "paquet Android (expo export:embed) construit.",
+        "Base de données : pnpm run test:db, toutes les migrations rejouées sur une réplique propre puis les tests SQL, dont 300_gps_navigation ... : réussi."
+      ],
+      "failures_known_by_report": [
+        "« privacy: the limits and the device-side features… », une expression régulière qui cherche une ligne réécrite en V1.6.4 — déjà présent sur la base V1.7.6",
+        "le compte des pages qui chargent la barre de navigation (18 → 19 avec sortie.html), corrigé ensuite et rejoué seul avec succès",
+        "« Profile gives a direct visible entry » (lien Assistance du Profil) — échoue à l’identique sur la base V1.7.6 seule (rejoué sur 21a0cba)",
+        "« public card actions: bearer stays A » — échoue à l’identique sur la base V1.7.6 seule (rejoué sur 21a0cba)"
+      ],
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.gps",
+          "state": "à créer (éteint par défaut)"
+        }
+      ],
+      "not_done_by_report": [
+        "Testé sur appareil : non, aucun téléphone n’est attaché au conteneur.",
+        "Prêt à publier : non — il faut d’abord la recette S23, l’application de v25, et pour la planification et les points utiles un fournisseur configuré. Publié : non.",
+        "Rien n’a été essayé sur un téléphone ni dehors : arrière-plan écran verrouillé avec positions toutes les 2 s, vibration depuis la tâche de fond, batterie, lisibilité au soleil, TalkBack.",
+        "Les adaptateurs de routage et de points utiles n’ont jamais parlé aux vrais services (hôtes bloqués depuis le conteneur)",
+        "Migration 20261125170000_gps_navigation.sql (release-v25) NON appliquée ; Paquet v25 ... (non rejoué par moi)",
+        "Les quatre migrations V1.6 de la chaîne (20261123…) restent non appliquées en production (tête de production 20261122090000).",
+        "Aucun compte fournisseur créé (rien n’a été créé ni dépensé) ; openrouteservice : conditions pour un produit payant non lues ; chiffres de prix à confirmer (pages officielles injoignables)",
+        "drapeau screens.gps à créer",
+        "politique de confidentialité Version 16 et page de suppression Version 6 (non publiées)",
+        "Pas de recherche d’adresse ; pas de carte hors ligne ; pas de modification de la position d’un point personnel.",
+        "Captures Android : vrais écrans rendus dans un navigateur ... ce n’est pas un téléphone"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Codé, pas prêt à publier : fournisseurs routage/POI/fond de carte non configurés, aucune recette terrain, release-v25 non appliqué, drapeau screens.gps à créer (absent de la production).",
+      "v2_slot": "merge #2 via V1.7.7"
+    },
+    {
+      "lot": "V1.8.1",
+      "title": "Relais de cordée",
+      "chain": "COOP",
+      "branch": "claude/elegant-heisenberg-tl2yct",
+      "head_sha": "caaa302f86297513b2e46f9e9f6010ef7dada4cd",
+      "head_date": "2026-11-24T08:43:50+00:00",
+      "parent": "main",
+      "parent_sha": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 2
+      },
+      "own_commits": [
+        "caaa302f86297513b2e46f9e9f6010ef7dada4cd",
+        "d395aa0d5e3851e162984f840fadeee7734e81d5"
+      ],
+      "contained_in_chain_head": "claude/sweet-cannon-ulls05",
+      "contained_proof": "git merge-base --is-ancestor caaa302f8629 c7e0223ffaf8 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 3,
+        "sample": [
+          "css/one-communaute.css",
+          "js/app/cordee.js",
+          "js/core/cordee.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 16
+      },
+      "sql": {
+        "migration": "20261124090000_cordee_relay.sql",
+        "version": "20261124090000",
+        "package": "release-v21",
+        "sql_test": "300_cordee_relay.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.5.1",
+          "V1.6.5"
+        ]
+      },
+      "tests_files_changed": 6,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh complet sur PostgreSQL 16.15 jetable: « OK: migrations and tests passed on a clean replica. »",
+        "tools/db/test-cordee-relay-concurrency.sh: b reçoit RELAY_ALREADY_OPEN, une seule ligne",
+        "Paquet v21 répété: 00-check-before ok = true, 01 appliqué, 99-check-after ok = true, second passage refusé « already registered »",
+        "pnpm run verify vert (pnpm test 786/786 dont tests/cordee.test.mjs 9/9)",
+        "tests/e2e/cordee-relay.e2e.mjs 7/7; non-régression grande-cordee, one-communaute, social-digest et duel-links 14/14",
+        "npx jest 1 021/1 021 sur 115 suites, dont cordeeRelay 8/8 et communityInvite 11/11",
+        "npm run typecheck sans erreur; expo export:embed Android en production réussi (bundle de 3,8 Mo)"
+      ],
+      "failures_known_by_report": null,
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.cordee_relay",
+          "default": "fermé par défaut"
+        }
+      ],
+      "not_done_by_report": [
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit",
+        "vérification de l’App Link dépend de assetlinks.json sur titan-app.fr (empreinte de signature Play)",
+        "Le retour au lien après une connexion faite depuis l’application ... non revérifié ici",
+        "Rien n’est appliqué en production et le drapeau est fermé",
+        "la CI GitHub n’a pas tourné sur ces commits",
+        "aucun tableau de bord ne l’affiche (mesure)"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #5"
+    },
+    {
+      "lot": "V1.8.2",
+      "title": "Reprise et relais facultatifs",
+      "chain": "COOP",
+      "branch": "claude/keen-cannon-h937pw",
+      "head_sha": "ade9ae19546fbe0751b377b199bb0074bf3bf81b",
+      "head_date": "2026-11-24T09:15:10+00:00",
+      "parent": "claude/elegant-heisenberg-tl2yct",
+      "parent_sha": "caaa302f86297513b2e46f9e9f6010ef7dada4cd",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 4
+      },
+      "own_commits": [
+        "ade9ae19546fbe0751b377b199bb0074bf3bf81b",
+        "6ae1c056113142214c6b7fcb0f47ba2a9e0917b0"
+      ],
+      "contained_in_chain_head": "claude/sweet-cannon-ulls05",
+      "contained_proof": "git merge-base --is-ancestor ade9ae19546f c7e0223ffaf8 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 3,
+        "sample": [
+          "css/one-communaute.css",
+          "js/app/cordee.js",
+          "js/core/cordee.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 8
+      },
+      "sql": {
+        "migration": "20261125090000_cordee_reprise.sql",
+        "version": "20261125090000",
+        "package": "release-v22",
+        "sql_test": "300_cordee_reprise.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.5.2"
+        ]
+      },
+      "tests_files_changed": 4,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh complet (1 min 19 s): « OK: migrations and tests passed on a clean replica. »",
+        "deux contrats de concurrence OK (RELAY_ALREADY_OPEN; RELAY_HANDOVER_TAKEN)",
+        "Paquet v22: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé « already registered »",
+        "pnpm run verify vert (pnpm test 791/791 dont tests/cordee.test.mjs 12/12)",
+        "Parcours navigateur 26/26 dont cordee-reprise 5/5",
+        "npx jest 1 027/1 027 sur 116 suites, dont cordeeReprise 6/6; tsc --noEmit sans erreur; expo export:embed Android réussi (3,8 Mo)"
+      ],
+      "failures_known_by_report": "Défaut trouvé et corrigé pendant le lot : après un refus du serveur, le panneau [Android] ne relisait pas la cordée",
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.cordee_reprise",
+          "default": "fermé par défaut"
+        }
+      ],
+      "not_done_by_report": [
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit",
+        "le dépôt épingle Playwright 1.56.1, dont le navigateur n’est pas présent ici, et le lancement a été pointé vers /opt/pw-browsers/chromium par un petit module de session non versionné",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, les drapeaux sont fermés"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Règles de départ/visibilité actives sans drapeau dès la migration (selon rapport) : la migration ne doit pas précéder la publication des clients Web et Android.",
+      "v2_slot": "merge #5"
+    },
+    {
+      "lot": "V1.8.3",
+      "title": "Un groupe qui se retrouve",
+      "chain": "COOP",
+      "branch": "claude/compassionate-planck-lnjxkv",
+      "head_sha": "a12beb4d8853ea5e3b0395cc91e86bc6a7a5d3dd",
+      "head_date": "2026-11-24T10:06:35+00:00",
+      "parent": "claude/keen-cannon-h937pw",
+      "parent_sha": "ade9ae19546fbe0751b377b199bb0074bf3bf81b",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 6
+      },
+      "own_commits": [
+        "a12beb4d8853ea5e3b0395cc91e86bc6a7a5d3dd",
+        "019e658ae0d58a01dc0eb9f57c6a26009ba093bc"
+      ],
+      "contained_in_chain_head": "claude/sweet-cannon-ulls05",
+      "contained_proof": "git merge-base --is-ancestor a12beb4d8853 c7e0223ffaf8 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 8,
+        "sample": [
+          "changelog.html",
+          "css/one-communaute.css",
+          "js/app/cordee.js",
+          "js/app/retour.js",
+          "js/core/cordee.js",
+          "js/core/social-digest.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 9
+      },
+      "sql": {
+        "migration": "20261126090000_cordee_suite.sql",
+        "version": "20261126090000",
+        "package": "release-v23",
+        "sql_test": "300_cordee_suite.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.5.3"
+        ]
+      },
+      "tests_files_changed": 6,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 138 fichiers sql/tests/300_*",
+        "trois contrats de concurrence de la Cordée verts",
+        "Paquet v23: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé",
+        "pnpm run verify vert (pnpm test 798/798 dont tests/cordee.test.mjs 16/16)",
+        "Parcours navigateur 30/30 dont cordee-suite 4/4",
+        "npx jest 1 032/1 032 sur 117 suites, dont cordeeSuite 5/5; tsc --noEmit sans erreur; expo export:embed réussi (3,8 Mo)"
+      ],
+      "failures_known_by_report": null,
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.cordee_suite",
+          "default": "fermé par défaut"
+        }
+      ],
+      "not_done_by_report": [
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit; TalkBack non vérifié",
+        "Chromium du conteneur via PW_CHROMIUM (le Chromium épinglé par Playwright 1.56.1 n’est pas présent)",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, le drapeau est fermé",
+        "relecture juridique recommandée avant publication"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Règles de départ/visibilité actives sans drapeau dès la migration (selon rapport) : la migration ne doit pas précéder la publication des clients Web et Android.",
+      "v2_slot": "merge #5"
+    },
+    {
+      "lot": "V1.8.4",
+      "title": "Saisons privées de club",
+      "chain": "COOP",
+      "branch": "claude/serene-turing-bi4f2i",
+      "head_sha": "f546cafc229a2168405c3f4b150431b198ce4e68",
+      "head_date": "2026-11-24T11:33:40+00:00",
+      "parent": "claude/compassionate-planck-lnjxkv",
+      "parent_sha": "a12beb4d8853ea5e3b0395cc91e86bc6a7a5d3dd",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 8
+      },
+      "own_commits": [
+        "f546cafc229a2168405c3f4b150431b198ce4e68",
+        "eef981a7773f14f5406e5cf5501a4fc50d38256b"
+      ],
+      "contained_in_chain_head": "claude/sweet-cannon-ulls05",
+      "contained_proof": "git merge-base --is-ancestor f546cafc229a c7e0223ffaf8 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 6,
+        "sample": [
+          "changelog.html",
+          "js/app/clubs.js",
+          "js/core/club-season.js",
+          "legal_privacy.html",
+          "social.html",
+          "supprimer-mon-compte.html"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 9
+      },
+      "sql": {
+        "migration": "20261127090000_club_season.sql",
+        "version": "20261127090000",
+        "package": "release-v24",
+        "sql_test": "300_club_season.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.5.4"
+        ]
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 139 fichiers sql/tests/300_*; quatre contrats de concurrence sociaux verts",
+        "tools/db/test-club-season-concurrency.sh: arrêt attend le verrou du club",
+        "Paquet v24: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé",
+        "pnpm run verify vert (pnpm test 806/806 dont tests/club-season.test.mjs 6/6)",
+        "tests/e2e/club-season.e2e.mjs 3/3, six passages consécutifs verts; 21/21 avec non-régression",
+        "npx jest 1 038/1 038 sur 118 suites, dont clubSeason 6/6; tsc --noEmit sans erreur; expo export:embed réussi (3,85 Mo)"
+      ],
+      "failures_known_by_report": null,
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.club_season",
+          "default": "fermé par défaut"
+        },
+        {
+          "name": "screens.clubs",
+          "default": "déjà ouvert"
+        }
+      ],
+      "not_done_by_report": [
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit; TalkBack non vérifié",
+        "Chromium du conteneur (PW_CHROMIUM) et un serveur simulé",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, le drapeau est fermé",
+        "relecture juridique recommandée avant publication",
+        "aucun tableau de bord ne l’affiche"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #5"
+    },
+    {
+      "lot": "V1.8.5",
+      "title": "Rencontres entre clubs",
+      "chain": "COOP",
+      "branch": "claude/focused-turing-vycm1j",
+      "head_sha": "a799bfe3a0bd0aaee61a8c812b3955bb575f28ac",
+      "head_date": "2026-11-24T13:24:02+00:00",
+      "parent": "claude/serene-turing-bi4f2i",
+      "parent_sha": "f546cafc229a2168405c3f4b150431b198ce4e68",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 10
+      },
+      "own_commits": [
+        "a799bfe3a0bd0aaee61a8c812b3955bb575f28ac",
+        "b46a14bd50ced4fae11c95a72abc005453796fb7"
+      ],
+      "contained_in_chain_head": "claude/sweet-cannon-ulls05",
+      "contained_proof": "git merge-base --is-ancestor a799bfe3a0bd c7e0223ffaf8 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 6,
+        "sample": [
+          "changelog.html",
+          "js/app/clubs.js",
+          "js/core/club-match.js",
+          "legal_privacy.html",
+          "social.html",
+          "supprimer-mon-compte.html"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 9
+      },
+      "sql": {
+        "migration": "20261128090000_club_match.sql",
+        "version": "20261128090000",
+        "package": "release-v25",
+        "sql_test": "300_club_match.sql",
+        "applied_in_production": false,
+        "version_collision_with": [
+          "V1.5.5"
+        ]
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 140 fichiers sql/tests/300_*",
+        "tools/db/test-club-match-concurrency.sh: second reçoit MATCH_CODE, une seule rencontre acceptée",
+        "Paquet v25: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé",
+        "pnpm run verify vert (pnpm test 818/818 dont tests/club-match.test.mjs 10/10)",
+        "tests/e2e/club-match.e2e.mjs 4/4, six passages consécutifs verts; 25/25 avec non-régression",
+        "npx jest 1 044/1 044 sur 119 suites, dont clubMatch 6/6; tsc --noEmit sans erreur; expo export:embed réussi (3,87 Mo)",
+        "Simulations tools/simulate-club-match.mjs, graine fixe, 20 000 tirages par ligne → docs/V185_SIMULATIONS.md"
+      ],
+      "failures_known_by_report": null,
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.club_match",
+          "default": "fermé par défaut"
+        },
+        {
+          "name": "screens.club_match_versus",
+          "default": "reste fermé (mode comparatif implémenté)"
+        },
+        {
+          "name": "screens.clubs",
+          "default": "déjà ouvert"
+        }
+      ],
+      "not_done_by_report": [
+        "Le pilote n’a pas eu lieu : aucune rencontre réelle complétée, aucun avis",
+        "La dépendance V1.8.4 n’est pas encore prouvée avec un groupe pilote (condition « V1.8.4 prouvée avec au moins un groupe pilote » n’est donc pas remplie)",
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit; TalkBack non vérifié",
+        "Les simulations reposent sur un modèle de comportement synthétique",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, les deux drapeaux sont fermés",
+        "relecture juridique recommandée"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": "Prérequis du lot non rempli selon son rapport (V1.8.4 prouvée avec un groupe pilote) ; mode comparatif screens.club_match_versus reste fermé : intégrer le code, ne pas ouvrir.",
+      "v2_slot": "merge #5"
+    },
+    {
+      "lot": "V1.8.6",
+      "title": "Agenda et rendez-vous d’équipe",
+      "chain": "COOP",
+      "branch": "claude/sweet-cannon-ulls05",
+      "head_sha": "c7e0223ffaf87fe7c78dc94905735e216da56b8d",
+      "head_date": "2026-11-24T14:16:47+00:00",
+      "parent": "claude/focused-turing-vycm1j",
+      "parent_sha": "a799bfe3a0bd0aaee61a8c812b3955bb575f28ac",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 12
+      },
+      "own_commits": [
+        "c7e0223ffaf87fe7c78dc94905735e216da56b8d",
+        "eed5cabc0f005b9b95b90fb41c36976895f35424"
+      ],
+      "contained_in_chain_head": "claude/sweet-cannon-ulls05",
+      "contained_proof": "git merge-base --is-ancestor c7e0223ffaf8 c7e0223ffaf8 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 7,
+        "sample": [
+          "changelog.html",
+          "js/app/clubs.js",
+          "js/core/club-agenda.js",
+          "js/core/social-digest.js",
+          "legal_privacy.html",
+          "social.html"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 10
+      },
+      "sql": {
+        "migration": "20261129090000_club_agenda.sql",
+        "version": "20261129090000",
+        "package": "release-v26",
+        "sql_test": "300_club_agenda.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 141 fichiers sql/tests/300_*",
+        "tools/db/test-club-agenda-concurrency.sh: k passe en file d’attente; 2 places pour une capacité de 2",
+        "Paquet v26: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé",
+        "pnpm run verify vert (pnpm test 829/829 dont tests/club-agenda.test.mjs 9/9)",
+        "tests/e2e/club-agenda.e2e.mjs 5/5, six passages consécutifs verts; 26/26 avec l’agenda",
+        "npx jest 1 051/1 051 sur 120 suites, dont clubAgenda 7/7; tsc --noEmit sans erreur; expo export:embed réussi (3,89 Mo)"
+      ],
+      "failures_known_by_report": "Le test Android a révélé un défaut du module partagé (LOG_NOT_ELIGIBLE lu comme NOT_ELIGIBLE), corrigé avant le commit Web et couvert par un test.",
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.club_agenda",
+          "default": "fermé par défaut"
+        },
+        {
+          "name": "screens.clubs",
+          "default": "déjà ouvert"
+        }
+      ],
+      "not_done_by_report": [
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit; TalkBack non vérifié",
+        "Aucun club réel n’a utilisé l’agenda : la mesure est calculable mais n’a rien mesuré",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, le drapeau est fermé",
+        "Sur Android ... le lien ?rdv= n’est pas ouvert nativement",
+        "relecture juridique recommandée avant publication"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #5"
+    },
+    {
+      "lot": "V1.9.1",
+      "title": "Une séance assignée",
+      "chain": "COACH",
+      "branch": "claude/serene-shannon-q13w5i",
+      "head_sha": "3b834eb479efde51664b81553c987871c60f68ae",
+      "head_date": "2026-11-24T15:24:01+00:00",
+      "parent": "main",
+      "parent_sha": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 3
+      },
+      "own_commits": [
+        "3b834eb479efde51664b81553c987871c60f68ae",
+        "83a1be13100287c69ee3812eb9bc891d4c308be2",
+        "ae8d9cc5274d6c545a2eaa7aaf7ade5e3b0c6db9"
+      ],
+      "contained_in_chain_head": "claude/bold-pasteur-n7zeg3",
+      "contained_proof": "git merge-base --is-ancestor 3b834eb479ef 3229bdceccf2 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 4,
+        "sample": [
+          "coaching.html",
+          "css/ascension-app.css",
+          "js/app/coaching.js",
+          "js/core/coach-followup.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 10
+      },
+      "sql": {
+        "migration": "20261201090000_coach_assignment_followup.sql",
+        "version": "20261201090000",
+        "package": "release-v191",
+        "sql_test": "300_coach_followup.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 136 fichiers sql/tests/300_*",
+        "tools/db/test-coach-followup-concurrency.sh: ALREADY_LINKED et SESSION_ALREADY_LINKED, un seul lien à chaque fois",
+        "Paquet v191: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé; postflights v11 (328/328), v13 (42/42); v131 44/54",
+        "pnpm run verify vert (pnpm test 792/792 dont tests/coach-followup.test.mjs 8/8)",
+        "tests/e2e/coach-followup.e2e.mjs 6/6 à 390 et 1280 px; non-régression 65/65",
+        "npx jest 1 020/1 020 sur 115 suites, dont coachProposals 8/8; tsc --noEmit sans erreur; expo export:embed réussi (3,8 Mo)"
+      ],
+      "failures_known_by_report": "postflight v131 : 44/54, les 10 lignes fausses sont des entrées du registre « ledger:2026111… » absentes de cette réplique, identiques avant le paquet; 83a1be1 fix : conflit métier sans errcode 40001 (règle de sql/tests/300_business_conflicts.sql), empreinte publique remesurée et paquet v191 régénéré",
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.coach_followup",
+          "default": "fermé par défaut et vérifié par le serveur"
+        }
+      ],
+      "not_done_by_report": [
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit; TalkBack non vérifié",
+        "Les parcours Web ont tourné avec un serveur simulé qui rejoue les réponses réelles",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, le drapeau est fermé",
+        "Mesure du cahier des charges non réalisée : le temps médian pour comprendre trois dossiers demande des coachs réels",
+        "mention explicite ... à valider à la relecture juridique"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #6"
+    },
+    {
+      "lot": "V1.9.2",
+      "title": "Retour sur la séance",
+      "chain": "COACH",
+      "branch": "claude/sharp-euler-26axlf",
+      "head_sha": "88e7601fca8482977d75943037750d2bd4ca6afd",
+      "head_date": "2026-11-24T15:59:43+00:00",
+      "parent": "claude/serene-shannon-q13w5i",
+      "parent_sha": "3b834eb479efde51664b81553c987871c60f68ae",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 7
+      },
+      "own_commits": [
+        "88e7601fca8482977d75943037750d2bd4ca6afd",
+        "1e5f97a2c8a8a9cf967f2c49ca0eb7124de250c6",
+        "45f7c66e65eeab19e8f2456c60a450b7e90ae09f",
+        "320cccf6ba517f547ba3ff5f3e375c0c5431657f"
+      ],
+      "contained_in_chain_head": "claude/bold-pasteur-n7zeg3",
+      "contained_proof": "git merge-base --is-ancestor 88e7601fca84 3229bdceccf2 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 6,
+        "sample": [
+          "coaching.html",
+          "css/ascension-app.css",
+          "js/app/coach-tools.js",
+          "js/app/coaching.js",
+          "js/core/coach-feedback.js",
+          "js/core/coach-followup.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 12
+      },
+      "sql": {
+        "migration": "20261202090000_coach_session_feedback.sql",
+        "version": "20261202090000",
+        "package": "release-v192",
+        "sql_test": "300_coach_feedback.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 6,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 137 fichiers sql/tests/300_*",
+        "Paquet v192: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé; postflights v11 (328/328), v13 (42/42); v131 44/54",
+        "pnpm run verify vert (pnpm test 804/804 dont tests/coach-feedback.test.mjs 10/10)",
+        "tests/e2e/coach-feedback.e2e.mjs 6/6 à 390 et 1280 px; non-régression 71/71",
+        "npx jest 1 027/1 027 sur 116 suites, dont coachFeedback 8/8; tsc --noEmit sans erreur"
+      ],
+      "failures_known_by_report": "v131 44/54, les mêmes 10 lignes « ledger » absentes de la réplique qu’avant le paquet",
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.coach_feedback",
+          "default": "fermé par défaut et vérifié par le serveur"
+        }
+      ],
+      "not_done_by_report": [
+        "Le bundle Android de production (expo export:embed) n’a pas été reconstruit pour ce lot",
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit; TalkBack non vérifié",
+        "Les parcours Web ont tourné avec un serveur simulé",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, le drapeau est fermé",
+        "La pause de capacité n’est pas rejouée dans le test SQL du lot",
+        "Mesure du cahier des charges non réalisée",
+        "mention explicite des retours sur séance est à valider à la relecture juridique"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #6"
+    },
+    {
+      "lot": "V1.9.3",
+      "title": "Revue de suivi",
+      "chain": "COACH",
+      "branch": "claude/brave-fermat-3nrnfg",
+      "head_sha": "45c176ac696b2169e50cca6dc2f690576f067550",
+      "head_date": "2026-11-25T08:19:35+00:00",
+      "parent": "claude/sharp-euler-26axlf",
+      "parent_sha": "88e7601fca8482977d75943037750d2bd4ca6afd",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 10
+      },
+      "own_commits": [
+        "45c176ac696b2169e50cca6dc2f690576f067550",
+        "bcdd5223b1c10513762d968f83e683da5af1f4b6",
+        "2df3485c26f6c8cdce4c46cc99e5fd7e76dab265"
+      ],
+      "contained_in_chain_head": "claude/bold-pasteur-n7zeg3",
+      "contained_proof": "git merge-base --is-ancestor 45c176ac696b 3229bdceccf2 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 5,
+        "sample": [
+          "coaching.html",
+          "css/ascension-app.css",
+          "js/app/coaching.js",
+          "js/core/coach-followup.js",
+          "js/core/coach-review.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 5
+      },
+      "sql": {
+        "migration": "20261203090000_coach_weekly_review.sql",
+        "version": "20261203090000",
+        "package": "release-v193",
+        "sql_test": "300_coach_review.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 138 fichiers sql/tests/300_*; test du lot rejoué 5 fois de suite sans échec",
+        "tools/db/test-coach-review-concurrency.sh: une seule proposition",
+        "Paquet v193: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé (« migration 20261203090000 is already registered »); postflights v11, v13, v131 (54/54) vrais",
+        "pnpm run verify vert (pnpm test 812/812 dont tests/coach-review.test.mjs 6/6)",
+        "tests/e2e/coach-review.e2e.mjs 5/5 à 390 et 1280 px; non-régression 76/76",
+        "Mesure avant/après: 10 actions, 59 appels, médiane 3 166 ms → 7 actions, 27 appels, médiane 1 803 ms (−43 %); passage précédent 2 697 → 1 804 ms (−33 %)",
+        "npx jest 1 029/1 029 sur 117 suites, dont coachReviewAthlete 2/2; tsc --noEmit sans erreur; expo export:embed réussi (3,8 Mo)"
+      ],
+      "failures_known_by_report": "Le test du lot a aussi été rejoué 5 fois de suite sans échec après avoir rendu l’ordre des liens déterministe",
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.coach_review",
+          "default": "fermé par défaut et vérifié par le serveur"
+        }
+      ],
+      "not_done_by_report": [
+        "La mesure du cahier des charges n’est réalisée que par un indicateur automatisé",
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit; TalkBack non vérifié",
+        "Les parcours Web ont tourné avec un serveur simulé",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, le drapeau est fermé"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #6"
+    },
+    {
+      "lot": "V1.9.4",
+      "title": "Programmation multi-semaines",
+      "chain": "COACH",
+      "branch": "claude/zealous-lovelace-094042",
+      "head_sha": "1cdfba736d7396b6ed57bbe10b5606990fe23b34",
+      "head_date": "2026-11-25T09:17:37+00:00",
+      "parent": "claude/brave-fermat-3nrnfg",
+      "parent_sha": "45c176ac696b2169e50cca6dc2f690576f067550",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 14
+      },
+      "own_commits": [
+        "1cdfba736d7396b6ed57bbe10b5606990fe23b34",
+        "c5d553d6c41fa03064558390db6734ba09bd7157",
+        "4ca84792ec9a11cde6f5064b708bb62c8dcfdba7",
+        "a903cf4c7bcf81b6aff432e7fdb64c09c406c9fb"
+      ],
+      "contained_in_chain_head": "claude/bold-pasteur-n7zeg3",
+      "contained_proof": "git merge-base --is-ancestor 1cdfba736d73 3229bdceccf2 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 6,
+        "sample": [
+          "coaching.html",
+          "css/ascension-app.css",
+          "js/app/coach-programs.js",
+          "js/app/coaching.js",
+          "js/core/coach-followup.js",
+          "js/core/coach-program.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 12
+      },
+      "sql": {
+        "migration": "20261204090000_coach_programs.sql",
+        "version": "20261204090000",
+        "package": "release-v194",
+        "sql_test": "300_coach_programs.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 139 fichiers sql/tests/300_*",
+        "tools/db/test-coach-program-concurrency.sh: une seule version; COACH_CONFLICT",
+        "Paquet v194: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé (« migration 20261204090000 is already registered »); postflights vrais",
+        "pnpm run verify vert (pnpm test 825/825 dont tests/coach-program.test.mjs 11/11)",
+        "tests/e2e/coach-program.e2e.mjs 5/5 à 390 et 1280 px; non-régression 81/81",
+        "npx jest 1 033/1 033 sur 118 suites, dont coachPrograms 4/4; tsc --noEmit sans erreur; expo export:embed réussi (3,9 Mo)"
+      ],
+      "failures_known_by_report": null,
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.coach_programs",
+          "default": "fermé par défaut et vérifié par le serveur"
+        }
+      ],
+      "not_done_by_report": [
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit; TalkBack non vérifié",
+        "Les parcours Web ont tourné avec un serveur simulé",
+        "Les semaines passées sont obtenues en vieillissant le programme de 14 jours",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, le drapeau est fermé",
+        "le temps de préparation d’un bloc vaut 0 minute dans les tests ... doit être relevé avec des coachs réels"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #6"
+    },
+    {
+      "lot": "V1.9.5",
+      "title": "Bilans de cycle partageables",
+      "chain": "COACH",
+      "branch": "claude/jolly-clarke-lrkmh7",
+      "head_sha": "1d1ca059be0076c85067177e0bb4e2ffac8603bb",
+      "head_date": "2026-11-26T08:13:44+00:00",
+      "parent": "claude/zealous-lovelace-094042",
+      "parent_sha": "1cdfba736d7396b6ed57bbe10b5606990fe23b34",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 17
+      },
+      "own_commits": [
+        "1d1ca059be0076c85067177e0bb4e2ffac8603bb",
+        "88480502a08ce41a01aba9b8f4b6f5168e66b094",
+        "be4978d68e9fe984287b6e6e2186d1d359860cff"
+      ],
+      "contained_in_chain_head": "claude/bold-pasteur-n7zeg3",
+      "contained_proof": "git merge-base --is-ancestor 1d1ca059be00 3229bdceccf2 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 5,
+        "sample": [
+          "coaching.html",
+          "css/ascension-app.css",
+          "js/app/coach-cycle.js",
+          "js/app/coaching.js",
+          "js/core/coach-cycle.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 10
+      },
+      "sql": {
+        "migration": "20261205090000_coach_cycle_reports.sql",
+        "version": "20261205090000",
+        "package": "release-v195",
+        "sql_test": "300_coach_cycle_reports.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 140 fichiers sql/tests/300_*",
+        "tools/db/test-coach-cycle-concurrency.sh: même version; COACH_CONFLICT; un seul brouillon",
+        "Paquet v195: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé (« migration 20261205090000 is already registered »); postflights vrais",
+        "pnpm run verify vert (pnpm test 838/838 dont tests/coach-cycle.test.mjs 11/11)",
+        "tests/e2e/coach-cycle.e2e.mjs 6/6 à 390 et 1280 px; non-régression 87/87",
+        "npx jest 1 037/1 037 sur 119 suites, dont coachCycles 4/4; tsc --noEmit sans erreur; expo export:embed réussi (3,9 Mo)"
+      ],
+      "failures_known_by_report": null,
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.coach_cycle_report",
+          "default": "fermé par défaut et vérifié par le serveur"
+        }
+      ],
+      "not_done_by_report": [
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit; TalkBack non vérifié; le fichier y passe par le partage système (non vérifié sur appareil)",
+        "Les parcours Web ont tourné avec un serveur simulé",
+        "Les semaines passées sont obtenues en vieillissant le cycle de 49 jours",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, le drapeau est fermé",
+        "le temps de production d’un bilan vaut 0 minute dans les tests ... doit être relevé avec les coachs du pilote",
+        "Le fichier est un texte simple (pas de PDF). Un fichier déjà téléchargé ne peut pas être repris ... pas empêché"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #6"
+    },
+    {
+      "lot": "V1.9.6",
+      "title": "Suivi collectif individualisé",
+      "chain": "COACH",
+      "branch": "claude/bold-pasteur-n7zeg3",
+      "head_sha": "3229bdceccf29b0db9359763ee4d37b33fb24e2b",
+      "head_date": "2026-11-26T08:58:07+00:00",
+      "parent": "claude/jolly-clarke-lrkmh7",
+      "parent_sha": "1d1ca059be0076c85067177e0bb4e2ffac8603bb",
+      "merge_base_with_main": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+      "left_right_vs_main": {
+        "behind": 0,
+        "ahead": 21
+      },
+      "own_commits": [
+        "3229bdceccf29b0db9359763ee4d37b33fb24e2b",
+        "efeb8c4ceca9fb9ca0ad46baed6f763ab38c6436",
+        "ea9897ee23436094b06e0a8be99bba5511018c20",
+        "6b46feadb6bd68875426a6b800362767debcd75d"
+      ],
+      "contained_in_chain_head": "claude/bold-pasteur-n7zeg3",
+      "contained_proof": "git merge-base --is-ancestor 3229bdceccf2 3229bdceccf2 → true",
+      "pr": null,
+      "web": {
+        "present": true,
+        "files_count": 5,
+        "sample": [
+          "coaching.html",
+          "css/ascension-app.css",
+          "js/app/coach-groups.js",
+          "js/app/coaching.js",
+          "js/core/coach-group.js"
+        ]
+      },
+      "android": {
+        "present": true,
+        "files_count": 2
+      },
+      "sql": {
+        "migration": "20261206090000_coach_groups.sql",
+        "version": "20261206090000",
+        "package": "release-v196",
+        "sql_test": "300_coach_groups.sql",
+        "applied_in_production": false,
+        "version_collision_with": []
+      },
+      "tests_files_changed": 5,
+      "tests_claimed_by_report": [
+        "tools/db/test-migrations.sh: « OK: migrations and tests passed on a clean replica. », 141 fichiers sql/tests/300_*; contrats de concurrence V1.9.1 à V1.9.6",
+        "Concurrence: même envoi deux fois, 3 programmes et 6 propositions; autre envoi sur le même aperçu : COACH_CONFLICT",
+        "Paquet v196: 00 ok = true, 01 appliqué, 99 ok = true, second passage refusé; postflights vrais",
+        "pnpm run verify vert (pnpm test 847/847 dont tests/coach-group.test.mjs 7/7)",
+        "tests/e2e/coach-group.e2e.mjs 5/5 à 390 et 1280 px (Chromium /opt/pw-browsers/chromium-1243); non-régression 92/92",
+        "npx jest 1 040/1 040 sur 120 suites, dont coachGroups 3/3; tsc --noEmit sans erreur"
+      ],
+      "failures_known_by_report": null,
+      "flags_claimed_by_report": [
+        {
+          "name": "screens.coach_groups",
+          "default": "fermé par défaut et vérifié par le serveur"
+        }
+      ],
+      "not_done_by_report": [
+        "Aucun appareil ni émulateur Android ... aucun APK n’a été construit : le côté sportif Android est prouvé par Jest",
+        "[note extracteur, non verbatim] expo export:embed non mentionné pour ce lot",
+        "Les parcours Web ont tourné avec un serveur simulé",
+        "La CI GitHub n’a pas tourné sur ces commits",
+        "Rien n’est appliqué en production, le drapeau est fermé",
+        "le temps économisé ... vaut 0 minute dans les tests ... doit être chronométré avec les coachs du pilote",
+        "La suppression d’un groupe efface aussi ses blocs, donc leurs chiffres de mesure"
+      ],
+      "status": {
+        "planned": true,
+        "coded": true,
+        "tested_auto": "déclaré par le rapport (local) ; CI GitHub non exécutée sur la branche",
+        "tested_on_device": false,
+        "merged": false,
+        "published": false
+      },
+      "classification": "integration_necessaire",
+      "classification_note": null,
+      "v2_slot": "merge #6"
+    }
+  ],
+  "transversals": [
+    {
+      "id": "T1",
+      "name": "Partage & communauté (cartes story 9:16)",
+      "branch": "claude/stoic-meitner-ubw09b",
+      "head_sha": "e767d523da405c5ee4dd8082c2a0929312ab3304",
+      "pr": null,
+      "migration": "20261126120000_analytics_share_story.sql (paquet release-partage)",
+      "report_in_doc_tab": false,
+      "classification": "integration_necessaire",
+      "v2_slot": "merge #7",
+      "notes": "Redéfinit private.titan_analytics_payload_valid_v300 (dernière définition main : 20261013074320). Conflits simulés avec journal.html, js/app/journal.js, js/app/parcours.js (GPS), SessionDetailScreen (coach), CommunityScreen (coop). Aucun test sur appareil/Instagram attesté."
+    },
+    {
+      "id": "T2",
+      "name": "Site : accès Android / Google Play",
+      "branch": "claude/funny-cerf-ui44tf",
+      "head_sha": "018391199ab400766ac9068f886dc7ebb050536f",
+      "pr": null,
+      "migration": null,
+      "report_in_doc_tab": false,
+      "classification": "a_arbitrer",
+      "v2_slot": "merge #8 après décision",
+      "notes": "Ajoute le lien Play sur 19 pages publiques ; le bouclier SEO constate que le lien Play est volontairement absent (tools/data/play-store.json, GP13) : décision produit requise et approbation SEO (scripts/CTA) avant fusion. Touche legal_privacy, supprimer-mon-compte, changelog, build-public-docs."
+    },
+    {
+      "id": "T3",
+      "name": "Publicités AdMob Android",
+      "branch": "claude/upbeat-cannon-za5wix",
+      "head_sha": "34243ab3389aaaea95fe182077bf7ce9e8f2a584",
+      "pr": null,
+      "migration": null,
+      "report_in_doc_tab": false,
+      "classification": "integration_necessaire_flags_fermes",
+      "v2_slot": "merge #9",
+      "notes": "Interrupteurs serveur ads.android / ads.android.interstitial ABSENTS de la production (défaut client). Build ads=test vert en CI (run 45805243137, 28 min). Textes légaux main : « l’app Android livrée n’affiche pas de publicité » (1d50bdf9) → à mettre à jour avant toute activation. Validation AdMob/console non attestée."
+    },
+    {
+      "id": "T4",
+      "name": "Bouclier SEO & CI/CD",
+      "branch": "claude/dreamy-rubin-h0bac5",
+      "head_sha": "73364dc2ace76fe1e07d2771edc6dc61ab5cda6e",
+      "pr": 166,
+      "migration": null,
+      "report_in_doc_tab": false,
+      "classification": "integration_necessaire_prerequis",
+      "v2_slot": "merge #1",
+      "notes": "PR #166 ouverte, CI « Qualite » verte sur 73364dc2 (run 45816501537, 26 min). Référence production tools/seo/baseline/production.json (commit 0dae9af, déploiement 6afec02bcf8ca878e98133e6, 27 URL sitemap, 0 P0). Audit docs/seo/AUDIT_2026-11-26.md : recette de sabotage PASS. Onglet « Protection SEO & CI/CD » du document : aucun compte rendu écrit. Non fusionné : clôture formelle non actée."
+    }
+  ],
+  "other_recent_branches": [
+    {
+      "branch": "claude/serene-gates-0jdoyp",
+      "head_sha": "2a3c6492fbc7a4bfd379811476be16d21212898e",
+      "scope": "sonde assetlinks.json Android",
+      "classification": "integration_necessaire",
+      "notes": "1 commit, 4 fichiers, fusion simulée sans conflit ; touche probe-prod.yml et build-public.mjs (aussi modifiés par le SEO)."
+    },
+    {
+      "branch": "claude/ecstatic-cerf-pae6fp",
+      "head_sha": "45ef689d28a4f2f4b0b474fbf7f490d60346755b",
+      "scope": "visuels promotionnels Google Play (docs/play)",
+      "classification": "hors_perimetre_code",
+      "notes": "Ressources de fiche Play ; pas de code applicatif. Conserver hors du candidat ou en docs uniquement."
+    },
+    {
+      "branch": "claude/tender-clarke-t08rdq",
+      "head_sha": "cf8bcfbb0896dd0a63b79f57d2b689d9c12a2a36",
+      "scope": "campagne marketing « Rallume le monde », concours « Les 20 premiers »",
+      "classification": "a_arbitrer",
+      "notes": "Concours = engagement juridique/commercial (règlement) : décision propriétaire ; pas de fusion par défaut."
+    }
+  ],
+  "legacy_branches": [
+    {
+      "branch": "claude/gracious-turing-57vfqi",
+      "head_sha": "757bd7a1eaea25911156d2ec017f71663d42ff3d",
+      "date": "2026-10-05",
+      "merge_base": "e903ac317b44c9648daaa3ba124a3e607c470c31",
+      "behind_main": 1007,
+      "ahead_main": 3,
+      "classification": "remplacee",
+      "notes": "Recette en ligne d’octobre ; remplacée par probe-prod.yml / audit-live.yml (#135, #136)."
+    },
+    {
+      "branch": "codex/v11-google-oauth-20261102",
+      "head_sha": "e18ca7e4385f79207c7721190d532ff6a53b9882",
+      "date": "2026-11-02",
+      "merge_base": "3ef9d2409435b3629a3df049063bf905535e8f00",
+      "behind_main": 515,
+      "ahead_main": 8,
+      "classification": "remplacee",
+      "notes": "Google OAuth Android implémenté autrement dans main (mobile/src/lib/googleAuth.ts, drapeau auth.google à 100 %)."
+    },
+    {
+      "branch": "codex/v11-integration-recovery-20261102",
+      "head_sha": "813e99c73f6cae5e4c10a7610d650b150064be41",
+      "date": "2026-11-02",
+      "merge_base": "20345891eb90f6580a7c5241dd56a96d2e78eb45",
+      "behind_main": 560,
+      "ahead_main": 1,
+      "classification": "obsolete_doc",
+      "notes": "Handoff de récupération V1.1, doc seule."
+    },
+    {
+      "branch": "codex/v131-final-gates",
+      "head_sha": "f6b73871ef6fc6a5add17aea7186a2e6ac7804af",
+      "date": "2026-11-10",
+      "merge_base": "95ab8b03a41f87a7d8872c75f2906737f086c85e",
+      "behind_main": 286,
+      "ahead_main": 1,
+      "classification": "deja_presente",
+      "notes": "PR #142 fusionnée."
+    },
+    {
+      "branch": "design/archive-titan-sports-library-20261112",
+      "head_sha": "24c5401835349fdc83510c0f3c7fd5b13f120820",
+      "date": "2026-11-12",
+      "merge_base": "046da1b65e20513650518cdb6a8a6e108f61df16",
+      "behind_main": 283,
+      "ahead_main": 2,
+      "classification": "deja_presente",
+      "notes": "PR #145 fusionnée ; diff résiduel nul."
+    },
+    {
+      "branch": "design/titan-illustrations-global-v2-20261113",
+      "head_sha": "0093a5bcd2b1c796c17bfaf417fd8f2f1e483a0e",
+      "date": "2026-11-17",
+      "merge_base": "67e17c79daaa8a772252883d6ff208d5eb8eec2c",
+      "behind_main": 281,
+      "ahead_main": 36,
+      "classification": "a_arbitrer",
+      "notes": "PR #147 WIP « Approbation requise » : 157 illustrations candidates, non approuvées ; ne pas réintroduire silencieusement."
+    },
+    {
+      "branch": "design/titan-sport-visual-importer",
+      "head_sha": "782ff9d9508ce7d5a0d7aa0689e8dc0bbe6f0f86",
+      "date": "2026-11-12",
+      "merge_base": "9feba2382ae17e4f7fe36a5ce6a1734af99b6534",
+      "behind_main": 282,
+      "ahead_main": 1,
+      "classification": "deja_presente",
+      "notes": "PR #146 fusionnée."
+    },
+    {
+      "branch": "design/titan-sports-library-consolidation-20261112",
+      "head_sha": "6919561ed1df86ec638403de2d28d5b5f67d0ca8",
+      "date": "2026-11-12",
+      "merge_base": "67e17c79daaa8a772252883d6ff208d5eb8eec2c",
+      "behind_main": 281,
+      "ahead_main": 9,
+      "classification": "a_arbitrer",
+      "notes": "Propositions d’icônes provisoires (244 fichiers) jamais validées ; ne pas réintroduire."
+    },
+    {
+      "branch": "design/titan-visual-library-lot-01",
+      "head_sha": "9fee8097ab72d3a6acdf928c980869f141550bae",
+      "date": "2026-11-12",
+      "merge_base": "756ab50c3900581ccba13b51a20a0cd5cbd1f943",
+      "behind_main": 285,
+      "ahead_main": 1,
+      "classification": "deja_presente",
+      "notes": "PR #143 fusionnée."
+    },
+    {
+      "branch": "design/titan-visual-library-lot-02",
+      "head_sha": "e595071c6e95856c4e92e45ea6ad90a82955cc36",
+      "date": "2026-11-12",
+      "merge_base": "e87f438f25e2937d09234849a0b76999478ba9c3",
+      "behind_main": 284,
+      "ahead_main": 1,
+      "classification": "deja_presente",
+      "notes": "PR #144 fusionnée."
+    },
+    {
+      "branch": "feat/titan-monetisation-decision-titanplus-capacity",
+      "head_sha": "6ce1d39cd513a76db277ed81d6467d0204d9fa5c",
+      "date": "2026-11-17",
+      "merge_base": "3dde29a8d70ef4a21382dbe58884ab4c4aaaa601",
+      "behind_main": 104,
+      "ahead_main": 1,
+      "classification": "a_arbitrer",
+      "notes": "PR #155 DÉCISION REQUISE : TITAN+ seul → 3 places (Classique) au lieu des places actuelles ; migration 20261121140000 + release-v19 non appliquées. Décision commerciale du propriétaire ; ne pas fusionner par défaut."
+    },
+    {
+      "branch": "fix/v1-profile-conflict-storm-20261102",
+      "head_sha": "939ee0dd39689a5833ec104dfa308d85d5969a02",
+      "date": "2026-11-03",
+      "merge_base": "8102c1768918df63d987d02e49dc1f5452732056",
+      "behind_main": 629,
+      "ahead_main": 10,
+      "classification": "remplacee_a_verifier",
+      "notes": "PR #129 brouillon ; 6 commits non équivalents mais les tests ciblés existent dans main (profile-sync-backoff, profile-cache, signout-keeps-device-data). A3 : rejouer ces tests ; pas de fusion."
+    },
+    {
+      "branch": "fix/web-recording-stability",
+      "head_sha": "ba88154fd72abf03a46ceb4a916b648ee8a50304",
+      "date": "2026-11-05",
+      "merge_base": "d5ea66e34f596f14017aae04d6a043a6682c44b8",
+      "behind_main": 322,
+      "ahead_main": 2,
+      "classification": "deja_presente",
+      "notes": "PR #140 fusionnée (squash) le 05/11."
+    }
+  ],
+  "pull_requests_open": [
+    {
+      "number": 166,
+      "head": "claude/dreamy-rubin-h0bac5",
+      "head_sha_short": "73364dc2ac",
+      "state": "open",
+      "head_in_main": false,
+      "branch": "branch_exists",
+      "classification": "integration_necessaire_prerequis",
+      "action": "Merge #1 du plan."
+    },
+    {
+      "number": 160,
+      "head": "claude/sleepy-pasteur-ebmhen",
+      "head_sha_short": "2d67a0a91d",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 158,
+      "head": "feat/titan-one-android-excellence",
+      "head_sha_short": "ee09136fa3",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 157,
+      "head": "feat/titan-one-android-native-ux",
+      "head_sha_short": "14cc83ffe9",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 156,
+      "head": "feat/titan-one-web-ux-final",
+      "head_sha_short": "1948f82dcc",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 155,
+      "head": "feat/titan-monetisation-decision-titanplus-capacity",
+      "head_sha_short": "6ce1d39cd5",
+      "state": "open",
+      "head_in_main": false,
+      "branch": "branch_exists",
+      "classification": "a_arbitrer",
+      "action": "Décision commerciale places coach."
+    },
+    {
+      "number": 154,
+      "head": "feat/titan-monetisation-excellence",
+      "head_sha_short": "a7e5375631",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 153,
+      "head": "claude/peaceful-ramanujan-0erk4m",
+      "head_sha_short": "4238c32c72",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 152,
+      "head": "claude/trusting-planck-4cbljf",
+      "head_sha_short": "43e4917040",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 147,
+      "head": "design/titan-illustrations-global-v2-20261113",
+      "head_sha_short": "0093a5bcd2",
+      "state": "open",
+      "head_in_main": false,
+      "branch": "branch_exists",
+      "classification": "a_arbitrer",
+      "action": "Approbation graphique requise."
+    },
+    {
+      "number": 133,
+      "head": "fix/supabase-stability-audit-20261104",
+      "head_sha_short": "ffe997b942",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 131,
+      "head": "codex/v12-android-compact-rpe-ux-20261104",
+      "head_sha_short": "c5b557472c",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 129,
+      "head": "fix/v1-profile-conflict-storm-20261102",
+      "head_sha_short": "939ee0dd39",
+      "state": "open",
+      "head_in_main": false,
+      "branch": "branch_exists",
+      "classification": "remplacee_a_verifier",
+      "action": "Pas de fusion ; tests de non-régression en A3."
+    },
+    {
+      "number": 124,
+      "head": "codex/v11-coach-workspace-20261031",
+      "head_sha_short": "20345891eb",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 123,
+      "head": "codex/v11-coach-comparison-20261031",
+      "head_sha_short": "8e6cad0483",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 122,
+      "head": "codex/v11-coach-analysis-20261030",
+      "head_sha_short": "370fa6797a",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 121,
+      "head": "codex/v11-gpx-terrain-20261030",
+      "head_sha_short": "07e88744c5",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 120,
+      "head": "codex/v11-activity-hub-20261030",
+      "head_sha_short": "0a683139e6",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 119,
+      "head": "codex/v11-gpx-analysis-20261029",
+      "head_sha_short": "e95383e260",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 117,
+      "head": "claude/titan-finition-web",
+      "head_sha_short": "8102c17689",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 98,
+      "head": "codex/rpg-guardian-phases-cdc",
+      "head_sha_short": "9b10a0ca6e",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 97,
+      "head": "codex/rpg-valley-quests-cdc",
+      "head_sha_short": "78fd84daef",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 96,
+      "head": "codex/rpg-progression-onboarding-cdc",
+      "head_sha_short": "86507cb0cb",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 94,
+      "head": "codex/web-goals-context-cdc",
+      "head_sha_short": "cdfc586c4f",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 93,
+      "head": "codex/web-planner-context-cdc",
+      "head_sha_short": "e1015702d2",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 92,
+      "head": "codex/web-qg-context-cdc",
+      "head_sha_short": "6bb5aa3953",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 91,
+      "head": "codex/web-athlete-recovery-cdc",
+      "head_sha_short": "27d430c970",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 90,
+      "head": "codex/web-comparison-recovery-focus-cdc",
+      "head_sha_short": "fc7e003cff",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 89,
+      "head": "codex/web-report-recovery-focus-cdc",
+      "head_sha_short": "fcdf41fb57",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 88,
+      "head": "codex/web-analysis-views-recovery-cdc",
+      "head_sha_short": "7eed057141",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 87,
+      "head": "codex/web-record-detail-context-cdc",
+      "head_sha_short": "2e91ce36bb",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 86,
+      "head": "codex/web-atelier-retry-cdc",
+      "head_sha_short": "c8fc9b68a0",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 85,
+      "head": "codex/web-coaching-forms-cdc",
+      "head_sha_short": "60112c2c50",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 84,
+      "head": "codex/web-coaching-context-cdc",
+      "head_sha_short": "409a84ece5",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 83,
+      "head": "codex/web-goals-views-cdc",
+      "head_sha_short": "1afb79294e",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 82,
+      "head": "codex/web-moment-context-focus-cdc",
+      "head_sha_short": "f6e2ee8256",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 81,
+      "head": "codex/web-goals-validation-cdc",
+      "head_sha_short": "6363c72b55",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 80,
+      "head": "codex/web-moment-share-session-cdc",
+      "head_sha_short": "71fcc0f67d",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 79,
+      "head": "codex/web-planner-keyboard-cdc",
+      "head_sha_short": "58bb1d7b85",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 78,
+      "head": "codex/web-card-qr-recovery-cdc",
+      "head_sha_short": "80e50e3358",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 77,
+      "head": "codex/web-card-preview-sequence-cdc",
+      "head_sha_short": "66381749a8",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 76,
+      "head": "codex/web-card-export-recovery-cdc",
+      "head_sha_short": "bfc3d2e970",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 75,
+      "head": "codex/web-dialog-return-focus-cdc",
+      "head_sha_short": "5fb4ae40aa",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 74,
+      "head": "codex/web-shell-focus-cdc",
+      "head_sha_short": "844ed59dec",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 73,
+      "head": "codex/web-week-focus-cdc",
+      "head_sha_short": "5ef2f100ae",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 72,
+      "head": "codex/web-journal-calendar-filters-cdc",
+      "head_sha_short": "67b8e70bc9",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 71,
+      "head": "codex/web-session-local-date-cdc",
+      "head_sha_short": "3fe0e08785",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 70,
+      "head": "codex/web-goals-calendar-cdc",
+      "head_sha_short": "dd74900220",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 69,
+      "head": "codex/web-report-pagination-focus-cdc",
+      "head_sha_short": "b45f2d4c95",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 68,
+      "head": "codex/web-views-name-validation-cdc",
+      "head_sha_short": "f470e1e3b5",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 67,
+      "head": "codex/web-brand-assets-contracts-cdc",
+      "head_sha_short": "7d915153d2",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 66,
+      "head": "codex/web-seo-indexing-contracts-cdc",
+      "head_sha_short": "e363c78b66",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    },
+    {
+      "number": 65,
+      "head": "codex/web-seo-recrawl-audit-cdc",
+      "head_sha_short": "d487751538",
+      "state": "open",
+      "head_in_main": true,
+      "branch": "branch_exists",
+      "classification": "obsolete_deja_presente",
+      "action": "Ne pas fermer dans A1 ; proposer la fermeture au propriétaire (contenu déjà dans main via #163/#148/#149/#132 etc.)."
+    }
+  ],
+  "pull_requests_special": [
+    {
+      "number": 159,
+      "title": "PREVIEW UNIQUEMENT — TITAN ONE Web Signature (#156) — NE PAS FUSIONNER",
+      "state": "closed/merged 2026-11-18 (tête 1948f82 incluse dans main via #163)",
+      "note": "Statut « merged » GitHub alors que le titre l’interdisait : la tête est ancêtre de main parce que #163 (release consolidée #151→#160) l’a absorbée. Contenu en production ; à ne pas re-fusionner."
+    },
+    {
+      "number": 161,
+      "title": "PREVIEW UNIQUEMENT — icônes sportives Opus (#160) — NE PAS FUSIONNER",
+      "state": "closed/merged 2026-11-18 (tête 2d67a0a incluse dans main via #163)",
+      "note": "Idem #159."
+    }
+  ],
+  "migrations": {
+    "version_collisions": [
+      {
+        "version": "20261123090000",
+        "lots": [
+          "V1.5.0",
+          "V1.6.2"
+        ]
+      },
+      {
+        "version": "20261124090000",
+        "lots": [
+          "V1.5.1",
+          "V1.6.5",
+          "V1.8.1"
+        ]
+      },
+      {
+        "version": "20261125090000",
+        "lots": [
+          "V1.5.2",
+          "V1.8.2"
+        ]
+      },
+      {
+        "version": "20261126090000",
+        "lots": [
+          "V1.5.3",
+          "V1.8.3"
+        ]
+      },
+      {
+        "version": "20261127090000",
+        "lots": [
+          "V1.5.4",
+          "V1.8.4"
+        ]
+      },
+      {
+        "version": "20261128090000",
+        "lots": [
+          "V1.5.5",
+          "V1.8.5"
+        ]
+      }
+    ],
+    "package_name_collisions": {
+      "release-v21": [
+        "V1.5.0",
+        "V1.6.2",
+        "V1.8.1"
+      ],
+      "release-v22": [
+        "V1.5.1",
+        "V1.6.3",
+        "V1.8.2"
+      ],
+      "release-v23": [
+        "V1.5.2",
+        "V1.6.4",
+        "V1.8.3"
+      ],
+      "release-v24": [
+        "V1.5.3",
+        "V1.6.5 (A)",
+        "V1.6.6 (B)",
+        "V1.8.4"
+      ],
+      "release-v25": [
+        "V1.5.4",
+        "V1.7.7",
+        "V1.8.5"
+      ],
+      "release-v26": [
+        "V1.5.5",
+        "V1.8.6"
+      ],
+      "release-v19": [
+        "PR #155 (à arbitrer)"
+      ]
+    },
+    "package_precheck_conflict": "Chaque paquet 00-check-before.sql a été figé sur l’état v20 (empreinte private 120/0c180d72fbc0 selon rapports V1.9) : appliquer un paquet d’une chaîne invalide le précontrôle des autres. Régénérer tous les paquets dans l’ordre final.",
+    "proposed_final_order": [
+      "journal 20261123090000 session_match_review",
+      "journal 20261123120000 history_reconcile",
+      "journal 20261123150000 history_migration",
+      "journal 20261123180000 journal_long_duration",
+      "V1.6.5 source_center (renuméroter)",
+      "V1.7.7 20261125170000 gps_navigation",
+      "V1.5.0→V1.5.5 adventure_* (renuméroter)",
+      "V1.8.1→V1.8.6 cordee/club (renuméroter)",
+      "partage 20261126120000 analytics_share_story (renuméroter si nécessaire pour rester après ses dépendances)",
+      "V1.9.1→V1.9.6 coach_* 20261201..06"
+    ],
+    "renumbering_rule": "Aucune de ces migrations n’est appliquée en production ni dans le registre : renuméroter est sûr. Versions strictement croissantes > 20261122090000, uniques, et paquets/empreintes régénérés.",
+    "extensions_created": [],
+    "types_created": [],
+    "cumulative_functions": [
+      {
+        "object": "private.titan_adventure_branch_config",
+        "redefined_by": {
+          "V1.5": [
+            "20261123090000_adventure_branches_v1.sql",
+            "20261126090000_adventure_campaigns_v1.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_adventure_branch_current",
+        "redefined_by": {
+          "V1.5": [
+            "20261123090000_adventure_branches_v1.sql",
+            "20261126090000_adventure_campaigns_v1.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_adventure_guardian_config",
+        "redefined_by": {
+          "V1.5": [
+            "20261124090000_adventure_guardian_v1.sql",
+            "20261126090000_adventure_campaigns_v1.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_adventure_guardian_current",
+        "redefined_by": {
+          "V1.5": [
+            "20261124090000_adventure_guardian_v1.sql",
+            "20261126090000_adventure_campaigns_v1.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_analytics_payload_valid_v300",
+        "redefined_by": {
+          "Partage": [
+            "20261126120000_analytics_share_story.sql"
+          ]
+        },
+        "last_def_in_main": "20261013074320_analytics_support_metadata_v300.sql"
+      },
+      {
+        "object": "private.titan_coach_followup_row",
+        "redefined_by": {
+          "V1.9": [
+            "20261201090000_coach_assignment_followup.sql",
+            "20261204090000_coach_programs.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_coach_plan_row",
+        "redefined_by": {
+          "V1.9": [
+            "20261204090000_coach_programs.sql",
+            "20261205090000_coach_cycle_reports.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_cordee_relay_person",
+        "redefined_by": {
+          "V1.8": [
+            "20261124090000_cordee_relay.sql",
+            "20261125090000_cordee_reprise.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_cordee_relay_state",
+        "redefined_by": {
+          "V1.8": [
+            "20261124090000_cordee_relay.sql",
+            "20261125090000_cordee_reprise.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_cordee_state",
+        "redefined_by": {
+          "V1.8": [
+            "20261125090000_cordee_reprise.sql"
+          ]
+        },
+        "last_def_in_main": "20261120110000_grande_cordee.sql"
+      },
+      {
+        "object": "private.titan_export_extras_v1",
+        "redefined_by": {
+          "V1.5": [
+            "20261123090000_adventure_branches_v1.sql",
+            "20261124090000_adventure_guardian_v1.sql",
+            "20261125090000_adventure_consequence_v1.sql",
+            "20261127090000_adventure_quest_chains_v1.sql",
+            "20261128090000_adventure_chronicles_v1.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261125170000_gps_navigation.sql"
+          ],
+          "V1.9": [
+            "20261202090000_coach_session_feedback.sql",
+            "20261203090000_coach_weekly_review.sql",
+            "20261204090000_coach_programs.sql",
+            "20261205090000_coach_cycle_reports.sql",
+            "20261206090000_coach_groups.sql"
+          ]
+        },
+        "last_def_in_main": "20261117160000_life_chapters.sql"
+      },
+      {
+        "object": "private.titan_import_batch_json",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123150000_history_migration.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123150000_history_migration.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_import_batch_plan",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123150000_history_migration.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123150000_history_migration.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_import_core",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123090000_session_match_review.sql",
+            "20261123150000_history_migration.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123090000_session_match_review.sql",
+            "20261123150000_history_migration.sql"
+          ]
+        },
+        "last_def_in_main": "20261118090000_sport_excellence_imports.sql"
+      },
+      {
+        "object": "private.titan_member_named",
+        "redefined_by": {
+          "V1.8": [
+            "20261126090000_cordee_suite.sql"
+          ]
+        },
+        "last_def_in_main": "20261120100000_social_groups.sql"
+      },
+      {
+        "object": "private.titan_session_match_event",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123090000_session_match_review.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123090000_session_match_review.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_session_match_reasons",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123090000_session_match_review.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123090000_session_match_review.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_session_match_row",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123090000_session_match_review.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123090000_session_match_review.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_session_match_trim",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123090000_session_match_review.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123090000_session_match_review.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_session_rejoined_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123120000_history_reconcile.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123120000_history_reconcile.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_session_shared_minutes",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123090000_session_match_review.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123090000_session_match_review.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "private.titan_social_export_v1",
+        "redefined_by": {
+          "V1.8": [
+            "20261124090000_cordee_relay.sql",
+            "20261125090000_cordee_reprise.sql",
+            "20261126090000_cordee_suite.sql",
+            "20261127090000_club_season.sql",
+            "20261128090000_club_match.sql",
+            "20261129090000_club_agenda.sql"
+          ]
+        },
+        "last_def_in_main": "20261120110000_grande_cordee.sql"
+      },
+      {
+        "object": "public.titan_coach_messages_v1",
+        "redefined_by": {
+          "V1.9": [
+            "20261202090000_coach_session_feedback.sql"
+          ]
+        },
+        "last_def_in_main": "20261121100000_coach_capacity_enforced.sql"
+      },
+      {
+        "object": "public.titan_cordee_relay_v1",
+        "redefined_by": {
+          "V1.8": [
+            "20261124090000_cordee_relay.sql",
+            "20261125090000_cordee_reprise.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "public.titan_cordees_v1",
+        "redefined_by": {
+          "V1.8": [
+            "20261124090000_cordee_relay.sql",
+            "20261125090000_cordee_reprise.sql",
+            "20261126090000_cordee_suite.sql"
+          ]
+        },
+        "last_def_in_main": "20261120110000_grande_cordee.sql"
+      },
+      {
+        "object": "public.titan_garmin_deregister_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261124090000_source_center.sql"
+          ]
+        },
+        "last_def_in_main": "20261110140000_garmin_oauth_state.sql"
+      },
+      {
+        "object": "public.titan_garmin_ingest_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261124090000_source_center.sql"
+          ]
+        },
+        "last_def_in_main": "20261110152800_serialize_activity_imports.sql"
+      },
+      {
+        "object": "public.titan_import_batch_open_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123150000_history_migration.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123150000_history_migration.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "public.titan_import_batch_rows_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123150000_history_migration.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123150000_history_migration.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "public.titan_import_batch_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123150000_history_migration.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123150000_history_migration.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "public.titan_import_batch_withdraw_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123150000_history_migration.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123150000_history_migration.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "public.titan_import_batches_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123150000_history_migration.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123150000_history_migration.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "public.titan_resolve_session_match_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123090000_session_match_review.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123090000_session_match_review.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "public.titan_session_changes_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123120000_history_reconcile.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123120000_history_reconcile.sql",
+            "20261123180000_journal_long_duration.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "public.titan_session_matches_v1",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123090000_session_match_review.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123090000_session_match_review.sql"
+          ]
+        },
+        "last_def_in_main": null
+      },
+      {
+        "object": "public.titan_social_digest_v1",
+        "redefined_by": {
+          "V1.8": [
+            "20261126090000_cordee_suite.sql",
+            "20261129090000_club_agenda.sql"
+          ]
+        },
+        "last_def_in_main": "20261120120000_social_digest.sql"
+      },
+      {
+        "object": "public.titan_update_training_session",
+        "redefined_by": {
+          "V1.6.5": [
+            "20261123120000_history_reconcile.sql"
+          ],
+          "V1.6.1-V1.7.7": [
+            "20261123120000_history_reconcile.sql",
+            "20261123180000_journal_long_duration.sql"
+          ]
+        },
+        "last_def_in_main": "20260913083027_renaissance_goals_and_training_edits.sql"
+      }
+    ],
+    "export_extras_v1": {
+      "patterns": {
+        "V1.5": "renommage + enveloppe (titan_export_extras_before_<x>_v1 puis ||) : composable",
+        "V1.7.7 GPS": "réécriture complète (copie de main + routes/places)",
+        "V1.9": "réécriture complète ×5 (copie de main + sections coach)"
+      },
+      "risk": "P0 données : une réécriture complète appliquée après une autre efface ses sections (GPS→COACH efface routes/places ; toute réécriture après V1.5 détruit la chaîne d’enveloppes). Définition finale unique à écrire en A2 = sections main + adventure* + routes/places + coach*, test d’export comparant les clés.",
+      "keys_main": [
+        "cadence/capsules/chapitres (15 clés)"
+      ],
+      "keys_rpg": [
+        "adventureBranches",
+        "adventureGuardians",
+        "adventureConsequences",
+        "adventureConsequenceEvents",
+        "adventureQuests",
+        "adventureRuns",
+        "adventureChronicleEvents"
+      ],
+      "keys_gps": [
+        "routes",
+        "places"
+      ],
+      "keys_coach": [
+        "coach links/assignments/messages/programs/cycles/groups (voir migration 20261206090000)"
+      ]
+    },
+    "social_export_v1": "Réécrit 6× dans la seule chaîne V1.8 : dernière définition 20261129090000_club_agenda.sql doit conserver toutes les sections V1.8.1–V1.8.6 et main (20261120110000).",
+    "coach_messages_v1": "Dernière déf. main 20261121100000_coach_capacity_enforced ; redéfinie par V1.9.2 (20261202090000) : vérifier que l’application de capacité de places est conservée (diff indicatif : sur-ensemble).",
+    "journal_fork_functions": "titan_import_core, titan_update_training_session, titan_session_changes_v1 : définitions identiques dans les deux fourches pour les 3 migrations communes (blobs 39416b1d/f334278f/6e4a21df) ; V1.6.6 redéfinit encore titan_update_training_session et titan_session_changes_v1 (20261123180000) ; V1.6.5 redéfinit titan_garmin_ingest_v1/deregister (20261124090000). L’ordre final doit appliquer source_center APRÈS journal_long_duration et vérifier que ses définitions ne reprennent pas une version antérieure des fonctions de V1.6.6.",
+    "grants": "Toutes les fonctions privées redéfinies refont revoke all from public, anon, authenticated ; les RPC publiques refont grant execute. A2 : contrôle automatique post-migration des ACL (has_function_privilege) sur la liste cumulative.",
+    "policies": "Aucune nouvelle « create policy » détectée ; activation RLS sur les nouvelles tables (accès par RPC SECURITY DEFINER)."
+  },
+  "files": {
+    "families": {
+      "RPG": {
+        "files": 174,
+        "commits": 12,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "52e83b24283e7809d38ce4e828e014db79f3442f"
+      },
+      "J161-164": {
+        "files": 100,
+        "commits": 8,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "0730d3c0fe19aeb4cab98e4efe81570e0e995375"
+      },
+      "J165": {
+        "files": 35,
+        "commits": 4,
+        "from": "0730d3c0fe19aeb4cab98e4efe81570e0e995375",
+        "to": "29424d8f0ea0f73f2e9488ac0d949f3b5d37ff6e"
+      },
+      "J166": {
+        "files": 73,
+        "commits": 2,
+        "from": "0730d3c0fe19aeb4cab98e4efe81570e0e995375",
+        "to": "897b731620a15eba9b72e8e8ebf9718310c71adb"
+      },
+      "V171-176": {
+        "files": 123,
+        "commits": 13,
+        "from": "897b731620a15eba9b72e8e8ebf9718310c71adb",
+        "to": "21a0cbad3db3b6bbb2411fe2e75a93224ee68996"
+      },
+      "V177GPS": {
+        "files": 151,
+        "commits": 17,
+        "from": "21a0cbad3db3b6bbb2411fe2e75a93224ee68996",
+        "to": "52a209bdbb1a2aba95e6864f61060fa805384c6a"
+      },
+      "COOP": {
+        "files": 163,
+        "commits": 12,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "c7e0223ffaf87fe7c78dc94905735e216da56b8d"
+      },
+      "COACH": {
+        "files": 153,
+        "commits": 21,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "3229bdceccf29b0db9359763ee4d37b33fb24e2b"
+      },
+      "SHARE": {
+        "files": 46,
+        "commits": 4,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "e767d523da405c5ee4dd8082c2a0929312ab3304"
+      },
+      "SITE_PLAY": {
+        "files": 45,
+        "commits": 2,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "018391199ab400766ac9068f886dc7ebb050536f"
+      },
+      "ADMOB": {
+        "files": 14,
+        "commits": 2,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "34243ab3389aaaea95fe182077bf7ce9e8f2a584"
+      },
+      "SEO": {
+        "files": 43,
+        "commits": 7,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "73364dc2ace76fe1e07d2771edc6dc61ab5cda6e"
+      },
+      "ANDROID_LINKS": {
+        "files": 4,
+        "commits": 1,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "2a3c6492fbc7a4bfd379811476be16d21212898e"
+      },
+      "PLAY_VISUALS": {
+        "files": 12,
+        "commits": 2,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "45ef689d28a4f2f4b0b474fbf7f490d60346755b"
+      },
+      "MARKETING": {
+        "files": 26,
+        "commits": 2,
+        "from": "0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39",
+        "to": "cf8bcfbb0896dd0a63b79f57d2b689d9c12a2a36"
+      }
+    },
+    "shared_files": {
+      "adventure.html": [
+        "J166",
+        "RPG"
+      ],
+      "mobile/scripts/sync-web-core.mjs": [
+        "COACH",
+        "COOP",
+        "J161-164",
+        "J165",
+        "J166",
+        "RPG",
+        "SHARE",
+        "V171-176",
+        "V177GPS"
+      ],
+      "mobile/src/core/icons.generated.ts": [
+        "COACH",
+        "COOP",
+        "J161-164",
+        "J165",
+        "J166",
+        "RPG",
+        "SHARE",
+        "V171-176",
+        "V177GPS"
+      ],
+      "mobile/src/core/web/manifest.json": [
+        "COACH",
+        "COOP",
+        "J161-164",
+        "J165",
+        "J166",
+        "RPG",
+        "SHARE",
+        "V171-176",
+        "V177GPS"
+      ],
+      "mobile/src/navigation/types.ts": [
+        "COOP",
+        "J161-164",
+        "RPG",
+        "SHARE",
+        "V177GPS"
+      ],
+      "package.json": [
+        "COACH",
+        "COOP",
+        "J161-164",
+        "J165",
+        "J166",
+        "RPG",
+        "SEO",
+        "SHARE",
+        "V171-176",
+        "V177GPS"
+      ],
+      "seance-live.html": [
+        "J166",
+        "RPG"
+      ],
+      "supabase/release-v21/00-check-before.sql": [
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "supabase/release-v21/99-check-after.sql": [
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "supabase/release-v21/README.md": [
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "supabase/release-v22/00-check-before.sql": [
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "supabase/release-v22/99-check-after.sql": [
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "supabase/release-v22/README.md": [
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "supabase/release-v23/00-check-before.sql": [
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "supabase/release-v23/99-check-after.sql": [
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "supabase/release-v23/README.md": [
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "supabase/release-v24/00-check-before.sql": [
+        "COOP",
+        "J165",
+        "J166",
+        "RPG"
+      ],
+      "supabase/release-v24/99-check-after.sql": [
+        "COOP",
+        "J165",
+        "J166",
+        "RPG"
+      ],
+      "supabase/release-v24/README.md": [
+        "COOP",
+        "J165",
+        "J166",
+        "RPG"
+      ],
+      "supabase/release-v25/00-check-before.sql": [
+        "COOP",
+        "RPG",
+        "V177GPS"
+      ],
+      "supabase/release-v25/99-check-after.sql": [
+        "COOP",
+        "RPG",
+        "V177GPS"
+      ],
+      "supabase/release-v25/README.md": [
+        "COOP",
+        "RPG",
+        "V177GPS"
+      ],
+      "supabase/release-v26/00-check-before.sql": [
+        "COOP",
+        "RPG"
+      ],
+      "supabase/release-v26/99-check-after.sql": [
+        "COOP",
+        "RPG"
+      ],
+      "supabase/release-v26/README.md": [
+        "COOP",
+        "RPG"
+      ],
+      "tools/db/build-production-bundle.mjs": [
+        "COACH",
+        "COOP",
+        "J161-164",
+        "J165",
+        "J166",
+        "RPG",
+        "SHARE",
+        "V177GPS"
+      ],
+      "tools/db/test-migrations.sh": [
+        "COACH",
+        "COOP",
+        "J161-164",
+        "RPG"
+      ],
+      "changelog.html": [
+        "COOP",
+        "J161-164",
+        "SITE_PLAY"
+      ],
+      "css/ascension-app.css": [
+        "COACH",
+        "J161-164",
+        "J165",
+        "J166",
+        "SHARE",
+        "V171-176",
+        "V177GPS"
+      ],
+      "docs/PRIVACY_TECHNICAL_INVENTORY.md": [
+        "J161-164",
+        "J165",
+        "SEO",
+        "V177GPS"
+      ],
+      "journal.html": [
+        "J161-164",
+        "J166",
+        "SHARE",
+        "V171-176",
+        "V177GPS"
+      ],
+      "js/app/journal.js": [
+        "J161-164",
+        "J166",
+        "SHARE",
+        "V171-176",
+        "V177GPS"
+      ],
+      "js/app/profil.js": [
+        "J161-164",
+        "J165"
+      ],
+      "js/app/sessions.js": [
+        "J161-164",
+        "J166"
+      ],
+      "js/core/history-ledger.js": [
+        "J161-164",
+        "J166"
+      ],
+      "js/main.js": [
+        "J161-164",
+        "J166"
+      ],
+      "legal_privacy.html": [
+        "COOP",
+        "J161-164",
+        "J165",
+        "SITE_PLAY",
+        "V177GPS"
+      ],
+      "mobile/__tests__/historyMigration.test.tsx": [
+        "J161-164",
+        "J166"
+      ],
+      "mobile/docs/COUVERTURE_ANDROID.md": [
+        "COACH",
+        "COOP",
+        "J161-164",
+        "J165",
+        "J166",
+        "V171-176",
+        "V177GPS"
+      ],
+      "mobile/src/core/index.ts": [
+        "J161-164",
+        "J165",
+        "J166",
+        "V171-176",
+        "V177GPS"
+      ],
+      "mobile/src/core/session.ts": [
+        "J161-164",
+        "V177GPS"
+      ],
+      "mobile/src/core/web/history-ledger.js": [
+        "J161-164",
+        "J166"
+      ],
+      "mobile/src/data/api.ts": [
+        "COACH",
+        "COOP",
+        "J161-164",
+        "J165",
+        "J166",
+        "V177GPS"
+      ],
+      "mobile/src/data/hooks.ts": [
+        "J161-164",
+        "J166",
+        "V177GPS"
+      ],
+      "mobile/src/lib/errors.ts": [
+        "J161-164",
+        "J166"
+      ],
+      "mobile/src/screens/progress/JournalScreen.tsx": [
+        "J161-164",
+        "J166"
+      ],
+      "mobile/src/screens/progress/ProgressScreen.tsx": [
+        "J161-164",
+        "V171-176"
+      ],
+      "mobile/src/screens/progress/RecordsScreen.tsx": [
+        "J161-164",
+        "J166",
+        "SHARE"
+      ],
+      "mobile/src/screens/session/SessionDetailScreen.tsx": [
+        "COACH",
+        "J161-164",
+        "SHARE",
+        "V171-176"
+      ],
+      "profile.html": [
+        "J161-164",
+        "J165",
+        "J166"
+      ],
+      "supprimer-mon-compte.html": [
+        "COOP",
+        "J161-164",
+        "J165",
+        "SITE_PLAY",
+        "V177GPS"
+      ],
+      "tests/coherence-offers.test.mjs": [
+        "COACH",
+        "COOP",
+        "J161-164",
+        "J165",
+        "V177GPS"
+      ],
+      "tools/build-public-docs.mjs": [
+        "COOP",
+        "J161-164",
+        "J165",
+        "SITE_PLAY",
+        "V177GPS"
+      ],
+      "tools/data/legal-versions.json": [
+        "COOP",
+        "J161-164",
+        "J165",
+        "V177GPS"
+      ],
+      "training.html": [
+        "J161-164",
+        "J166",
+        "SHARE"
+      ],
+      "aujourdhui.html": [
+        "J166",
+        "V171-176"
+      ],
+      "coaching.html": [
+        "COACH",
+        "J166"
+      ],
+      "js/app/records.js": [
+        "J166",
+        "SHARE"
+      ],
+      "js/state.js": [
+        "J166",
+        "V171-176"
+      ],
+      "prevoir.html": [
+        "J166",
+        "V171-176"
+      ],
+      "records.html": [
+        "J166",
+        "SHARE"
+      ],
+      "social.html": [
+        "COOP",
+        "J166"
+      ],
+      "stats.html": [
+        "J166",
+        "V171-176"
+      ],
+      "tests/e2e/smoke.e2e.mjs": [
+        "J166",
+        "V177GPS"
+      ],
+      "docs/FEATURE_FLAGS.md": [
+        "COACH",
+        "COOP",
+        "V177GPS"
+      ],
+      "docs/third-party-hosts.json": [
+        "SEO",
+        "V177GPS"
+      ],
+      "js/app/parcours.js": [
+        "SHARE",
+        "V177GPS"
+      ],
+      "mobile/src/navigation/RootNavigator.tsx": [
+        "SHARE",
+        "V177GPS"
+      ],
+      "netlify.toml": [
+        "SEO",
+        "V177GPS"
+      ],
+      "tests/release-safety.test.mjs": [
+        "SEO",
+        "V177GPS"
+      ],
+      "tools/build-public.mjs": [
+        "ANDROID_LINKS",
+        "SEO",
+        "V177GPS"
+      ],
+      "css/one-communaute.css": [
+        "COOP",
+        "SITE_PLAY"
+      ],
+      "mobile/__tests__/communityInvite.test.tsx": [
+        "COOP",
+        "SHARE"
+      ],
+      "mobile/src/screens/community/CommunityScreen.tsx": [
+        "COOP",
+        "SHARE"
+      ],
+      "mobile/src/screens/session/SessionResultScreen.tsx": [
+        "ADMOB",
+        "SHARE"
+      ],
+      ".github/workflows/probe-prod.yml": [
+        "ANDROID_LINKS",
+        "SEO"
+      ]
+    }
+  },
+  "merge_simulation": {
+    "method": "git merge-tree --write-tree, cumulatif, objets non référencés (aucune branche écrite)",
+    "order": [
+      "SEO",
+      "V1.7.7",
+      "V1.6.5",
+      "V1.5.5",
+      "V1.8.6",
+      "V1.9.6",
+      "Partage",
+      "Site/Play",
+      "AdMob",
+      "assetlinks",
+      "visuels Play"
+    ],
+    "raw": "== +dreamy-rubin-h0bac5 rc=0 conflicts=0\n   \n== +gifted-brahmagupta-mg28j8 rc=1 conflicts=1\n   package.json\n== +hopeful-fermat-o35c8o rc=1 conflicts=14\n   css/ascension-app.css\n   legal_privacy.html\n   mobile/scripts/sync-web-core.mjs\n   mobile/src/core/icons.generated.ts\n   mobile/src/core/index.ts\n   mobile/src/core/web/manifest.json\n   package.json\n   supabase/release-v24/99-check-after.sql\n   supabase/release-v24/README.md\n   supprimer-mon-compte.html\n   tests/coherence-offers.test.mjs\n   tools/build-public-docs.mjs\n   tools/data/legal-versions.json\n   tools/db/build-production-bundle.mjs\n== +gracious-feynman-q190d7 rc=1 conflicts=19\n   mobile/src/core/icons.generated.ts\n   mobile/src/core/web/manifest.json\n   package.json\n   supabase/release-v21/00-check-before.sql\n   supabase/release-v21/99-check-after.sql\n   supabase/release-v21/README.md\n   supabase/release-v22/00-check-before.sql\n   supabase/release-v22/99-check-after.sql\n   supabase/release-v22/README.md\n   supabase/release-v23/00-check-before.sql\n   supabase/release-v23/99-check-after.sql\n   supabase/release-v23/README.md\n   supabase/release-v24/00-check-before.sql\n   supabase/release-v24/99-check-after.sql\n   supabase/release-v24/README.md\n   supabase/release-v25/00-check-before.sql\n   supabase/release-v25/99-check-after.sql\n   supabase/release-v25/README.md\n   tools/db/build-production-bundle.mjs\n== +sweet-cannon-ulls05 rc=1 conflicts=30\n   changelog.html\n   legal_privacy.html\n   mobile/scripts/sync-web-core.mjs\n   mobile/src/core/icons.generated.ts\n   mobile/src/core/web/manifest.json\n   package.json\n   supabase/release-v21/00-check-before.sql\n   supabase/release-v21/99-check-after.sql\n   supabase/release-v21/README.md\n   supabase/release-v22/00-check-before.sql\n   supabase/release-v22/99-check-after.sql\n   supabase/release-v22/README.md\n   supabase/release-v23/00-check-before.sql\n   supabase/release-v23/99-check-after.sql\n   supabase/release-v23/README.md\n   supabase/release-v24/00-check-before.sql\n   supabase/release-v24/99-check-after.sql\n   supabase/release-v24/README.md\n   supabase/release-v25/00-check-before.sql\n   supabase/release-v25/99-check-after.sql\n   supabase/release-v25/README.md\n   supabase/release-v26/00-check-before.sql\n   supabase/release-v26/99-check-after.sql\n   supabase/release-v26/README.md\n   supprimer-mon-compte.html\n   tests/coherence-offers.test.mjs\n   tools/build-public-docs.mjs\n   tools/data/legal-versions.json\n   tools/db/build-production-bundle.mjs\n   tools/db/test-migrations.sh\n== +bold-pasteur-n7zeg3 rc=1 conflicts=8\n   css/ascension-app.css\n   mobile/scripts/sync-web-core.mjs\n   mobile/src/core/icons.generated.ts\n   mobile/src/core/web/manifest.json\n   mobile/src/screens/session/SessionDetailScreen.tsx\n   package.json\n   tools/db/build-production-bundle.mjs\n   tools/db/test-migrations.sh\n== +stoic-meitner-ubw09b rc=1 conflicts=12\n   journal.html\n   js/app/journal.js\n   js/app/parcours.js\n   mobile/__tests__/communityInvite.test.tsx\n   mobile/scripts/sync-web-core.mjs\n   mobile/src/core/icons.generated.ts\n   mobile/src/core/web/manifest.json\n   mobile/src/navigation/types.ts\n   mobile/src/screens/community/CommunityScreen.tsx\n   mobile/src/screens/session/SessionDetailScreen.tsx\n   package.json\n   tools/db/build-production-bundle.mjs\n== +funny-cerf-ui44tf rc=0 conflicts=0\n   \n== +upbeat-cannon-za5wix rc=0 conflicts=0\n   \n== +serene-gates-0jdoyp rc=0 conflicts=0\n   \n== +ecstatic-cerf-pae6fp rc=0 conflicts=0\n   \n"
+  },
+  "feature_flags_production": {
+    "source": "private.titan_feature_flags (lecture seule)",
+    "enabled_100": [
+      "auth.google",
+      "screens.activityhub",
+      "screens.buddy",
+      "screens.clubs",
+      "screens.coachanalysis",
+      "screens.coachcalendar",
+      "screens.coachexport",
+      "screens.coachtools",
+      "screens.coachworkspace",
+      "screens.commonquest",
+      "screens.consultations",
+      "screens.cordee",
+      "screens.digest",
+      "screens.duels",
+      "screens.factions",
+      "screens.friendlinks",
+      "screens.garmin",
+      "screens.gpxterrain",
+      "screens.intents",
+      "screens.live",
+      "screens.pantheon",
+      "screens.ranking",
+      "screens.routes",
+      "screens.seasons",
+      "screens.worldgoal"
+    ],
+    "absent_in_production_claimed_by_lots": [
+      "screens.gps",
+      "screens.cordee_relay",
+      "screens.cordee_reprise",
+      "screens.cordee_suite",
+      "screens.club_season",
+      "screens.club_match",
+      "screens.club_match_versus",
+      "screens.club_agenda",
+      "screens.coach_followup",
+      "screens.coach_feedback",
+      "screens.coach_review",
+      "screens.coach_programs",
+      "screens.coach_cycle_report",
+      "screens.coach_groups",
+      "ads.android",
+      "ads.android.interstitial"
+    ],
+    "rule": "Drapeau absent = valeur par défaut du client (docs/FEATURE_FLAGS.md). A3 doit prouver que chaque défaut client est « fermé ». Aucune ouverture globale sans accord."
+  },
+  "pricing_entitlements": {
+    "source": "private.titan_plan_products (lecture seule) + migrations main",
+    "products": {
+      "titan01": "titan_plus",
+      "titan02": "coach (5 places)",
+      "titan03": "coach_pro / « Coach Ultra » (15 places)"
+    },
+    "titan_plus_coach_capacity": "Règle main (seule définition, 20261102090000_coach_seats.sql) : places de l’offre Coach (coach 5 / coach_pro 15) sinon 20 places si TITAN+ personnel payant actif (« legacy capacity of the published V1 »), sinon 3. PR #155 propose 3 sans offre Coach (migration 20261121140000 + release-v19, non appliquées).",
+    "play_billing": "PLAY_BILLING_ENABLED=true sur Netlify depuis le 19/11 (décision propriétaire, selon rapport ABSOLUTE ONE)",
+    "prices": "Visés 4,99/19,99/39,99 € ; observés 5,99/23,99/47,99 € dans Play Console (rapport ABSOLUTE ONE, non revérifié)",
+    "note": "Aucune modification. V1.9.6 cite « Coach Pro 15 » : libellé à harmoniser (code = coach_pro, interface = Coach Ultra)."
+  },
+  "ci_costs": {
+    "workflows": [
+      "ci.yml (Qualite : build, Playwright ~24-32 min, réplique Postgres ~3 min)",
+      "android-native.yml (~27-28 min, dispatch/PR)",
+      "probe-prod.yml (toutes les 6 h, <1 min)",
+      "audit-live.yml (quotidien, 2-9 min)",
+      "deploy-netlify.yml",
+      "android-twa*.yml (manuels)"
+    ],
+    "recent_runs": {
+      "main 0dae9af push Qualite": "44496036957 ÉCHEC (Playwright one-aventure-live.e2e.mjs:43, instable ; vert sur PR au même SHA)",
+      "PR #166": "45816501537 vert 26 min",
+      "AdMob ads=test": "45805243137 vert 28 min"
+    },
+    "total_runs_repo": 1203,
+    "netlify": {
+      "plan": "nf_team_dev",
+      "deploy_time_s": 25,
+      "note": "coût/minutes de build non exposés par l’API lue ; à relever dans la console"
+    },
+    "observation": "La CI n’a pas tourné sur les 31 branches de lots (aucune PR) : dette de preuve."
+  },
+  "legacy_capabilities": {
+    "source": "drapeaux production + fonctions Netlify + migrations main",
+    "items": [
+      "Enregistrement séance Web/Android, file hors ligne durable",
+      "TITAN LIVE (screens.live)",
+      "Journal, records, statistiques, 260 sports",
+      "Imports GPX/Garmin (OAuth, dailies)/Santé Connect/Strava/CSV historique",
+      "Aventure RPG V1.3 (4 mondes, rencontres, quêtes périodiques)",
+      "Cordée, Grande Cordée, amis, groupes, digest, clubs, saisons, duels, factions, panthéon, classement équitable, objectif mondial",
+      "Coaching : places, outils, analyse, calendrier, export, workspace, messages",
+      "Atelier/boutique, économie, récompenses serveur, anti-triche, appels, modération",
+      "Paiements Google Play (play-billing, play-notifications, play-reconcile cron 17 * * * *), entitlements",
+      "Assistance (fonction assistance), export/suppression de compte",
+      "Pages publiques SEO (27 URL sitemap)"
+    ],
+    "rule": "Chaque capacité = test de non-régression A3 sur le SHA consolidé."
+  },
+  "exit_conditions_A1": {
+    "all_31_lots_classified": true,
+    "transversals_4_classified": true,
+    "unknowns_documented": [
+      "Play Console (versionCode et commit publiés)",
+      "Coûts Netlify en minutes/€",
+      "Validation AdMob",
+      "Search Console directe (seulement via Observatoire selon audit SEO)",
+      "Exécution CI des branches de lots"
+    ],
+    "feature_merges_done": 0
+  }
+}
