@@ -9,7 +9,7 @@ Aucun identifiant secret n'est concerné : l'identifiant d'application AdMob et 
 | État | Verdict au 26/11/2026 | Preuve ou manque |
 | --- | --- | --- |
 | **Configuré** (code et build) | **OUI**, éteint par défaut | SDK `react-native-google-mobile-ads` 17.4.0, identifiant d'application dans le manifeste, UMP, 3 bannières, 1 interstitiel, politique de fréquence, interrupteurs build + serveur (§ 2, § 3) |
-| **Testé avec les annonces de test** | **PARTIEL** | Jest (faux SDK), bundle et manifeste générés en `ads=off` et `ads=test`. **Jamais** vu sur un téléphone : ni annonce « Test Ad », ni formulaire Google (pas d'appareil ni de SDK Android dans ce conteneur) |
+| **Testé avec les annonces de test** | **PARTIEL** | Jest (faux SDK), bundle et manifeste en `ads=off` et `ads=test`, APK `ads=test` compilé et contrôlé en CI (run 288, § 7). **Jamais** vu sur un téléphone : ni annonce « Test Ad », ni formulaire Google (pas d'appareil ni de SDK Android dans ce conteneur) |
 | **Approuvé par AdMob** | **INCONNU** | Aucun accès à la console AdMob. À vérifier par Théo (§ 6) |
 | **Diffusé en production** | **NON** | La release Play 1.4.0 (versionCode 1400) est un build `ads=off` : SDK jamais démarré, `AD_ID` absent, déclarée « sans annonces » (`docs/ABSOLUTE_ONE_RAPPORT_FINAL.md` § Options) |
 
@@ -128,7 +128,21 @@ d'interstitiel fermé (séances comptées, rien préchargé), maître fermé, re
 annonce de plus de 55 min jetée, chargement jamais attendu, erreur SDK à la création, module natif absent, « Terminer » :
 annonce montrée → pas de demande d'avis, pas d'annonce → demande d'avis selon ses règles, navigation immédiate.
 
-Non exécuté ici : compilation Gradle, parcours émulateur (dans `android-native.yml`), tout essai sur téléphone.
+**GitHub Actions**, run 288 (`android-native.yml`, `workflow_dispatch`, `signing=throwaway`, `ads=test`, SHA `5cbabdc`,
+26/11/2026 10:51–11:19 UTC) : https://github.com/Theo25460/TITAN_V0.5/actions/runs/45805243137
+
+| Job | Résultat |
+| --- | --- |
+| Types et tests unitaires (typecheck, Jest, bundle Metro de production) | succès |
+| APK et AAB release : garde-fous `ads`, `expo prebuild`, Gradle `assembleRelease bundleRelease`, **contrôles du paquet** | succès. Avec `ads=test`, le contrôle exige `com.google.android.gms.permission.AD_ID` dans l'APK, l'identifiant d'application `ca-app-pub-8126986266950187~1902494129` dans le manifeste et aucune permission Privacy Sandbox : les trois sont passés |
+| Parcours réel sur émulateur Android 14 (réplique du schéma de production) + vérifications serveur | succès. **Attention** : ce job compile sa propre application de test **sans** annonces ; il prouve l'absence de régression, pas l'affichage publicitaire |
+| AAB signé pour Play | ignoré (normal : clé jetable) |
+
+Artefact à installer sur le S23 : **`titan-android-1288-essai-NE-PAS-PUBLIER`** (APK et AAB, versionCode 1288, versionName
+2.0.0, clé jetable, unités de test Google), disponible jusqu'au 26/12/2026. Désinstaller d'abord la version Play (signature
+différente, et 1288 est inférieur à 1400).
+
+Non exécuté : tout essai sur téléphone (formulaire Google, annonces « Test Ad »).
 
 ## 8. Recette manuelle sur le S23 (build d'essai `ads=test`)
 
