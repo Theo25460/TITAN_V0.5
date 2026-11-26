@@ -952,7 +952,9 @@
         error.textContent = ""; savePrefs({ fields: { ...prefs.fields, [fam]: chosen } });
       }
     });
-    s.body.querySelector('[data-set="ok"]').addEventListener("click", () => s.close());
+    // V2.0 (A2): the summary row is redrawn as soon as « Fermer » is pressed, not only when the dialog reports its close (which a
+    // browser can deliver later, after the sheet is gone): the row never shows the settings the athlete has just changed.
+    s.body.querySelector('[data-set="ok"]').addEventListener("click", () => { s.close(); if (screen === "live" || screen === "prepare") render(); });
     s.dialog.addEventListener("close", () => { if (screen === "live" || screen === "prepare") render(); }, { once: true });
   }
 
