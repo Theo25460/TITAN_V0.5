@@ -305,6 +305,33 @@ export async function runGuard(o) {
     observations[ob.route.path].weight = ob.weight;
   }
 
+  /* 3c. Across the public pages: duplicate titles and descriptions, orphan pages (no link from another public page; Google still
+     finds them in the sitemap, so a warning), and hreflang reciprocity (none today: ready for a translated V2.1, never guessed). */
+  if (o.scope !== "smoke") {
+    const pages = observed.filter((ob) => ob.route.indexable && ob.page && ob.response.status === 200);
+    for (const [field, rule, label] of [["title", "title-duplicate", "le titre"], ["description", "description-duplicate", "la description"]]) {
+      const seen = new Map();
+      for (const ob of pages) {
+        const value = ob.page[field];
+        if (!value) continue;
+        if (seen.has(value)) add("P2", rule, ob.route.path, `${label} est propre à la page`, "unique", `identique à ${seen.get(value)}`, "Deux pages avec le même texte se font concurrence dans les résultats.");
+        else seen.set(value, ob.route.path);
+      }
+    }
+    const incoming = new Map(pages.map((ob) => [ob.route.path, 0]));
+    for (const ob of pages) for (const link of ob.page.links) if (link !== ob.route.path && incoming.has(link)) incoming.set(link, incoming.get(link) + 1);
+    for (const [path, n] of incoming) if (!n && path !== "/") add("P2", "orphan", path, "une page publique reçoit un lien d'une autre page publique", "≥ 1 lien entrant", 0, "Ajouter un lien depuis une page du même thème (le sitemap seul la fait découvrir).");
+    const byPage = new Map(pages.map((ob) => [ob.route.path, ob]));
+    for (const ob of pages) {
+      for (const alt of ob.page.hreflang) {
+        if (!String(alt.href).startsWith(`${origin}/`)) continue;
+        const target = byPage.get(alt.href.slice(origin.length) || "/");
+        const self = `${origin}${ob.route.path === "/" ? "/" : ob.route.path}`;
+        if (target && !target.page.hreflang.some((back) => back.href === self)) add("P1", "hreflang-reciprocity", ob.route.path, "les hreflang sont réciproques", `${alt.href} renvoie vers ${self}`, "pas de lien retour", "Google ignore un hreflang sans retour : déclarer la paire des deux côtés.");
+      }
+    }
+  }
+
   /* 4. Preview isolation: every HTML answer of a preview carries noindex; canonicals never name the preview host. */
   if (isPreview) {
     for (const ob of observed) {

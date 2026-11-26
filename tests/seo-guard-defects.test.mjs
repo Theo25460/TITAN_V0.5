@@ -62,6 +62,15 @@ describe("staged defects are caught", { concurrency: 4 }, () => {
     const moved = await scenario({ mutate: (d) => edit(d, "debuter-titan.html", (h) => h.replaceAll('href="/onboarding"', 'href="/inscription"')) });
     has(moved, "P1", "cta-missing", "/debuter-titan");
   });
+  test("a title copied from another page and a broken hreflang pair are reported, without blocking the duplicate", async () => {
+    const title = readFileSync(join(ROOT, "index.html"), "utf8").match(/<title>([^<]*)<\/title>/)[1];
+    const r = await scenario({ mutate: (d) => {
+      edit(d, "sports.html", (h) => h.replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`));
+      edit(d, "suivi-velo.html", (h) => h.replace("</head>", '<link rel="alternate" hreflang="en" href="https://titan-app.fr/suivi-escalade"></head>'));
+    } });
+    assert.ok(open(r, "P2").some((f) => f.startsWith("title-duplicate ")), JSON.stringify(open(r, "P2")));
+    has(r, "P1", "hreflang-reciprocity", "/suivi-velo");
+  });
   test("a heavier showcase page (an app SDK on a public page) → P1, reproducible from bytes", async () => {
     const r = await scenario({ mutate: (d) => edit(d, "fonctionnalites.html", (h) => h.replace("</head>", '<script src="/js/vendor/supabase-2.111.0.js" defer></script></head>')) });
     has(r, "P1", "scripts-added", "/fonctionnalites");

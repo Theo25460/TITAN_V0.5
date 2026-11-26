@@ -56,6 +56,7 @@ describe("intended changes pass, previews stay out of the index, provenance is c
     const declared = await scenario({ mutate, toml, manifest: (m) => { m.routes.push({ path: "/suivi-natation", group: "guide" }); return m; } });
     assert.equal(declared.summary.P0 + declared.summary.P1, 0, JSON.stringify(open(declared)));
     has(declared, "P2", "new-route", "/suivi-natation");
+    has(declared, "P2", "orphan", "/suivi-natation"); // linked from no other public page yet: a warning, not a block
     const undeclared = await scenario({ mutate, toml });
     has(undeclared, "P1", "route-unclassified", "/suivi-natation");
   });
