@@ -4597,5 +4597,362 @@
       "Exécution CI des branches de lots"
     ],
     "feature_merges_done": 0
+  },
+  "a2": {
+    "mission": "A2 — Fusion & données",
+    "date": "2026-11-26",
+    "model": "claude-opus-5-5",
+    "effort": "high (requested: extra high / max)",
+    "start_sha": "1418a8501bb5b8dfb11782994e71305bb9d89f45",
+    "branch": "integration/v2.0-all-versions (also pushed to claude/festive-bardeen-cjajw2)",
+    "candidate_sha": "see the last commit of the branch and the Google Docs report (this file is part of the candidate)",
+    "restore_points": [
+      {
+        "tag": "a2/rp-00",
+        "sha": "1418a8501bb5b8dfb11782994e71305bb9d89f45",
+        "subject": "docs(v2): A1 inventory and integration plan for V2.0"
+      },
+      {
+        "tag": "a2/rp-01",
+        "sha": "d237661cb0ec7ee5970ed626287d7a22b9f25ccf",
+        "subject": "merge(v2): SEO guard (PR #166, 73364dc2) into the V2.0 integration candidate"
+      },
+      {
+        "tag": "a2/rp-02",
+        "sha": "555498c0c5b8ca10a86c967587790ea12b5d4259",
+        "subject": "merge(v2): journal, sport and GPS chain V1.7.7 (52a209bd) — V1.6.1–.4, V1.6.6, V1.7.1–.7"
+      },
+      {
+        "tag": "a2/rp-03",
+        "sha": "d797771e96f8fa0fb51f518157b1bca89e2bd36e",
+        "subject": "merge(v2): Centre des sources V1.6.5 (29424d8f) + canonical SQL sequence v2-01/02/04"
+      },
+      {
+        "tag": "a2/rp-04",
+        "sha": "0ea1dc0058072dcc05a59294d0d100938e468675",
+        "subject": "merge(v2): coaching chain V1.9.6 (3229bdce) — V1.9.1 to V1.9.6, package release-v2-03"
+      },
+      {
+        "tag": "a2/rp-05",
+        "sha": "f3b49b734041b9624e23cfa1ae590e67426957d4",
+        "subject": "merge(v2): RPG chain V1.5.5 (52e83b24) — V1.5.0 to V1.5.5, package release-v2-05"
+      },
+      {
+        "tag": "a2/rp-06",
+        "sha": "240ca5573d81516fe1884169bf1cf430ff427edc",
+        "subject": "merge(v2): cooperation chain V1.8.6 (c7e0223f) — V1.8.1 to V1.8.6, package release-v2-06"
+      },
+      {
+        "tag": "a2/rp-07",
+        "sha": "b5be670b9e37eafaf2af17402b6e43c45b40676f",
+        "subject": "merge(v2): share story cards (Avant V2 — partage, e767d523), package release-v2-07"
+      },
+      {
+        "tag": "a2/rp-08",
+        "sha": "e3f3d2fa04dc6dab7cc47829bd298b21ef18d657",
+        "subject": "feat(db): V2.0 consolidation package release-v2-08 — complete export, grant hygiene, final guard"
+      },
+      {
+        "tag": "a2/rp-09",
+        "sha": "412ffefd6e9d10a2dd0728a8c8a61d570a754d38",
+        "subject": "merge(v2): AdMob switches (Avant V2 — publicités, 34243ab3), closed by default"
+      },
+      {
+        "tag": "a2/rp-10",
+        "sha": "08a1a773ef3959fe65698266f78e077baad6b2c5",
+        "subject": "merge(v2): assetlinks probe (serene-gates, 2a3c6492)"
+      }
+    ],
+    "contributions_in_candidate": [
+      {
+        "lot": "V1.5.0",
+        "branch": "claude/determined-dijkstra-vxipm5",
+        "sha": "1933f36dffefdfd129d31b6a1637773a3a14287d",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.5.1",
+        "branch": "claude/eager-hopper-0up873",
+        "sha": "f27a635e7d7c0c075dd3a24cb467c2d0f2742768",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.5.2",
+        "branch": "claude/zen-hypatia-uhzjpb",
+        "sha": "e48cf1d6ebc3b81bf9286053438600a11c6158fc",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.5.3",
+        "branch": "claude/upbeat-feynman-vzjuj1",
+        "sha": "c9eed983c67e13f69459a6c14f64fad4407c7867",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.5.4",
+        "branch": "claude/gallant-franklin-5i5du0",
+        "sha": "721cc47ce9693e5e1ebb98efef29aeb51fd41377",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.5.5",
+        "branch": "claude/gracious-feynman-q190d7",
+        "sha": "52e83b24283e7809d38ce4e828e014db79f3442f",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.6.1",
+        "branch": "claude/quirky-darwin-xu2xb2",
+        "sha": "b75161f552ba2a7b28d993699385c4ee04ada9ba",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.6.2",
+        "branch": "claude/sweet-pascal-fm01fi",
+        "sha": "18c062b0ce1acd7904d3a52eb88a4f17382582d4",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.6.3",
+        "branch": "claude/upbeat-ramanujan-088mfd",
+        "sha": "1e684f1c3d181f9b64f676ed0989097df8e79cfa",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.6.4",
+        "branch": "claude/great-brahmagupta-ujjwsf",
+        "sha": "0730d3c0fe19aeb4cab98e4efe81570e0e995375",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.6.5",
+        "branch": "claude/hopeful-fermat-o35c8o",
+        "sha": "29424d8f0ea0f73f2e9488ac0d949f3b5d37ff6e",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.6.6",
+        "branch": "claude/kind-knuth-lqt1vg",
+        "sha": "897b731620a15eba9b72e8e8ebf9718310c71adb",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.7.1",
+        "branch": "claude/magical-darwin-p4e6cz",
+        "sha": "819fcfd84d0baa3203ee687c5b2c748bc4700ca4",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.7.2",
+        "branch": "claude/kind-wright-0fxi1d",
+        "sha": "fcb8e33fee2003a4b7a7db56f9293edec6b7fe34",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.7.3",
+        "branch": "claude/zen-lamport-vhfm6h",
+        "sha": "4de371f507a761b91d43b9b626cf83f8f436d474",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.7.4",
+        "branch": "claude/lucid-bardeen-p44mhj",
+        "sha": "0572d7422f3510be8200ab8aafe4c995ea06e185",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.7.5",
+        "branch": "claude/awesome-mayer-cohg7j",
+        "sha": "a07e25e2c65412db8904a5ffa3def62104f6b0c4",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.7.6",
+        "branch": "claude/blissful-albattani-wms5p8",
+        "sha": "21a0cbad3db3b6bbb2411fe2e75a93224ee68996",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.7.7",
+        "branch": "claude/gifted-brahmagupta-mg28j8",
+        "sha": "52a209bdbb1a2aba95e6864f61060fa805384c6a",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.8.1",
+        "branch": "claude/elegant-heisenberg-tl2yct",
+        "sha": "caaa302f86297513b2e46f9e9f6010ef7dada4cd",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.8.2",
+        "branch": "claude/keen-cannon-h937pw",
+        "sha": "ade9ae19546fbe0751b377b199bb0074bf3bf81b",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.8.3",
+        "branch": "claude/compassionate-planck-lnjxkv",
+        "sha": "a12beb4d8853ea5e3b0395cc91e86bc6a7a5d3dd",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.8.4",
+        "branch": "claude/serene-turing-bi4f2i",
+        "sha": "f546cafc229a2168405c3f4b150431b198ce4e68",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.8.5",
+        "branch": "claude/focused-turing-vycm1j",
+        "sha": "a799bfe3a0bd0aaee61a8c812b3955bb575f28ac",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.8.6",
+        "branch": "claude/sweet-cannon-ulls05",
+        "sha": "c7e0223ffaf87fe7c78dc94905735e216da56b8d",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.9.1",
+        "branch": "claude/serene-shannon-q13w5i",
+        "sha": "3b834eb479efde51664b81553c987871c60f68ae",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.9.2",
+        "branch": "claude/sharp-euler-26axlf",
+        "sha": "88e7601fca8482977d75943037750d2bd4ca6afd",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.9.3",
+        "branch": "claude/brave-fermat-3nrnfg",
+        "sha": "45c176ac696b2169e50cca6dc2f690576f067550",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.9.4",
+        "branch": "claude/zealous-lovelace-094042",
+        "sha": "1cdfba736d7396b6ed57bbe10b5606990fe23b34",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.9.5",
+        "branch": "claude/jolly-clarke-lrkmh7",
+        "sha": "1d1ca059be0076c85067177e0bb4e2ffac8603bb",
+        "in_candidate": true
+      },
+      {
+        "lot": "V1.9.6",
+        "branch": "claude/bold-pasteur-n7zeg3",
+        "sha": "3229bdceccf29b0db9359763ee4d37b33fb24e2b",
+        "in_candidate": true
+      },
+      {
+        "lot": "T1",
+        "branch": "claude/stoic-meitner-ubw09b",
+        "sha": "e767d523da405c5ee4dd8082c2a0929312ab3304",
+        "in_candidate": true
+      },
+      {
+        "lot": "T2",
+        "branch": "claude/funny-cerf-ui44tf",
+        "sha": "018391199ab400766ac9068f886dc7ebb050536f",
+        "in_candidate": false
+      },
+      {
+        "lot": "T3",
+        "branch": "claude/upbeat-cannon-za5wix",
+        "sha": "34243ab3389aaaea95fe182077bf7ce9e8f2a584",
+        "in_candidate": true
+      },
+      {
+        "lot": "T4",
+        "branch": "claude/dreamy-rubin-h0bac5",
+        "sha": "73364dc2ace76fe1e07d2771edc6dc61ab5cda6e",
+        "in_candidate": true
+      },
+      {
+        "lot": "assetlinks",
+        "branch": "claude/serene-gates-0jdoyp",
+        "sha": "2a3c6492fbc7a4bfd379811476be16d21212898e",
+        "in_candidate": true
+      }
+    ],
+    "not_merged": [
+      {
+        "id": "T2",
+        "branch": "claude/funny-cerf-ui44tf",
+        "reason": "contradicts GP13 of the SEO guard (Play link): owner decision"
+      },
+      {
+        "id": "tender-clarke",
+        "reason": "contest « Les 20 premiers »: legal commitment, owner decision"
+      },
+      {
+        "id": "#155",
+        "reason": "coach places with TITAN+ (20 → 3): commercial decision"
+      },
+      {
+        "id": "#147 / design/titan-sports-library-consolidation",
+        "reason": "graphic candidates not approved"
+      },
+      {
+        "id": "ecstatic-cerf",
+        "reason": "Play visuals, outside the code"
+      }
+    ],
+    "sql": {
+      "map": "tools/db/v2-migration-map.json",
+      "canonical": "tools/db/v2-canonical.mjs",
+      "fingerprints": "tools/db/v2-fingerprints.json",
+      "doc": "docs/v2/MIGRATIONS_V2.md",
+      "packages": [
+        "supabase/release-v2-01",
+        "supabase/release-v2-02",
+        "supabase/release-v2-03",
+        "supabase/release-v2-04",
+        "supabase/release-v2-05",
+        "supabase/release-v2-06",
+        "supabase/release-v2-07",
+        "supabase/release-v2-08"
+      ],
+      "migrations": 26,
+      "production_head_unchanged": "20261122090000"
+    },
+    "legal": {
+      "privacy": "Version 15 · 26 novembre 2026 (published: 14)",
+      "deletion": "Version 5 · 26 novembre 2026 (published: 4)",
+      "unpublished_lot_entries": "docs/v2/legal-unpublished-versions.json",
+      "review_required": true
+    },
+    "tests": {
+      "verify": "PASS 1305 Node tests (base 782)",
+      "test_db": "PASS",
+      "replica_rehearsal": "PASS 94 checks, 0 failure",
+      "mobile_tsc": "PASS",
+      "jest": "PASS 157 suites / 1406 tests",
+      "seo_guard_dist": "PASS 175 routes P0 0 P1 0",
+      "playwright": "full suite 1257: 1250 PASS / 7 FAIL in 5 files before fixes; the 5 files and 9 neighbours PASS after fixes de0654b6, 8a985d44, 1ae75799; full suite not rerun after fixes; one-aventure-live flaky (inherited, P2)",
+      "device": "NOT TESTED",
+      "github_ci": "NOT RUN"
+    },
+    "reports": [
+      "docs/v2/A2_FUSION_REPORT.md",
+      "docs/v2/MIGRATIONS_V2.md",
+      "docs/v2/A2_SECURITY_F2.md",
+      "docs/v2/A2_CLIENT_SERVER_COMPAT.md"
+    ],
+    "inherited_failures": {
+      "real-account": "fixed (fixture models production server; /stats overflow fixed)",
+      "discipline-analysis focus": "fixed (render keeps focus)",
+      "sortie-gps preparation": "fixed (row redrawn on close click)",
+      "rpg-multisport": "fixed (selector)",
+      "smoke assistance": "fixed (wait for load)",
+      "one-aventure-live": "flaky, not fixed (P2)",
+      "public card actions: bearer stays A": "not reproduced"
+    }
   }
 }
