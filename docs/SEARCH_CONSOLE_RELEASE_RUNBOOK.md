@@ -2,6 +2,8 @@
 
 Procédure SEO10 établie le 17 octobre 2026. Elle décrit une opération à effectuer après un déploiement validé ; aucune soumission ni demande d'indexation n'a été effectuée pendant sa rédaction.
 
+Les contrôles HTTP des étapes 2 à 5 ci-dessous sont automatisés par le bouclier SEO (`node tools/seo-guard.mjs check --base https://titan-app.fr --expect-commit <sha>`, voir [`docs/seo/SEO_GUARD.md`](seo/SEO_GUARD.md)) ; le protocole J+1 / J+7 / J+14 / J+28 de la V2.0 est au § 10 de ce guide.
+
 ## Avant toute demande
 
 1. Relever le commit et l'identifiant du déploiement réellement publié. Vérifier les parcours critiques selon le runbook de release ; ne pas déployer uniquement pour actualiser Google.

@@ -52,3 +52,13 @@ jobs:
         env:
           PROXY_PATH: ${{ inputs.proxy_path }}
         run: npx -y @netlify/mcp@latest --site-id 0a553bc3-458a-415d-9173-538faa0ac1e6 --proxy-path "$PROXY_PATH"
+
+      # Post-publication SEO smoke (docs/seo/SEO_GUARD.md): waits at most 10 min for titan-app.fr to serve this commit (build-info.json),
+      # then checks the critical routes. A preview link does not publish production: then the wait ends INCONCLUSIVE, said as a warning.
+      - name: Smoke SEO de production après envoi
+        run: |
+          set +e
+          node tools/seo-guard.mjs check --base https://titan-app.fr --scope smoke --fail-on p0 --expect-commit "$GITHUB_SHA" --wait-commit 600
+          code=$?
+          if [ "$code" = 3 ]; then echo "::warning title=Smoke SEO non concluant::titan-app.fr ne sert pas encore $GITHUB_SHA (déploiement non publié, ou build Netlify refusé par la garde)."; exit 0; fi
+          exit $code

@@ -1,5 +1,8 @@
+# The SEO guard checks the built dist/ with these very rules before Netlify publishes it (docs/seo/SEO_GUARD.md): a P0 (public page
+# missing, unexpected noindex, robots block, canonical off-site, preview noindex leaking into production…) fails the build, and Netlify
+# keeps serving the previous deploy. P1 drift needs an approval in the pull request (CI), not here.
 [build]
-  command = "node tools/check-release-guard.mjs && node tools/build-public.mjs"
+  command = "node tools/check-release-guard.mjs && node tools/build-public.mjs && node tools/seo-guard.mjs check --dist dist --context \"$CONTEXT\" --fail-on p0"
   publish = "dist"
 
 [build.environment]
@@ -9,6 +12,21 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+
+# Duplicate hosts of the production deploy (measured 26/11/2026: both answered 200, indexable, canonical to titan-app.fr): one permanent
+# hop to the production origin. Deploy Previews and deploy permalinks (deploy-preview-N--, <id>--) are other hosts: not matched, they keep
+# Netlify's own X-Robots-Tag: noindex. Nothing external uses these hosts (Play, Garmin, OAuth and Pub/Sub all name titan-app.fr).
+[[redirects]]
+from = "https://titano-app.netlify.app/*"
+to = "https://titan-app.fr/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://main--titano-app.netlify.app/*"
+to = "https://titan-app.fr/:splat"
+status = 301
+force = true
 
 [[redirects]]
 from = "/personnage"
@@ -833,6 +851,13 @@ status = 200
   for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache, max-age=0"
+
+# Which commit and Netlify deploy is online (tools/lib/build-context.mjs): always revalidated, never a search result.
+[[headers]]
+  for = "/build-info.json"
+  [headers.values]
+    Cache-Control = "no-cache, max-age=0"
+    X-Robots-Tag = "noindex"
 
 [[headers]]
   for = "/manifest.json"

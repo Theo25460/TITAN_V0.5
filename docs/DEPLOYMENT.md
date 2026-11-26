@@ -68,6 +68,8 @@ Ne jamais supposer qu'un fichier présent dans le dépôt est déjà actif en pr
 
 ## Retour arrière
 
+Procédure détaillée et vérifiée (cible saine, variables et fonctions du déploiement, compatibilité des migrations, contrôles après restauration) : [`docs/seo/SEO_GUARD.md`](seo/SEO_GUARD.md) § 8.
+
 - Front : redéployer dans Netlify le dernier commit validé, puis vérifier le cache PWA.
 - Fonction : revenir au commit précédent et rejouer un événement Paddle de test signé dans un environnement sûr.
 - Base : utiliser le rollback documenté pour le script concerné ; ne jamais restaurer ou supprimer des données sans cible et sauvegarde vérifiées.

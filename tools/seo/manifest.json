@@ -1,0 +1,668 @@
+{
+  "$comment": "Contrat SEO de titan-app.fr, versionné avec le code. Lu par tools/seo-guard.mjs, expliqué dans docs/seo/SEO_GUARD.md. Il se modifie dans une pull request : le diff de ce fichier EST la revue d'un changement de routage.",
+  "version": 1,
+  "origin": "https://titan-app.fr",
+  "referenceDate": "2026-11-26",
+  "thresholds": {
+    "$comment": "Mesurés sur la référence de production du 26/11/2026 : la plus petite page de chaque groupe fixe son plancher (minWords) ; une baisse de plus de 25 % du texte principal d'une page demande une revue, au-delà de 60 % elle bloque. Le poids d'une page (HTML + CSS/JS du site, non compressés) peut croître de 30 % et d'au moins 30 Ko avant revue : les octets sont reproductibles, les temps ne le sont pas.",
+    "contentDropReview": 0.25,
+    "contentDropBlock": 0.6,
+    "linksDropReview": 0.3,
+    "minWords": 100,
+    "titleMax": 65,
+    "descriptionMin": 50,
+    "descriptionMax": 170,
+    "weightIncreaseReview": 0.3,
+    "weightIncreaseMinBytes": 30000
+  },
+  "groups": {
+    "marketing": {
+      "indexable": true,
+      "criticality": "important",
+      "minWords": 300,
+      "ctas": [
+        "/onboarding"
+      ],
+      "variants": [
+        "html",
+        "slash"
+      ],
+      "description": "Accueil, fonctionnalités, offres, coachs, catalogue des sports."
+    },
+    "guide": {
+      "indexable": true,
+      "criticality": "normal",
+      "minWords": 250,
+      "ctas": [
+        "/onboarding"
+      ],
+      "variants": [
+        "html",
+        "slash"
+      ],
+      "description": "Guides éditoriaux qui répondent à une intention de recherche."
+    },
+    "support": {
+      "indexable": true,
+      "criticality": "normal",
+      "minWords": 100,
+      "variants": [
+        "html",
+        "slash"
+      ],
+      "description": "Assistance, nouveautés, partenariats."
+    },
+    "legal": {
+      "indexable": true,
+      "criticality": "normal",
+      "minWords": 100,
+      "variants": [
+        "html",
+        "slash"
+      ],
+      "description": "Textes juridiques et suppression de compte (exigence Google Play)."
+    },
+    "conversion": {
+      "indexable": false,
+      "criticality": "critical",
+      "description": "Inscription et connexion Web : accessibles sans compte, noindex volontaire."
+    },
+    "app": {
+      "indexable": false,
+      "criticality": "normal",
+      "description": "Écrans privés de l'application : coquilles noindex, données chargées avec la session de l'utilisateur seulement."
+    },
+    "technical": {
+      "indexable": false,
+      "criticality": "normal",
+      "description": "Fichiers lus par les robots, les navigateurs, les stores et la Search Console."
+    },
+    "redirect": {
+      "indexable": false,
+      "criticality": "normal",
+      "description": "URL historiques : un seul saut permanent vers leur équivalent."
+    },
+    "blocked": {
+      "indexable": false,
+      "criticality": "critical",
+      "description": "Fichiers du dépôt qui ne doivent jamais être publiés."
+    },
+    "missing": {
+      "indexable": false,
+      "criticality": "critical",
+      "description": "URL inconnues : une vraie 404."
+    },
+    "gone": {
+      "indexable": false,
+      "criticality": "normal",
+      "description": "Pages supprimées sans équivalent : 404 ou 410, jamais une redirection vers l'accueil."
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "group": "marketing",
+      "criticality": "critical"
+    },
+    {
+      "path": "/fonctionnalites",
+      "group": "marketing",
+      "criticality": "critical"
+    },
+    {
+      "path": "/titan-plus",
+      "group": "marketing",
+      "criticality": "critical"
+    },
+    {
+      "path": "/pour-les-coachs",
+      "group": "marketing",
+      "criticality": "important"
+    },
+    {
+      "path": "/sports",
+      "group": "marketing",
+      "criticality": "important"
+    },
+    {
+      "path": "/niveaux-et-xp",
+      "group": "guide",
+      "criticality": "important"
+    },
+    {
+      "path": "/aventures-sportives",
+      "group": "guide",
+      "criticality": "important"
+    },
+    {
+      "path": "/comprendre-mes-donnees",
+      "group": "guide"
+    },
+    {
+      "path": "/debuter-titan",
+      "group": "guide",
+      "criticality": "critical"
+    },
+    {
+      "path": "/suivi-sportif",
+      "group": "guide",
+      "criticality": "important"
+    },
+    {
+      "path": "/journal-entrainement",
+      "group": "guide",
+      "criticality": "important"
+    },
+    {
+      "path": "/journal-course-a-pied",
+      "group": "guide",
+      "criticality": "important"
+    },
+    {
+      "path": "/carnet-musculation",
+      "group": "guide",
+      "criticality": "important"
+    },
+    {
+      "path": "/suivi-escalade",
+      "group": "guide",
+      "criticality": "critical"
+    },
+    {
+      "path": "/suivi-velo",
+      "group": "guide",
+      "criticality": "important"
+    },
+    {
+      "path": "/progression-sportive",
+      "group": "guide"
+    },
+    {
+      "path": "/motivation-sport",
+      "group": "guide"
+    },
+    {
+      "path": "/defis-sportifs",
+      "group": "guide"
+    },
+    {
+      "path": "/service",
+      "group": "support",
+      "criticality": "critical",
+      "allowScripts": [
+        "/js/app/analytics.js",
+        "/js/app/assistance.js"
+      ],
+      "exception": {
+        "reason": "Le formulaire d'assistance a besoin d'assistance.js, et les compteurs serveur de l'assistance d'analytics.js (aucun tiers) ; mesuré le 26/11/2026.",
+        "ref": "audit 26/11/2026"
+      }
+    },
+    {
+      "path": "/changelog",
+      "group": "support",
+      "criticality": "important"
+    },
+    {
+      "path": "/partenariats",
+      "group": "support"
+    },
+    {
+      "path": "/legal_privacy",
+      "group": "legal"
+    },
+    {
+      "path": "/legal_cgu",
+      "group": "legal"
+    },
+    {
+      "path": "/legal_mentions",
+      "group": "legal"
+    },
+    {
+      "path": "/legal_hub",
+      "group": "legal"
+    },
+    {
+      "path": "/regles-communaute",
+      "group": "legal"
+    },
+    {
+      "path": "/supprimer-mon-compte",
+      "group": "legal"
+    },
+    {
+      "path": "/onboarding",
+      "group": "conversion",
+      "criticality": "critical",
+      "smoke": true,
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/login",
+      "group": "conversion",
+      "criticality": "critical",
+      "smoke": true,
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/aujourdhui",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/training",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/journal",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/stats",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/records",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/carriere",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/objectifs",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/prevoir",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/adventure",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/profile",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/social",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/coaching",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/boutique",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/update-password",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/admin",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/recours",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/defi",
+      "group": "app",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/seance-live",
+      "group": "app",
+      "exception": {
+        "reason": "Pas de règle .html dans netlify.toml : /seance-live.html répond 200 comme fichier. Les deux sont noindex : aucun doublon indexable.",
+        "ref": "audit 26/11/2026"
+      }
+    },
+    {
+      "path": "/athlete",
+      "group": "app",
+      "exception": {
+        "reason": "Servie par les « pretty URLs » de Netlify (pas de réécriture) : le noindex vient de la meta robots d'athlete.html, pas d'un en-tête.",
+        "ref": "audit 26/11/2026"
+      }
+    },
+    {
+      "path": "/u/exemple-carte-fictive",
+      "group": "app",
+      "reason": "Réécriture de la carte d'athlète publique (/u/* → athlete.html). Jeton FICTIF : aucun vrai lien privé n'est jamais écrit dans ce dépôt."
+    },
+    {
+      "path": "/dynamic-page",
+      "group": "app",
+      "reason": "Coquille des pages CMS : noindex, follow tant qu'une page CMS publiée ne fournit pas ses métadonnées (js/dynamic-page.js).",
+      "variants": [
+        "html"
+      ]
+    },
+    {
+      "path": "/network-error.html",
+      "group": "app",
+      "reason": "Page hors ligne du service worker."
+    },
+    {
+      "path": "/404.html",
+      "group": "app",
+      "reason": "La page 404 elle-même, en 200 quand on la demande par son nom ; noindex. Les URL inconnues la reçoivent avec un statut 404 (groupe missing)."
+    },
+    {
+      "path": "/robots.txt",
+      "group": "technical",
+      "criticality": "critical",
+      "contentType": "^text/plain"
+    },
+    {
+      "path": "/sitemap.xml",
+      "group": "technical",
+      "criticality": "critical",
+      "contentType": "xml"
+    },
+    {
+      "path": "/manifest.json",
+      "group": "technical",
+      "contentType": "json"
+    },
+    {
+      "path": "/sw.js",
+      "group": "technical",
+      "contentType": "javascript",
+      "cache": "revalidate"
+    },
+    {
+      "path": "/ads.txt",
+      "group": "technical",
+      "contentType": "^text/plain"
+    },
+    {
+      "path": "/app-ads.txt",
+      "group": "technical",
+      "contentType": "^text/plain",
+      "reason": "Déclaration de vendeur AdMob de l'application Android (domaine du propriétaire = site du développeur sur Google Play)."
+    },
+    {
+      "path": "/favicon.ico",
+      "group": "technical"
+    },
+    {
+      "path": "/googleb8fedd43e28cf7d4.html",
+      "group": "technical",
+      "criticality": "critical",
+      "reason": "Fichier de validation de la Search Console : le supprimer peut faire perdre la propriété."
+    },
+    {
+      "path": "/build-info.json",
+      "group": "technical",
+      "contentType": "json",
+      "cache": "revalidate",
+      "pending": {
+        "reason": "Écrit par tools/build-public.mjs à partir de ce changement ; absent du build de production du 19/11/2026.",
+        "ref": "chantier bouclier SEO du 26/11/2026"
+      }
+    },
+    {
+      "path": "/auth/garmin/callback",
+      "group": "technical",
+      "status": 302,
+      "function": true,
+      "reason": "Retour OAuth Garmin, servi par la fonction garmin (302 vers /profile avec un état invalide) : non émulé, contrôlé en production seulement."
+    },
+    {
+      "path": "/personnage",
+      "group": "redirect",
+      "location": "/profile#personnage"
+    },
+    {
+      "path": "/personnage.html",
+      "group": "redirect",
+      "location": "/profile#personnage"
+    },
+    {
+      "path": "/trophies",
+      "group": "redirect",
+      "location": "/profile#collection"
+    },
+    {
+      "path": "/trophies.html",
+      "group": "redirect",
+      "location": "/profile#collection"
+    },
+    {
+      "path": "/talents",
+      "group": "redirect",
+      "location": "/profile"
+    },
+    {
+      "path": "/talents.html",
+      "group": "redirect",
+      "location": "/profile"
+    },
+    {
+      "path": "/bilan",
+      "group": "redirect",
+      "location": "/stats"
+    },
+    {
+      "path": "/bilan.html",
+      "group": "redirect",
+      "location": "/stats"
+    },
+    {
+      "path": "/health",
+      "group": "redirect",
+      "location": "/stats"
+    },
+    {
+      "path": "/health.html",
+      "group": "redirect",
+      "location": "/stats"
+    },
+    {
+      "path": "/notifications",
+      "group": "redirect",
+      "location": "/aujourdhui"
+    },
+    {
+      "path": "/notifications.html",
+      "group": "redirect",
+      "location": "/aujourdhui"
+    },
+    {
+      "path": "/disciplines",
+      "group": "redirect",
+      "location": "/profile#maitrise"
+    },
+    {
+      "path": "/disciplines.html",
+      "group": "redirect",
+      "location": "/profile#maitrise"
+    },
+    {
+      "path": "/sport_details",
+      "group": "redirect",
+      "location": "/records"
+    },
+    {
+      "path": "/sport_details.html",
+      "group": "redirect",
+      "location": "/records"
+    },
+    {
+      "path": "/chat",
+      "group": "redirect",
+      "location": "/social"
+    },
+    {
+      "path": "/chat.html",
+      "group": "redirect",
+      "location": "/social"
+    },
+    {
+      "path": "/algorithme",
+      "group": "redirect",
+      "location": "/niveaux-et-xp",
+      "smoke": true
+    },
+    {
+      "path": "/algorithme.html",
+      "group": "redirect",
+      "location": "/niveaux-et-xp"
+    },
+    {
+      "path": "/guide",
+      "group": "redirect",
+      "location": "/debuter-titan",
+      "smoke": true
+    },
+    {
+      "path": "/guide.html",
+      "group": "redirect",
+      "location": "/debuter-titan"
+    },
+    {
+      "path": "/activities",
+      "group": "redirect",
+      "location": "/journal"
+    },
+    {
+      "path": "/activities.html",
+      "group": "redirect",
+      "location": "/journal"
+    },
+    {
+      "path": "/tarifs",
+      "group": "redirect",
+      "location": "/titan-plus",
+      "smoke": true
+    },
+    {
+      "path": "/tarifs.html",
+      "group": "redirect",
+      "location": "/titan-plus"
+    },
+    {
+      "path": "/sql/schema.sql",
+      "group": "blocked"
+    },
+    {
+      "path": "/tools/build-public.mjs",
+      "group": "blocked"
+    },
+    {
+      "path": "/README.md",
+      "group": "blocked"
+    },
+    {
+      "path": "/netlify.toml",
+      "group": "blocked"
+    },
+    {
+      "path": "/package.json",
+      "group": "blocked"
+    },
+    {
+      "path": "/.env",
+      "group": "blocked",
+      "smoke": true
+    },
+    {
+      "path": "/.git/config",
+      "group": "blocked"
+    },
+    {
+      "path": "/sys_core_override_99.html",
+      "group": "blocked"
+    },
+    {
+      "path": "/TODO_PUBLIC_RELEASE.md",
+      "group": "blocked"
+    },
+    {
+      "path": "/supabase/config.toml",
+      "group": "blocked"
+    },
+    {
+      "path": "/package-lock.json",
+      "group": "blocked"
+    },
+    {
+      "path": "/TITAN_REPRISE_CONTEXTE.md",
+      "group": "blocked"
+    },
+    {
+      "path": "/page-inconnue-seo-guard",
+      "group": "missing",
+      "smoke": true
+    },
+    {
+      "path": "/Tarifs",
+      "group": "missing",
+      "reason": "Les chemins des règles sont sensibles à la casse (mesuré le 26/11/2026)."
+    },
+    {
+      "path": "/fonctionnalites/inexistante",
+      "group": "missing"
+    }
+  ]
+}

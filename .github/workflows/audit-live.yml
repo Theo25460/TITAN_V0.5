@@ -34,6 +34,14 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Audit
         run: node tools/audit-live.mjs https://titan-app.fr | tee audit.log
+      # Daily full SEO check of production (every route of tools/seo/manifest.json, its variants, assets and duplicate hosts, compared with
+      # the reference), then the rendered side (phone + desktop, journeys). P0 fails the run; P1 and P2 are listed in the summary.
+      - name: Bouclier SEO — production complète
+        if: ${{ !cancelled() }}
+        run: node tools/seo-guard.mjs check --base https://titan-app.fr --scope full --fail-on p0
+      - name: Bouclier SEO — rendu navigateur et parcours
+        if: ${{ !cancelled() }}
+        run: node tools/seo-render.mjs --base https://titan-app.fr
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -41,5 +49,6 @@ jobs:
           path: |
             audit.log
             audit-login-360.png
+            test-results/seo-guard/
           retention-days: 14
           if-no-files-found: ignore

@@ -7,6 +7,16 @@
       "note": "Site, canonical URLs, manifest, functions."
     },
     {
+      "host": "titano-app.netlify.app",
+      "kind": "first-party",
+      "note": "Netlify's default host of this same site, named in netlify.toml only to answer it with a 301 to titan-app.fr (duplicate host, docs/seo/SEO_GUARD.md). Never loaded by a page."
+    },
+    {
+      "host": "main--titano-app.netlify.app",
+      "kind": "first-party",
+      "note": "Netlify's production-branch host of this same site, named in netlify.toml only to answer it with a 301 to titan-app.fr (duplicate host, docs/seo/SEO_GUARD.md). Never loaded by a page."
+    },
+    {
       "host": "oubmftfufwwzwpgvrcag.supabase.co",
       "kind": "runtime-always",
       "note": "Supabase project (auth, database, realtime), region eu-west-1 (Ireland). Contacted for sessions and cloud sync of signed-in users. Also allowed for images (img-src): avatars are served from the project's public storage."
