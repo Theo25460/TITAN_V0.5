@@ -76,6 +76,14 @@ jobs:
             check "fonction $f présente (pas 404) : $code" '[ "$code" != "404" ] && [ "$code" != "000" ]'
           done
           check "app-ads.txt servi" '[ "$(curl -sS -o /dev/null -m 20 -w "%{http_code}" https://titan-app.fr/app-ads.txt)" = "200" ]'
+          # Android App Links (Play Console, version 1401: /social « lien inopérant », assetlinks.json en 404).
+          # Served directly (no redirect), as JSON, naming the package and at least the upload key fingerprint.
+          al=$(curl -sS -m 20 -o /tmp/assetlinks.json -w '%{http_code} %{content_type} %{num_redirects}' https://titan-app.fr/.well-known/assetlinks.json || echo "000")
+          echo "assetlinks.json -> $al"
+          check "assetlinks.json servi en 200 sans redirection" '[ "${al%% *}" = "200" ] && [ "${al##* }" = "0" ]'
+          check "assetlinks.json en application/json" 'echo "$al" | grep -q "application/json"'
+          check "assetlinks.json valide (fr.titanapp.app, clé d envoi)" 'python3 -c "import json,sys; d=json.load(open(\"/tmp/assetlinks.json\")); t=[s[\"target\"] for s in d if \"delegate_permission/common.handle_all_urls\" in s[\"relation\"]]; sys.exit(0 if any(x[\"package_name\"]==\"fr.titanapp.app\" and \"8E:35:9E:DE:A7:2E:48:F0:76:0D:1B:7F:F6:64:94:43:9B:BA:4B:5F:73:85:DE:44:C7:CF:A5:92:9D:EC:20:5C\" in x[\"sha256_cert_fingerprints\"] for x in t) else 1)" 2>/dev/null'
+          python3 -c "import json; d=json.load(open('/tmp/assetlinks.json')); print('empreintes publiées :', sum(len(s['target'].get('sha256_cert_fingerprints',[])) for s in d), '(attendu : 2, clé d envoi et clé de signature Play)')" 2>/dev/null || true
           exit $fail
       - name: Supabase Auth (réglages publics) et Google
         run: |
