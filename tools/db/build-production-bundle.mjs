@@ -25,7 +25,8 @@ const opt = (name, fallback) => {
 // this repository: production must show `before` when the bundle starts and `expected` once it has run.
 function v2Bundles() {
   const file = join(ROOT, "tools/db/v2-fingerprints.json");
-  if (!existsSync(file)) return {}; // first measurement (tools/db/measure-v2-fingerprints.sh imports this module)
+  // tools/db/measure-v2-fingerprints.sh imports this module before the fingerprints exist
+  if (!existsSync(file) || process.env.TITAN_V2_MEASURING) return {};
   const fp = JSON.parse(readFileSync(file, "utf8")).after;
   const present = (m) => existsSync(join(ROOT, "supabase/migrations", m.file));
   const out = {};

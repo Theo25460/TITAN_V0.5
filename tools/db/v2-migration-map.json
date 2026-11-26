@@ -225,10 +225,10 @@
         "file": "20261130101100_coach_assignment_followup.sql",
         "version": "20261130101100",
         "package": "supabase/release-v2-03",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "0c1d581f65d367d9a9769c0d3f6567f966ceecd411c792706a30d8b7ade66ed1"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -246,10 +246,10 @@
         "file": "20261130101200_coach_session_feedback.sql",
         "version": "20261130101200",
         "package": "supabase/release-v2-03",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "fde9df0993f88ab1ef98b7ee4c8d635644edf463af318d32ff4461c38e844f51"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -267,10 +267,10 @@
         "file": "20261130101300_coach_weekly_review.sql",
         "version": "20261130101300",
         "package": "supabase/release-v2-03",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "ad3ca66a09f8a87ea4648dc0b955184d82646f17b434c3f270af4d8cf645620a"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -288,10 +288,10 @@
         "file": "20261130101400_coach_programs.sql",
         "version": "20261130101400",
         "package": "supabase/release-v2-03",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "3bd4090ac8e885e7243e6c35ac96d2dc28d1e0267de335fe3a9a62a51b78f525"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -309,10 +309,10 @@
         "file": "20261130101500_coach_cycle_reports.sql",
         "version": "20261130101500",
         "package": "supabase/release-v2-03",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "ff577f20bb56421220372976c8821896378a8a9897f4503905b4bdbca482a37f"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -330,10 +330,10 @@
         "file": "20261130101600_coach_groups.sql",
         "version": "20261130101600",
         "package": "supabase/release-v2-03",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "2ae5f9ef4d6cfa707aca21915a0856bd7f2d0fb6111da925909863a872b25771"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {

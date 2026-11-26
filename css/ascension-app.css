@@ -6774,3 +6774,95 @@ body.gps-on #sortie {
   color: var(--tx-2);
   margin-right: var(--s1);
 }
+
+/* V1.9.1 — Une séance assignée: the coach's queue of decisions and the proposal dossier. */
+.co-queue-list { display: grid; gap: var(--s3); list-style: none; margin: 0; padding: 0; }
+.co-queue-item { display: grid; gap: var(--s2); padding: var(--s3) 0; border-top: 1px solid var(--line-2); }
+.co-queue-item[data-tone="gap"] { border-left: 3px solid var(--warn, #d9a441); padding-left: var(--s3); }
+.co-queue-item[data-tone="wait"] { border-left: 3px solid var(--space-line); padding-left: var(--s3); }
+.co-queue-item .asc-row-flex, .co-queue-filters { flex-wrap: wrap; gap: var(--s2); }
+.co-next { color: var(--tx-2); }
+.co-dates { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); margin: 0; }
+.co-dates div { display: grid; gap: 2px; }
+.co-dates dt { font-size: 12px; color: var(--tx-3, var(--tx-2)); }
+.co-dates dd { margin: 0; font-weight: 600; }
+.co-dates [data-date="done"] dd { color: var(--ok); }
+.co-dates [data-date="moved"] dd, .co-dates [data-date="proposed"] dd { color: var(--space-hi); }
+.co-diff { width: 100%; border-collapse: collapse; font-size: 14px; }
+.co-diff caption { text-align: left; font-size: 12px; color: var(--tx-2); padding-bottom: var(--s1); }
+.co-diff th, .co-diff td { text-align: left; vertical-align: top; padding: var(--s1) var(--s2) var(--s1) 0; border-top: 1px solid var(--line-2); overflow-wrap: anywhere; }
+.co-diff td:last-child { color: var(--space-hi); }
+.co-version { display: grid; gap: var(--s1); margin: 0; }
+.co-version div { display: grid; grid-template-columns: minmax(80px, 30%) 1fr; gap: var(--s2); }
+.co-version dt { color: var(--tx-2); font-size: 13px; }
+.co-version dd { margin: 0; overflow-wrap: anywhere; }
+.co-history { display: grid; gap: var(--s1); margin: 0; padding-left: 1.2em; font-size: 14px; }
+.co-history [data-kind="link_refused"] { color: var(--warn, #d9a441); }
+.co-follow { display: grid; gap: var(--s2); padding: var(--s2) 0; }
+.co-diff th[scope="row"], .co-diff thead th { white-space: nowrap; overflow-wrap: normal; }
+/* V1.9.2 — Retour sur la séance: observation and proposal kept apart, the session as shared now. */
+.co-fb { display: grid; gap: var(--s2); padding: var(--s2) 0; border-top: 1px dashed var(--line-2); }
+.co-fb-list { display: grid; gap: var(--s2); list-style: none; margin: 0; padding: 0; }
+.co-fb-list li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); }
+.co-fb-obs, .co-fb-adj, .co-fb-session { display: grid; gap: var(--s2); padding: var(--s3); border: 1px solid var(--line-2); border-radius: 14px; }
+.co-fb-adj { border-left: 3px solid var(--space-line); }
+.co-fb-adj[data-fb-adj-state="accepted"] { border-left-color: var(--ok); }
+.co-fb-adj[data-fb-adj-state="none"] { border-left-width: 1px; }
+.co-fb-ex { display: grid; gap: var(--s1); margin: 0; padding-left: 1.1em; font-size: 14px; overflow-wrap: anywhere; }
+.co-fb-next { border: 1px solid var(--line-2); border-radius: 14px; padding: var(--s3); margin: 0; min-width: 0; }
+.co-fb-next legend { font-weight: 600; padding: 0 var(--s1); }
+/* V1.9.3 — Revue de suivi: the week shown between the navigation buttons. */
+.co-rv-week { font-weight: 700; flex: 1 1 100%; }
+/* V1.9.4 — Programmation multi-semaines: a cycle week by week, its sessions, the sessions editor and the previews. */
+.co-cp-week { display: grid; gap: var(--s2); padding: var(--s3) 0; border-top: 1px solid var(--line-2); }
+.co-cp-week[data-week-state="played"] { opacity: .86; }
+.co-cp-week[data-week-state="current"] { border-left: 3px solid var(--space-line); padding-left: var(--s3); }
+.co-cp-week .asc-row-flex { flex-wrap: wrap; gap: var(--s2); }
+.co-cp-week-title { margin: 0; font-size: 15px; font-weight: 700; }
+.co-cp-sessions, .co-cp-effects { display: grid; gap: var(--s2); list-style: none; margin: 0; padding: 0; }
+.co-cp-session, .co-cp-effects li { display: grid; gap: var(--s1); padding: var(--s2) 0 var(--s2) var(--s3); border-left: 3px solid var(--line-2); min-width: 0; overflow-wrap: anywhere; }
+.co-cp-session[data-tone="gap"] { border-left-color: var(--warn, #d9a441); }
+.co-cp-session[data-tone="done"], .co-cp-effects [data-cp-effect^="kept"] { border-left-color: var(--ok); }
+.co-cp-effects [data-cp-effect="change_proposed"], .co-cp-effects [data-cp-effect="updated"] { border-left-color: var(--space-hi); }
+.co-cp-goals { margin: 0; padding-left: 1.1em; font-size: 14px; }
+.co-cp-rows { display: grid; gap: var(--s3); }
+.co-cp-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--s2); align-items: end; border: 1px solid var(--line-2); border-radius: 14px; padding: var(--s3); margin: 0; min-width: 0; }
+.co-cp-row .co-cp-grow, .co-cp-row .co-cp-wide-field { grid-column: span 2; }
+@media (max-width: 520px) { .co-cp-row .co-cp-grow, .co-cp-row .co-cp-wide-field { grid-column: 1 / -1; } }
+.co-cp-answers .auth-check { margin: 0; }
+.asc-sheet.co-cp-wide .asc-sheet-body { max-width: min(860px, 100%); }
+/* V1.9.5 — Bilans de cycle partageables */
+.co-cy-figures { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: var(--s2); list-style: none; margin: 0; padding: 0; }
+.co-cy-figure { display: grid; gap: 2px; padding: var(--s2) var(--s3); border: 1px solid var(--line-2); border-radius: 12px; min-width: 0; overflow-wrap: anywhere; }
+.co-cy-figure [data-cy-value] { font-size: 18px; }
+.co-cy-sources summary { cursor: pointer; font-size: 13px; }
+.co-cy-sources ul { margin: var(--s1) 0 0; padding-left: 1.1em; font-size: 13px; }
+.co-cy-scroll { max-width: 100%; overflow-x: auto; }
+.co-cy-weeks th span { display: block; font-weight: 400; }
+.co-cy-list { display: grid; gap: var(--s2); list-style: none; margin: 0; padding: 0; }
+.co-cy-list > li { padding: var(--s2) 0 var(--s2) var(--s3); border-left: 3px solid var(--line-2); min-width: 0; overflow-wrap: anywhere; }
+.co-cy-list > li[data-state="approved"] { border-left-color: var(--ok); }
+.co-cy-list p { margin: 0; }
+.co-cy-row { display: grid; gap: var(--s2); border: 1px solid var(--line-2); border-radius: 14px; padding: var(--s3); min-width: 0; }
+.co-cy-picks { display: grid; gap: var(--s1); }
+.co-cy-picks .auth-check, .co-cy-pick .auth-check { margin: 0; }
+.co-cy-pick { display: grid; gap: var(--s1); padding: var(--s2) 0; border-top: 1px solid var(--line-2); }
+.co-cy-pick p { margin: 0; }
+.co-cy-hosted { display: grid; gap: var(--s2); padding: var(--s3); border: 1px solid var(--space-line); border-radius: 14px; }
+/* V1.9.6 — Suivi collectif individualisé (js/app/coach-groups.js). */
+.co-gr-open { display: grid; gap: var(--s4); }
+.co-gr-open h3 { margin: 0; }
+.co-gr-review, .co-gr-blocks, .co-gr-results { display: grid; gap: var(--s2); min-width: 0; }
+.co-gr-members, .co-gr-recipients { display: grid; gap: var(--s2); list-style: none; margin: 0; padding: 0; }
+.co-gr-members > li, .co-gr-recipients > li { display: grid; gap: var(--s1); padding: var(--s3); border: 1px solid var(--line-2); border-radius: 14px; min-width: 0; overflow-wrap: anywhere; }
+.co-gr-members p, .co-gr-recipients p, .co-gr-results p { margin: 0; }
+.co-gr-members > li[data-next="discuss"], .co-gr-members > li[data-next="feedback"], .co-gr-members > li[data-next="report"] { border-left: 3px solid var(--space-line); }
+.co-gr-recipients > li[data-outcome="COACH_CAPACITY_PAUSED"], .co-gr-recipients > li[data-outcome="SHARING_UNAVAILABLE"] { background: var(--line-2); }
+.co-gr-results { padding: var(--s3); border: 1px solid var(--space-line); border-radius: 14px; }
+.co-gr-results ul, .co-gr-sessions { margin: 0; padding-left: var(--s4); display: grid; gap: 2px; }
+.co-gr-pick { display: grid; gap: var(--s1); border: 0; padding: 0; margin: 0; }
+.co-gr-variant { display: grid; gap: var(--s2); list-style: none; margin: 0; padding: 0; }
+.co-gr-variant > li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--s2); align-items: center; padding: var(--s1) 0; border-top: 1px solid var(--line-2); }
+.co-gr-variant .auth-check { margin: 0; }
+@media (max-width: 520px) { .co-gr-variant > li { grid-template-columns: 1fr 1fr; } .co-gr-variant > li .auth-check { grid-column: 1 / -1; } }
+.co-gr-open > .asc-between { flex-wrap: wrap; gap: var(--s2); }

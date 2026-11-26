@@ -1,0 +1,1784 @@
+{
+ "generated_on": "2026-11-24",
+ "source": "tools/db/coach-followup/fixtures.sql on PostgreSQL 16 (titan_coach_followup_v1, rolled back)",
+ "queue_before": {
+  "rows": [
+   {
+    "id": "01fb4307-225c-4151-9c74-195e6d753f85",
+    "seen": false,
+    "sport": "cycling",
+    "state": "done_unmatched",
+    "title": "Sortie vélo 2 h",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "cycling",
+       "title": "Sortie vélo 2 h",
+       "instructions": "Endurance, cadence 90",
+       "planned_date": "2026-11-21"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "declared_done",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     }
+    ],
+    "link_id": "d81b63cd-a1db-48ca-92c3-f44bc0018aef",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "09d590918dcdc3c3",
+    "candidates": null,
+    "coach_next": "gap",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Malo",
+    "instructions": "Endurance, cadence 90",
+    "planned_date": "2026-11-21",
+    "effective_date": "2026-11-21",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "cycling",
+     "title": "Sortie vélo 2 h",
+     "instructions": "Endurance, cadence 90",
+     "planned_date": "2026-11-21"
+    },
+    "done_declared_at": "2026-11-24T15:06:53.650618+00:00"
+   },
+   {
+    "id": "ad068d8d-a1b3-4902-a54b-a7e2a3c877c8",
+    "seen": false,
+    "sport": "running",
+    "state": "declined",
+    "title": "Tempo 3 × 10 min",
+    "linked": null,
+    "status": "declined",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Tempo 3 × 10 min",
+       "instructions": "",
+       "planned_date": "2026-11-29"
+      }
+     },
+     {
+      "k": "declined",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 2,
+    "done_date": null,
+    "state_key": "c39d56725abaf752",
+    "candidates": null,
+    "coach_next": "suggest",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Inès",
+    "instructions": "",
+    "planned_date": "2026-11-29",
+    "effective_date": "2026-11-29",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": null,
+    "done_declared_at": null
+   },
+   {
+    "id": "7930dfcd-2218-4571-a92a-132ee80a1fa4",
+    "seen": false,
+    "sport": "running",
+    "state": "to_match",
+    "title": "Côtes · 8 × 45 s",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Côtes · 8 × 45 s",
+       "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+       "planned_date": "2026-11-20"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "moved",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "to": "2026-11-22",
+      "from": "2026-11-20",
+      "note": "Réunion jeudi soir"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "968aab637c169880",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": "2026-11-22",
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Inès",
+    "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+    "planned_date": "2026-11-20",
+    "effective_date": "2026-11-22",
+    "pending_change": null,
+    "candidate_count": 1,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Côtes · 8 × 45 s",
+     "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+     "planned_date": "2026-11-20"
+    },
+    "done_declared_at": null
+   },
+   {
+    "id": "93f49127-4cd9-4828-a16e-2c694f4f8357",
+    "seen": false,
+    "sport": "running",
+    "state": "reproposed",
+    "title": "Footing souple",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "change_proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "note": "On allonge un peu cette semaine",
+      "after": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "50 min dont 10 min allure marathon",
+       "planned_date": "2026-11-27"
+      },
+      "before": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "da27cadd3c1df053",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Inès",
+    "instructions": "45 min en aisance",
+    "planned_date": "2026-11-25",
+    "effective_date": "2026-11-25",
+    "pending_change": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "note": "On allonge un peu cette semaine",
+     "sport": "running",
+     "title": "Footing souple",
+     "from_status": "accepted",
+     "instructions": "50 min dont 10 min allure marathon",
+     "planned_date": "2026-11-27"
+    },
+    "candidate_count": 1,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Footing souple",
+     "instructions": "45 min en aisance",
+     "planned_date": "2026-11-25"
+    },
+    "done_declared_at": null
+   },
+   {
+    "id": "8ce73544-95d2-475b-afca-2c10d110b0fc",
+    "seen": false,
+    "sport": "swimming",
+    "state": "awaiting",
+    "title": "Natation technique",
+    "linked": null,
+    "status": "proposed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "swimming",
+       "title": "Natation technique",
+       "instructions": "",
+       "planned_date": "2026-11-26"
+      }
+     }
+    ],
+    "link_id": "d81b63cd-a1db-48ca-92c3-f44bc0018aef",
+    "gap_days": null,
+    "revision": 1,
+    "done_date": null,
+    "state_key": "ba4154f76dac8403",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Malo",
+    "instructions": "",
+    "planned_date": "2026-11-26",
+    "effective_date": "2026-11-26",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": null,
+    "done_declared_at": null
+   }
+  ],
+  "owner": "19100000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-24",
+  "counts": {
+   "gap": 1,
+   "wait": 3,
+   "suggest": 1
+  },
+  "paused": 0,
+  "athletes": [
+   {
+    "name": "Inès",
+    "count": 3,
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82"
+   },
+   {
+    "name": "Malo",
+    "count": 2,
+    "link_id": "d81b63cd-a1db-48ca-92c3-f44bc0018aef"
+   }
+  ]
+ },
+ "athlete_before": {
+  "rows": [
+   {
+    "id": "93f49127-4cd9-4828-a16e-2c694f4f8357",
+    "seen": false,
+    "sport": "running",
+    "state": "reproposed",
+    "title": "Footing souple",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "change_proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "note": "On allonge un peu cette semaine",
+      "after": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "50 min dont 10 min allure marathon",
+       "planned_date": "2026-11-27"
+      },
+      "before": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "da27cadd3c1df053",
+    "candidates": [
+     {
+      "id": "19100000-0000-4000-8000-0000000005a1",
+      "day": "2026-11-22",
+      "val": 9.4,
+      "unit": "km",
+      "duration": 52
+     }
+    ],
+    "coach_name": "Coach Lou",
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "45 min en aisance",
+    "planned_date": "2026-11-25",
+    "effective_date": "2026-11-25",
+    "pending_change": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "note": "On allonge un peu cette semaine",
+     "sport": "running",
+     "title": "Footing souple",
+     "from_status": "accepted",
+     "instructions": "50 min dont 10 min allure marathon",
+     "planned_date": "2026-11-27"
+    },
+    "candidate_count": null,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Footing souple",
+     "instructions": "45 min en aisance",
+     "planned_date": "2026-11-25"
+    },
+    "done_declared_at": null
+   },
+   {
+    "id": "7930dfcd-2218-4571-a92a-132ee80a1fa4",
+    "seen": false,
+    "sport": "running",
+    "state": "to_match",
+    "title": "Côtes · 8 × 45 s",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Côtes · 8 × 45 s",
+       "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+       "planned_date": "2026-11-20"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "moved",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "to": "2026-11-22",
+      "from": "2026-11-20",
+      "note": "Réunion jeudi soir"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "968aab637c169880",
+    "candidates": [
+     {
+      "id": "19100000-0000-4000-8000-0000000005a1",
+      "day": "2026-11-22",
+      "val": 9.4,
+      "unit": "km",
+      "duration": 52
+     }
+    ],
+    "coach_name": "Coach Lou",
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": "2026-11-22",
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+    "planned_date": "2026-11-20",
+    "effective_date": "2026-11-22",
+    "pending_change": null,
+    "candidate_count": null,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Côtes · 8 × 45 s",
+     "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+     "planned_date": "2026-11-20"
+    },
+    "done_declared_at": null
+   },
+   {
+    "id": "ad068d8d-a1b3-4902-a54b-a7e2a3c877c8",
+    "seen": false,
+    "sport": "running",
+    "state": "declined",
+    "title": "Tempo 3 × 10 min",
+    "linked": null,
+    "status": "declined",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Tempo 3 × 10 min",
+       "instructions": "",
+       "planned_date": "2026-11-29"
+      }
+     },
+     {
+      "k": "declined",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 2,
+    "done_date": null,
+    "state_key": "c39d56725abaf752",
+    "candidates": [],
+    "coach_name": "Coach Lou",
+    "coach_next": "suggest",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "",
+    "planned_date": "2026-11-29",
+    "effective_date": "2026-11-29",
+    "pending_change": null,
+    "candidate_count": null,
+    "accepted_version": null,
+    "done_declared_at": null
+   }
+  ],
+  "links": [
+   {
+    "id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "state": "active",
+    "coach_name": "Coach Lou",
+    "revoked_at": null
+   }
+  ],
+  "owner": "19100000-0000-4000-8000-0000000000a1",
+  "today": "2026-11-24"
+ },
+ "list_before": {
+  "role": "coach",
+  "rows": [
+   {
+    "id": "ad068d8d-a1b3-4902-a54b-a7e2a3c877c8",
+    "seen": false,
+    "sport": "running",
+    "state": "declined",
+    "title": "Tempo 3 × 10 min",
+    "linked": null,
+    "status": "declined",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Tempo 3 × 10 min",
+       "instructions": "",
+       "planned_date": "2026-11-29"
+      }
+     },
+     {
+      "k": "declined",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 2,
+    "done_date": null,
+    "state_key": "c39d56725abaf752",
+    "candidates": null,
+    "coach_next": "suggest",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "",
+    "planned_date": "2026-11-29",
+    "effective_date": "2026-11-29",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": null,
+    "done_declared_at": null
+   },
+   {
+    "id": "93f49127-4cd9-4828-a16e-2c694f4f8357",
+    "seen": false,
+    "sport": "running",
+    "state": "reproposed",
+    "title": "Footing souple",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "change_proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "note": "On allonge un peu cette semaine",
+      "after": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "50 min dont 10 min allure marathon",
+       "planned_date": "2026-11-27"
+      },
+      "before": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "da27cadd3c1df053",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "45 min en aisance",
+    "planned_date": "2026-11-25",
+    "effective_date": "2026-11-25",
+    "pending_change": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "note": "On allonge un peu cette semaine",
+     "sport": "running",
+     "title": "Footing souple",
+     "from_status": "accepted",
+     "instructions": "50 min dont 10 min allure marathon",
+     "planned_date": "2026-11-27"
+    },
+    "candidate_count": 1,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Footing souple",
+     "instructions": "45 min en aisance",
+     "planned_date": "2026-11-25"
+    },
+    "done_declared_at": null
+   },
+   {
+    "id": "7930dfcd-2218-4571-a92a-132ee80a1fa4",
+    "seen": false,
+    "sport": "running",
+    "state": "to_match",
+    "title": "Côtes · 8 × 45 s",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Côtes · 8 × 45 s",
+       "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+       "planned_date": "2026-11-20"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "moved",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "to": "2026-11-22",
+      "from": "2026-11-20",
+      "note": "Réunion jeudi soir"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "968aab637c169880",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": "2026-11-22",
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+    "planned_date": "2026-11-20",
+    "effective_date": "2026-11-22",
+    "pending_change": null,
+    "candidate_count": 1,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Côtes · 8 × 45 s",
+     "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+     "planned_date": "2026-11-20"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "total": 3,
+  "offset": 0,
+  "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+  "revision": 1
+ },
+ "link_ok": {
+  "ok": true,
+  "row": {
+   "id": "7930dfcd-2218-4571-a92a-132ee80a1fa4",
+   "seen": false,
+   "sport": "running",
+   "state": "linked",
+   "title": "Côtes · 8 × 45 s",
+   "linked": {
+    "day": "2026-11-22",
+    "val": 9.4,
+    "unit": "km",
+    "sport": "running",
+    "archived": false,
+    "duration": 52,
+    "in_scope": true,
+    "session_id": "19100000-0000-4000-8000-0000000005a1"
+   },
+   "status": "completed",
+   "can_act": true,
+   "history": [
+    {
+     "k": "proposed",
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "version": {
+      "sport": "running",
+      "title": "Côtes · 8 × 45 s",
+      "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+      "planned_date": "2026-11-20"
+     }
+    },
+    {
+     "k": "accepted",
+     "at": "2026-11-24T15:06:53.650618+00:00"
+    },
+    {
+     "k": "moved",
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "to": "2026-11-22",
+     "from": "2026-11-20",
+     "note": "Réunion jeudi soir"
+    },
+    {
+     "k": "linked",
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "day": "2026-11-22"
+    }
+   ],
+   "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+   "gap_days": 2,
+   "revision": 4,
+   "done_date": "2026-11-22",
+   "state_key": "578e19f48b96506f",
+   "candidates": [],
+   "coach_next": "gap",
+   "created_at": "2026-11-24T15:06:53.650618+00:00",
+   "link_state": "active",
+   "moved_date": "2026-11-22",
+   "updated_at": "2026-11-24T15:06:53.650618+00:00",
+   "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+   "planned_date": "2026-11-20",
+   "effective_date": "2026-11-22",
+   "pending_change": null,
+   "candidate_count": null,
+   "accepted_version": {
+    "at": "2026-11-24T15:06:53.650618+00:00",
+    "sport": "running",
+    "title": "Côtes · 8 × 45 s",
+    "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+    "planned_date": "2026-11-20"
+   },
+   "done_declared_at": null
+  }
+ },
+ "link_refused": {
+  "ok": false,
+  "row": {
+   "id": "7930dfcd-2218-4571-a92a-132ee80a1fa4",
+   "seen": false,
+   "sport": "running",
+   "state": "linked",
+   "title": "Côtes · 8 × 45 s",
+   "linked": {
+    "day": "2026-11-22",
+    "val": 9.4,
+    "unit": "km",
+    "sport": "running",
+    "archived": false,
+    "duration": 52,
+    "in_scope": true,
+    "session_id": "19100000-0000-4000-8000-0000000005a1"
+   },
+   "status": "completed",
+   "can_act": true,
+   "history": [
+    {
+     "k": "proposed",
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "version": {
+      "sport": "running",
+      "title": "Côtes · 8 × 45 s",
+      "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+      "planned_date": "2026-11-20"
+     }
+    },
+    {
+     "k": "accepted",
+     "at": "2026-11-24T15:06:53.650618+00:00"
+    },
+    {
+     "k": "moved",
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "to": "2026-11-22",
+     "from": "2026-11-20",
+     "note": "Réunion jeudi soir"
+    },
+    {
+     "k": "linked",
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "day": "2026-11-22"
+    },
+    {
+     "k": "link_refused",
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "code": "ALREADY_LINKED"
+    }
+   ],
+   "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+   "gap_days": 2,
+   "revision": 4,
+   "done_date": "2026-11-22",
+   "state_key": "578e19f48b96506f",
+   "candidates": [],
+   "coach_next": "gap",
+   "created_at": "2026-11-24T15:06:53.650618+00:00",
+   "link_state": "active",
+   "moved_date": "2026-11-22",
+   "updated_at": "2026-11-24T15:06:53.650618+00:00",
+   "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+   "planned_date": "2026-11-20",
+   "effective_date": "2026-11-22",
+   "pending_change": null,
+   "candidate_count": null,
+   "accepted_version": {
+    "at": "2026-11-24T15:06:53.650618+00:00",
+    "sport": "running",
+    "title": "Côtes · 8 × 45 s",
+    "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+    "planned_date": "2026-11-20"
+   },
+   "done_declared_at": null
+  },
+  "code": "ALREADY_LINKED"
+ },
+ "detail_linked": {
+  "id": "7930dfcd-2218-4571-a92a-132ee80a1fa4",
+  "seen": false,
+  "sport": "running",
+  "state": "linked",
+  "title": "Côtes · 8 × 45 s",
+  "linked": {
+   "day": "2026-11-22",
+   "val": 9.4,
+   "unit": "km",
+   "sport": "running",
+   "archived": false,
+   "duration": 52,
+   "in_scope": true,
+   "session_id": null
+  },
+  "status": "completed",
+  "can_act": true,
+  "history": [
+   {
+    "k": "proposed",
+    "at": "2026-11-24T15:06:53.650618+00:00",
+    "version": {
+     "sport": "running",
+     "title": "Côtes · 8 × 45 s",
+     "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+     "planned_date": "2026-11-20"
+    }
+   },
+   {
+    "k": "accepted",
+    "at": "2026-11-24T15:06:53.650618+00:00"
+   },
+   {
+    "k": "moved",
+    "at": "2026-11-24T15:06:53.650618+00:00",
+    "to": "2026-11-22",
+    "from": "2026-11-20",
+    "note": "Réunion jeudi soir"
+   },
+   {
+    "k": "linked",
+    "at": "2026-11-24T15:06:53.650618+00:00",
+    "day": "2026-11-22"
+   },
+   {
+    "k": "link_refused",
+    "at": "2026-11-24T15:06:53.650618+00:00",
+    "code": "ALREADY_LINKED"
+   }
+  ],
+  "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+  "gap_days": 2,
+  "revision": 4,
+  "done_date": "2026-11-22",
+  "state_key": "578e19f48b96506f",
+  "candidates": null,
+  "coach_next": "gap",
+  "created_at": "2026-11-24T15:06:53.650618+00:00",
+  "link_state": "active",
+  "moved_date": "2026-11-22",
+  "updated_at": "2026-11-24T15:06:53.650618+00:00",
+  "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+  "planned_date": "2026-11-20",
+  "effective_date": "2026-11-22",
+  "pending_change": null,
+  "candidate_count": 0,
+  "accepted_version": {
+   "at": "2026-11-24T15:06:53.650618+00:00",
+   "sport": "running",
+   "title": "Côtes · 8 × 45 s",
+   "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+   "planned_date": "2026-11-20"
+  },
+  "done_declared_at": null
+ },
+ "queue_after": {
+  "rows": [
+   {
+    "id": "01fb4307-225c-4151-9c74-195e6d753f85",
+    "seen": false,
+    "sport": "cycling",
+    "state": "done_unmatched",
+    "title": "Sortie vélo 2 h",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "cycling",
+       "title": "Sortie vélo 2 h",
+       "instructions": "Endurance, cadence 90",
+       "planned_date": "2026-11-21"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "declared_done",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     }
+    ],
+    "link_id": "d81b63cd-a1db-48ca-92c3-f44bc0018aef",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "09d590918dcdc3c3",
+    "candidates": null,
+    "coach_next": "gap",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Malo",
+    "instructions": "Endurance, cadence 90",
+    "planned_date": "2026-11-21",
+    "effective_date": "2026-11-21",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "cycling",
+     "title": "Sortie vélo 2 h",
+     "instructions": "Endurance, cadence 90",
+     "planned_date": "2026-11-21"
+    },
+    "done_declared_at": "2026-11-24T15:06:53.650618+00:00"
+   },
+   {
+    "id": "7930dfcd-2218-4571-a92a-132ee80a1fa4",
+    "seen": false,
+    "sport": "running",
+    "state": "linked",
+    "title": "Côtes · 8 × 45 s",
+    "linked": {
+     "day": "2026-11-22",
+     "val": 9.4,
+     "unit": "km",
+     "sport": "running",
+     "archived": false,
+     "duration": 52,
+     "in_scope": true,
+     "session_id": null
+    },
+    "status": "completed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Côtes · 8 × 45 s",
+       "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+       "planned_date": "2026-11-20"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "moved",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "to": "2026-11-22",
+      "from": "2026-11-20",
+      "note": "Réunion jeudi soir"
+     },
+     {
+      "k": "linked",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "day": "2026-11-22"
+     },
+     {
+      "k": "link_refused",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "code": "ALREADY_LINKED"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": 2,
+    "revision": 4,
+    "done_date": "2026-11-22",
+    "state_key": "578e19f48b96506f",
+    "candidates": null,
+    "coach_next": "gap",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": "2026-11-22",
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Inès",
+    "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+    "planned_date": "2026-11-20",
+    "effective_date": "2026-11-22",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Côtes · 8 × 45 s",
+     "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+     "planned_date": "2026-11-20"
+    },
+    "done_declared_at": null
+   },
+   {
+    "id": "ad068d8d-a1b3-4902-a54b-a7e2a3c877c8",
+    "seen": false,
+    "sport": "running",
+    "state": "declined",
+    "title": "Tempo 3 × 10 min",
+    "linked": null,
+    "status": "declined",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Tempo 3 × 10 min",
+       "instructions": "",
+       "planned_date": "2026-11-29"
+      }
+     },
+     {
+      "k": "declined",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 2,
+    "done_date": null,
+    "state_key": "c39d56725abaf752",
+    "candidates": null,
+    "coach_next": "suggest",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Inès",
+    "instructions": "",
+    "planned_date": "2026-11-29",
+    "effective_date": "2026-11-29",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": null,
+    "done_declared_at": null
+   },
+   {
+    "id": "93f49127-4cd9-4828-a16e-2c694f4f8357",
+    "seen": false,
+    "sport": "running",
+    "state": "reproposed",
+    "title": "Footing souple",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "change_proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "note": "On allonge un peu cette semaine",
+      "after": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "50 min dont 10 min allure marathon",
+       "planned_date": "2026-11-27"
+      },
+      "before": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "da27cadd3c1df053",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Inès",
+    "instructions": "45 min en aisance",
+    "planned_date": "2026-11-25",
+    "effective_date": "2026-11-25",
+    "pending_change": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "note": "On allonge un peu cette semaine",
+     "sport": "running",
+     "title": "Footing souple",
+     "from_status": "accepted",
+     "instructions": "50 min dont 10 min allure marathon",
+     "planned_date": "2026-11-27"
+    },
+    "candidate_count": 0,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Footing souple",
+     "instructions": "45 min en aisance",
+     "planned_date": "2026-11-25"
+    },
+    "done_declared_at": null
+   },
+   {
+    "id": "8ce73544-95d2-475b-afca-2c10d110b0fc",
+    "seen": false,
+    "sport": "swimming",
+    "state": "awaiting",
+    "title": "Natation technique",
+    "linked": null,
+    "status": "proposed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "swimming",
+       "title": "Natation technique",
+       "instructions": "",
+       "planned_date": "2026-11-26"
+      }
+     }
+    ],
+    "link_id": "d81b63cd-a1db-48ca-92c3-f44bc0018aef",
+    "gap_days": null,
+    "revision": 1,
+    "done_date": null,
+    "state_key": "ba4154f76dac8403",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Malo",
+    "instructions": "",
+    "planned_date": "2026-11-26",
+    "effective_date": "2026-11-26",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": null,
+    "done_declared_at": null
+   }
+  ],
+  "owner": "19100000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-24",
+  "counts": {
+   "gap": 2,
+   "wait": 2,
+   "suggest": 1
+  },
+  "paused": 0,
+  "athletes": [
+   {
+    "name": "Inès",
+    "count": 3,
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82"
+   },
+   {
+    "name": "Malo",
+    "count": 2,
+    "link_id": "d81b63cd-a1db-48ca-92c3-f44bc0018aef"
+   }
+  ]
+ },
+ "athlete_after": {
+  "rows": [
+   {
+    "id": "93f49127-4cd9-4828-a16e-2c694f4f8357",
+    "seen": false,
+    "sport": "running",
+    "state": "reproposed",
+    "title": "Footing souple",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "change_proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "note": "On allonge un peu cette semaine",
+      "after": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "50 min dont 10 min allure marathon",
+       "planned_date": "2026-11-27"
+      },
+      "before": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "da27cadd3c1df053",
+    "candidates": [],
+    "coach_name": "Coach Lou",
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "45 min en aisance",
+    "planned_date": "2026-11-25",
+    "effective_date": "2026-11-25",
+    "pending_change": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "note": "On allonge un peu cette semaine",
+     "sport": "running",
+     "title": "Footing souple",
+     "from_status": "accepted",
+     "instructions": "50 min dont 10 min allure marathon",
+     "planned_date": "2026-11-27"
+    },
+    "candidate_count": null,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Footing souple",
+     "instructions": "45 min en aisance",
+     "planned_date": "2026-11-25"
+    },
+    "done_declared_at": null
+   },
+   {
+    "id": "ad068d8d-a1b3-4902-a54b-a7e2a3c877c8",
+    "seen": false,
+    "sport": "running",
+    "state": "declined",
+    "title": "Tempo 3 × 10 min",
+    "linked": null,
+    "status": "declined",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Tempo 3 × 10 min",
+       "instructions": "",
+       "planned_date": "2026-11-29"
+      }
+     },
+     {
+      "k": "declined",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 2,
+    "done_date": null,
+    "state_key": "c39d56725abaf752",
+    "candidates": [],
+    "coach_name": "Coach Lou",
+    "coach_next": "suggest",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "",
+    "planned_date": "2026-11-29",
+    "effective_date": "2026-11-29",
+    "pending_change": null,
+    "candidate_count": null,
+    "accepted_version": null,
+    "done_declared_at": null
+   },
+   {
+    "id": "7930dfcd-2218-4571-a92a-132ee80a1fa4",
+    "seen": false,
+    "sport": "running",
+    "state": "linked",
+    "title": "Côtes · 8 × 45 s",
+    "linked": {
+     "day": "2026-11-22",
+     "val": 9.4,
+     "unit": "km",
+     "sport": "running",
+     "archived": false,
+     "duration": 52,
+     "in_scope": true,
+     "session_id": "19100000-0000-4000-8000-0000000005a1"
+    },
+    "status": "completed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Côtes · 8 × 45 s",
+       "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+       "planned_date": "2026-11-20"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "moved",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "to": "2026-11-22",
+      "from": "2026-11-20",
+      "note": "Réunion jeudi soir"
+     },
+     {
+      "k": "linked",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "day": "2026-11-22"
+     },
+     {
+      "k": "link_refused",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "code": "ALREADY_LINKED"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": 2,
+    "revision": 4,
+    "done_date": "2026-11-22",
+    "state_key": "578e19f48b96506f",
+    "candidates": [],
+    "coach_name": "Coach Lou",
+    "coach_next": "gap",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": "2026-11-22",
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+    "planned_date": "2026-11-20",
+    "effective_date": "2026-11-22",
+    "pending_change": null,
+    "candidate_count": null,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Côtes · 8 × 45 s",
+     "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+     "planned_date": "2026-11-20"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "links": [
+   {
+    "id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "state": "active",
+    "coach_name": "Coach Lou",
+    "revoked_at": null
+   }
+  ],
+  "owner": "19100000-0000-4000-8000-0000000000a1",
+  "today": "2026-11-24"
+ },
+ "athlete_revoked": {
+  "rows": [
+   {
+    "id": "ad068d8d-a1b3-4902-a54b-a7e2a3c877c8",
+    "seen": false,
+    "sport": "running",
+    "state": "declined",
+    "title": "Tempo 3 × 10 min",
+    "linked": null,
+    "status": "declined",
+    "can_act": false,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Tempo 3 × 10 min",
+       "instructions": "",
+       "planned_date": "2026-11-29"
+      }
+     },
+     {
+      "k": "declined",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 2,
+    "done_date": null,
+    "state_key": "c39d56725abaf752",
+    "candidates": [],
+    "coach_name": "Coach Lou",
+    "coach_next": "none",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "revoked",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "",
+    "planned_date": "2026-11-29",
+    "effective_date": "2026-11-29",
+    "pending_change": null,
+    "candidate_count": null,
+    "accepted_version": null,
+    "done_declared_at": null
+   },
+   {
+    "id": "93f49127-4cd9-4828-a16e-2c694f4f8357",
+    "seen": false,
+    "sport": "running",
+    "state": "reproposed",
+    "title": "Footing souple",
+    "linked": null,
+    "status": "accepted",
+    "can_act": false,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "change_proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "note": "On allonge un peu cette semaine",
+      "after": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "50 min dont 10 min allure marathon",
+       "planned_date": "2026-11-27"
+      },
+      "before": {
+       "sport": "running",
+       "title": "Footing souple",
+       "instructions": "45 min en aisance",
+       "planned_date": "2026-11-25"
+      }
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "da27cadd3c1df053",
+    "candidates": [],
+    "coach_name": "Coach Lou",
+    "coach_next": "none",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "revoked",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "45 min en aisance",
+    "planned_date": "2026-11-25",
+    "effective_date": "2026-11-25",
+    "pending_change": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "note": "On allonge un peu cette semaine",
+     "sport": "running",
+     "title": "Footing souple",
+     "from_status": "accepted",
+     "instructions": "50 min dont 10 min allure marathon",
+     "planned_date": "2026-11-27"
+    },
+    "candidate_count": null,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Footing souple",
+     "instructions": "45 min en aisance",
+     "planned_date": "2026-11-25"
+    },
+    "done_declared_at": null
+   },
+   {
+    "id": "7930dfcd-2218-4571-a92a-132ee80a1fa4",
+    "seen": false,
+    "sport": "running",
+    "state": "linked",
+    "title": "Côtes · 8 × 45 s",
+    "linked": {
+     "day": "2026-11-22",
+     "val": 9.4,
+     "unit": "km",
+     "sport": "running",
+     "archived": false,
+     "duration": 52,
+     "in_scope": true,
+     "session_id": "19100000-0000-4000-8000-0000000005a1"
+    },
+    "status": "completed",
+    "can_act": false,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Côtes · 8 × 45 s",
+       "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+       "planned_date": "2026-11-20"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "moved",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "to": "2026-11-22",
+      "from": "2026-11-20",
+      "note": "Réunion jeudi soir"
+     },
+     {
+      "k": "linked",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "day": "2026-11-22"
+     },
+     {
+      "k": "link_refused",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "code": "ALREADY_LINKED"
+     }
+    ],
+    "link_id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "gap_days": 2,
+    "revision": 4,
+    "done_date": "2026-11-22",
+    "state_key": "578e19f48b96506f",
+    "candidates": [],
+    "coach_name": "Coach Lou",
+    "coach_next": "none",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "revoked",
+    "moved_date": "2026-11-22",
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+    "planned_date": "2026-11-20",
+    "effective_date": "2026-11-22",
+    "pending_change": null,
+    "candidate_count": null,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "running",
+     "title": "Côtes · 8 × 45 s",
+     "instructions": "Échauffement 20 min, 8 côtes de 45 s, retour en trottinant",
+     "planned_date": "2026-11-20"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "links": [
+   {
+    "id": "9db243f0-c031-4010-8f90-e9205fb09e82",
+    "state": "revoked",
+    "coach_name": "Coach Lou",
+    "revoked_at": "2026-11-24T15:06:53.650618+00:00"
+   }
+  ],
+  "owner": "19100000-0000-4000-8000-0000000000a1",
+  "today": "2026-11-24"
+ },
+ "queue_revoked": {
+  "rows": [
+   {
+    "id": "01fb4307-225c-4151-9c74-195e6d753f85",
+    "seen": false,
+    "sport": "cycling",
+    "state": "done_unmatched",
+    "title": "Sortie vélo 2 h",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "cycling",
+       "title": "Sortie vélo 2 h",
+       "instructions": "Endurance, cadence 90",
+       "planned_date": "2026-11-21"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     },
+     {
+      "k": "declared_done",
+      "at": "2026-11-24T15:06:53.650618+00:00"
+     }
+    ],
+    "link_id": "d81b63cd-a1db-48ca-92c3-f44bc0018aef",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "09d590918dcdc3c3",
+    "candidates": null,
+    "coach_next": "gap",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Malo",
+    "instructions": "Endurance, cadence 90",
+    "planned_date": "2026-11-21",
+    "effective_date": "2026-11-21",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": {
+     "at": "2026-11-24T15:06:53.650618+00:00",
+     "sport": "cycling",
+     "title": "Sortie vélo 2 h",
+     "instructions": "Endurance, cadence 90",
+     "planned_date": "2026-11-21"
+    },
+    "done_declared_at": "2026-11-24T15:06:53.650618+00:00"
+   },
+   {
+    "id": "8ce73544-95d2-475b-afca-2c10d110b0fc",
+    "seen": false,
+    "sport": "swimming",
+    "state": "awaiting",
+    "title": "Natation technique",
+    "linked": null,
+    "status": "proposed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-24T15:06:53.650618+00:00",
+      "version": {
+       "sport": "swimming",
+       "title": "Natation technique",
+       "instructions": "",
+       "planned_date": "2026-11-26"
+      }
+     }
+    ],
+    "link_id": "d81b63cd-a1db-48ca-92c3-f44bc0018aef",
+    "gap_days": null,
+    "revision": 1,
+    "done_date": null,
+    "state_key": "ba4154f76dac8403",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-24T15:06:53.650618+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-24T15:06:53.650618+00:00",
+    "athlete_name": "Malo",
+    "instructions": "",
+    "planned_date": "2026-11-26",
+    "effective_date": "2026-11-26",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": null,
+    "done_declared_at": null
+   }
+  ],
+  "owner": "19100000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-24",
+  "counts": {
+   "gap": 1,
+   "wait": 1,
+   "suggest": 0
+  },
+  "paused": 0,
+  "athletes": [
+   {
+    "name": "Malo",
+    "count": 2,
+    "link_id": "d81b63cd-a1db-48ca-92c3-f44bc0018aef"
+   }
+  ]
+ }
+}

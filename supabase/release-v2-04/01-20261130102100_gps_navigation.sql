@@ -4,8 +4,8 @@ do $titan_guard$ begin
   if exists (select 1 from supabase_migrations.schema_migrations where version = '20261130102100') then
     raise exception 'migration 20261130102100 is already registered: nothing to do';
   end if;
-  if not exists (select 1 from supabase_migrations.schema_migrations where version = '20261130100500') then
-    raise exception 'migration 20261130100500 must be registered before 20261130102100';
+  if not exists (select 1 from supabase_migrations.schema_migrations where version = '20261130101600') then
+    raise exception 'migration 20261130101600 must be registered before 20261130102100';
   end if;
 end $titan_guard$;
 -- >>> repository file, byte for byte

@@ -1,0 +1,427 @@
+-- V1.9.2 — Retour sur la séance (24 November 2026). A coach's feedback stays tied to the proposal and to the session it is about, and a
+-- suggestion for what comes next is a proposal the athlete accepts or declines. Behind the server flag screens.coach_feedback (absent = closed).
+-- It REUSES what exists and copies nothing private:
+--   the sharing link (public.coach_links: scope sport/since, share_details, share_notes, pause, revocation) decides every read, at read time;
+--   the proposal and its link to the journal (public.coach_assignments.session_id, V1.9.1 follow-up and its history);
+--   the private message thread of the link (private.titan_coach_messages): the coach's OBSERVATION is a message of that thread, with its
+--   rate limit (60 an hour) and its size (500 per thread); the thread read now says which message is a feedback (feedback_id).
+-- New: private.titan_coach_feedback, one row per feedback: the proposal, the thread message, the session the coach looked at and its Paris
+-- day, a fingerprint (md5 per category: core, details, notes) of what was shareable then — never the values — and the optional ADJUSTMENT
+-- (kind change: an open proposal of the link with its version before and after; kind new: the next session to add), with a clear state:
+-- pending, accepted, declined, withdrawn (by the coach) or stale (the proposal it targeted changed or closed before the answer).
+-- Measures are never stored with the feedback. Every read projects the session again through the link's CURRENT contract (the projection of
+-- the portal's « sessions » action): date, sport, value, unit and duration inside the scope, exercises and climbing details only while
+-- share_details holds, the note only while share_notes holds, the week's check-in only while it is shared. Withdrawing a sharing therefore
+-- removes the measures from every view and preview at the next read; a session outside the scope, archived or deleted shows no measure to the
+-- coach, and the feedback keeps its context (the proposal, the observation, the adjustment and its state).
+-- Corrections: a session corrected after the feedback is shown with its current values and flagged « modifiée après ce retour » when a
+-- category the coach can read changed (categories the coach cannot read never raise the flag). A feedback is written only on the session the
+-- coach read: the compose answer carries a session key (session, its revision, link revision); a relink, a correction or a change of scope in
+-- between refuses the feedback (SESSION_CHANGED) instead of attaching it to another session. A relinked proposal keeps its feedback on its
+-- original session.
+-- Accepting a change applies it to the targeted open proposal (accepted from then on, the V1.9.1 accepted version kept, history « adjusted »);
+-- accepting a new session creates the proposal on the link, already accepted. Declining changes nothing. No action writes public.training_logs,
+-- the athlete's notes or check-ins. After a pause the coach reads nothing and the athlete reads without acting; after a revocation the coach
+-- reads nothing, even through a direct link, and the athlete keeps a read-only view for 365 days, as with the V1.9.1 proposals.
+-- No XP, no credit, no notification. Additive. The caller owns the transaction: never BEGIN/COMMIT here.
+-- Rollback: drop function public.titan_coach_feedback_v1(text, jsonb), private.titan_coach_feedback_measure(),
+-- private.titan_coach_feedback_row(private.titan_coach_feedback, public.coach_links, text), private.titan_coach_feedback_session(public.training_logs, public.coach_links),
+-- private.titan_coach_feedback_projection(public.training_logs), private.titan_coach_feedback_print(public.training_logs),
+-- private.titan_coach_feedback_key(public.training_logs, public.coach_links, public.coach_assignments); drop table private.titan_coach_feedback;
+-- re-apply public.titan_coach_messages_v1 of 20261121100000 and private.titan_export_extras_v1 of 20261117160000.
+
+create table if not exists private.titan_coach_feedback (
+  id uuid primary key default gen_random_uuid(),
+  link_id uuid not null references public.coach_links(id) on delete cascade,
+  assignment_id uuid not null references public.coach_assignments(id) on delete cascade,
+  message_id uuid not null unique references private.titan_coach_messages(id) on delete cascade,
+  session_id uuid references public.training_logs(id) on delete set null,
+  session_day date not null check (session_day between '2000-01-01' and '2100-12-31'),
+  seen_print jsonb not null check (jsonb_typeof(seen_print) = 'object'),
+  adjustment jsonb check (adjustment is null or (jsonb_typeof(adjustment) = 'object' and adjustment->>'kind' in ('change', 'new'))),
+  adjustment_state text check (adjustment_state in ('pending', 'accepted', 'declined', 'withdrawn', 'stale')),
+  target_id uuid references public.coach_assignments(id) on delete set null,
+  result_id uuid references public.coach_assignments(id) on delete set null,
+  answered_at timestamptz,
+  read_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  revision integer not null default 1,
+  check ((adjustment is null) = (adjustment_state is null))
+);
+create index if not exists titan_coach_feedback_assignment_idx on private.titan_coach_feedback (assignment_id, created_at);
+create index if not exists titan_coach_feedback_link_idx on private.titan_coach_feedback (link_id, created_at desc);
+create index if not exists titan_coach_feedback_session_idx on private.titan_coach_feedback (session_id) where session_id is not null;
+create unique index if not exists titan_coach_feedback_pending_target on private.titan_coach_feedback (target_id) where adjustment_state = 'pending' and target_id is not null;
+alter table private.titan_coach_feedback enable row level security;
+revoke all on private.titan_coach_feedback from public, anon, authenticated;
+
+-- What the portal shares of a session, per category (the expressions of titan_coach_portal « sessions »). Used to project and to fingerprint.
+create or replace function private.titan_coach_feedback_projection(t public.training_logs)
+returns jsonb language sql stable set search_path = ''
+as $function$
+  select jsonb_build_object(
+    'core', jsonb_build_object('day', (t.date at time zone 'Europe/Paris')::date, 'sport', t.sport, 'val', t.val, 'unit', t.unit,
+      'duration', case when coalesce(t.details->>'duration','') ~ '^[0-9]+([.][0-9]+)?$' then (t.details->>'duration')::numeric
+                       when coalesce(t.details->>'val2','') ~ '^[0-9]+([.][0-9]+)?$' then (t.details->>'val2')::numeric
+                       when coalesce(t.details#>>'{gpxStats,movingMinutes}','') ~ '^[0-9]+([.][0-9]+)?$' then (t.details#>>'{gpxStats,movingMinutes}')::numeric else null end),
+    'details', jsonb_strip_nulls(jsonb_build_object(
+      'exercises', (select jsonb_agg(jsonb_build_object('name', e->>'name', 'variant', e->>'variant', 'equipment', e->>'equipment', 'sets', e->'sets', 'weight', e->'weight', 'reps', e->'reps',
+                       'setRows', (select jsonb_agg(jsonb_build_object('weight', s->'weight', 'reps', s->'reps', 'rir', s->'rir'))
+                                     from (select value s from jsonb_array_elements(case when jsonb_typeof(e->'setRows') = 'array' then e->'setRows' else '[]' end) limit 30) sr)))
+                      from (select value e from jsonb_array_elements(case when jsonb_typeof(t.details->'exercises') = 'array' then t.details->'exercises' else '[]' end) limit 30) ex),
+      'extras', nullif(jsonb_strip_nulls(jsonb_build_object('grade_system', t.details#>'{extras,grade_system}', 'climbing_discipline', t.details#>'{extras,climbing_discipline}',
+                  'belay', t.details#>'{extras,belay}', 'max_done', t.details#>'{extras,max_done}', 'max_attempt', t.details#>'{extras,max_attempt}',
+                  'attempts', t.details#>'{extras,attempts}', 'successful_routes', t.details#>'{extras,successful_routes}')), '{}'::jsonb))),
+    'notes', jsonb_strip_nulls(jsonb_build_object('note', coalesce(t.details->>'note', t.details->>'notes'))))
+$function$;
+revoke all on function private.titan_coach_feedback_projection(public.training_logs) from public, anon, authenticated;
+
+create or replace function private.titan_coach_feedback_print(t public.training_logs)
+returns jsonb language sql stable set search_path = ''
+as $function$
+  select jsonb_build_object('core', md5((p->'core')::text), 'details', md5((p->'details')::text), 'notes', md5((p->'notes')::text))
+    from (select private.titan_coach_feedback_projection(t) as p) x
+$function$;
+revoke all on function private.titan_coach_feedback_print(public.training_logs) from public, anon, authenticated;
+
+-- The key of what the coach read: this session, at this revision, under this revision of the sharing contract, for this proposal.
+create or replace function private.titan_coach_feedback_key(t public.training_logs, l public.coach_links, a public.coach_assignments)
+returns text language sql immutable set search_path = ''
+as $function$ select left(md5(concat_ws('|', a.id, t.id, t.revision, l.revision)), 20) $function$;
+revoke all on function private.titan_coach_feedback_key(public.training_logs, public.coach_links, public.coach_assignments) from public, anon, authenticated;
+
+-- A session as the link shares it NOW: its state (shared, out_of_scope, archived, removed), the shareable measures, the categories the athlete
+-- does not share, and the week's check-in when the athlete shared it. Nothing outside the contract is returned.
+create or replace function private.titan_coach_feedback_session(t public.training_logs, l public.coach_links)
+returns jsonb language plpgsql stable security definer set search_path = ''
+as $function$
+declare v_p jsonb; v_check jsonb; v_hidden jsonb := '[]'::jsonb;
+begin
+  if not l.share_details then v_hidden := v_hidden || '["details"]'::jsonb; end if;
+  if not l.share_notes then v_hidden := v_hidden || '["notes"]'::jsonb; end if;
+  if t.id is null or t.user_id is distinct from l.athlete_id then return jsonb_build_object('state', 'removed', 'hidden', v_hidden); end if;
+  if t.archived_at is not null then return jsonb_build_object('state', 'archived', 'hidden', v_hidden); end if;
+  if (l.sport is not null and l.sport <> t.sport) or t.date < l.since_date::timestamp at time zone 'UTC' or t.date > now() then
+    return jsonb_build_object('state', 'out_of_scope', 'hidden', v_hidden);
+  end if;
+  v_p := private.titan_coach_feedback_projection(t);
+  select jsonb_strip_nulls(jsonb_build_object('week', c.week_start, 'scores', c.scores, 'note', c.note)) into v_check
+    from private.titan_coach_checkins c where c.link_id = l.id and c.shared and c.week_start = date_trunc('week', (v_p#>>'{core,day}')::date)::date;
+  return jsonb_build_object('state', 'shared', 'hidden', v_hidden, 'checkin', v_check) || (v_p->'core')
+    || case when l.share_details then v_p->'details' else '{}'::jsonb end
+    || case when l.share_notes then v_p->'notes' else '{}'::jsonb end;
+end;
+$function$;
+revoke all on function private.titan_coach_feedback_session(public.training_logs, public.coach_links) from public, anon, authenticated;
+
+-- One feedback as one side sees it. The observation is the thread message; the measures are projected again; the adjustment carries its state.
+create or replace function private.titan_coach_feedback_row(f private.titan_coach_feedback, l public.coach_links, p_role text)
+returns jsonb language plpgsql stable security definer set search_path = ''
+as $function$
+declare
+  v_log public.training_logs%rowtype; v_a public.coach_assignments%rowtype; v_t public.coach_assignments%rowtype; v_r public.coach_assignments%rowtype;
+  v_session jsonb; v_cur jsonb; v_adj jsonb; v_state text := f.adjustment_state; v_body text;
+  v_active boolean := l.revoked_at is null and private.titan_coach_link_active(l.id);
+begin
+  select * into v_a from public.coach_assignments where id = f.assignment_id;
+  select m.body into v_body from private.titan_coach_messages m where m.id = f.message_id;
+  if f.session_id is not null then select * into v_log from public.training_logs t where t.id = f.session_id; end if;
+  v_session := private.titan_coach_feedback_session(v_log, l);
+  if v_session->>'state' = 'shared' then
+    v_cur := private.titan_coach_feedback_print(v_log);
+    v_session := v_session || jsonb_build_object('corrected', (v_cur->>'core') is distinct from (f.seen_print->>'core')
+      or (l.share_details and (v_cur->>'details') is distinct from (f.seen_print->>'details'))
+      or (l.share_notes and (v_cur->>'notes') is distinct from (f.seen_print->>'notes')));
+  elsif p_role = 'athlete' then
+    v_session := v_session || jsonb_build_object('day', f.session_day);
+  end if;
+  if f.adjustment is not null then
+    if f.target_id is not null then select * into v_t from public.coach_assignments where id = f.target_id; end if;
+    if f.result_id is not null then select * into v_r from public.coach_assignments where id = f.result_id; end if;
+    if v_state = 'pending' and f.adjustment->>'kind' = 'change' and (v_t.id is null or v_t.status not in ('proposed', 'accepted') or v_t.session_id is not null
+         or v_t.pending_change is not null or private.titan_coach_assignment_version(v_t) is distinct from f.adjustment->'before') then
+      v_state := 'stale';
+    end if;
+    v_adj := jsonb_build_object('kind', f.adjustment->>'kind', 'state', v_state, 'before', f.adjustment->'before', 'after', f.adjustment->'after',
+      'note', f.adjustment->>'note', 'answered_at', f.answered_at,
+      'target', case when v_t.id is not null then jsonb_build_object('id', v_t.id, 'title', v_t.title, 'planned_date', v_t.planned_date, 'status', v_t.status) else null end,
+      'result', case when v_r.id is not null then jsonb_build_object('id', v_r.id, 'title', v_r.title, 'sport', v_r.sport, 'planned_date', v_r.planned_date, 'status', v_r.status) else null end);
+  end if;
+  return jsonb_build_object('id', f.id, 'link_id', f.link_id, 'revision', f.revision, 'created_at', f.created_at, 'read_at', f.read_at,
+    'observation', v_body, 'message_id', f.message_id,
+    'assignment', jsonb_build_object('id', v_a.id, 'title', v_a.title, 'sport', v_a.sport, 'planned_date', v_a.planned_date, 'status', v_a.status,
+      'session', case when v_a.session_id is not distinct from f.session_id and f.session_id is not null then 'same' when v_a.session_id is null then 'none' else 'other' end),
+    'session', v_session, 'adjustment', v_adj,
+    'link_state', case when l.revoked_at is not null then 'revoked' when v_active then 'active' else 'paused' end,
+    'can_answer', p_role = 'athlete' and v_active and v_state = 'pending',
+    'can_withdraw', p_role = 'coach' and v_active and v_state = 'pending',
+    'can_read', p_role = 'athlete' and l.revoked_at is null and f.read_at is null);
+end;
+$function$;
+revoke all on function private.titan_coach_feedback_row(private.titan_coach_feedback, public.coach_links, text) from public, anon, authenticated;
+
+create or replace function public.titan_coach_feedback_v1(p_action text, p_data jsonb default '{}'::jsonb)
+returns jsonb language plpgsql security definer set search_path = '' set statement_timeout = '8s'
+as $function$
+declare
+  v_uid uuid := auth.uid(); v_link public.coach_links%rowtype; v_a public.coach_assignments%rowtype; v_t public.coach_assignments%rowtype;
+  v_log public.training_logs%rowtype; v_f private.titan_coach_feedback%rowtype; v_role text; v_id uuid; v_only uuid; v_session uuid;
+  v_text text; v_date date; v_adj jsonb; v_after jsonb; v_kind text; v_msg uuid; v_entry jsonb; v_rows jsonb;
+begin
+  if v_uid is null or not exists (select 1 from public.profiles where id = v_uid and is_suspended is not true) then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if jsonb_typeof(p_data) is distinct from 'object' or octet_length(p_data::text) > 8000 then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+  if not private.titan_flag_on('screens.coach_feedback') then raise exception 'FEATURE_DISABLED' using errcode = '42501'; end if;
+  begin
+    v_id := nullif(coalesce(p_data->>'id', p_data->>'assignment_id'), '')::uuid;
+    v_only := nullif(p_data->>'link_id', '')::uuid;
+    v_session := nullif(p_data->>'session_id', '')::uuid;
+  exception when others then raise exception 'INVALID_INPUT' using errcode = '22023'; end;
+
+  -- ---- Athlete: my feedback across my links (read-only once paused or ended), optionally for one session of my journal.
+  if p_action = 'athlete' then
+    return jsonb_build_object('owner', v_uid, 'rows', coalesce((select jsonb_agg(r order by (r->>'can_answer')::boolean desc, r->>'created_at' desc) from (
+      select private.titan_coach_feedback_row(f, l, 'athlete') || jsonb_build_object('coach_name', c.username) as r
+        from private.titan_coach_feedback f join public.coach_links l on l.id = f.link_id join public.profiles c on c.id = l.coach_id
+       where l.athlete_id = v_uid and (l.revoked_at is null or l.revoked_at > now() - interval '365 days') and (v_session is null or f.session_id = v_session)
+       order by f.created_at desc limit 60) q), '[]'::jsonb));
+  end if;
+
+  -- ---- One link's feedback (coach: active link; athlete: any of their links), optionally for one proposal.
+  if p_action = 'list' then
+    if v_only is null and v_id is not null then select a.link_id into v_only from public.coach_assignments a where a.id = v_id; end if;
+    select * into v_link from public.coach_links where id = v_only and (coach_id = v_uid or athlete_id = v_uid);
+    if not found or (v_link.coach_id = v_uid and v_link.revoked_at is not null) or (v_link.athlete_id = v_uid and v_link.revoked_at < now() - interval '365 days') then
+      raise exception 'SHARING_UNAVAILABLE' using errcode = '42501';
+    end if;
+    v_role := case when v_link.coach_id = v_uid then 'coach' else 'athlete' end;
+    if v_role = 'coach' and not private.titan_coach_link_active(v_link.id) then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+    return jsonb_build_object('link_id', v_link.id, 'role', v_role, 'rows', coalesce((select jsonb_agg(private.titan_coach_feedback_row(f, v_link, v_role) order by f.created_at desc, f.id)
+      from (select * from private.titan_coach_feedback where link_id = v_link.id and (v_id is null or assignment_id = v_id) order by created_at desc limit 100) f), '[]'::jsonb));
+  end if;
+
+  -- ---- One feedback (the direct link): access re-checked at every read.
+  if p_action = 'detail' then
+    select l.* into v_link from public.coach_links l join private.titan_coach_feedback f on f.link_id = l.id where f.id = v_id and (l.coach_id = v_uid or l.athlete_id = v_uid);
+    if not found or (v_link.coach_id = v_uid and v_link.revoked_at is not null) or (v_link.athlete_id = v_uid and v_link.revoked_at < now() - interval '365 days') then
+      raise exception 'SHARING_UNAVAILABLE' using errcode = '42501';
+    end if;
+    v_role := case when v_link.coach_id = v_uid then 'coach' else 'athlete' end;
+    if v_role = 'coach' and not private.titan_coach_link_active(v_link.id) then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+    select * into v_f from private.titan_coach_feedback where id = v_id;
+    return private.titan_coach_feedback_row(v_f, v_link, v_role);
+  end if;
+
+  -- ---- Coach: what can be commented on a linked proposal: the session as shared now, its key, the open proposals an adjustment may target.
+  if p_action = 'compose' then
+    select l.* into v_link from public.coach_links l join public.coach_assignments a on a.link_id = l.id where a.id = v_id and l.coach_id = v_uid and l.revoked_at is null;
+    if not found then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+    if not private.titan_coach_link_active(v_link.id) then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+    select * into v_a from public.coach_assignments where id = v_id;
+    if v_a.session_id is not null then select * into v_log from public.training_logs where id = v_a.session_id; end if;
+    return jsonb_build_object('assignment', jsonb_build_object('id', v_a.id, 'title', v_a.title, 'sport', v_a.sport, 'planned_date', v_a.planned_date, 'status', v_a.status, 'revision', v_a.revision),
+      'linked', v_a.session_id is not null,
+      'session', case when v_a.session_id is not null then private.titan_coach_feedback_session(v_log, v_link) else null end,
+      'session_key', case when v_log.id is not null and v_log.archived_at is null then private.titan_coach_feedback_key(v_log, v_link, v_a) else null end,
+      'targets', coalesce((select jsonb_agg(jsonb_build_object('id', x.id, 'title', x.title, 'sport', x.sport, 'planned_date', coalesce(x.moved_date, x.planned_date), 'instructions', x.instructions, 'status', x.status)
+                    order by coalesce(x.moved_date, x.planned_date), x.id)
+                    from (select * from public.coach_assignments x where x.link_id = v_link.id and x.id <> v_a.id and x.status in ('proposed', 'accepted') and x.session_id is null
+                            and x.pending_change is null and coalesce(x.moved_date, x.planned_date) >= (now() at time zone 'Europe/Paris')::date
+                            and not exists (select 1 from private.titan_coach_feedback p where p.target_id = x.id and p.adjustment_state = 'pending')
+                          order by coalesce(x.moved_date, x.planned_date), x.id limit 10) x), '[]'::jsonb),
+      'feedback', coalesce((select jsonb_agg(private.titan_coach_feedback_row(f, v_link, 'coach') order by f.created_at desc)
+                    from private.titan_coach_feedback f where f.assignment_id = v_a.id), '[]'::jsonb));
+  end if;
+
+  if p_action not in ('give', 'withdraw', 'answer', 'read') then raise exception 'INVALID_ACTION' using errcode = '22023'; end if;
+
+  -- ---- Coach: leave a feedback on the session they read, with an optional adjustment. Lock order of the portal: link, then proposal.
+  if p_action = 'give' then
+    select l.* into v_link from public.coach_links l join public.coach_assignments a on a.link_id = l.id where a.id = v_id and l.revoked_at is null and (l.coach_id = v_uid or l.athlete_id = v_uid) for update of l;
+    if not found then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+    if v_link.coach_id <> v_uid then raise exception 'COACH_ONLY' using errcode = '42501'; end if;
+    if not private.titan_coach_link_active(v_link.id) then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+    select * into v_a from public.coach_assignments where id = v_id for update;
+    if v_a.status <> 'completed' or v_a.session_id is null then raise exception 'NOT_LINKED' using errcode = '22023'; end if;
+    select * into v_log from public.training_logs where id = v_a.session_id;
+    if v_log.id is null or v_log.archived_at is not null then raise exception 'SESSION_CHANGED'; end if;
+    if private.titan_coach_feedback_key(v_log, v_link, v_a) is distinct from p_data->>'session_key' then raise exception 'SESSION_CHANGED'; end if;
+    v_text := btrim(regexp_replace(coalesce(p_data->>'observation', ''), '[\x01-\x09\x0b-\x1f\x7f<>]', '', 'g'));
+    if char_length(v_text) < 1 or char_length(v_text) > 1000 then raise exception 'BAD_OBSERVATION' using errcode = '22023'; end if;
+    if (select count(*) from private.titan_coach_feedback where assignment_id = v_a.id) >= 5 then raise exception 'FEEDBACK_LIMIT' using errcode = '22023'; end if;
+    if (select count(*) from private.titan_coach_messages where link_id = v_link.id) >= 500 then raise exception 'THREAD_FULL' using errcode = '22023'; end if;
+    v_adj := null;
+    if jsonb_typeof(p_data->'adjustment') = 'object' then
+      if nullif(p_data#>>'{adjustment,target_id}', '') is not null then
+        begin v_t.id := (p_data#>>'{adjustment,target_id}')::uuid; exception when others then raise exception 'INVALID_INPUT' using errcode = '22023'; end;
+        select * into v_t from public.coach_assignments where id = v_t.id and link_id = v_link.id for update;
+        if not found or v_t.id = v_a.id or v_t.status not in ('proposed', 'accepted') or v_t.session_id is not null or v_t.pending_change is not null then raise exception 'TARGET_UNAVAILABLE' using errcode = '22023'; end if;
+        if exists (select 1 from private.titan_coach_feedback p where p.target_id = v_t.id and p.adjustment_state = 'pending') then raise exception 'ADJUSTMENT_PENDING' using errcode = '22023'; end if;
+        v_kind := 'change'; v_after := private.titan_coach_assignment_version(v_t);
+      elsif jsonb_typeof(p_data->'adjustment') = 'object' then
+        v_kind := 'new'; v_after := jsonb_build_object('title', null, 'sport', null, 'planned_date', null, 'instructions', '');
+      end if;
+      if p_data->'adjustment' ? 'title' then
+        v_text := left(regexp_replace(btrim(coalesce(p_data#>>'{adjustment,title}', '')), '[[:cntrl:]<>]', '', 'g'), 100);
+        if v_text = '' then raise exception 'BAD_TITLE' using errcode = '22023'; end if;
+        v_after := v_after || jsonb_build_object('title', v_text);
+      end if;
+      if p_data->'adjustment' ? 'sport' then
+        if not exists (select 1 from public.sports s where s.id = p_data#>>'{adjustment,sport}' and coalesce(s.is_active, true)) then raise exception 'SPORT_UNKNOWN' using errcode = '22023'; end if;
+        v_after := v_after || jsonb_build_object('sport', p_data#>>'{adjustment,sport}');
+      end if;
+      if p_data->'adjustment' ? 'planned_date' then
+        begin v_date := (p_data#>>'{adjustment,planned_date}')::date; exception when others then raise exception 'INVALID_PERIOD' using errcode = '22023'; end;
+        if v_date is null or v_date < (now() at time zone 'Europe/Paris')::date or v_date > current_date + 366 then raise exception 'INVALID_PERIOD' using errcode = '22023'; end if;
+        v_after := v_after || jsonb_build_object('planned_date', v_date);
+      end if;
+      if p_data->'adjustment' ? 'instructions' then
+        v_after := v_after || jsonb_build_object('instructions', left(regexp_replace(coalesce(p_data#>>'{adjustment,instructions}', ''), '[\x01-\x09\x0b-\x1f\x7f<>]', '', 'g'), 2000));
+      end if;
+      if v_kind = 'new' and (v_after->>'title' is null or v_after->>'sport' is null or v_after->>'planned_date' is null) then raise exception 'ADJUSTMENT_INCOMPLETE' using errcode = '22023'; end if;
+      if v_kind = 'change' and v_after = private.titan_coach_assignment_version(v_t) then raise exception 'CHANGE_EMPTY' using errcode = '22023'; end if;
+      if v_kind = 'new' and (select count(*) from public.coach_assignments where link_id = v_link.id) >= 500 then raise exception 'ASSIGNMENT_LIMIT' using errcode = '22023'; end if;
+      v_adj := jsonb_strip_nulls(jsonb_build_object('kind', v_kind, 'after', v_after,
+                 'before', case when v_kind = 'change' then private.titan_coach_assignment_version(v_t) else null end,
+                 'note', nullif(left(btrim(regexp_replace(coalesce(p_data#>>'{adjustment,note}', ''), '[[:cntrl:]<>]', '', 'g')), 300), '')));
+    elsif p_data ? 'adjustment' and jsonb_typeof(p_data->'adjustment') is distinct from 'null' then
+      raise exception 'INVALID_INPUT' using errcode = '22023';
+    end if;
+    perform private.titan_rate_limit(v_uid, 'coach_message', 60);
+    insert into private.titan_coach_messages (link_id, sender_id, body)
+      values (v_link.id, v_uid, btrim(regexp_replace(coalesce(p_data->>'observation', ''), '[\x01-\x09\x0b-\x1f\x7f<>]', '', 'g'))) returning id into v_msg;
+    insert into private.titan_coach_feedback (link_id, assignment_id, message_id, session_id, session_day, seen_print, adjustment, adjustment_state, target_id)
+      values (v_link.id, v_a.id, v_msg, v_log.id, (v_log.date at time zone 'Europe/Paris')::date, private.titan_coach_feedback_print(v_log), v_adj,
+              case when v_adj is null then null else 'pending' end, case when v_kind = 'change' then v_t.id else null end)
+      returning * into v_f;
+    return private.titan_coach_feedback_row(v_f, v_link, 'coach');
+  end if;
+
+  -- ---- Writes on an existing feedback: link, then feedback, then the proposal it targets.
+  select l.* into v_link from public.coach_links l join private.titan_coach_feedback f on f.link_id = l.id
+   where f.id = v_id and l.revoked_at is null and (l.coach_id = v_uid or l.athlete_id = v_uid) for update of l;
+  if not found then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  v_role := case when v_link.coach_id = v_uid then 'coach' else 'athlete' end;
+  select * into v_f from private.titan_coach_feedback where id = v_id for update;
+
+  -- « Compris »: the athlete says they read it (also on a paused link: reading stays theirs).
+  if p_action = 'read' then
+    if v_role <> 'athlete' then raise exception 'ATHLETE_ONLY' using errcode = '42501'; end if;
+    if v_f.read_at is null then
+      update private.titan_coach_feedback set read_at = now(), updated_at = now() where id = v_f.id returning * into v_f;
+      update private.titan_coach_messages set read_at = coalesce(read_at, now()) where id = v_f.message_id;
+    end if;
+    return private.titan_coach_feedback_row(v_f, v_link, 'athlete');
+  end if;
+
+  if not private.titan_coach_link_active(v_link.id) then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+  perform private.titan_rate_limit(v_uid, 'coach_followup', 120);
+  if v_f.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT'; end if;
+  if v_f.adjustment_state is distinct from 'pending' then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+
+  if p_action = 'withdraw' then
+    if v_role <> 'coach' then raise exception 'COACH_ONLY' using errcode = '42501'; end if;
+    update private.titan_coach_feedback set adjustment_state = 'withdrawn', answered_at = now(), revision = revision + 1, updated_at = now() where id = v_f.id returning * into v_f;
+    return private.titan_coach_feedback_row(v_f, v_link, 'coach');
+  end if;
+
+  -- answer
+  if v_role <> 'athlete' then raise exception 'ATHLETE_ONLY' using errcode = '42501'; end if;
+  if jsonb_typeof(p_data->'accept') is distinct from 'boolean' then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+  if not (p_data->>'accept')::boolean then
+    update private.titan_coach_feedback set adjustment_state = 'declined', answered_at = now(), read_at = coalesce(read_at, now()), revision = revision + 1, updated_at = now()
+     where id = v_f.id returning * into v_f;
+    return jsonb_build_object('ok', true, 'row', private.titan_coach_feedback_row(v_f, v_link, 'athlete'));
+  end if;
+  v_after := v_f.adjustment->'after';
+  if v_f.adjustment->>'kind' = 'change' then
+    select * into v_t from public.coach_assignments where id = v_f.target_id for update;
+    if not found or v_t.status not in ('proposed', 'accepted') or v_t.session_id is not null or v_t.pending_change is not null
+       or private.titan_coach_assignment_version(v_t) is distinct from v_f.adjustment->'before' then
+      update private.titan_coach_feedback set adjustment_state = 'stale', answered_at = now(), revision = revision + 1, updated_at = now() where id = v_f.id returning * into v_f;
+      return jsonb_build_object('ok', false, 'code', 'ADJUSTMENT_STALE', 'row', private.titan_coach_feedback_row(v_f, v_link, 'athlete'));
+    end if;
+    -- The accepted version of V1.9.1 is set by its trigger when the status becomes accepted here, from the adjusted content.
+    update public.coach_assignments set title = v_after->>'title', sport = v_after->>'sport', planned_date = (v_after->>'planned_date')::date,
+        instructions = coalesce(v_after->>'instructions', ''),
+        moved_date = case when (v_after->>'planned_date')::date is distinct from planned_date then null else moved_date end,
+        done_declared_at = null, coach_seen_key = null, status = 'accepted', revision = revision + 1, updated_at = now(),
+        history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_build_object('k', 'adjusted', 'at', now(), 'feedback', v_f.id,
+                    'before', private.titan_coach_assignment_version(v_t), 'after', v_after)))
+     where id = v_t.id returning * into v_t;
+  else
+    if (select count(*) from public.coach_assignments where link_id = v_link.id) >= 500 then raise exception 'ASSIGNMENT_LIMIT' using errcode = '22023'; end if;
+    insert into public.coach_assignments (link_id, title, sport, planned_date, instructions)
+      values (v_link.id, v_after->>'title', v_after->>'sport', (v_after->>'planned_date')::date, coalesce(v_after->>'instructions', '')) returning * into v_t;
+    update public.coach_assignments set status = 'accepted', revision = revision + 1, updated_at = now() where id = v_t.id returning * into v_t;
+    update public.coach_assignments set history = private.titan_coach_history_cap(history || jsonb_build_array(jsonb_build_object('k', 'from_feedback', 'at', now(), 'feedback', v_f.id)))
+     where id = v_t.id returning * into v_t;
+  end if;
+  update private.titan_coach_feedback set adjustment_state = 'accepted', result_id = v_t.id, answered_at = now(), read_at = coalesce(read_at, now()), revision = revision + 1, updated_at = now()
+   where id = v_f.id returning * into v_f;
+  return jsonb_build_object('ok', true, 'row', private.titan_coach_feedback_row(v_f, v_link, 'athlete'));
+end;
+$function$;
+revoke all on function public.titan_coach_feedback_v1(text, jsonb) from public, anon;
+grant execute on function public.titan_coach_feedback_v1(text, jsonb) to authenticated;
+
+-- ---- The thread read of 20261121100000, unchanged except that each message says which feedback it carries (feedback_id, or null).
+create or replace function public.titan_coach_messages_v1(p_link uuid, p_before timestamptz default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare v_uid uuid := auth.uid();
+begin
+  if v_uid is null then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if private.titan_coach_link_read_role(p_link, v_uid) is null then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  return jsonb_build_object('link', p_link, 'rows', coalesce((
+    select jsonb_agg(jsonb_build_object('id', m.id, 'body', m.body, 'at', m.created_at, 'mine', m.sender_id = v_uid, 'read', m.read_at is not null,
+                                        'feedback_id', (select f.id from private.titan_coach_feedback f where f.message_id = m.id)) order by m.created_at)
+      from (select * from private.titan_coach_messages where link_id = p_link and (p_before is null or created_at < p_before) order by created_at desc limit 50) m), '[]'::jsonb),
+    'more', exists (select 1 from private.titan_coach_messages where link_id = p_link and created_at < coalesce((select min(x.created_at) from (select created_at from private.titan_coach_messages
+              where link_id = p_link and (p_before is null or created_at < p_before) order by created_at desc limit 50) x), 'infinity'::timestamptz)));
+end;
+$function$;
+revoke all on function public.titan_coach_messages_v1(uuid, timestamptz) from public, anon;
+grant execute on function public.titan_coach_messages_v1(uuid, timestamptz) to authenticated;
+
+-- ---- The export: the body of 20261117160000, plus the feedback of the caller's links (observations are already in coachMessages). No measure.
+create or replace function private.titan_export_extras_v1(p_uid uuid)
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select private.titan_export_extras_before_cadence_v1(p_uid) || jsonb_build_object(
+    'cadenceWeekClaims', coalesce((
+      select jsonb_agg(jsonb_build_object('week', c.week_start, 'days', c.days, 'target', c.target, 'credits', c.credits, 'claimed_at', c.claimed_at) order by c.week_start)
+      from private.titan_cadence_claims c where c.user_id = p_uid), '[]'::jsonb),
+    'timeCapsules', coalesce((
+      select jsonb_agg(jsonb_build_object('message', t.message, 'months', t.months, 'deliver_on', t.deliver_on, 'written_minutes', t.written_minutes,
+        'written_days', t.written_days, 'created_at', t.created_at, 'opened_at', t.opened_at) order by t.created_at)
+      from private.titan_time_capsules t where t.user_id = p_uid), '[]'::jsonb),
+    'lifeChapters', coalesce((
+      select jsonb_agg(jsonb_build_object('title', l.title, 'starts_on', l.starts_on, 'ends_on', l.ends_on, 'created_at', l.created_at) order by l.starts_on)
+      from private.titan_life_chapters l where l.user_id = p_uid), '[]'::jsonb),
+    'coachFeedback', coalesce((
+      select jsonb_agg(jsonb_build_object('link_id', f.link_id, 'assignment_id', f.assignment_id, 'message_id', f.message_id, 'session_day', f.session_day,
+        'adjustment', f.adjustment, 'adjustment_state', f.adjustment_state, 'answered_at', f.answered_at, 'read_at', f.read_at, 'created_at', f.created_at) order by f.created_at)
+      from private.titan_coach_feedback f join public.coach_links l on l.id = f.link_id where p_uid in (l.coach_id, l.athlete_id)), '[]'::jsonb));
+$$;
+revoke all on function private.titan_export_extras_v1(uuid) from public, anon, authenticated;
+
+-- Measure (team only, no identifier): linked sessions, those with a feedback, understood (read or answered) and tied to an action.
+create or replace function private.titan_coach_feedback_measure()
+returns jsonb language sql stable security definer set search_path = ''
+as $function$
+  select jsonb_build_object(
+    'linkedSessions', (select count(*) from public.coach_assignments where session_id is not null),
+    'withFeedback', (select count(distinct f.assignment_id) from private.titan_coach_feedback f join public.coach_assignments a on a.id = f.assignment_id where a.session_id is not null),
+    'understoodWithAction', (select count(distinct f.assignment_id) from private.titan_coach_feedback f join public.coach_assignments a on a.id = f.assignment_id
+                              where a.session_id is not null and f.read_at is not null and f.adjustment_state in ('accepted', 'declined')),
+    'feedback', (select count(*) from private.titan_coach_feedback),
+    'adjustments', (select jsonb_object_agg(s, n) from (select adjustment_state s, count(*) n from private.titan_coach_feedback where adjustment_state is not null group by 1) x),
+    'carriedIntoProposal', (select count(*) from private.titan_coach_feedback where result_id is not null))
+$function$;
+revoke all on function private.titan_coach_feedback_measure() from public, anon, authenticated;
+
+notify pgrst, 'reload schema';

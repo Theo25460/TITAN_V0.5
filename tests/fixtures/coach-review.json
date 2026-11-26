@@ -1,0 +1,4256 @@
+{
+ "generated_on": "2026-11-25",
+ "source": "tools/db/coach-review/fixtures.sql on PostgreSQL 16 (titan_coach_review_v1, rolled back)",
+ "snapshot": {
+  "plan": {
+   "plan": "coach",
+   "seats": 5,
+   "endsAt": "2026-12-25T08:13:18.042602+00:00"
+  },
+  "links": [
+   {
+    "id": "70f758a0-2342-4394-8f23-4069fdc868e7",
+    "sport": null,
+    "paused": true,
+    "coach_id": "19300000-0000-4000-8000-0000000000c1",
+    "revision": 1,
+    "athlete_id": "19300000-0000-4000-8000-0000000000a7",
+    "coach_name": "Coach Lou",
+    "revoked_at": null,
+    "since_date": "2026-10-26",
+    "accepted_at": "2026-11-25T08:13:20.042602+00:00",
+    "share_notes": false,
+    "athlete_name": "Léa",
+    "share_details": false
+   },
+   {
+    "id": "ce286b7b-304b-45b3-b46d-4e767cd05462",
+    "sport": null,
+    "paused": true,
+    "coach_id": "19300000-0000-4000-8000-0000000000c1",
+    "revision": 1,
+    "athlete_id": "19300000-0000-4000-8000-0000000000a6",
+    "coach_name": "Coach Lou",
+    "revoked_at": null,
+    "since_date": "2026-10-26",
+    "accepted_at": "2026-11-25T08:13:19.042602+00:00",
+    "share_notes": false,
+    "athlete_name": "Paul",
+    "share_details": false
+   },
+   {
+    "id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "sport": null,
+    "paused": false,
+    "coach_id": "19300000-0000-4000-8000-0000000000c1",
+    "revision": 1,
+    "athlete_id": "19300000-0000-4000-8000-0000000000a3",
+    "coach_name": "Coach Lou",
+    "revoked_at": null,
+    "since_date": "2026-10-26",
+    "accepted_at": "2026-11-25T08:13:18.042602+00:00",
+    "share_notes": false,
+    "athlete_name": "Zoé",
+    "share_details": false
+   },
+   {
+    "id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "sport": null,
+    "paused": false,
+    "coach_id": "19300000-0000-4000-8000-0000000000c1",
+    "revision": 1,
+    "athlete_id": "19300000-0000-4000-8000-0000000000a1",
+    "coach_name": "Coach Lou",
+    "revoked_at": null,
+    "since_date": "2026-10-26",
+    "accepted_at": "2026-11-25T08:13:18.042602+00:00",
+    "share_notes": false,
+    "athlete_name": "Inès",
+    "share_details": false
+   },
+   {
+    "id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "sport": null,
+    "paused": false,
+    "coach_id": "19300000-0000-4000-8000-0000000000c1",
+    "revision": 1,
+    "athlete_id": "19300000-0000-4000-8000-0000000000a5",
+    "coach_name": "Coach Lou",
+    "revoked_at": null,
+    "since_date": "2026-10-26",
+    "accepted_at": "2026-11-25T08:13:18.042602+00:00",
+    "share_notes": false,
+    "athlete_name": "Lina",
+    "share_details": false
+   },
+   {
+    "id": "556484ef-4163-463e-92fe-8a1ead6a68f5",
+    "sport": null,
+    "paused": false,
+    "coach_id": "19300000-0000-4000-8000-0000000000c1",
+    "revision": 1,
+    "athlete_id": "19300000-0000-4000-8000-0000000000a4",
+    "coach_name": "Coach Lou",
+    "revoked_at": null,
+    "since_date": "2026-10-26",
+    "accepted_at": "2026-11-25T08:13:18.042602+00:00",
+    "share_notes": false,
+    "athlete_name": "Noé",
+    "share_details": false
+   },
+   {
+    "id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "sport": null,
+    "paused": false,
+    "coach_id": "19300000-0000-4000-8000-0000000000c1",
+    "revision": 1,
+    "athlete_id": "19300000-0000-4000-8000-0000000000a2",
+    "coach_name": "Coach Lou",
+    "revoked_at": null,
+    "since_date": "2026-10-26",
+    "accepted_at": "2026-11-25T08:13:18.042602+00:00",
+    "share_notes": false,
+    "athlete_name": "Malo",
+    "share_details": false
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000c1",
+  "invites": [],
+  "capacity": 5,
+  "seatsUsed": 7,
+  "assignments_count": 4
+ },
+ "queue": {
+  "rows": [
+   {
+    "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+    "seen": false,
+    "sport": "running",
+    "state": "awaiting",
+    "title": "Footing 45 min",
+    "linked": null,
+    "status": "proposed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing 45 min",
+       "instructions": "En aisance",
+       "planned_date": "2026-11-27"
+      }
+     }
+    ],
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "gap_days": null,
+    "revision": 1,
+    "done_date": null,
+    "state_key": "26c2401e0a267a27",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-25T08:13:18.042602+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "athlete_name": "Inès",
+    "instructions": "En aisance",
+    "planned_date": "2026-11-27",
+    "effective_date": "2026-11-27",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": null,
+    "done_declared_at": null
+   },
+   {
+    "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+    "seen": false,
+    "sport": "running",
+    "state": "reproposed",
+    "title": "Fractionné 6 × 400 m",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "instructions": "",
+       "planned_date": "2026-11-27"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-25T08:13:18.042602+00:00"
+     },
+     {
+      "k": "change_proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "note": "Plus de récupération",
+      "after": {
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "instructions": "6 × 400 m, récupération 1 min 30",
+       "planned_date": "2026-11-27"
+      },
+      "before": {
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "instructions": "",
+       "planned_date": "2026-11-27"
+      }
+     }
+    ],
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "b0b42485fa7023be",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-25T08:13:18.042602+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "athlete_name": "Malo",
+    "instructions": "",
+    "planned_date": "2026-11-27",
+    "effective_date": "2026-11-27",
+    "pending_change": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "note": "Plus de récupération",
+     "sport": "running",
+     "title": "Fractionné 6 × 400 m",
+     "from_status": "accepted",
+     "instructions": "6 × 400 m, récupération 1 min 30",
+     "planned_date": "2026-11-27"
+    },
+    "candidate_count": 0,
+    "accepted_version": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "sport": "running",
+     "title": "Fractionné 6 × 400 m",
+     "instructions": "",
+     "planned_date": "2026-11-27"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-25",
+  "counts": {
+   "gap": 0,
+   "wait": 2,
+   "suggest": 0
+  },
+  "paused": 2,
+  "athletes": [
+   {
+    "name": "Inès",
+    "count": 1,
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13"
+   },
+   {
+    "name": "Malo",
+    "count": 1,
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8"
+   }
+  ]
+ },
+ "assignments:7f923213-d8f4-49ba-9f6b-9af05547be13": {
+  "rows": [
+   {
+    "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+    "sport": "running",
+    "title": "Footing 45 min",
+    "status": "proposed",
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing 45 min",
+       "instructions": "En aisance",
+       "planned_date": "2026-11-27"
+      }
+     }
+    ],
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "revision": 1,
+    "created_at": "2026-11-25T08:13:18.042602+00:00",
+    "moved_date": null,
+    "session_id": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "En aisance",
+    "planned_date": "2026-11-27",
+    "coach_seen_key": null,
+    "pending_change": null,
+    "accepted_version": null,
+    "done_declared_at": null
+   }
+  ],
+  "total": 1,
+  "offset": 0,
+  "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+  "revision": 1
+ },
+ "assignments:08db0571-b589-4761-aac6-2c8f89e71dc8": {
+  "rows": [
+   {
+    "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+    "sport": "running",
+    "title": "Fractionné 6 × 400 m",
+    "status": "accepted",
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "instructions": "",
+       "planned_date": "2026-11-27"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-25T08:13:18.042602+00:00"
+     },
+     {
+      "k": "change_proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "note": "Plus de récupération",
+      "after": {
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "instructions": "6 × 400 m, récupération 1 min 30",
+       "planned_date": "2026-11-27"
+      },
+      "before": {
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "instructions": "",
+       "planned_date": "2026-11-27"
+      }
+     }
+    ],
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "revision": 3,
+    "created_at": "2026-11-25T08:13:18.042602+00:00",
+    "moved_date": null,
+    "session_id": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "",
+    "planned_date": "2026-11-27",
+    "coach_seen_key": null,
+    "pending_change": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "note": "Plus de récupération",
+     "sport": "running",
+     "title": "Fractionné 6 × 400 m",
+     "from_status": "accepted",
+     "instructions": "6 × 400 m, récupération 1 min 30",
+     "planned_date": "2026-11-27"
+    },
+    "accepted_version": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "sport": "running",
+     "title": "Fractionné 6 × 400 m",
+     "instructions": "",
+     "planned_date": "2026-11-27"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "total": 1,
+  "offset": 0,
+  "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+  "revision": 1
+ },
+ "assignments:1521d9e4-4dc2-41be-935e-95bcb1375d48": {
+  "rows": [
+   {
+    "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+    "sport": "running",
+    "title": "Sortie longue 10 km",
+    "status": "completed",
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Sortie longue 10 km",
+       "instructions": "Allure confortable",
+       "planned_date": "2026-11-19"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-25T08:13:18.042602+00:00"
+     },
+     {
+      "k": "linked",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "day": "2026-11-19"
+     }
+    ],
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "revision": 3,
+    "created_at": "2026-11-15T08:13:18.042602+00:00",
+    "moved_date": null,
+    "session_id": "19300000-0000-4000-8000-0000000005a3",
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "Allure confortable",
+    "planned_date": "2026-11-19",
+    "coach_seen_key": null,
+    "pending_change": null,
+    "accepted_version": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "sport": "running",
+     "title": "Sortie longue 10 km",
+     "instructions": "Allure confortable",
+     "planned_date": "2026-11-19"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "total": 1,
+  "offset": 0,
+  "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+  "revision": 1
+ },
+ "assignments:556484ef-4163-463e-92fe-8a1ead6a68f5": {
+  "rows": [],
+  "total": 0,
+  "offset": 0,
+  "link_id": "556484ef-4163-463e-92fe-8a1ead6a68f5",
+  "revision": 1
+ },
+ "assignments:7e6a46b2-8305-453b-a1eb-235c1d96d708": {
+  "rows": [
+   {
+    "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+    "sport": "running",
+    "title": "Footing 8 km",
+    "status": "completed",
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing 8 km",
+       "instructions": "",
+       "planned_date": "2026-11-19"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-25T08:13:18.042602+00:00"
+     },
+     {
+      "k": "linked",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "day": "2026-11-19"
+     }
+    ],
+    "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "revision": 3,
+    "created_at": "2026-11-15T08:13:18.042602+00:00",
+    "moved_date": null,
+    "session_id": "19300000-0000-4000-8000-0000000005a5",
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "",
+    "planned_date": "2026-11-19",
+    "coach_seen_key": null,
+    "pending_change": null,
+    "accepted_version": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "sport": "running",
+     "title": "Footing 8 km",
+     "instructions": "",
+     "planned_date": "2026-11-19"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "total": 1,
+  "offset": 0,
+  "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+  "revision": 1
+ },
+ "list:7f923213-d8f4-49ba-9f6b-9af05547be13": {
+  "role": "coach",
+  "rows": [
+   {
+    "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+    "seen": false,
+    "sport": "running",
+    "state": "awaiting",
+    "title": "Footing 45 min",
+    "linked": null,
+    "status": "proposed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing 45 min",
+       "instructions": "En aisance",
+       "planned_date": "2026-11-27"
+      }
+     }
+    ],
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "gap_days": null,
+    "revision": 1,
+    "done_date": null,
+    "state_key": "26c2401e0a267a27",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-25T08:13:18.042602+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "En aisance",
+    "planned_date": "2026-11-27",
+    "effective_date": "2026-11-27",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": null,
+    "done_declared_at": null
+   }
+  ],
+  "total": 1,
+  "offset": 0,
+  "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+  "revision": 1
+ },
+ "list:08db0571-b589-4761-aac6-2c8f89e71dc8": {
+  "role": "coach",
+  "rows": [
+   {
+    "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+    "seen": false,
+    "sport": "running",
+    "state": "reproposed",
+    "title": "Fractionné 6 × 400 m",
+    "linked": null,
+    "status": "accepted",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "instructions": "",
+       "planned_date": "2026-11-27"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-25T08:13:18.042602+00:00"
+     },
+     {
+      "k": "change_proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "note": "Plus de récupération",
+      "after": {
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "instructions": "6 × 400 m, récupération 1 min 30",
+       "planned_date": "2026-11-27"
+      },
+      "before": {
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "instructions": "",
+       "planned_date": "2026-11-27"
+      }
+     }
+    ],
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "gap_days": null,
+    "revision": 3,
+    "done_date": null,
+    "state_key": "b0b42485fa7023be",
+    "candidates": null,
+    "coach_next": "wait",
+    "created_at": "2026-11-25T08:13:18.042602+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "",
+    "planned_date": "2026-11-27",
+    "effective_date": "2026-11-27",
+    "pending_change": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "note": "Plus de récupération",
+     "sport": "running",
+     "title": "Fractionné 6 × 400 m",
+     "from_status": "accepted",
+     "instructions": "6 × 400 m, récupération 1 min 30",
+     "planned_date": "2026-11-27"
+    },
+    "candidate_count": 0,
+    "accepted_version": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "sport": "running",
+     "title": "Fractionné 6 × 400 m",
+     "instructions": "",
+     "planned_date": "2026-11-27"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "total": 1,
+  "offset": 0,
+  "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+  "revision": 1
+ },
+ "list:1521d9e4-4dc2-41be-935e-95bcb1375d48": {
+  "role": "coach",
+  "rows": [
+   {
+    "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+    "seen": false,
+    "sport": "running",
+    "state": "linked",
+    "title": "Sortie longue 10 km",
+    "linked": {
+     "day": "2026-11-19",
+     "val": 10.2,
+     "unit": "km",
+     "sport": "running",
+     "archived": false,
+     "duration": 55,
+     "in_scope": true,
+     "session_id": null
+    },
+    "status": "completed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Sortie longue 10 km",
+       "instructions": "Allure confortable",
+       "planned_date": "2026-11-19"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-25T08:13:18.042602+00:00"
+     },
+     {
+      "k": "linked",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "day": "2026-11-19"
+     }
+    ],
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "gap_days": 0,
+    "revision": 3,
+    "done_date": "2026-11-19",
+    "state_key": "8492feb7cb3389c0",
+    "candidates": null,
+    "coach_next": "none",
+    "created_at": "2026-11-15T08:13:18.042602+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "Allure confortable",
+    "planned_date": "2026-11-19",
+    "effective_date": "2026-11-19",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "sport": "running",
+     "title": "Sortie longue 10 km",
+     "instructions": "Allure confortable",
+     "planned_date": "2026-11-19"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "total": 1,
+  "offset": 0,
+  "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+  "revision": 1
+ },
+ "list:556484ef-4163-463e-92fe-8a1ead6a68f5": {
+  "role": "coach",
+  "rows": [],
+  "total": 0,
+  "offset": 0,
+  "link_id": "556484ef-4163-463e-92fe-8a1ead6a68f5",
+  "revision": 1
+ },
+ "list:7e6a46b2-8305-453b-a1eb-235c1d96d708": {
+  "role": "coach",
+  "rows": [
+   {
+    "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+    "seen": false,
+    "sport": "running",
+    "state": "linked",
+    "title": "Footing 8 km",
+    "linked": {
+     "day": "2026-11-19",
+     "val": 8,
+     "unit": "km",
+     "sport": "running",
+     "archived": false,
+     "duration": 44,
+     "in_scope": true,
+     "session_id": null
+    },
+    "status": "completed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Footing 8 km",
+       "instructions": "",
+       "planned_date": "2026-11-19"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-25T08:13:18.042602+00:00"
+     },
+     {
+      "k": "linked",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "day": "2026-11-19"
+     }
+    ],
+    "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "gap_days": 0,
+    "revision": 3,
+    "done_date": "2026-11-19",
+    "state_key": "fa2a2b81b42550b2",
+    "candidates": null,
+    "coach_next": "none",
+    "created_at": "2026-11-15T08:13:18.042602+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "",
+    "planned_date": "2026-11-19",
+    "effective_date": "2026-11-19",
+    "pending_change": null,
+    "candidate_count": 0,
+    "accepted_version": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "sport": "running",
+     "title": "Footing 8 km",
+     "instructions": "",
+     "planned_date": "2026-11-19"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "total": 1,
+  "offset": 0,
+  "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+  "revision": 1
+ },
+ "feedback:7f923213-d8f4-49ba-9f6b-9af05547be13": {
+  "role": "coach",
+  "rows": [],
+  "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13"
+ },
+ "feedback:08db0571-b589-4761-aac6-2c8f89e71dc8": {
+  "role": "coach",
+  "rows": [],
+  "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8"
+ },
+ "feedback:1521d9e4-4dc2-41be-935e-95bcb1375d48": {
+  "role": "coach",
+  "rows": [
+   {
+    "id": "ad5b2eb6-12ab-428b-8890-e6f5dd249022",
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "read_at": null,
+    "session": {
+     "day": "2026-11-19",
+     "val": 10.2,
+     "unit": "km",
+     "sport": "running",
+     "state": "shared",
+     "hidden": [
+      "details",
+      "notes"
+     ],
+     "checkin": {
+      "note": "Bonne semaine",
+      "week": "2026-11-16",
+      "scores": {
+       "sleep": 4,
+       "energy": 4,
+       "fatigue": 2,
+       "motivation": 5
+      }
+     },
+     "duration": 55,
+     "corrected": false
+    },
+    "can_read": false,
+    "revision": 1,
+    "adjustment": null,
+    "assignment": {
+     "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+     "sport": "running",
+     "title": "Sortie longue 10 km",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-19"
+    },
+    "can_answer": false,
+    "created_at": "2026-11-25T08:13:18.042602+00:00",
+    "link_state": "active",
+    "message_id": "4b4ac7d2-be5d-48f0-a5dd-57aa310e4066",
+    "observation": "Allure régulière, bien.",
+    "can_withdraw": null
+   }
+  ],
+  "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48"
+ },
+ "feedback:556484ef-4163-463e-92fe-8a1ead6a68f5": {
+  "role": "coach",
+  "rows": [],
+  "link_id": "556484ef-4163-463e-92fe-8a1ead6a68f5"
+ },
+ "feedback:7e6a46b2-8305-453b-a1eb-235c1d96d708": {
+  "role": "coach",
+  "rows": [],
+  "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708"
+ },
+ "checkins:7f923213-d8f4-49ba-9f6b-9af05547be13": {
+  "role": "coach",
+  "rows": []
+ },
+ "checkins:08db0571-b589-4761-aac6-2c8f89e71dc8": {
+  "role": "coach",
+  "rows": []
+ },
+ "checkins:1521d9e4-4dc2-41be-935e-95bcb1375d48": {
+  "role": "coach",
+  "rows": [
+   {
+    "note": "Bonne semaine",
+    "week": "2026-11-16",
+    "scores": {
+     "sleep": 4,
+     "energy": 4,
+     "fatigue": 2,
+     "motivation": 5
+    },
+    "shared": true
+   }
+  ]
+ },
+ "checkins:556484ef-4163-463e-92fe-8a1ead6a68f5": {
+  "role": "coach",
+  "rows": []
+ },
+ "checkins:7e6a46b2-8305-453b-a1eb-235c1d96d708": {
+  "role": "coach",
+  "rows": []
+ },
+ "templates": [
+  {
+   "id": "160803da-16b5-441c-a0fd-18a485e78139",
+   "sport": "running",
+   "title": "Seuil 3 × 8 min",
+   "updatedAt": "2026-11-25T08:13:18.042602+00:00",
+   "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 2 min"
+  },
+  {
+   "id": "2f0cc592-deb9-4606-bc4b-d97a2005995e",
+   "sport": "running",
+   "title": "Footing récupération 40 min",
+   "updatedAt": "2026-11-25T08:13:18.042602+00:00",
+   "instructions": "Très facile, en aisance respiratoire"
+  }
+ ],
+ "week_actionable": {
+  "past": [
+   "2026-11-16",
+   "2026-11-22"
+  ],
+  "week": "2026-11-23",
+  "cards": [
+   {
+    "key": "e2a9dc5494ea3bec",
+    "name": "Lina",
+    "next": "feedback",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Footing 8 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 8,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 44,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "fa2a2b81b42550b2",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "date": "2026-11-19",
+     "kind": "session"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "seen": false,
+     "sport": "running",
+     "state": "linked",
+     "title": "Footing 8 km",
+     "linked": {
+      "day": "2026-11-19",
+      "val": 8,
+      "unit": "km",
+      "sport": "running",
+      "archived": false,
+      "duration": 44,
+      "in_scope": true,
+      "session_id": null
+     },
+     "status": "completed",
+     "can_act": true,
+     "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+     "gap_days": 0,
+     "revision": 3,
+     "done_date": "2026-11-19",
+     "state_key": "fa2a2b81b42550b2",
+     "coach_next": "none",
+     "created_at": "2026-11-15T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-19",
+     "effective_date": "2026-11-19",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "3e104a26184f1d6f",
+    "name": "Noé",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "kind": "empty"
+    },
+    "checkin": null,
+    "dossier": null,
+    "link_id": "556484ef-4163-463e-92fe-8a1ead6a68f5",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 0,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "8d6ffd69b73f2063",
+    "name": "Zoé",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Sortie longue 10 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 10.2,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 55,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "8492feb7cb3389c0",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "Allure confortable",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 1,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+     "date": "2026-11-19",
+     "kind": "proposal"
+    },
+    "checkin": {
+     "note": "Bonne semaine",
+     "week": "2026-11-16",
+     "scores": {
+      "sleep": 4,
+      "energy": 4,
+      "fatigue": 2,
+      "motivation": 5
+     }
+    },
+    "dossier": {
+     "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+     "seen": false,
+     "sport": "running",
+     "state": "linked",
+     "title": "Sortie longue 10 km",
+     "linked": {
+      "day": "2026-11-19",
+      "val": 10.2,
+      "unit": "km",
+      "sport": "running",
+      "archived": false,
+      "duration": 55,
+      "in_scope": true,
+      "session_id": null
+     },
+     "status": "completed",
+     "can_act": true,
+     "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+     "gap_days": 0,
+     "revision": 3,
+     "done_date": "2026-11-19",
+     "state_key": "8492feb7cb3389c0",
+     "coach_next": "none",
+     "created_at": "2026-11-15T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "Allure confortable",
+     "planned_date": "2026-11-19",
+     "effective_date": "2026-11-19",
+     "feedback_count": 1,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "name": "Léa",
+    "next": "paused",
+    "link_id": "70f758a0-2342-4394-8f23-4069fdc868e7",
+    "actionable": false,
+    "link_state": "paused"
+   },
+   {
+    "name": "Paul",
+    "next": "paused",
+    "link_id": "ce286b7b-304b-45b3-b46d-4e767cd05462",
+    "actionable": false,
+    "link_state": "paused"
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-25",
+  "counts": {
+   "gap": 0,
+   "none": 0,
+   "wait": 2,
+   "paused": 2,
+   "resume": 0,
+   "prepare": 2,
+   "athletes": 7,
+   "feedback": 1,
+   "actionable": 3
+  },
+  "filter": "actionable",
+  "week_end": "2026-11-29",
+  "current_week": "2026-11-23"
+ },
+ "week_all": {
+  "past": [
+   "2026-11-16",
+   "2026-11-22"
+  ],
+  "week": "2026-11-23",
+  "cards": [
+   {
+    "key": "e2a9dc5494ea3bec",
+    "name": "Lina",
+    "next": "feedback",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Footing 8 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 8,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 44,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "fa2a2b81b42550b2",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "date": "2026-11-19",
+     "kind": "session"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "seen": false,
+     "sport": "running",
+     "state": "linked",
+     "title": "Footing 8 km",
+     "linked": {
+      "day": "2026-11-19",
+      "val": 8,
+      "unit": "km",
+      "sport": "running",
+      "archived": false,
+      "duration": 44,
+      "in_scope": true,
+      "session_id": null
+     },
+     "status": "completed",
+     "can_act": true,
+     "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+     "gap_days": 0,
+     "revision": 3,
+     "done_date": "2026-11-19",
+     "state_key": "fa2a2b81b42550b2",
+     "coach_next": "none",
+     "created_at": "2026-11-15T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-19",
+     "effective_date": "2026-11-19",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "3e104a26184f1d6f",
+    "name": "Noé",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "kind": "empty"
+    },
+    "checkin": null,
+    "dossier": null,
+    "link_id": "556484ef-4163-463e-92fe-8a1ead6a68f5",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 0,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "8d6ffd69b73f2063",
+    "name": "Zoé",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Sortie longue 10 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 10.2,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 55,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "8492feb7cb3389c0",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "Allure confortable",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 1,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+     "date": "2026-11-19",
+     "kind": "proposal"
+    },
+    "checkin": {
+     "note": "Bonne semaine",
+     "week": "2026-11-16",
+     "scores": {
+      "sleep": 4,
+      "energy": 4,
+      "fatigue": 2,
+      "motivation": 5
+     }
+    },
+    "dossier": {
+     "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+     "seen": false,
+     "sport": "running",
+     "state": "linked",
+     "title": "Sortie longue 10 km",
+     "linked": {
+      "day": "2026-11-19",
+      "val": 10.2,
+      "unit": "km",
+      "sport": "running",
+      "archived": false,
+      "duration": 55,
+      "in_scope": true,
+      "session_id": null
+     },
+     "status": "completed",
+     "can_act": true,
+     "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+     "gap_days": 0,
+     "revision": 3,
+     "done_date": "2026-11-19",
+     "state_key": "8492feb7cb3389c0",
+     "coach_next": "none",
+     "created_at": "2026-11-15T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "Allure confortable",
+     "planned_date": "2026-11-19",
+     "effective_date": "2026-11-19",
+     "feedback_count": 1,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "d346e359afa6885c",
+    "name": "Inès",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+      "seen": false,
+      "sport": "running",
+      "state": "awaiting",
+      "title": "Footing 45 min",
+      "linked": null,
+      "status": "proposed",
+      "can_act": true,
+      "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+      "gap_days": null,
+      "revision": 1,
+      "done_date": null,
+      "state_key": "26c2401e0a267a27",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "En aisance",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "seen": false,
+     "sport": "running",
+     "state": "awaiting",
+     "title": "Footing 45 min",
+     "linked": null,
+     "status": "proposed",
+     "can_act": true,
+     "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+     "gap_days": null,
+     "revision": 1,
+     "done_date": null,
+     "state_key": "26c2401e0a267a27",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "En aisance",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "c9a52aff92ba5302",
+    "name": "Malo",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+      "seen": false,
+      "sport": "running",
+      "state": "reproposed",
+      "title": "Fractionné 6 × 400 m",
+      "linked": null,
+      "status": "accepted",
+      "can_act": true,
+      "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+      "gap_days": null,
+      "revision": 3,
+      "done_date": null,
+      "state_key": "b0b42485fa7023be",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": {
+       "at": "2026-11-25T08:13:18.042602+00:00",
+       "note": "Plus de récupération",
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "from_status": "accepted",
+       "instructions": "6 × 400 m, récupération 1 min 30",
+       "planned_date": "2026-11-27"
+      },
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "seen": false,
+     "sport": "running",
+     "state": "reproposed",
+     "title": "Fractionné 6 × 400 m",
+     "linked": null,
+     "status": "accepted",
+     "can_act": true,
+     "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+     "gap_days": null,
+     "revision": 3,
+     "done_date": null,
+     "state_key": "b0b42485fa7023be",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": {
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "note": "Plus de récupération",
+      "sport": "running",
+      "title": "Fractionné 6 × 400 m",
+      "from_status": "accepted",
+      "instructions": "6 × 400 m, récupération 1 min 30",
+      "planned_date": "2026-11-27"
+     },
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "name": "Léa",
+    "next": "paused",
+    "link_id": "70f758a0-2342-4394-8f23-4069fdc868e7",
+    "actionable": false,
+    "link_state": "paused"
+   },
+   {
+    "name": "Paul",
+    "next": "paused",
+    "link_id": "ce286b7b-304b-45b3-b46d-4e767cd05462",
+    "actionable": false,
+    "link_state": "paused"
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-25",
+  "counts": {
+   "gap": 0,
+   "none": 0,
+   "wait": 2,
+   "paused": 2,
+   "resume": 0,
+   "prepare": 2,
+   "athletes": 7,
+   "feedback": 1,
+   "actionable": 3
+  },
+  "filter": "all",
+  "week_end": "2026-11-29",
+  "current_week": "2026-11-23"
+ },
+ "week_previous": {
+  "past": [
+   "2026-11-09",
+   "2026-11-15"
+  ],
+  "week": "2026-11-16",
+  "cards": [
+   {
+    "key": "e2a9dc5494ea3bec",
+    "name": "Lina",
+    "next": "feedback",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Footing 8 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 8,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 44,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "fa2a2b81b42550b2",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "date": "2026-11-19",
+     "kind": "session"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "seen": false,
+     "sport": "running",
+     "state": "linked",
+     "title": "Footing 8 km",
+     "linked": {
+      "day": "2026-11-19",
+      "val": 8,
+      "unit": "km",
+      "sport": "running",
+      "archived": false,
+      "duration": 44,
+      "in_scope": true,
+      "session_id": null
+     },
+     "status": "completed",
+     "can_act": true,
+     "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+     "gap_days": 0,
+     "revision": 3,
+     "done_date": "2026-11-19",
+     "state_key": "fa2a2b81b42550b2",
+     "coach_next": "none",
+     "created_at": "2026-11-15T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-19",
+     "effective_date": "2026-11-19",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "3e104a26184f1d6f",
+    "name": "Noé",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "kind": "empty"
+    },
+    "checkin": null,
+    "dossier": null,
+    "link_id": "556484ef-4163-463e-92fe-8a1ead6a68f5",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 0,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "d346e359afa6885c",
+    "name": "Inès",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+      "seen": false,
+      "sport": "running",
+      "state": "awaiting",
+      "title": "Footing 45 min",
+      "linked": null,
+      "status": "proposed",
+      "can_act": true,
+      "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+      "gap_days": null,
+      "revision": 1,
+      "done_date": null,
+      "state_key": "26c2401e0a267a27",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "En aisance",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "seen": false,
+     "sport": "running",
+     "state": "awaiting",
+     "title": "Footing 45 min",
+     "linked": null,
+     "status": "proposed",
+     "can_act": true,
+     "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+     "gap_days": null,
+     "revision": 1,
+     "done_date": null,
+     "state_key": "26c2401e0a267a27",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "En aisance",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "c9a52aff92ba5302",
+    "name": "Malo",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+      "seen": false,
+      "sport": "running",
+      "state": "reproposed",
+      "title": "Fractionné 6 × 400 m",
+      "linked": null,
+      "status": "accepted",
+      "can_act": true,
+      "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+      "gap_days": null,
+      "revision": 3,
+      "done_date": null,
+      "state_key": "b0b42485fa7023be",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": {
+       "at": "2026-11-25T08:13:18.042602+00:00",
+       "note": "Plus de récupération",
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "from_status": "accepted",
+       "instructions": "6 × 400 m, récupération 1 min 30",
+       "planned_date": "2026-11-27"
+      },
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "seen": false,
+     "sport": "running",
+     "state": "reproposed",
+     "title": "Fractionné 6 × 400 m",
+     "linked": null,
+     "status": "accepted",
+     "can_act": true,
+     "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+     "gap_days": null,
+     "revision": 3,
+     "done_date": null,
+     "state_key": "b0b42485fa7023be",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": {
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "note": "Plus de récupération",
+      "sport": "running",
+      "title": "Fractionné 6 × 400 m",
+      "from_status": "accepted",
+      "instructions": "6 × 400 m, récupération 1 min 30",
+      "planned_date": "2026-11-27"
+     },
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "3b9eae8506271bcc",
+    "name": "Zoé",
+    "next": "none",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Sortie longue 10 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 10.2,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 55,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "8492feb7cb3389c0",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "Allure confortable",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 1,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": null,
+    "checkin": {
+     "note": "Bonne semaine",
+     "week": "2026-11-16",
+     "scores": {
+      "sleep": 4,
+      "energy": 4,
+      "fatigue": 2,
+      "motivation": 5
+     }
+    },
+    "dossier": null,
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "name": "Léa",
+    "next": "paused",
+    "link_id": "70f758a0-2342-4394-8f23-4069fdc868e7",
+    "actionable": false,
+    "link_state": "paused"
+   },
+   {
+    "name": "Paul",
+    "next": "paused",
+    "link_id": "ce286b7b-304b-45b3-b46d-4e767cd05462",
+    "actionable": false,
+    "link_state": "paused"
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-25",
+  "counts": {
+   "gap": 0,
+   "none": 1,
+   "wait": 2,
+   "paused": 2,
+   "resume": 0,
+   "prepare": 1,
+   "athletes": 7,
+   "feedback": 1,
+   "actionable": 2
+  },
+  "filter": "all",
+  "week_end": "2026-11-22",
+  "current_week": "2026-11-23"
+ },
+ "prep1": {
+  "ok": true,
+  "draft": {
+   "id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+   "week": "2026-11-23",
+   "basis": {
+    "id": "160803da-16b5-441c-a0fd-18a485e78139",
+    "kind": "template",
+    "title": "Seuil 3 × 8 min"
+   },
+   "state": "draft",
+   "changes": [
+    {
+     "after": "2026-11-28",
+     "field": "planned_date",
+     "before": null
+    }
+   ],
+   "content": {
+    "sport": "running",
+    "title": "Seuil 3 × 8 min",
+    "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 2 min",
+    "planned_date": "2026-11-28"
+   },
+   "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+   "sent_at": null,
+   "can_send": true,
+   "revision": 1,
+   "updated_at": "2026-11-25T08:13:18.042602+00:00",
+   "assignment_id": null
+  },
+  "resumed": false
+ },
+ "prep2": {
+  "ok": true,
+  "draft": {
+   "id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+   "week": "2026-11-23",
+   "basis": {
+    "id": "160803da-16b5-441c-a0fd-18a485e78139",
+    "kind": "template",
+    "title": "Seuil 3 × 8 min"
+   },
+   "state": "draft",
+   "changes": [
+    {
+     "after": "2026-11-28",
+     "field": "planned_date",
+     "before": null
+    },
+    {
+     "after": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+     "field": "instructions",
+     "before": "Échauffement 20 min, 3 × 8 min au seuil, récupération 2 min"
+    }
+   ],
+   "content": {
+    "sport": "running",
+    "title": "Seuil 3 × 8 min",
+    "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+    "planned_date": "2026-11-28"
+   },
+   "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+   "sent_at": null,
+   "can_send": true,
+   "revision": 2,
+   "updated_at": "2026-11-25T08:13:18.042602+00:00",
+   "assignment_id": null
+  },
+  "resumed": false
+ },
+ "resumed": {
+  "ok": true,
+  "draft": {
+   "id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+   "week": "2026-11-23",
+   "basis": {
+    "id": "160803da-16b5-441c-a0fd-18a485e78139",
+    "kind": "template",
+    "title": "Seuil 3 × 8 min"
+   },
+   "state": "draft",
+   "changes": [
+    {
+     "after": "2026-11-28",
+     "field": "planned_date",
+     "before": null
+    },
+    {
+     "after": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+     "field": "instructions",
+     "before": "Échauffement 20 min, 3 × 8 min au seuil, récupération 2 min"
+    }
+   ],
+   "content": {
+    "sport": "running",
+    "title": "Seuil 3 × 8 min",
+    "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+    "planned_date": "2026-11-28"
+   },
+   "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+   "sent_at": null,
+   "can_send": true,
+   "revision": 2,
+   "updated_at": "2026-11-25T08:13:18.042602+00:00",
+   "assignment_id": null
+  },
+  "resumed": true
+ },
+ "week_resume": {
+  "past": [
+   "2026-11-16",
+   "2026-11-22"
+  ],
+  "week": "2026-11-23",
+  "cards": [
+   {
+    "key": "e2a9dc5494ea3bec",
+    "name": "Lina",
+    "next": "feedback",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Footing 8 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 8,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 44,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "fa2a2b81b42550b2",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "date": "2026-11-19",
+     "kind": "session"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "seen": false,
+     "sport": "running",
+     "state": "linked",
+     "title": "Footing 8 km",
+     "linked": {
+      "day": "2026-11-19",
+      "val": 8,
+      "unit": "km",
+      "sport": "running",
+      "archived": false,
+      "duration": 44,
+      "in_scope": true,
+      "session_id": null
+     },
+     "status": "completed",
+     "can_act": true,
+     "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+     "gap_days": 0,
+     "revision": 3,
+     "done_date": "2026-11-19",
+     "state_key": "fa2a2b81b42550b2",
+     "coach_next": "none",
+     "created_at": "2026-11-15T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-19",
+     "effective_date": "2026-11-19",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "78c7401f7edeb8a3",
+    "name": "Zoé",
+    "next": "resume",
+    "sent": [],
+    "draft": {
+     "id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+     "week": "2026-11-23",
+     "basis": {
+      "id": "160803da-16b5-441c-a0fd-18a485e78139",
+      "kind": "template",
+      "title": "Seuil 3 × 8 min"
+     },
+     "state": "draft",
+     "changes": [
+      {
+       "after": "2026-11-28",
+       "field": "planned_date",
+       "before": null
+      },
+      {
+       "after": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+       "field": "instructions",
+       "before": "Échauffement 20 min, 3 × 8 min au seuil, récupération 2 min"
+      }
+     ],
+     "content": {
+      "sport": "running",
+      "title": "Seuil 3 × 8 min",
+      "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+      "planned_date": "2026-11-28"
+     },
+     "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+     "sent_at": null,
+     "can_send": true,
+     "revision": 2,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "assignment_id": null
+    },
+    "items": [
+     {
+      "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Sortie longue 10 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 10.2,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 55,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "8492feb7cb3389c0",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "Allure confortable",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 1,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+     "date": "2026-11-25",
+     "kind": "draft"
+    },
+    "checkin": {
+     "note": "Bonne semaine",
+     "week": "2026-11-16",
+     "scores": {
+      "sleep": 4,
+      "energy": 4,
+      "fatigue": 2,
+      "motivation": 5
+     }
+    },
+    "dossier": null,
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "3e104a26184f1d6f",
+    "name": "Noé",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "kind": "empty"
+    },
+    "checkin": null,
+    "dossier": null,
+    "link_id": "556484ef-4163-463e-92fe-8a1ead6a68f5",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 0,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "d346e359afa6885c",
+    "name": "Inès",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+      "seen": false,
+      "sport": "running",
+      "state": "awaiting",
+      "title": "Footing 45 min",
+      "linked": null,
+      "status": "proposed",
+      "can_act": true,
+      "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+      "gap_days": null,
+      "revision": 1,
+      "done_date": null,
+      "state_key": "26c2401e0a267a27",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "En aisance",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "seen": false,
+     "sport": "running",
+     "state": "awaiting",
+     "title": "Footing 45 min",
+     "linked": null,
+     "status": "proposed",
+     "can_act": true,
+     "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+     "gap_days": null,
+     "revision": 1,
+     "done_date": null,
+     "state_key": "26c2401e0a267a27",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "En aisance",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "c9a52aff92ba5302",
+    "name": "Malo",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+      "seen": false,
+      "sport": "running",
+      "state": "reproposed",
+      "title": "Fractionné 6 × 400 m",
+      "linked": null,
+      "status": "accepted",
+      "can_act": true,
+      "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+      "gap_days": null,
+      "revision": 3,
+      "done_date": null,
+      "state_key": "b0b42485fa7023be",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": {
+       "at": "2026-11-25T08:13:18.042602+00:00",
+       "note": "Plus de récupération",
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "from_status": "accepted",
+       "instructions": "6 × 400 m, récupération 1 min 30",
+       "planned_date": "2026-11-27"
+      },
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "seen": false,
+     "sport": "running",
+     "state": "reproposed",
+     "title": "Fractionné 6 × 400 m",
+     "linked": null,
+     "status": "accepted",
+     "can_act": true,
+     "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+     "gap_days": null,
+     "revision": 3,
+     "done_date": null,
+     "state_key": "b0b42485fa7023be",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": {
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "note": "Plus de récupération",
+      "sport": "running",
+      "title": "Fractionné 6 × 400 m",
+      "from_status": "accepted",
+      "instructions": "6 × 400 m, récupération 1 min 30",
+      "planned_date": "2026-11-27"
+     },
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "name": "Léa",
+    "next": "paused",
+    "link_id": "70f758a0-2342-4394-8f23-4069fdc868e7",
+    "actionable": false,
+    "link_state": "paused"
+   },
+   {
+    "name": "Paul",
+    "next": "paused",
+    "link_id": "ce286b7b-304b-45b3-b46d-4e767cd05462",
+    "actionable": false,
+    "link_state": "paused"
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-25",
+  "counts": {
+   "gap": 0,
+   "none": 0,
+   "wait": 2,
+   "paused": 2,
+   "resume": 1,
+   "prepare": 1,
+   "athletes": 7,
+   "feedback": 1,
+   "actionable": 3
+  },
+  "filter": "all",
+  "week_end": "2026-11-29",
+  "current_week": "2026-11-23"
+ },
+ "prep_noe": {
+  "ok": true,
+  "draft": {
+   "id": "a70dd17b-5e62-44ce-af04-d6ca7967dd57",
+   "week": "2026-11-23",
+   "basis": {
+    "id": "160803da-16b5-441c-a0fd-18a485e78139",
+    "kind": "template",
+    "title": "Seuil 3 × 8 min"
+   },
+   "state": "draft",
+   "changes": [
+    {
+     "after": "2026-11-28",
+     "field": "planned_date",
+     "before": null
+    }
+   ],
+   "content": {
+    "sport": "running",
+    "title": "Seuil 3 × 8 min",
+    "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 2 min",
+    "planned_date": "2026-11-28"
+   },
+   "link_id": "556484ef-4163-463e-92fe-8a1ead6a68f5",
+   "sent_at": null,
+   "can_send": true,
+   "revision": 1,
+   "updated_at": "2026-11-25T08:13:18.042602+00:00",
+   "assignment_id": null
+  },
+  "resumed": false
+ },
+ "week_revoked": {
+  "past": [
+   "2026-11-16",
+   "2026-11-22"
+  ],
+  "week": "2026-11-23",
+  "cards": [
+   {
+    "key": "e2a9dc5494ea3bec",
+    "name": "Lina",
+    "next": "feedback",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Footing 8 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 8,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 44,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "fa2a2b81b42550b2",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "date": "2026-11-19",
+     "kind": "session"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "seen": false,
+     "sport": "running",
+     "state": "linked",
+     "title": "Footing 8 km",
+     "linked": {
+      "day": "2026-11-19",
+      "val": 8,
+      "unit": "km",
+      "sport": "running",
+      "archived": false,
+      "duration": 44,
+      "in_scope": true,
+      "session_id": null
+     },
+     "status": "completed",
+     "can_act": true,
+     "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+     "gap_days": 0,
+     "revision": 3,
+     "done_date": "2026-11-19",
+     "state_key": "fa2a2b81b42550b2",
+     "coach_next": "none",
+     "created_at": "2026-11-15T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-19",
+     "effective_date": "2026-11-19",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "78c7401f7edeb8a3",
+    "name": "Zoé",
+    "next": "resume",
+    "sent": [],
+    "draft": {
+     "id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+     "week": "2026-11-23",
+     "basis": {
+      "id": "160803da-16b5-441c-a0fd-18a485e78139",
+      "kind": "template",
+      "title": "Seuil 3 × 8 min"
+     },
+     "state": "draft",
+     "changes": [
+      {
+       "after": "2026-11-28",
+       "field": "planned_date",
+       "before": null
+      },
+      {
+       "after": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+       "field": "instructions",
+       "before": "Échauffement 20 min, 3 × 8 min au seuil, récupération 2 min"
+      }
+     ],
+     "content": {
+      "sport": "running",
+      "title": "Seuil 3 × 8 min",
+      "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+      "planned_date": "2026-11-28"
+     },
+     "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+     "sent_at": null,
+     "can_send": true,
+     "revision": 2,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "assignment_id": null
+    },
+    "items": [
+     {
+      "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Sortie longue 10 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 10.2,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 55,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "8492feb7cb3389c0",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "Allure confortable",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 1,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+     "date": "2026-11-25",
+     "kind": "draft"
+    },
+    "checkin": {
+     "note": "Bonne semaine",
+     "week": "2026-11-16",
+     "scores": {
+      "sleep": 4,
+      "energy": 4,
+      "fatigue": 2,
+      "motivation": 5
+     }
+    },
+    "dossier": null,
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "3e104a26184f1d6f",
+    "name": "Paul",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "kind": "empty"
+    },
+    "checkin": null,
+    "dossier": null,
+    "link_id": "ce286b7b-304b-45b3-b46d-4e767cd05462",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 0,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "d346e359afa6885c",
+    "name": "Inès",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+      "seen": false,
+      "sport": "running",
+      "state": "awaiting",
+      "title": "Footing 45 min",
+      "linked": null,
+      "status": "proposed",
+      "can_act": true,
+      "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+      "gap_days": null,
+      "revision": 1,
+      "done_date": null,
+      "state_key": "26c2401e0a267a27",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "En aisance",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "seen": false,
+     "sport": "running",
+     "state": "awaiting",
+     "title": "Footing 45 min",
+     "linked": null,
+     "status": "proposed",
+     "can_act": true,
+     "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+     "gap_days": null,
+     "revision": 1,
+     "done_date": null,
+     "state_key": "26c2401e0a267a27",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "En aisance",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "c9a52aff92ba5302",
+    "name": "Malo",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+      "seen": false,
+      "sport": "running",
+      "state": "reproposed",
+      "title": "Fractionné 6 × 400 m",
+      "linked": null,
+      "status": "accepted",
+      "can_act": true,
+      "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+      "gap_days": null,
+      "revision": 3,
+      "done_date": null,
+      "state_key": "b0b42485fa7023be",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": {
+       "at": "2026-11-25T08:13:18.042602+00:00",
+       "note": "Plus de récupération",
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "from_status": "accepted",
+       "instructions": "6 × 400 m, récupération 1 min 30",
+       "planned_date": "2026-11-27"
+      },
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "seen": false,
+     "sport": "running",
+     "state": "reproposed",
+     "title": "Fractionné 6 × 400 m",
+     "linked": null,
+     "status": "accepted",
+     "can_act": true,
+     "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+     "gap_days": null,
+     "revision": 3,
+     "done_date": null,
+     "state_key": "b0b42485fa7023be",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": {
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "note": "Plus de récupération",
+      "sport": "running",
+      "title": "Fractionné 6 × 400 m",
+      "from_status": "accepted",
+      "instructions": "6 × 400 m, récupération 1 min 30",
+      "planned_date": "2026-11-27"
+     },
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "name": "Léa",
+    "next": "paused",
+    "link_id": "70f758a0-2342-4394-8f23-4069fdc868e7",
+    "actionable": false,
+    "link_state": "paused"
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-25",
+  "counts": {
+   "gap": 0,
+   "none": 0,
+   "wait": 2,
+   "paused": 1,
+   "resume": 1,
+   "prepare": 1,
+   "athletes": 6,
+   "feedback": 1,
+   "actionable": 3
+  },
+  "filter": "all",
+  "week_end": "2026-11-29",
+  "current_week": "2026-11-23"
+ },
+ "send": {
+  "ok": true,
+  "code": null,
+  "draft": {
+   "id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+   "week": "2026-11-23",
+   "basis": {
+    "id": "160803da-16b5-441c-a0fd-18a485e78139",
+    "kind": "template",
+    "title": "Seuil 3 × 8 min"
+   },
+   "state": "sent",
+   "changes": [
+    {
+     "after": "2026-11-28",
+     "field": "planned_date",
+     "before": null
+    },
+    {
+     "after": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+     "field": "instructions",
+     "before": "Échauffement 20 min, 3 × 8 min au seuil, récupération 2 min"
+    }
+   ],
+   "content": {
+    "sport": "running",
+    "title": "Seuil 3 × 8 min",
+    "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+    "planned_date": "2026-11-28"
+   },
+   "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+   "sent_at": "2026-11-25T08:13:18.042602+00:00",
+   "can_send": false,
+   "revision": 3,
+   "updated_at": "2026-11-25T08:13:18.042602+00:00",
+   "assignment_id": "496d50d4-3e7f-4516-9001-8481254ff269"
+  },
+  "already": false,
+  "assignment": {
+   "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+   "seen": false,
+   "sport": "running",
+   "state": "awaiting",
+   "title": "Seuil 3 × 8 min",
+   "linked": null,
+   "status": "proposed",
+   "can_act": true,
+   "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+   "gap_days": null,
+   "revision": 1,
+   "done_date": null,
+   "state_key": "bb9bdd4a1dd37f76",
+   "candidates": null,
+   "coach_next": "wait",
+   "created_at": "2026-11-25T08:13:18.042602+00:00",
+   "link_state": "active",
+   "moved_date": null,
+   "updated_at": "2026-11-25T08:13:18.042602+00:00",
+   "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+   "planned_date": "2026-11-28",
+   "effective_date": "2026-11-28",
+   "pending_change": null,
+   "candidate_count": 0,
+   "accepted_version": null,
+   "done_declared_at": null
+  }
+ },
+ "send_again": {
+  "ok": true,
+  "draft": {
+   "id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+   "week": "2026-11-23",
+   "basis": {
+    "id": "160803da-16b5-441c-a0fd-18a485e78139",
+    "kind": "template",
+    "title": "Seuil 3 × 8 min"
+   },
+   "state": "sent",
+   "changes": [
+    {
+     "after": "2026-11-28",
+     "field": "planned_date",
+     "before": null
+    },
+    {
+     "after": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+     "field": "instructions",
+     "before": "Échauffement 20 min, 3 × 8 min au seuil, récupération 2 min"
+    }
+   ],
+   "content": {
+    "sport": "running",
+    "title": "Seuil 3 × 8 min",
+    "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+    "planned_date": "2026-11-28"
+   },
+   "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+   "sent_at": "2026-11-25T08:13:18.042602+00:00",
+   "can_send": false,
+   "revision": 3,
+   "updated_at": "2026-11-25T08:13:18.042602+00:00",
+   "assignment_id": "496d50d4-3e7f-4516-9001-8481254ff269"
+  },
+  "already": true,
+  "assignment": {
+   "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+   "seen": false,
+   "sport": "running",
+   "state": "awaiting",
+   "title": "Seuil 3 × 8 min",
+   "linked": null,
+   "status": "proposed",
+   "can_act": true,
+   "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+   "gap_days": null,
+   "revision": 1,
+   "done_date": null,
+   "state_key": "bb9bdd4a1dd37f76",
+   "candidates": null,
+   "coach_next": "wait",
+   "created_at": "2026-11-25T08:13:18.042602+00:00",
+   "link_state": "active",
+   "moved_date": null,
+   "updated_at": "2026-11-25T08:13:18.042602+00:00",
+   "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+   "planned_date": "2026-11-28",
+   "effective_date": "2026-11-28",
+   "pending_change": null,
+   "candidate_count": 0,
+   "accepted_version": null,
+   "done_declared_at": null
+  }
+ },
+ "week_sent": {
+  "past": [
+   "2026-11-16",
+   "2026-11-22"
+  ],
+  "week": "2026-11-23",
+  "cards": [
+   {
+    "key": "e2a9dc5494ea3bec",
+    "name": "Lina",
+    "next": "feedback",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Footing 8 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 8,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 44,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "fa2a2b81b42550b2",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "date": "2026-11-19",
+     "kind": "session"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "929f36a3-53ff-4b64-9645-6cf9978faffb",
+     "seen": false,
+     "sport": "running",
+     "state": "linked",
+     "title": "Footing 8 km",
+     "linked": {
+      "day": "2026-11-19",
+      "val": 8,
+      "unit": "km",
+      "sport": "running",
+      "archived": false,
+      "duration": 44,
+      "in_scope": true,
+      "session_id": null
+     },
+     "status": "completed",
+     "can_act": true,
+     "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+     "gap_days": 0,
+     "revision": 3,
+     "done_date": "2026-11-19",
+     "state_key": "fa2a2b81b42550b2",
+     "coach_next": "none",
+     "created_at": "2026-11-15T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-19",
+     "effective_date": "2026-11-19",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "3e104a26184f1d6f",
+    "name": "Paul",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "kind": "empty"
+    },
+    "checkin": null,
+    "dossier": null,
+    "link_id": "ce286b7b-304b-45b3-b46d-4e767cd05462",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 0,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "d346e359afa6885c",
+    "name": "Inès",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+      "seen": false,
+      "sport": "running",
+      "state": "awaiting",
+      "title": "Footing 45 min",
+      "linked": null,
+      "status": "proposed",
+      "can_act": true,
+      "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+      "gap_days": null,
+      "revision": 1,
+      "done_date": null,
+      "state_key": "26c2401e0a267a27",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "En aisance",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "seen": false,
+     "sport": "running",
+     "state": "awaiting",
+     "title": "Footing 45 min",
+     "linked": null,
+     "status": "proposed",
+     "can_act": true,
+     "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+     "gap_days": null,
+     "revision": 1,
+     "done_date": null,
+     "state_key": "26c2401e0a267a27",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "En aisance",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "c9a52aff92ba5302",
+    "name": "Malo",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+      "seen": false,
+      "sport": "running",
+      "state": "reproposed",
+      "title": "Fractionné 6 × 400 m",
+      "linked": null,
+      "status": "accepted",
+      "can_act": true,
+      "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+      "gap_days": null,
+      "revision": 3,
+      "done_date": null,
+      "state_key": "b0b42485fa7023be",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": {
+       "at": "2026-11-25T08:13:18.042602+00:00",
+       "note": "Plus de récupération",
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "from_status": "accepted",
+       "instructions": "6 × 400 m, récupération 1 min 30",
+       "planned_date": "2026-11-27"
+      },
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "seen": false,
+     "sport": "running",
+     "state": "reproposed",
+     "title": "Fractionné 6 × 400 m",
+     "linked": null,
+     "status": "accepted",
+     "can_act": true,
+     "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+     "gap_days": null,
+     "revision": 3,
+     "done_date": null,
+     "state_key": "b0b42485fa7023be",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": {
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "note": "Plus de récupération",
+      "sport": "running",
+      "title": "Fractionné 6 × 400 m",
+      "from_status": "accepted",
+      "instructions": "6 × 400 m, récupération 1 min 30",
+      "planned_date": "2026-11-27"
+     },
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "5c613b596c2a5687",
+    "name": "Zoé",
+    "next": "wait",
+    "sent": [
+     {
+      "title": "Seuil 3 × 8 min",
+      "status": "proposed",
+      "sent_at": "2026-11-25T08:13:18.042602+00:00",
+      "draft_id": "57d4648f-45a3-4f32-95fe-8736d4747b11",
+      "planned_date": "2026-11-28",
+      "assignment_id": "496d50d4-3e7f-4516-9001-8481254ff269"
+     }
+    ],
+    "draft": null,
+    "items": [
+     {
+      "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+      "seen": false,
+      "sport": "running",
+      "state": "linked",
+      "title": "Sortie longue 10 km",
+      "linked": {
+       "day": "2026-11-19",
+       "val": 10.2,
+       "unit": "km",
+       "sport": "running",
+       "archived": false,
+       "duration": 55,
+       "in_scope": true,
+       "session_id": null
+      },
+      "status": "completed",
+      "can_act": true,
+      "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+      "gap_days": 0,
+      "revision": 3,
+      "done_date": "2026-11-19",
+      "state_key": "8492feb7cb3389c0",
+      "coach_next": "none",
+      "created_at": "2026-11-15T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "Allure confortable",
+      "planned_date": "2026-11-19",
+      "effective_date": "2026-11-19",
+      "feedback_count": 1,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     },
+     {
+      "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+      "seen": false,
+      "sport": "running",
+      "state": "awaiting",
+      "title": "Seuil 3 × 8 min",
+      "linked": null,
+      "status": "proposed",
+      "can_act": true,
+      "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+      "gap_days": null,
+      "revision": 1,
+      "done_date": null,
+      "state_key": "bb9bdd4a1dd37f76",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": "2026-11-23",
+      "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+      "planned_date": "2026-11-28",
+      "effective_date": "2026-11-28",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+     "date": "2026-11-28",
+     "kind": "proposal"
+    },
+    "checkin": {
+     "note": "Bonne semaine",
+     "week": "2026-11-16",
+     "scores": {
+      "sleep": 4,
+      "energy": 4,
+      "fatigue": 2,
+      "motivation": 5
+     }
+    },
+    "dossier": {
+     "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+     "seen": false,
+     "sport": "running",
+     "state": "awaiting",
+     "title": "Seuil 3 × 8 min",
+     "linked": null,
+     "status": "proposed",
+     "can_act": true,
+     "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+     "gap_days": null,
+     "revision": 1,
+     "done_date": null,
+     "state_key": "bb9bdd4a1dd37f76",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": "2026-11-23",
+     "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+     "planned_date": "2026-11-28",
+     "effective_date": "2026-11-28",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 2,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "name": "Léa",
+    "next": "paused",
+    "link_id": "70f758a0-2342-4394-8f23-4069fdc868e7",
+    "actionable": false,
+    "link_state": "paused"
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-25",
+  "counts": {
+   "gap": 0,
+   "none": 0,
+   "wait": 3,
+   "paused": 1,
+   "resume": 0,
+   "prepare": 1,
+   "athletes": 6,
+   "feedback": 1,
+   "actionable": 2
+  },
+  "filter": "all",
+  "week_end": "2026-11-29",
+  "current_week": "2026-11-23"
+ },
+ "detail_sent": {
+  "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+  "seen": false,
+  "sport": "running",
+  "state": "awaiting",
+  "title": "Seuil 3 × 8 min",
+  "linked": null,
+  "status": "proposed",
+  "can_act": true,
+  "history": [
+   {
+    "k": "proposed",
+    "at": "2026-11-25T08:13:18.042602+00:00",
+    "version": {
+     "sport": "running",
+     "title": "Seuil 3 × 8 min",
+     "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+     "planned_date": "2026-11-28"
+    }
+   },
+   {
+    "k": "from_review",
+    "at": "2026-11-25T08:13:18.042602+00:00",
+    "week": "2026-11-23"
+   }
+  ],
+  "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+  "gap_days": null,
+  "revision": 1,
+  "done_date": null,
+  "state_key": "bb9bdd4a1dd37f76",
+  "candidates": null,
+  "coach_next": "wait",
+  "created_at": "2026-11-25T08:13:18.042602+00:00",
+  "link_state": "active",
+  "moved_date": null,
+  "updated_at": "2026-11-25T08:13:18.042602+00:00",
+  "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+  "planned_date": "2026-11-28",
+  "effective_date": "2026-11-28",
+  "pending_change": null,
+  "candidate_count": 0,
+  "accepted_version": null,
+  "done_declared_at": null
+ },
+ "athlete": {
+  "rows": [
+   {
+    "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+    "seen": false,
+    "sport": "running",
+    "state": "awaiting",
+    "title": "Seuil 3 × 8 min",
+    "linked": null,
+    "status": "proposed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Seuil 3 × 8 min",
+       "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+       "planned_date": "2026-11-28"
+      }
+     },
+     {
+      "k": "from_review",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "week": "2026-11-23"
+     }
+    ],
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "gap_days": null,
+    "revision": 1,
+    "done_date": null,
+    "state_key": "bb9bdd4a1dd37f76",
+    "candidates": [],
+    "coach_name": "Coach Lou",
+    "coach_next": "wait",
+    "created_at": "2026-11-25T08:13:18.042602+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+    "planned_date": "2026-11-28",
+    "effective_date": "2026-11-28",
+    "pending_change": null,
+    "candidate_count": null,
+    "accepted_version": null,
+    "done_declared_at": null
+   },
+   {
+    "id": "788d15cc-9675-4954-bbf7-6569f06585b5",
+    "seen": false,
+    "sport": "running",
+    "state": "linked",
+    "title": "Sortie longue 10 km",
+    "linked": {
+     "day": "2026-11-19",
+     "val": 10.2,
+     "unit": "km",
+     "sport": "running",
+     "archived": false,
+     "duration": 55,
+     "in_scope": true,
+     "session_id": "19300000-0000-4000-8000-0000000005a3"
+    },
+    "status": "completed",
+    "can_act": true,
+    "history": [
+     {
+      "k": "proposed",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "version": {
+       "sport": "running",
+       "title": "Sortie longue 10 km",
+       "instructions": "Allure confortable",
+       "planned_date": "2026-11-19"
+      }
+     },
+     {
+      "k": "accepted",
+      "at": "2026-11-25T08:13:18.042602+00:00"
+     },
+     {
+      "k": "linked",
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "day": "2026-11-19"
+     }
+    ],
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "gap_days": 0,
+    "revision": 3,
+    "done_date": "2026-11-19",
+    "state_key": "8492feb7cb3389c0",
+    "candidates": [],
+    "coach_name": "Coach Lou",
+    "coach_next": "none",
+    "created_at": "2026-11-15T08:13:18.042602+00:00",
+    "link_state": "active",
+    "moved_date": null,
+    "updated_at": "2026-11-25T08:13:18.042602+00:00",
+    "instructions": "Allure confortable",
+    "planned_date": "2026-11-19",
+    "effective_date": "2026-11-19",
+    "pending_change": null,
+    "candidate_count": null,
+    "accepted_version": {
+     "at": "2026-11-25T08:13:18.042602+00:00",
+     "sport": "running",
+     "title": "Sortie longue 10 km",
+     "instructions": "Allure confortable",
+     "planned_date": "2026-11-19"
+    },
+    "done_declared_at": null
+   }
+  ],
+  "links": [
+   {
+    "id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "state": "active",
+    "coach_name": "Coach Lou",
+    "revoked_at": null
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000a3",
+  "today": "2026-11-25"
+ },
+ "week_next": {
+  "past": [
+   "2026-11-23",
+   "2026-11-29"
+  ],
+  "week": "2026-11-30",
+  "cards": [
+   {
+    "key": "3e104a26184f1d6f",
+    "name": "Lina",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "kind": "empty"
+    },
+    "checkin": null,
+    "dossier": null,
+    "link_id": "7e6a46b2-8305-453b-a1eb-235c1d96d708",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 0,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "3e104a26184f1d6f",
+    "name": "Paul",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "kind": "empty"
+    },
+    "checkin": null,
+    "dossier": null,
+    "link_id": "ce286b7b-304b-45b3-b46d-4e767cd05462",
+    "previous": [],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 0,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "a7887805e481ca6f",
+    "name": "Zoé",
+    "next": "prepare",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+      "seen": false,
+      "sport": "running",
+      "state": "planned",
+      "title": "Seuil 3 × 8 min",
+      "linked": null,
+      "status": "accepted",
+      "can_act": true,
+      "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+      "gap_days": null,
+      "revision": 2,
+      "done_date": null,
+      "state_key": "58cdebd13ba3fc4c",
+      "coach_next": "suggest",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": "2026-11-23",
+      "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+      "planned_date": "2026-11-28",
+      "effective_date": "2026-11-28",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+     "date": "2026-11-28",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "496d50d4-3e7f-4516-9001-8481254ff269",
+     "seen": false,
+     "sport": "running",
+     "state": "planned",
+     "title": "Seuil 3 × 8 min",
+     "linked": null,
+     "status": "accepted",
+     "can_act": true,
+     "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+     "gap_days": null,
+     "revision": 2,
+     "done_date": null,
+     "state_key": "58cdebd13ba3fc4c",
+     "coach_next": "suggest",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": "2026-11-23",
+     "instructions": "Échauffement 20 min, 3 × 8 min au seuil, récupération 3 min",
+     "planned_date": "2026-11-28",
+     "effective_date": "2026-11-28",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "1521d9e4-4dc2-41be-935e-95bcb1375d48",
+    "previous": [
+     {
+      "state": "planned",
+      "title": "Seuil 3 × 8 min",
+      "status": "accepted",
+      "planned_date": "2026-11-28",
+      "assignment_id": "496d50d4-3e7f-4516-9001-8481254ff269"
+     }
+    ],
+    "revision": 1,
+    "actionable": true,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "d346e359afa6885c",
+    "name": "Inès",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+      "seen": false,
+      "sport": "running",
+      "state": "awaiting",
+      "title": "Footing 45 min",
+      "linked": null,
+      "status": "proposed",
+      "can_act": true,
+      "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+      "gap_days": null,
+      "revision": 1,
+      "done_date": null,
+      "state_key": "26c2401e0a267a27",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "En aisance",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": null,
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "38775bd7-24d4-45eb-b18f-c68ff07b8192",
+     "seen": false,
+     "sport": "running",
+     "state": "awaiting",
+     "title": "Footing 45 min",
+     "linked": null,
+     "status": "proposed",
+     "can_act": true,
+     "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+     "gap_days": null,
+     "revision": 1,
+     "done_date": null,
+     "state_key": "26c2401e0a267a27",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "En aisance",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": null,
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "7f923213-d8f4-49ba-9f6b-9af05547be13",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "key": "c9a52aff92ba5302",
+    "name": "Malo",
+    "next": "wait",
+    "sent": [],
+    "draft": null,
+    "items": [
+     {
+      "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+      "seen": false,
+      "sport": "running",
+      "state": "reproposed",
+      "title": "Fractionné 6 × 400 m",
+      "linked": null,
+      "status": "accepted",
+      "can_act": true,
+      "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+      "gap_days": null,
+      "revision": 3,
+      "done_date": null,
+      "state_key": "b0b42485fa7023be",
+      "coach_next": "wait",
+      "created_at": "2026-11-25T08:13:18.042602+00:00",
+      "link_state": "active",
+      "moved_date": null,
+      "updated_at": "2026-11-25T08:13:18.042602+00:00",
+      "from_review": null,
+      "instructions": "",
+      "planned_date": "2026-11-27",
+      "effective_date": "2026-11-27",
+      "feedback_count": 0,
+      "pending_change": {
+       "at": "2026-11-25T08:13:18.042602+00:00",
+       "note": "Plus de récupération",
+       "sport": "running",
+       "title": "Fractionné 6 × 400 m",
+       "from_status": "accepted",
+       "instructions": "6 × 400 m, récupération 1 min 30",
+       "planned_date": "2026-11-27"
+      },
+      "candidate_count": 0,
+      "done_declared_at": null
+     }
+    ],
+    "scope": {
+     "sport": null,
+     "since_date": "2026-10-26",
+     "share_notes": false,
+     "share_details": false
+    },
+    "source": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "date": "2026-11-27",
+     "kind": "proposal"
+    },
+    "checkin": null,
+    "dossier": {
+     "id": "5da76b46-9a73-4eef-a112-e298a247dd45",
+     "seen": false,
+     "sport": "running",
+     "state": "reproposed",
+     "title": "Fractionné 6 × 400 m",
+     "linked": null,
+     "status": "accepted",
+     "can_act": true,
+     "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+     "gap_days": null,
+     "revision": 3,
+     "done_date": null,
+     "state_key": "b0b42485fa7023be",
+     "coach_next": "wait",
+     "created_at": "2026-11-25T08:13:18.042602+00:00",
+     "link_state": "active",
+     "moved_date": null,
+     "updated_at": "2026-11-25T08:13:18.042602+00:00",
+     "from_review": null,
+     "instructions": "",
+     "planned_date": "2026-11-27",
+     "effective_date": "2026-11-27",
+     "feedback_count": 0,
+     "pending_change": {
+      "at": "2026-11-25T08:13:18.042602+00:00",
+      "note": "Plus de récupération",
+      "sport": "running",
+      "title": "Fractionné 6 × 400 m",
+      "from_status": "accepted",
+      "instructions": "6 × 400 m, récupération 1 min 30",
+      "planned_date": "2026-11-27"
+     },
+     "candidate_count": 0,
+     "done_declared_at": null
+    },
+    "link_id": "08db0571-b589-4761-aac6-2c8f89e71dc8",
+    "previous": [],
+    "revision": 1,
+    "actionable": false,
+    "item_count": 1,
+    "link_state": "active",
+    "adjustments": []
+   },
+   {
+    "name": "Léa",
+    "next": "paused",
+    "link_id": "70f758a0-2342-4394-8f23-4069fdc868e7",
+    "actionable": false,
+    "link_state": "paused"
+   }
+  ],
+  "owner": "19300000-0000-4000-8000-0000000000c1",
+  "today": "2026-11-25",
+  "counts": {
+   "gap": 0,
+   "none": 0,
+   "wait": 2,
+   "paused": 1,
+   "resume": 0,
+   "prepare": 3,
+   "athletes": 6,
+   "feedback": 0,
+   "actionable": 3
+  },
+  "filter": "all",
+  "week_end": "2026-12-06",
+  "current_week": "2026-11-23"
+ },
+ "send_revoked": "SHARING_UNAVAILABLE"
+}

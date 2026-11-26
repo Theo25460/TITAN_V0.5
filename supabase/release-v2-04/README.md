@@ -15,10 +15,10 @@ Ordre : v2-01 → v2-02 → v2-03 → **v2-04** → v2-05 → v2-06 → v2-07. C
 
 ## Procédure
 
-1. `00-check-before.sql` : chaque ligne `ok = true` (état attendu, registre à la version `20261130100500`) : `private` 135 fonctions, droits `38ff555d0594`, corps `601edce5534a` ; `public` 334 fonctions, droits `17bc75638e34`, corps `78eb242f18ca`.
+1. `00-check-before.sql` : chaque ligne `ok = true` (état attendu, registre à la version `20261130101600`) : `private` 169 fonctions, droits `67dccdf1dcdb`, corps `a631bc6e97e4` ; `public` 340 fonctions, droits `ff46799cf702`, corps `14ca24343e11`.
 2. Les fichiers `01-…` à `01-…` dans l'ordre, un appel par fichier. Chacun est une transaction gardée : refusé s'il est
    rejoué ou si la migration précédente manque ; un refus ne garde rien et le même fichier peut être rejoué.
-3. `99-check-after.sql` : chaque ligne `ok = true` (`private` 138 fonctions, droits `9297a956229a`, corps `fd00de2a9ccc` ; `public` 343 fonctions, droits `437a0001c219`, corps `6c8ff7f7017e`), puis `tools/db/postflight-v11.sql`, `postflight-v13.sql` et `postflight-v131.sql` : toutes vraies.
+3. `99-check-after.sql` : chaque ligne `ok = true` (`private` 172 fonctions, droits `b8688897b9d4`, corps `3ea4527e4347` ; `public` 349 fonctions, droits `83b7ea4975a1`, corps `6c770c056d27`), puis `tools/db/postflight-v11.sql`, `postflight-v13.sql` et `postflight-v131.sql` : toutes vraies.
 
 Empreintes mesurées sur une réplique vierge par `tools/db/measure-v2-fingerprints.sh` (`tools/db/v2-fingerprints.json`).
 Répétition complète : `pnpm run test:db` (base jetable vierge) et `tools/db/v2-replica-rehearsal.sh` (réplique synthétique de l'état actuel).

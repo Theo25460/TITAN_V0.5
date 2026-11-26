@@ -126,7 +126,19 @@ select 'bug reports:anonymous intake bounded by a restrictive policy', exists (
 union all
 -- 20261114180000: an import is matched to the session already saved for the same effort instead of creating a second one.
 select 'import dedupe:a session saved now is matched by its end, empty search_path, closed to API roles', coalesce((
-  select position('l.created_at - l.date between' in f.prosrc) > 0 and position($m$'hasGpx'$m$ in f.prosrc) > 0
+  -- V2.0 (A2): V1.6.2 moved the V15 reading, unchanged, into private.titan_session_shared_minutes, which the import core calls.
+  select ((position('l.created_at - l.date between' in f.prosrc) > 0 and position($m$'hasGpx'$m$ in f.prosrc) > 0)
+       or ((position('private.titan_session_shared_minutes(' in f.prosrc) > 0
+            -- V1.6.4: the seven-argument core delegates to the eight-argument one (history batches), which holds the matching.
+            or (position('private.titan_import_core(' in f.prosrc) > 0 and position('private.titan_session_shared_minutes(' in
+                coalesce((select g.prosrc from pg_proc g where g.oid = to_regprocedure('private.titan_import_core(uuid,text,text,text,timestamptz,numeric,numeric,jsonb)')
+                           and g.prosecdef and exists (select 1 from unnest(g.proconfig) c where c = 'search_path=""')
+                           and not has_function_privilege('anon', g.oid, 'EXECUTE') and not has_function_privilege('authenticated', g.oid, 'EXECUTE')), '')) > 0))
+           and exists (
+             select 1 from pg_proc h where h.oid = to_regprocedure('private.titan_session_shared_minutes(public.training_logs,timestamptz,numeric)')
+                and position('p_log.created_at - p_log.date between' in h.prosrc) > 0 and position($m$'hasGpx'$m$ in h.prosrc) > 0
+                and exists (select 1 from unnest(h.proconfig) c where c = 'search_path=""')
+                and not has_function_privilege('anon', h.oid, 'EXECUTE') and not has_function_privilege('authenticated', h.oid, 'EXECUTE'))))
      and f.prosecdef and exists (select 1 from unnest(f.proconfig) c where c = 'search_path=""')
      and not has_function_privilege('anon', f.oid, 'EXECUTE') and not has_function_privilege('authenticated', f.oid, 'EXECUTE')
     from pg_proc f where f.oid = to_regprocedure('private.titan_import_core(uuid,text,text,text,timestamptz,numeric,numeric)')), false)

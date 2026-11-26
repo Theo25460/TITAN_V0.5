@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "555498c0c5b8ca10a86c967587790ea12b5d4259",
+  "sha": "d797771e96f8fa0fb51f518157b1bca89e2bd36e",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "0d089fdb88f819fae61b77f0e47ae7259efc2e9a70cf10d27602254d8425ccc5",
@@ -44,6 +44,10 @@
     "gps-engine.js": "828fa0c7effb057260a43336541f6010051b45536b6ca2f61c6313732a9679b3",
     "gps-nav.js": "3bef75f3a73c422549d736678bfbdb2a60a09dec5337126ca3cb15fec5a437ec",
     "gps-session.js": "618426f272835edf69d47c07c12d27f01296e8f71e17461adddd8f655f37c40a",
-    "source-center.js": "a4c5e3c7bb9b3b12d2e3b38001bee84f2c55e089018aa57f8badf45d0d7affc0"
+    "source-center.js": "a4c5e3c7bb9b3b12d2e3b38001bee84f2c55e089018aa57f8badf45d0d7affc0",
+    "coach-followup.js": "f50d93682d5acfacebf0dae681e502821f31cc9f7a2667d65b1320242659d78b",
+    "coach-feedback.js": "1e4791655e9c98f7a5106a8a57160ce889df86138a6719054c46aaa6f7ff42d3",
+    "coach-program.js": "8a736022af6623154a4b465a6b90fc4324e7e05ebc30b62c3ea07016c325529b",
+    "coach-cycle.js": "29b4dd569bfc91007fe981e7927b60b70985951c81372f874561cd550593914a"
   }
 }

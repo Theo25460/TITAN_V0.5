@@ -19,7 +19,7 @@ fi
 PSQL=("$PGBIN/psql" -h "$DIR" -p "$PORT" -U postgres -v ON_ERROR_STOP=1 -q -X)
 "${PSQL[@]}" -d postgres -c "create database $DB" >/dev/null
 trap '"${PSQL[@]}" -d postgres -c "drop database if exists $DB" >/dev/null 2>&1 || true' EXIT
-FP_SQL="$(node --input-type=module -e "process.argv=['node','x','--bundle','v131'];const m=await import('$ROOT/tools/db/build-production-bundle.mjs');console.log(m.FINGERPRINT_SQL)")"
+FP_SQL="$(TITAN_V2_MEASURING=1 node --input-type=module -e "process.argv=['node','x','--bundle','v131'];const m=await import('$ROOT/tools/db/build-production-bundle.mjs');console.log(m.FINGERPRINT_SQL)")"
 measure() { "${PSQL[@]}" -d "$DB" -At -F '|' -c "$FP_SQL"; }
 "${PSQL[@]}" -d "$DB" -f "$ROOT/tools/db/supabase-shim.sql" >/dev/null
 for f in "$ROOT"/tools/db/baseline/*.sql; do "${PSQL[@]}" -d "$DB" -f "$f" >/dev/null; done

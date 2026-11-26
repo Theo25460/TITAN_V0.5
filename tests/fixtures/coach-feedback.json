@@ -1,0 +1,1312 @@
+{
+ "generated_on": "2026-11-24",
+ "source": "tools/db/coach-feedback/fixtures.sql on PostgreSQL 16 (titan_coach_feedback_v1, rolled back)",
+ "compose": {
+  "linked": true,
+  "session": {
+   "day": "2026-11-22",
+   "val": 3840,
+   "unit": "kg",
+   "sport": "muscu_gym",
+   "state": "shared",
+   "hidden": [
+    "notes"
+   ],
+   "checkin": {
+    "note": "Semaine chargée",
+    "week": "2026-11-16",
+    "scores": {
+     "sleep": 2,
+     "fatigue": 4
+    }
+   },
+   "duration": 55,
+   "exercises": [
+    {
+     "name": "Squat",
+     "reps": 6,
+     "sets": 4,
+     "weight": 80,
+     "setRows": [
+      {
+       "rir": 2,
+       "reps": 6,
+       "weight": 80
+      },
+      {
+       "rir": 1,
+       "reps": 6,
+       "weight": 80
+      },
+      {
+       "rir": 1,
+       "reps": 6,
+       "weight": 80
+      },
+      {
+       "rir": 0,
+       "reps": 5,
+       "weight": 80
+      }
+     ]
+    },
+    {
+     "name": "Fentes",
+     "reps": 10,
+     "sets": 3,
+     "weight": 20
+    }
+   ]
+  },
+  "targets": [
+   {
+    "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+    "sport": "muscu_gym",
+    "title": "Force · Squat 5 × 5",
+    "status": "accepted",
+    "instructions": "5 séries de 5 à 82,5 kg",
+    "planned_date": "2026-11-27"
+   },
+   {
+    "id": "915f9876-27e8-4d83-bf4d-077870b6ec59",
+    "sport": "muscu_gym",
+    "title": "Mobilité hanches",
+    "status": "proposed",
+    "instructions": "",
+    "planned_date": "2026-11-29"
+   }
+  ],
+  "feedback": [],
+  "assignment": {
+   "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+   "sport": "muscu_gym",
+   "title": "Force · Squat 4 × 6",
+   "status": "completed",
+   "revision": 3,
+   "planned_date": "2026-11-22"
+  },
+  "session_key": "400cc119408f0a030a17"
+ },
+ "given": {
+  "id": "a982783c-88e0-4901-85e9-1141479f044e",
+  "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+  "read_at": null,
+  "session": {
+   "day": "2026-11-22",
+   "val": 3840,
+   "unit": "kg",
+   "sport": "muscu_gym",
+   "state": "shared",
+   "hidden": [
+    "notes"
+   ],
+   "checkin": {
+    "note": "Semaine chargée",
+    "week": "2026-11-16",
+    "scores": {
+     "sleep": 2,
+     "fatigue": 4
+    }
+   },
+   "duration": 55,
+   "corrected": false,
+   "exercises": [
+    {
+     "name": "Squat",
+     "reps": 6,
+     "sets": 4,
+     "weight": 80,
+     "setRows": [
+      {
+       "rir": 2,
+       "reps": 6,
+       "weight": 80
+      },
+      {
+       "rir": 1,
+       "reps": 6,
+       "weight": 80
+      },
+      {
+       "rir": 1,
+       "reps": 6,
+       "weight": 80
+      },
+      {
+       "rir": 0,
+       "reps": 5,
+       "weight": 80
+      }
+     ]
+    },
+    {
+     "name": "Fentes",
+     "reps": 10,
+     "sets": 3,
+     "weight": 20
+    }
+   ]
+  },
+  "can_read": false,
+  "revision": 1,
+  "adjustment": {
+   "kind": "change",
+   "note": "On consolide avant de monter",
+   "after": {
+    "sport": "muscu_gym",
+    "title": "Force · Squat 5 × 5",
+    "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+    "planned_date": "2026-11-27"
+   },
+   "state": "pending",
+   "before": {
+    "sport": "muscu_gym",
+    "title": "Force · Squat 5 × 5",
+    "instructions": "5 séries de 5 à 82,5 kg",
+    "planned_date": "2026-11-27"
+   },
+   "result": null,
+   "target": {
+    "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+    "title": "Force · Squat 5 × 5",
+    "status": "accepted",
+    "planned_date": "2026-11-27"
+   },
+   "answered_at": null
+  },
+  "assignment": {
+   "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+   "sport": "muscu_gym",
+   "title": "Force · Squat 4 × 6",
+   "status": "completed",
+   "session": "same",
+   "planned_date": "2026-11-22"
+  },
+  "can_answer": false,
+  "created_at": "2026-11-24T15:41:05.806238+00:00",
+  "link_state": "active",
+  "message_id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+  "observation": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+  "can_withdraw": true
+ },
+ "stale_key": {
+  "error": "SESSION_CHANGED"
+ },
+ "thread_athlete": {
+  "link": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+  "more": false,
+  "rows": [
+   {
+    "at": "2026-11-24T15:41:05.806238+00:00",
+    "id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+    "body": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+    "mine": false,
+    "read": false,
+    "feedback_id": "a982783c-88e0-4901-85e9-1141479f044e"
+   }
+  ]
+ },
+ "athlete_session": {
+  "rows": [
+   {
+    "id": "a982783c-88e0-4901-85e9-1141479f044e",
+    "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+    "read_at": null,
+    "session": {
+     "day": "2026-11-22",
+     "val": 3840,
+     "unit": "kg",
+     "sport": "muscu_gym",
+     "state": "shared",
+     "hidden": [
+      "notes"
+     ],
+     "checkin": {
+      "note": "Semaine chargée",
+      "week": "2026-11-16",
+      "scores": {
+       "sleep": 2,
+       "fatigue": 4
+      }
+     },
+     "duration": 55,
+     "corrected": false,
+     "exercises": [
+      {
+       "name": "Squat",
+       "reps": 6,
+       "sets": 4,
+       "weight": 80,
+       "setRows": [
+        {
+         "rir": 2,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 0,
+         "reps": 5,
+         "weight": 80
+        }
+       ]
+      },
+      {
+       "name": "Fentes",
+       "reps": 10,
+       "sets": 3,
+       "weight": 20
+      }
+     ]
+    },
+    "can_read": true,
+    "revision": 1,
+    "adjustment": {
+     "kind": "change",
+     "note": "On consolide avant de monter",
+     "after": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+      "planned_date": "2026-11-27"
+     },
+     "state": "pending",
+     "before": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 82,5 kg",
+      "planned_date": "2026-11-27"
+     },
+     "result": null,
+     "target": {
+      "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+      "title": "Force · Squat 5 × 5",
+      "status": "accepted",
+      "planned_date": "2026-11-27"
+     },
+     "answered_at": null
+    },
+    "assignment": {
+     "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 4 × 6",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-22"
+    },
+    "can_answer": true,
+    "coach_name": "Coach Lou",
+    "created_at": "2026-11-24T15:41:05.806238+00:00",
+    "link_state": "active",
+    "message_id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+    "observation": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+    "can_withdraw": false
+   }
+  ],
+  "owner": "19200000-0000-4000-8000-0000000000a1"
+ },
+ "answer_accepted": {
+  "ok": true,
+  "row": {
+   "id": "a982783c-88e0-4901-85e9-1141479f044e",
+   "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+   "read_at": "2026-11-24T15:41:05.806238+00:00",
+   "session": {
+    "day": "2026-11-22",
+    "val": 3840,
+    "unit": "kg",
+    "sport": "muscu_gym",
+    "state": "shared",
+    "hidden": [
+     "notes"
+    ],
+    "checkin": {
+     "note": "Semaine chargée",
+     "week": "2026-11-16",
+     "scores": {
+      "sleep": 2,
+      "fatigue": 4
+     }
+    },
+    "duration": 55,
+    "corrected": false,
+    "exercises": [
+     {
+      "name": "Squat",
+      "reps": 6,
+      "sets": 4,
+      "weight": 80,
+      "setRows": [
+       {
+        "rir": 2,
+        "reps": 6,
+        "weight": 80
+       },
+       {
+        "rir": 1,
+        "reps": 6,
+        "weight": 80
+       },
+       {
+        "rir": 1,
+        "reps": 6,
+        "weight": 80
+       },
+       {
+        "rir": 0,
+        "reps": 5,
+        "weight": 80
+       }
+      ]
+     },
+     {
+      "name": "Fentes",
+      "reps": 10,
+      "sets": 3,
+      "weight": 20
+     }
+    ]
+   },
+   "can_read": false,
+   "revision": 2,
+   "adjustment": {
+    "kind": "change",
+    "note": "On consolide avant de monter",
+    "after": {
+     "sport": "muscu_gym",
+     "title": "Force · Squat 5 × 5",
+     "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+     "planned_date": "2026-11-27"
+    },
+    "state": "accepted",
+    "before": {
+     "sport": "muscu_gym",
+     "title": "Force · Squat 5 × 5",
+     "instructions": "5 séries de 5 à 82,5 kg",
+     "planned_date": "2026-11-27"
+    },
+    "result": {
+     "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 5 × 5",
+     "status": "accepted",
+     "planned_date": "2026-11-27"
+    },
+    "target": {
+     "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+     "title": "Force · Squat 5 × 5",
+     "status": "accepted",
+     "planned_date": "2026-11-27"
+    },
+    "answered_at": "2026-11-24T15:41:05.806238+00:00"
+   },
+   "assignment": {
+    "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+    "sport": "muscu_gym",
+    "title": "Force · Squat 4 × 6",
+    "status": "completed",
+    "session": "same",
+    "planned_date": "2026-11-22"
+   },
+   "can_answer": false,
+   "created_at": "2026-11-24T15:41:05.806238+00:00",
+   "link_state": "active",
+   "message_id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+   "observation": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+   "can_withdraw": false
+  }
+ },
+ "next_after": {
+  "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+  "seen": false,
+  "sport": "muscu_gym",
+  "state": "planned",
+  "title": "Force · Squat 5 × 5",
+  "linked": null,
+  "status": "accepted",
+  "can_act": true,
+  "history": [
+   {
+    "k": "proposed",
+    "at": "2026-11-24T15:41:05.806238+00:00",
+    "version": {
+     "sport": "muscu_gym",
+     "title": "Force · Squat 5 × 5",
+     "instructions": "5 séries de 5 à 82,5 kg",
+     "planned_date": "2026-11-27"
+    }
+   },
+   {
+    "k": "accepted",
+    "at": "2026-11-24T15:41:05.806238+00:00"
+   },
+   {
+    "k": "adjusted",
+    "at": "2026-11-24T15:41:05.806238+00:00",
+    "after": {
+     "sport": "muscu_gym",
+     "title": "Force · Squat 5 × 5",
+     "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+     "planned_date": "2026-11-27"
+    },
+    "before": {
+     "sport": "muscu_gym",
+     "title": "Force · Squat 5 × 5",
+     "instructions": "5 séries de 5 à 82,5 kg",
+     "planned_date": "2026-11-27"
+    },
+    "feedback": "a982783c-88e0-4901-85e9-1141479f044e"
+   }
+  ],
+  "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+  "gap_days": null,
+  "revision": 3,
+  "done_date": null,
+  "state_key": "18540335fcd4a49d",
+  "candidates": null,
+  "coach_next": "suggest",
+  "created_at": "2026-11-24T15:41:05.806238+00:00",
+  "link_state": "active",
+  "moved_date": null,
+  "updated_at": "2026-11-24T15:41:05.806238+00:00",
+  "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+  "planned_date": "2026-11-27",
+  "effective_date": "2026-11-27",
+  "pending_change": null,
+  "candidate_count": 0,
+  "accepted_version": {
+   "at": "2026-11-24T15:41:05.806238+00:00",
+   "sport": "muscu_gym",
+   "title": "Force · Squat 5 × 5",
+   "instructions": "5 séries de 5 à 82,5 kg",
+   "planned_date": "2026-11-27"
+  },
+  "done_declared_at": null
+ },
+ "athlete_inbox": {
+  "rows": [
+   {
+    "id": "d581aca2-1378-4c6a-84bc-8be3213dd867",
+    "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+    "read_at": null,
+    "session": {
+     "day": "2026-11-22",
+     "val": 3840,
+     "unit": "kg",
+     "sport": "muscu_gym",
+     "state": "shared",
+     "hidden": [
+      "notes"
+     ],
+     "checkin": {
+      "note": "Semaine chargée",
+      "week": "2026-11-16",
+      "scores": {
+       "sleep": 2,
+       "fatigue": 4
+      }
+     },
+     "duration": 55,
+     "corrected": false,
+     "exercises": [
+      {
+       "name": "Squat",
+       "reps": 6,
+       "sets": 4,
+       "weight": 80,
+       "setRows": [
+        {
+         "rir": 2,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 0,
+         "reps": 5,
+         "weight": 80
+        }
+       ]
+      },
+      {
+       "name": "Fentes",
+       "reps": 10,
+       "sets": 3,
+       "weight": 20
+      }
+     ]
+    },
+    "can_read": true,
+    "revision": 1,
+    "adjustment": {
+     "kind": "new",
+     "note": null,
+     "after": {
+      "sport": "muscu_gym",
+      "title": "Décharge",
+      "instructions": "3 × 8 à 60 kg",
+      "planned_date": "2026-12-02"
+     },
+     "state": "pending",
+     "before": null,
+     "result": null,
+     "target": null,
+     "answered_at": null
+    },
+    "assignment": {
+     "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 4 × 6",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-22"
+    },
+    "can_answer": true,
+    "coach_name": "Coach Lou",
+    "created_at": "2026-11-24T15:41:05.806238+00:00",
+    "link_state": "active",
+    "message_id": "8a214644-57ca-4612-bc35-bb0ffc18bb72",
+    "observation": "Si l’épaule tire encore, on cale une décharge.",
+    "can_withdraw": false
+   },
+   {
+    "id": "a982783c-88e0-4901-85e9-1141479f044e",
+    "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+    "read_at": "2026-11-24T15:41:05.806238+00:00",
+    "session": {
+     "day": "2026-11-22",
+     "val": 3840,
+     "unit": "kg",
+     "sport": "muscu_gym",
+     "state": "shared",
+     "hidden": [
+      "notes"
+     ],
+     "checkin": {
+      "note": "Semaine chargée",
+      "week": "2026-11-16",
+      "scores": {
+       "sleep": 2,
+       "fatigue": 4
+      }
+     },
+     "duration": 55,
+     "corrected": false,
+     "exercises": [
+      {
+       "name": "Squat",
+       "reps": 6,
+       "sets": 4,
+       "weight": 80,
+       "setRows": [
+        {
+         "rir": 2,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 0,
+         "reps": 5,
+         "weight": 80
+        }
+       ]
+      },
+      {
+       "name": "Fentes",
+       "reps": 10,
+       "sets": 3,
+       "weight": 20
+      }
+     ]
+    },
+    "can_read": false,
+    "revision": 2,
+    "adjustment": {
+     "kind": "change",
+     "note": "On consolide avant de monter",
+     "after": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+      "planned_date": "2026-11-27"
+     },
+     "state": "accepted",
+     "before": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 82,5 kg",
+      "planned_date": "2026-11-27"
+     },
+     "result": {
+      "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "status": "accepted",
+      "planned_date": "2026-11-27"
+     },
+     "target": {
+      "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+      "title": "Force · Squat 5 × 5",
+      "status": "accepted",
+      "planned_date": "2026-11-27"
+     },
+     "answered_at": "2026-11-24T15:41:05.806238+00:00"
+    },
+    "assignment": {
+     "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 4 × 6",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-22"
+    },
+    "can_answer": false,
+    "coach_name": "Coach Lou",
+    "created_at": "2026-11-24T15:41:05.806238+00:00",
+    "link_state": "active",
+    "message_id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+    "observation": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+    "can_withdraw": false
+   }
+  ],
+  "owner": "19200000-0000-4000-8000-0000000000a1"
+ },
+ "list_coach": {
+  "role": "coach",
+  "rows": [
+   {
+    "id": "a982783c-88e0-4901-85e9-1141479f044e",
+    "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+    "read_at": "2026-11-24T15:41:05.806238+00:00",
+    "session": {
+     "day": "2026-11-22",
+     "val": 3840,
+     "unit": "kg",
+     "sport": "muscu_gym",
+     "state": "shared",
+     "hidden": [
+      "notes"
+     ],
+     "checkin": {
+      "note": "Semaine chargée",
+      "week": "2026-11-16",
+      "scores": {
+       "sleep": 2,
+       "fatigue": 4
+      }
+     },
+     "duration": 55,
+     "corrected": false,
+     "exercises": [
+      {
+       "name": "Squat",
+       "reps": 6,
+       "sets": 4,
+       "weight": 80,
+       "setRows": [
+        {
+         "rir": 2,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 0,
+         "reps": 5,
+         "weight": 80
+        }
+       ]
+      },
+      {
+       "name": "Fentes",
+       "reps": 10,
+       "sets": 3,
+       "weight": 20
+      }
+     ]
+    },
+    "can_read": false,
+    "revision": 2,
+    "adjustment": {
+     "kind": "change",
+     "note": "On consolide avant de monter",
+     "after": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+      "planned_date": "2026-11-27"
+     },
+     "state": "accepted",
+     "before": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 82,5 kg",
+      "planned_date": "2026-11-27"
+     },
+     "result": {
+      "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "status": "accepted",
+      "planned_date": "2026-11-27"
+     },
+     "target": {
+      "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+      "title": "Force · Squat 5 × 5",
+      "status": "accepted",
+      "planned_date": "2026-11-27"
+     },
+     "answered_at": "2026-11-24T15:41:05.806238+00:00"
+    },
+    "assignment": {
+     "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 4 × 6",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-22"
+    },
+    "can_answer": false,
+    "created_at": "2026-11-24T15:41:05.806238+00:00",
+    "link_state": "active",
+    "message_id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+    "observation": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+    "can_withdraw": false
+   },
+   {
+    "id": "d581aca2-1378-4c6a-84bc-8be3213dd867",
+    "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+    "read_at": null,
+    "session": {
+     "day": "2026-11-22",
+     "val": 3840,
+     "unit": "kg",
+     "sport": "muscu_gym",
+     "state": "shared",
+     "hidden": [
+      "notes"
+     ],
+     "checkin": {
+      "note": "Semaine chargée",
+      "week": "2026-11-16",
+      "scores": {
+       "sleep": 2,
+       "fatigue": 4
+      }
+     },
+     "duration": 55,
+     "corrected": false,
+     "exercises": [
+      {
+       "name": "Squat",
+       "reps": 6,
+       "sets": 4,
+       "weight": 80,
+       "setRows": [
+        {
+         "rir": 2,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 1,
+         "reps": 6,
+         "weight": 80
+        },
+        {
+         "rir": 0,
+         "reps": 5,
+         "weight": 80
+        }
+       ]
+      },
+      {
+       "name": "Fentes",
+       "reps": 10,
+       "sets": 3,
+       "weight": 20
+      }
+     ]
+    },
+    "can_read": false,
+    "revision": 1,
+    "adjustment": {
+     "kind": "new",
+     "note": null,
+     "after": {
+      "sport": "muscu_gym",
+      "title": "Décharge",
+      "instructions": "3 × 8 à 60 kg",
+      "planned_date": "2026-12-02"
+     },
+     "state": "pending",
+     "before": null,
+     "result": null,
+     "target": null,
+     "answered_at": null
+    },
+    "assignment": {
+     "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 4 × 6",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-22"
+    },
+    "can_answer": false,
+    "created_at": "2026-11-24T15:41:05.806238+00:00",
+    "link_state": "active",
+    "message_id": "8a214644-57ca-4612-bc35-bb0ffc18bb72",
+    "observation": "Si l’épaule tire encore, on cale une décharge.",
+    "can_withdraw": true
+   }
+  ],
+  "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4"
+ },
+ "detail_coach_withdrawn": {
+  "id": "a982783c-88e0-4901-85e9-1141479f044e",
+  "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+  "read_at": "2026-11-24T15:41:05.806238+00:00",
+  "session": {
+   "day": "2026-11-22",
+   "val": 3840,
+   "unit": "kg",
+   "sport": "muscu_gym",
+   "state": "shared",
+   "hidden": [
+    "details",
+    "notes"
+   ],
+   "checkin": null,
+   "duration": 55,
+   "corrected": false
+  },
+  "can_read": false,
+  "revision": 2,
+  "adjustment": {
+   "kind": "change",
+   "note": "On consolide avant de monter",
+   "after": {
+    "sport": "muscu_gym",
+    "title": "Force · Squat 5 × 5",
+    "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+    "planned_date": "2026-11-27"
+   },
+   "state": "accepted",
+   "before": {
+    "sport": "muscu_gym",
+    "title": "Force · Squat 5 × 5",
+    "instructions": "5 séries de 5 à 82,5 kg",
+    "planned_date": "2026-11-27"
+   },
+   "result": {
+    "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+    "sport": "muscu_gym",
+    "title": "Force · Squat 5 × 5",
+    "status": "accepted",
+    "planned_date": "2026-11-27"
+   },
+   "target": {
+    "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+    "title": "Force · Squat 5 × 5",
+    "status": "accepted",
+    "planned_date": "2026-11-27"
+   },
+   "answered_at": "2026-11-24T15:41:05.806238+00:00"
+  },
+  "assignment": {
+   "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+   "sport": "muscu_gym",
+   "title": "Force · Squat 4 × 6",
+   "status": "completed",
+   "session": "same",
+   "planned_date": "2026-11-22"
+  },
+  "can_answer": false,
+  "created_at": "2026-11-24T15:41:05.806238+00:00",
+  "link_state": "active",
+  "message_id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+  "observation": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+  "can_withdraw": false
+ },
+ "list_coach_withdrawn": {
+  "role": "coach",
+  "rows": [
+   {
+    "id": "a982783c-88e0-4901-85e9-1141479f044e",
+    "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+    "read_at": "2026-11-24T15:41:05.806238+00:00",
+    "session": {
+     "day": "2026-11-22",
+     "val": 3840,
+     "unit": "kg",
+     "sport": "muscu_gym",
+     "state": "shared",
+     "hidden": [
+      "details",
+      "notes"
+     ],
+     "checkin": null,
+     "duration": 55,
+     "corrected": false
+    },
+    "can_read": false,
+    "revision": 2,
+    "adjustment": {
+     "kind": "change",
+     "note": "On consolide avant de monter",
+     "after": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+      "planned_date": "2026-11-27"
+     },
+     "state": "accepted",
+     "before": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 82,5 kg",
+      "planned_date": "2026-11-27"
+     },
+     "result": {
+      "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "status": "accepted",
+      "planned_date": "2026-11-27"
+     },
+     "target": {
+      "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+      "title": "Force · Squat 5 × 5",
+      "status": "accepted",
+      "planned_date": "2026-11-27"
+     },
+     "answered_at": "2026-11-24T15:41:05.806238+00:00"
+    },
+    "assignment": {
+     "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 4 × 6",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-22"
+    },
+    "can_answer": false,
+    "created_at": "2026-11-24T15:41:05.806238+00:00",
+    "link_state": "active",
+    "message_id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+    "observation": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+    "can_withdraw": false
+   },
+   {
+    "id": "d581aca2-1378-4c6a-84bc-8be3213dd867",
+    "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+    "read_at": null,
+    "session": {
+     "day": "2026-11-22",
+     "val": 3840,
+     "unit": "kg",
+     "sport": "muscu_gym",
+     "state": "shared",
+     "hidden": [
+      "details",
+      "notes"
+     ],
+     "checkin": null,
+     "duration": 55,
+     "corrected": false
+    },
+    "can_read": false,
+    "revision": 1,
+    "adjustment": {
+     "kind": "new",
+     "note": null,
+     "after": {
+      "sport": "muscu_gym",
+      "title": "Décharge",
+      "instructions": "3 × 8 à 60 kg",
+      "planned_date": "2026-12-02"
+     },
+     "state": "pending",
+     "before": null,
+     "result": null,
+     "target": null,
+     "answered_at": null
+    },
+    "assignment": {
+     "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 4 × 6",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-22"
+    },
+    "can_answer": false,
+    "created_at": "2026-11-24T15:41:05.806238+00:00",
+    "link_state": "active",
+    "message_id": "8a214644-57ca-4612-bc35-bb0ffc18bb72",
+    "observation": "Si l’épaule tire encore, on cale une décharge.",
+    "can_withdraw": true
+   }
+  ],
+  "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4"
+ },
+ "detail_coach_archived": {
+  "id": "a982783c-88e0-4901-85e9-1141479f044e",
+  "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+  "read_at": "2026-11-24T15:41:05.806238+00:00",
+  "session": {
+   "state": "archived",
+   "hidden": [
+    "details",
+    "notes"
+   ]
+  },
+  "can_read": false,
+  "revision": 2,
+  "adjustment": {
+   "kind": "change",
+   "note": "On consolide avant de monter",
+   "after": {
+    "sport": "muscu_gym",
+    "title": "Force · Squat 5 × 5",
+    "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+    "planned_date": "2026-11-27"
+   },
+   "state": "accepted",
+   "before": {
+    "sport": "muscu_gym",
+    "title": "Force · Squat 5 × 5",
+    "instructions": "5 séries de 5 à 82,5 kg",
+    "planned_date": "2026-11-27"
+   },
+   "result": {
+    "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+    "sport": "muscu_gym",
+    "title": "Force · Squat 5 × 5",
+    "status": "accepted",
+    "planned_date": "2026-11-27"
+   },
+   "target": {
+    "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+    "title": "Force · Squat 5 × 5",
+    "status": "accepted",
+    "planned_date": "2026-11-27"
+   },
+   "answered_at": "2026-11-24T15:41:05.806238+00:00"
+  },
+  "assignment": {
+   "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+   "sport": "muscu_gym",
+   "title": "Force · Squat 4 × 6",
+   "status": "completed",
+   "session": "same",
+   "planned_date": "2026-11-22"
+  },
+  "can_answer": false,
+  "created_at": "2026-11-24T15:41:05.806238+00:00",
+  "link_state": "active",
+  "message_id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+  "observation": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+  "can_withdraw": false
+ },
+ "coach_detail_revoked": {
+  "error": "SHARING_UNAVAILABLE"
+ },
+ "athlete_revoked": {
+  "rows": [
+   {
+    "id": "a982783c-88e0-4901-85e9-1141479f044e",
+    "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+    "read_at": "2026-11-24T15:41:05.806238+00:00",
+    "session": {
+     "day": "2026-11-22",
+     "state": "archived",
+     "hidden": [
+      "details",
+      "notes"
+     ]
+    },
+    "can_read": false,
+    "revision": 2,
+    "adjustment": {
+     "kind": "change",
+     "note": "On consolide avant de monter",
+     "after": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 80 kg, RIR 2 sur chaque série",
+      "planned_date": "2026-11-27"
+     },
+     "state": "accepted",
+     "before": {
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "instructions": "5 séries de 5 à 82,5 kg",
+      "planned_date": "2026-11-27"
+     },
+     "result": {
+      "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+      "sport": "muscu_gym",
+      "title": "Force · Squat 5 × 5",
+      "status": "accepted",
+      "planned_date": "2026-11-27"
+     },
+     "target": {
+      "id": "30e46458-5621-4d53-8fe3-1d601aa22c60",
+      "title": "Force · Squat 5 × 5",
+      "status": "accepted",
+      "planned_date": "2026-11-27"
+     },
+     "answered_at": "2026-11-24T15:41:05.806238+00:00"
+    },
+    "assignment": {
+     "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 4 × 6",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-22"
+    },
+    "can_answer": false,
+    "coach_name": "Coach Lou",
+    "created_at": "2026-11-24T15:41:05.806238+00:00",
+    "link_state": "revoked",
+    "message_id": "f74e951b-4ec6-451b-a7be-c089085deeba",
+    "observation": "La dernière série est descendue à RIR 0 : on garde la charge mais on vise RIR 2 partout.",
+    "can_withdraw": false
+   },
+   {
+    "id": "d581aca2-1378-4c6a-84bc-8be3213dd867",
+    "link_id": "a2bfde11-572f-4a6e-91d1-bb6c047e66d4",
+    "read_at": null,
+    "session": {
+     "day": "2026-11-22",
+     "state": "archived",
+     "hidden": [
+      "details",
+      "notes"
+     ]
+    },
+    "can_read": false,
+    "revision": 1,
+    "adjustment": {
+     "kind": "new",
+     "note": null,
+     "after": {
+      "sport": "muscu_gym",
+      "title": "Décharge",
+      "instructions": "3 × 8 à 60 kg",
+      "planned_date": "2026-12-02"
+     },
+     "state": "pending",
+     "before": null,
+     "result": null,
+     "target": null,
+     "answered_at": null
+    },
+    "assignment": {
+     "id": "927bfbcb-02b5-4e50-b9d4-3c6d55615409",
+     "sport": "muscu_gym",
+     "title": "Force · Squat 4 × 6",
+     "status": "completed",
+     "session": "same",
+     "planned_date": "2026-11-22"
+    },
+    "can_answer": false,
+    "coach_name": "Coach Lou",
+    "created_at": "2026-11-24T15:41:05.806238+00:00",
+    "link_state": "revoked",
+    "message_id": "8a214644-57ca-4612-bc35-bb0ffc18bb72",
+    "observation": "Si l’épaule tire encore, on cale une décharge.",
+    "can_withdraw": false
+   }
+  ],
+  "owner": "19200000-0000-4000-8000-0000000000a1"
+ },
+ "journal_after": {
+  "details": {
+   "note": "Épaule un peu raide",
+   "duration": 55,
+   "exercises": [
+    {
+     "name": "Squat",
+     "reps": 6,
+     "sets": 4,
+     "weight": 80,
+     "setRows": [
+      {
+       "rir": 2,
+       "reps": 6,
+       "weight": 80
+      },
+      {
+       "rir": 1,
+       "reps": 6,
+       "weight": 80
+      },
+      {
+       "rir": 1,
+       "reps": 6,
+       "weight": 80
+      },
+      {
+       "rir": 0,
+       "reps": 5,
+       "weight": 80
+      }
+     ]
+    },
+    {
+     "name": "Fentes",
+     "reps": 10,
+     "sets": 3,
+     "weight": 20
+    }
+   ]
+  },
+  "revision": 2
+ }
+}

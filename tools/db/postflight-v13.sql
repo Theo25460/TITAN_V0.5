@@ -95,14 +95,19 @@ with expected_versions(version) as (values
   union all
   -- AUD-35 may wrap the V1.3 layer once more (cadence claims): the journey layer is then the function the outer one calls.
   select 'export:journey and predecessor', true, coalesce((
-    select layer like '%private.titan_export_extras_before_journey_v1(p_uid)%'
+    -- V2.0 (A2): the later packages (V1.5, V1.7.7) wrap the export again; follow the layers each outer one really calls, whatever
+    -- their number, down to the journey layer (it calls its predecessor and carries the journey keys).
+    with recursive chain(fn, layer, depth) as (
+      select 'private.titan_export_extras_v1'::text, pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')), 0
+      union all
+      select n.fn, pg_get_functiondef(to_regprocedure(n.fn || '(uuid)')), c.depth + 1
+      from chain c cross join lateral (select substring(c.layer from '(private\.titan_export_extras_before_[a-z0-9_]+_v1)\(p_uid\)') as fn) n
+      where n.fn is not null and n.fn <> 'private.titan_export_extras_before_journey_v1' and to_regprocedure(n.fn || '(uuid)') is not null and c.depth < 40)
+    select bool_or(layer like '%private.titan_export_extras_before_journey_v1(p_uid)%'
       and layer like '%''journey''%'
-      and layer like '%''journeyVerifiedDailyActivity''%'
+      and layer like '%''journeyVerifiedDailyActivity''%')
       and to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)') is not null
-    from (select case
-      when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_cadence_v1(p_uid)%'
-      then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_cadence_v1(uuid)'))
-      else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end layer) l), false),
+    from chain), false),
     'journal ajouté à la chaîne d’export conservée'
 )
 select check_name as "check", blocking, ok, detail from checks order by blocking desc, ok, check_name;
