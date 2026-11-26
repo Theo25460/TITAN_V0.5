@@ -52,7 +52,9 @@ need(read("login.html").includes("js/app/auth.js"), "login.html ne charge plus j
 need(auth.includes("waitForTitanSupabase"), "js/app/auth.js n'attend plus le client Supabase (chargé après le formulaire)");
 
 // 4. The build command runs this guard first.
-need(/command\s*=\s*"node tools\/check-release-guard\.mjs && node tools\/build-public\.mjs"/.test(toml), "netlify.toml : la commande de build doit lancer tools/check-release-guard.mjs avant la construction");
+need(/command\s*=\s*"node tools\/check-release-guard\.mjs && node tools\/build-public\.mjs(?: && [^"\n]*(?:\\"[^"\n]*)*)?"/.test(toml), "netlify.toml : la commande de build doit lancer tools/check-release-guard.mjs avant la construction");
+// 5. The SEO guard checks the artifact before Netlify publishes it (docs/seo/SEO_GUARD.md).
+need(/command\s*=\s*"[^\n]*&& node tools\/seo-guard\.mjs check --dist dist --context \\"\$CONTEXT\\" --fail-on p0"/.test(toml), "netlify.toml : la commande de build doit lancer tools/seo-guard.mjs sur dist/ (contexte Netlify, P0 bloquant)");
 
 if (problems.length) {
   console.error("GARDE DE PUBLICATION : build refusée, l'ancien déploiement reste en ligne.\n- " + problems.join("\n- "));

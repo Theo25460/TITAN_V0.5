@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildContext, previewHeaders } from './lib/build-context.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dist = resolve(root, 'dist');
@@ -222,6 +223,12 @@ if (twaFingerprints.length) {
   writeFileSync(join(dist, '.well-known', 'assetlinks.json'), JSON.stringify([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: process.env.TWA_PACKAGE_ID || 'fr.titanapp.app', sha256_cert_fingerprints: twaFingerprints } }], null, 2));
 }
 
+// Provenance (/build-info.json) and the noindex of non-production Netlify contexts: see tools/lib/build-context.mjs.
+const build = buildContext(process.env, { cwd: root });
+writeFileSync(join(dist, 'build-info.json'), `${JSON.stringify(build, null, 2)}\n`);
+const noindexHeaders = previewHeaders(build);
+if (noindexHeaders) writeFileSync(join(dist, '_headers'), noindexHeaders);
+
 failIfBlocked();
 
-console.log(`TITAN public build ready: ${dist} (${precache.size} fichiers hors ligne)`);
+console.log(`TITAN public build ready: ${dist} (${precache.size} fichiers hors ligne, contexte ${build.context}${noindexHeaders ? ', noindex' : ''})`);

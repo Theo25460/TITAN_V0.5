@@ -27,7 +27,7 @@ test("the repository passes its own release guard", () => {
 
 test("the Netlify build runs the guard before anything else, so an incomplete branch can never replace the live site", () => {
   const toml = readFileSync(join(root, "netlify.toml"), "utf8");
-  assert.match(toml, /command = "node tools\/check-release-guard\.mjs && node tools\/build-public\.mjs"/);
+  assert.match(toml, /command = "node tools\/check-release-guard\.mjs && node tools\/build-public\.mjs && node tools\/seo-guard\.mjs check --dist dist --context \\"\$CONTEXT\\" --fail-on p0"/);
 });
 
 test("a production build cannot follow a merge unless the exact commit was approved", () => {
