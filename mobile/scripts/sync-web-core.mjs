@@ -45,6 +45,7 @@ export const MODULES = [
   "js/core/coach-followup.js",
   "js/core/coach-feedback.js",
   "js/core/coach-program.js",
+  "js/core/coach-cycle.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

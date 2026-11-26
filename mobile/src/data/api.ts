@@ -287,6 +287,9 @@ export const coachFeedback = <T = unknown>(owner: string, action: string, data: 
 /** V1.9.4 — Programmation multi-semaines: the athlete's programmes, their detail and the answers (titan_coach_program_v1, behind screens.coach_programs). */
 export const coachProgram = <T = unknown>(owner: string, action: string, data: Record<string, unknown> = {}) =>
   ownerRpc<T>(owner, "titan_coach_program_v1", { p_action: action, p_data: data });
+/** V1.9.5 — Bilans de cycle partageables: the athlete's reports, their detail, the validation, retractions, withdrawal and file (titan_coach_cycle_v1, behind screens.coach_cycle_report). */
+export const coachCycle = <T = unknown>(owner: string, action: string, data: Record<string, unknown> = {}) =>
+  ownerRpc<T>(owner, "titan_coach_cycle_v1", { p_action: action, p_data: data });
 /** Answer a proposal through the existing portal (accepted / declined), as the website does. */
 export const coachAnswer = (owner: string, id: string, revision: number, status: "accepted" | "declined") =>
   ownerRpc<unknown>(owner, "titan_coach_portal", { p_action: "assignment_status", p_data: { id, revision, status } });
