@@ -355,7 +355,7 @@
       if (e.target.closest("[data-moment='done']")) dialog.close();
       // « Partager » (before V2): the story card of this session, opened on its preview; nothing leaves the device without a choice.
       if (e.target.closest("[data-moment='story']")) {
-        void window.TitanStory.open({ kind: "session", input: window.TitanStory.sessionInput(current(log)) }, { isCurrent: () => live() })
+        void window.TitanStory.open({ kind: "session", input: window.TitanStory.sessionInput(current(log)) }, { isCurrent: () => live(), route: window.TitanStory.routeOf(current(log)) })
           .then((sheet) => { if (sheet?.open) sheet.addEventListener("close", () => restoreAction("[data-moment='story']"), { once: true }); else restoreAction("[data-moment='story']"); });
       }
       if (e.target.closest("[data-moment='share']")) {

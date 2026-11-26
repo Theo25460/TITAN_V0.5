@@ -4755,6 +4755,15 @@
 .st-preview {
   max-width: min(260px, 62vw);
 }
+.st-styles .asc-seg {
+  width: 100%;
+}
+.st-styles .asc-seg button {
+  flex: 1;
+}
+.st-options[hidden] {
+  display: none;
+}
 .st-options {
   border: 0;
   margin: 0;

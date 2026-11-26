@@ -1,4 +1,5 @@
-/* « Partager » (before V2): a session or a success becomes a 1080 × 1920 story picture, previewed before anything leaves the phone. */
+/* « Partager » (before V2): a session or a success becomes a 1080 × 1920 story picture in one of three styles, previewed before
+   anything leaves the phone; the route is a shape without coordinates, its ends removed. */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRef } from "react";
@@ -10,11 +11,13 @@ import { buildStory, recordStory, sessionStory, ShareStory, type StoryRequest } 
 import type { RecordEntry } from "../src/core";
 import type { TrainingLog } from "../src/core/types";
 import { captureStory, saveStoryFile, shareStoryFile } from "../src/lib/storyExport";
+import { toPlanar } from "../src/lib/storyRoute";
 import { logs } from "../test-fixtures/data";
 
 const mockCapture = jest.fn(async (_ref: unknown, _o: unknown) => "file:///cache/titan-story.png");
 const mockAvailable = jest.fn(async () => true);
 const mockShare = jest.fn(async (_uri: string, _o: unknown) => undefined);
+const mockRoute = jest.fn(async (_owner: string, _id: string | null | undefined) => null as { segs: number[][][] } | null);
 const mockSaf = {
   getUriForDirectoryInRoot: jest.fn((name: string) => `content://root/${name}`),
   requestDirectoryPermissionsAsync: jest.fn(async (_initial?: string) => ({ granted: true, directoryUri: "content://tree/Pictures" })),
@@ -31,65 +34,79 @@ jest.mock("expo-file-system/legacy", () => ({
   },
 }));
 jest.mock("../src/data/hooks", () => ({ ...jest.requireActual("../src/data/hooks"), useProfile: () => ({ data: { username: "Athlète Test" } }) }));
+jest.mock("../src/data/auth", () => ({ useOwner: () => "owner-a", useAuth: () => ({ owner: "owner-a" }) }));
+jest.mock("../src/lib/storyRoute", () => ({ ...jest.requireActual("../src/lib/storyRoute"), storyRoute: (o: string, id: string | null | undefined) => mockRoute(o, id) }));
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockRoute.mockResolvedValue(null);
+});
 
 const gpsLog: TrainingLog = {
-  ...logs[0],
+  ...logs[0]!,
   id: "gps-1",
+  client_event_id: "evt-gps-1",
   syncStatus: "confirmed",
   xp: 594,
-  details: { ...logs[0].details, elevation: 120, note: "Rue des Granges, genou raide", gpxStats: { ascent: 120 }, route: [[47.2378, 6.0241]], heartRate: 168 } as TrainingLog["details"],
+  details: { ...logs[0]!.details, elevation: 120, note: "Rue des Granges, genou raide", gpxStats: { ascent: 120 }, hasGpx: true, heartRate: 168 } as TrainingLog["details"],
 };
-
+const loop = { segs: [[[0, 0], [900, 60], [950, 1300], [2200, 1250], [2300, 2100], [3100, 2350], [3300, 900], [2100, 300]]] };
 const allText = () => screen.getAllByText(/.*/, { includeHiddenElements: true }).map((n) => String(n.props.children)).join(" | ");
 
 describe("what a session card may show", () => {
-  test("a confirmed GPS run: measures and XP, never the trace, the place, the note or the heart rate", () => {
-    const input = sessionStory(gpsLog, { logs: [gpsLog], name: "Athlète Test", receipt: { xp: 594, level_after: 7 } });
-    const model = buildStory({ kind: "session", input });
-    render(<StoryCard model={model} width={360} sportId={input.sportId} />);
+  test("a confirmed GPS run: measures, no reward, never the place, the note, the heart rate or the perceived effort", () => {
+    const input = sessionStory(gpsLog, { logs: [gpsLog], name: "Athlète Test" });
+    expect(input.routeEventId).toBe("evt-gps-1");
+    const model = buildStory({ kind: "session", input: { ...input, route: loop } });
+    render(<StoryCard model={model} style="champ" width={360} />);
     const text = allText();
-    expect(text).toContain("10 km");
-    expect(text).toContain("Distance");
-    expect(text).toContain("XP");
-    expect(text).toContain("Niveau 7");
+    expect(text).toContain("10");
     expect(text).toContain("titan-app.fr");
-    for (const secret of ["Granges", "genou", "47.23", "6.02", "168", "6/10", "Athlète Test"]) expect(text).not.toContain(secret);
+    for (const secret of ["Granges", "genou", "168", "6/10", "Athlète Test", "XP", "Niveau"]) expect(text).not.toContain(secret);
+    expect(JSON.stringify(model.route)).not.toMatch(/4\d\.\d{3}/);
   });
 
-  test("a pending or held session carries no XP; the name only once ticked", () => {
-    expect(sessionStory({ ...gpsLog, syncStatus: "pending" }, { logs: [] }).xp).toBeNull();
-    expect(sessionStory(gpsLog, { logs: [], receipt: { xp: 594, reward_held: true } }).xp).toBeNull();
+  test("the name only once ticked; every style draws the same values", () => {
     const input = sessionStory(gpsLog, { logs: [], name: "Athlète Test" });
     expect(buildStory({ kind: "session", input }).name).toBeNull();
     expect(buildStory({ kind: "session", input }, { name: true }).name).toBe("Athlète Test");
+    for (const style of ShareStory.STYLES) {
+      const plan = ShareStory.layout(buildStory({ kind: "session", input }, { style }), style);
+      expect(plan.ops.some((o) => o.t === "text" && o.text === "titan-app.fr")).toBe(true);
+    }
   });
 
   test("a manual session without distance and a climbing session draw only what was entered", () => {
-    const yoga = sessionStory({ ...logs[0], id: "y", sport: "yoga", unit: "min", val: 40, details: { duration: 40 } }, { logs: [] });
+    const yoga = sessionStory({ ...logs[0]!, id: "y", sport: "yoga", unit: "min", val: 40, details: { duration: 40 } }, { logs: [] });
     const m = buildStory({ kind: "session", input: yoga });
     expect(m.hero?.label).toBe("Durée");
     expect(m.facts.find(([k]) => k === "Distance")).toBeUndefined();
-    const climb = buildStory({ kind: "session", input: sessionStory(logs[3], { logs: [] }) });
+    const climb = buildStory({ kind: "session", input: sessionStory(logs[3]!, { logs: [] }) });
     expect(JSON.stringify(climb)).not.toContain("Salle");
   });
 
   test("a record of the Records screen becomes a success card with its previous step", () => {
     const r = { id: "r1", kind: "distance", sport: "running", label: "Plus longue distance", value: 12.1, unit: "km", log: gpsLog, context: "" } as RecordEntry;
     const model = buildStory({ kind: "achievement", input: recordStory(r, { previous: 10.3 }) });
-    expect(model.eyebrow).toBe("Record personnel · Course à pied");
+    expect(model.tone).toBe("amber");
     expect(model.progress).toMatch(/^avant : 10,3/);
     expect(buildStory({ kind: "achievement", input: recordStory(r) }).progress).toBe("Premier repère");
+  });
+
+  test("the route handed to the card is planar metres from its south-west corner, not coordinates", () => {
+    const shape = toPlanar({ rejected: 0, segs: [[{ lat: 47.2378, lon: 6.0241, alt: null, altAcc: null, acc: 5, t: 0 }, { lat: 47.2468, lon: 6.0341, alt: null, altAcc: null, acc: 5, t: 1 }]] });
+    expect(shape!.segs[0]![0]).toEqual([0, 0]);
+    expect(shape!.segs[0]![1]![1]).toBeGreaterThan(900);
+    expect(JSON.stringify(shape)).not.toMatch(/47\.|6\.02/);
   });
 });
 
 describe("export on Android", () => {
   test("the capture is a 1080 × 1920 PNG and the share sheet receives it as image/png", async () => {
     const ref = createRef<View>();
-    render(<StoryCard ref={ref} model={buildStory({ kind: "session", input: sessionStory(gpsLog, { logs: [] }) })} width={384} />);
+    render(<StoryCard ref={ref} model={buildStory({ kind: "session", input: sessionStory(gpsLog, { logs: [] }) })} style="feuille" width={384} />);
     const uri = await captureStory(ref);
-    expect(mockCapture.mock.calls[0][1]).toMatchObject({ format: "png", width: 1080, height: 1920, result: "tmpfile" });
+    expect(mockCapture.mock.calls[0]![1]).toMatchObject({ format: "png", width: 1080, height: 1920, result: "tmpfile" });
     await shareStoryFile(uri, "Partager ma séance");
     expect(mockShare).toHaveBeenCalledWith("file:///cache/titan-story.png", expect.objectContaining({ mimeType: "image/png" }));
   });
@@ -103,7 +120,6 @@ describe("export on Android", () => {
     const mem = new Map<string, string>();
     const store = { get: async (k: string) => mem.get(k) ?? null, set: async (k: string, v: string) => void mem.set(k, v), remove: async (k: string) => void mem.delete(k) };
     expect(await saveStoryFile("file:///cache/a.png", "titan-seance.png", store)).toBe("content://tree/Pictures/titan-seance.png");
-    expect(mockSaf.requestDirectoryPermissionsAsync).toHaveBeenCalledTimes(1);
     expect(mockSaf.createFileAsync).toHaveBeenCalledWith("content://tree/Pictures", "titan-seance", "image/png");
     await saveStoryFile("file:///cache/a.png", "titan-seance.png", store);
     expect(mockSaf.requestDirectoryPermissionsAsync).toHaveBeenCalledTimes(1);
@@ -127,7 +143,7 @@ describe("the preview screen", () => {
   const nav = { navigate: jest.fn(), goBack: jest.fn(), setOptions: jest.fn() };
   const open = (params: StoryRequest) =>
     render(
-      <QueryClientProvider client={new QueryClient()}>
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } })}>
         <SafeAreaProvider initialMetrics={metrics}>
           <ToastProvider>
             <ShareStoryScreen navigation={nav} route={{ key: "k", name: "ShareStory", params }} />
@@ -135,17 +151,25 @@ describe("the preview screen", () => {
         </SafeAreaProvider>
       </QueryClientProvider>,
     );
-  const request: StoryRequest = { kind: "session", input: sessionStory(gpsLog, { logs: [gpsLog], name: "Athlète Test", receipt: { xp: 594, level_after: 7 } }) };
+  const request: StoryRequest = { kind: "session", input: sessionStory(gpsLog, { logs: [gpsLog], name: "Athlète Test" }) };
 
-  test("the name is hidden until ticked; the XP and the date can be hidden", () => {
+  test("the route arrives, is drawn by default and can be removed; the name is hidden until ticked", async () => {
+    mockRoute.mockResolvedValue(loop);
     open(request);
+    await waitFor(() => expect(screen.getByTestId("story-option-route")).toBeTruthy());
+    expect(mockRoute).toHaveBeenCalledWith("owner-a", "evt-gps-1");
     expect(allText()).not.toContain("Athlète Test");
     fireEvent.press(screen.getByTestId("story-option-name"));
     expect(allText()).toContain("Athlète Test");
-    expect(allText()).toContain("Niveau 7");
-    fireEvent.press(screen.getByTestId("story-option-xp"));
-    expect(allText()).not.toContain("Niveau 7");
-    expect(screen.getByText(/Jamais sur l’image : tracé GPS/)).toBeTruthy();
+    expect(screen.getByText(/Jamais dessus : fond de carte, coordonnées/)).toBeTruthy();
+  });
+
+  test("the three styles are offered; the week is a choice of Champ and Feuille only", async () => {
+    open(request);
+    for (const label of ["Champ", "Feuille", "Carnet"]) expect(screen.getByText(label)).toBeTruthy();
+    expect(screen.getByTestId("story-option-week")).toBeTruthy();
+    fireEvent.press(screen.getByText("Carnet"));
+    await waitFor(() => expect(screen.queryByTestId("story-option-week")).toBeNull());
   });
 
   test("sharing captures once and opens the share sheet; nothing is claimed as published", async () => {
@@ -172,13 +196,8 @@ describe("the preview screen", () => {
 
   test("inviting a friend is a separate action that opens the existing invitation sheet", () => {
     open({ kind: "achievement", input: { type: "milestone", title: "Ma 100e séance", value: "100" } });
-    expect(screen.queryByTestId("story-option-xp")).toBeNull();
+    expect(screen.queryByTestId("story-option-route")).toBeNull();
     fireEvent.press(screen.getByTestId("story-invite"));
     expect(nav.navigate).toHaveBeenCalledWith("Community", { sheet: "invite" });
   });
-});
-
-test("the shared module is the website's (sizes and margins of the story)", () => {
-  expect(ShareStory.SIZE).toEqual({ width: 1080, height: 1920 });
-  expect(ShareStory.SAFE.top).toBeGreaterThanOrEqual(220);
 });

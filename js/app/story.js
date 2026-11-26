@@ -1,84 +1,87 @@
 /* « Partager » (before V2) — the 9:16 story card of a session or a success, drawn on the device at 1080 × 1920.
-   The content rules are shared with Android (js/core/share-story.js); the layout mirrors mobile/src/components/StoryCard.tsx on the
-   same 1080 grid. The athlete previews the exact picture, chooses what it shows (name off by default, date and confirmed XP can be
-   hidden), then shares the file where the browser really supports it, or downloads it. Nothing is uploaded or published by TITAN;
-   no session, reward, visibility or profile setting changes here. Never drawn: GPS trace, place, coordinates, note, body signals. */
+   What the card shows and where everything sits comes from js/core/share-story.js (shared unchanged with Android): this file
+   only gathers the inputs the page already holds, draws the operations on a canvas, and runs the preview sheet. The athlete
+   picks a style (Champ, Feuille, Carnet) and what the picture shows (route, week, date, name), then shares the file where the
+   browser really supports it, or downloads it. Nothing is uploaded or published by TITAN; no session, reward, visibility or
+   profile setting changes here. The route is a shape without map or coordinates, its first and last 300 m removed. */
 (function () {
   "use strict";
   const esc = (s) => window.titanEsc(s);
   const icon = (n, c) => window.titanIcon(n, c);
   const S = () => window.TitanShareStory;
-  const C = { bg: "#090C10", bg2: "#131920", line2: "rgba(226,234,236,0.17)", tx: "#F1F3EF", tx2: "#AEB7BD", tx3: "#838E97", cy: "#3DD9E8", am: "#F4BB54" };
 
-  /* ---------- Inputs: only what the opening screen already shows ---------- */
+  /* ---------- Inputs: only what the page already holds ---------- */
   const userName = () => {
     const u = window.titanShell?.user?.();
     return u && !u.guest ? u.name || "" : "";
   };
+  const confirmedLogs = () => (window.state?.history || []).filter((l) => l && !l.archived_at && (l.syncStatus === "confirmed" || !l.syncStatus));
 
-  /** A session as the moment and the journal sheet show it: the client's own measures, a record it set, and the XP the server
-      confirmed (none while pending, refused, held or for a historical session). */
+  /** The week of the session as « le programme » draws it (js/core/program-grid.js), its day and line marked. */
+  function weekOf(log) {
+    const P = window.TitanProgram, Pr = window.TitanProgress, Sp = window.TitanSports;
+    if (!P?.week || !log?.date) return null;
+    try {
+      const pool = confirmedLogs();
+      if (!pool.some((l) => l === log || (l.id && l.id === log.id))) pool.push(log);
+      const grid = P.week(pool, {
+        start: log.date, now: new Date(), maxRows: 3,
+        minutesOf: (l) => (Pr?.minutesOf ? Pr.minutesOf(l).minutes || 0 : Number(l?.details?.duration) || 0),
+        familyOf: (s) => (Sp?.familyOf ? Sp.familyOf(s) : "endurance"),
+        labelOf: (s) => (Sp?.label ? Sp.label(s) : String(s)),
+      });
+      const d = new Date(log.date);
+      return { rows: grid.rows, mark: (d.getDay() + 6) % 7, markRow: grid.rows.findIndex((r) => r.sport === log.sport) };
+    } catch { return null; }
+  }
+
+  /** The discipline's own measures: the catalogue fields still asked for this sport, and the values of the session. */
+  function extrasOf(log) {
+    const values = log?.details?.extras;
+    if (!values || typeof values !== "object") return null;
+    const catalog = window.SPORTS_CONFIG?.[log.sport]?.extraFields || [];
+    const fields = window.TitanSportContracts?.entryFields ? window.TitanSportContracts.entryFields(log.sport, catalog, { values }) : catalog;
+    return { fields, values };
+  }
+
+  /** A session as the moment and the journal sheet show it: the client's own measures and a record it set. */
   function sessionInput(log) {
-    const metrics = window.TitanMoment?.metrics?.(log) || [];
-    const rec = (window.TitanMoment?.records?.(log) || []).find((r) => !r.first);
     const F = window.TitanFormat;
-    const rw = window.TitanMoment?.reward?.(log);
-    const historical = window.TitanEffort?.isHistorical?.(log.date) || Boolean(log.details?.historical);
-    const confirmed = rw && (rw.state === "confirmed" || rw.state === "capped");
-    const level = confirmed && Number(rw.levelAfter) > 0 ? Number(rw.levelAfter) : null;
-    let rankName = null;
-    try { rankName = level ? window.TitanEffort?.rank?.(level)?.name || null : null; } catch { rankName = null; }
+    const rec = (window.TitanMoment?.records?.(log) || []).find((r) => !r.first);
     return {
       sport: window.TitanSports?.label?.(log.sport) || log.sport,
       sportId: log.sport,
-      metrics,
+      metrics: window.TitanMoment?.metrics?.(log) || [],
+      extras: extrasOf(log),
       record: rec ? { label: rec.label, value: F.recordValue(rec.unit, rec.value), previous: rec.previous ? F.recordValue(rec.unit, rec.previous.value) : null } : null,
-      xp: confirmed && !historical ? { confirmed: true, amount: Number(rw.xp) || 0, level, rankName } : null,
+      week: weekOf(log),
       date: log.date,
       name: userName(),
-      historical,
+      historical: window.TitanEffort?.isHistorical?.(log.date) || Boolean(log.details?.historical),
     };
   }
 
-  /* ---------- Drawing ---------- */
-  const { width: W, height: H } = { width: 1080, height: 1920 };
+  /** The route of a session, when the account has one (recorded with the Android GPS), as a shape: planar offsets in metres from
+      the south-west corner, first and last 300 m removed. Null otherwise. */
+  async function routeOf(log) {
+    try { return (await window.TitanRoutes?.shapeForSession?.(log)) || null; } catch { return null; }
+  }
 
+  /* ---------- Drawing the operations of TitanShareStory.layout ---------- */
+  const CUTS = {
+    display: [800, "condensed"], figure: [300, "extra-condensed"], figureBold: [700, "extra-condensed"],
+    text: [400, "normal"], semi: [600, "normal"], bold: [700, "normal"],
+  };
   async function fonts() {
     try {
-      await Promise.all(['800 condensed 100px "Archivo"', '300 extra-condensed 100px "Archivo"', '700 extra-condensed 100px "Archivo"', '600 40px "Archivo"', '400 40px "Archivo"', '700 40px "Archivo"'].map((f) => document.fonts.load(f)));
+      await Promise.all(['800 condensed 100px "Archivo"', '300 extra-condensed 100px "Archivo"', '700 extra-condensed 100px "Archivo"', '400 40px "Archivo"', '600 40px "Archivo"', '700 40px "Archivo"'].map((f) => document.fonts.load(f)));
     } catch {}
   }
-  /** Archivo is variable in width: display is condensed, figures are extra-condensed (DESIGN.md), as on Android. */
-  function setFont(ctx, weight, size, stretch = "normal") {
+  function setFont(ctx, font, size, tracking = 0) {
+    const [weight, stretch] = CUTS[font] || CUTS.text;
     ctx.font = `${weight} ${size}px "Archivo", system-ui, sans-serif`;
     if ("fontStretch" in ctx) ctx.fontStretch = stretch;
-    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
-  }
-  const CUT = {
-    display: (ctx, size) => setFont(ctx, 800, size, "condensed"),
-    figure: (ctx, size) => setFont(ctx, 300, size, "extra-condensed"),
-    figureBold: (ctx, size) => setFont(ctx, 700, size, "extra-condensed"),
-    semi: (ctx, size) => setFont(ctx, 600, size),
-    text: (ctx, size) => setFont(ctx, 400, size),
-    bold: (ctx, size) => setFont(ctx, 700, size),
-  };
-  /** Same rule as Android's fitSize: the largest size up to `base` for `room` px, from an average advance in font sizes. */
-  const fitSize = (text, base, room, em) => Math.max(Math.round(base * 0.4), Math.min(base, Math.floor(room / Math.max(1, [...String(text)].length * em))));
-
-  /** Cuts `text` to `maxLines` lines of `maxW` px (measured with the current font), the last one ending with an ellipsis if needed. */
-  function lines(ctx, text, maxW, maxLines) {
-    const words = String(text || "").split(/\s+/).filter(Boolean);
-    const out = [];
-    let line = "";
-    for (let i = 0; i < words.length; i++) {
-      const test = line ? `${line} ${words[i]}` : words[i];
-      if (ctx.measureText(test).width <= maxW || !line) { line = test; continue; }
-      out.push(line);
-      line = words[i];
-      if (out.length === maxLines) { line = ""; out[maxLines - 1] = ellipsis(ctx, `${out[maxLines - 1]} ${words.slice(i).join(" ")}`, maxW); break; }
-    }
-    if (line) out.push(line);
-    return out.map((l) => (ctx.measureText(l).width > maxW ? ellipsis(ctx, l, maxW) : l));
+    if ("letterSpacing" in ctx) ctx.letterSpacing = `${tracking}px`;
   }
   function ellipsis(ctx, text, maxW) {
     if (ctx.measureText(text).width <= maxW) return text;
@@ -86,217 +89,130 @@
     while (t.length > 1 && ctx.measureText(`${t}…`).width > maxW) t = t.slice(0, -1);
     return `${t.replace(/[\s,.;:·–-]+$/, "")}…`;
   }
-  /** One line shrunk until it fits (never below `min`), then cut. Returns the size used. */
-  function fitLine(ctx, cut, text, maxW, size, min) {
-    let s = size;
-    cut(ctx, s);
-    while (s > min && ctx.measureText(text).width > maxW) cut(ctx, (s -= 4));
-    return { size: s, text: ellipsis(ctx, text, maxW) };
+  /** A one-line box: shrunk if the real width is wider than the layout's estimate, then cut. Vertically centred in its line
+      height like a line of text in a box (CSS / React Native). */
+  function textOp(ctx, op) {
+    let size = op.size;
+    setFont(ctx, op.font, size, op.tracking || 0);
+    while (size > op.size * 0.7 && ctx.measureText(op.text).width > op.w) setFont(ctx, op.font, (size -= 2), op.tracking || 0);
+    const t = ellipsis(ctx, op.text, op.w);
+    const m = ctx.measureText("Hg");
+    const asc = m.fontBoundingBoxAscent ?? size * 0.88, desc = m.fontBoundingBoxDescent ?? size * 0.21;
+    ctx.fillStyle = op.color;
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign = op.align === "right" ? "right" : op.align === "center" ? "center" : "left";
+    const x = op.align === "right" ? op.x + op.w : op.align === "center" ? op.x + op.w / 2 : op.x;
+    ctx.fillText(t, x, op.y + op.lh / 2 + (asc - desc) / 2);
+    ctx.textAlign = "left";
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
   }
-
-  /** The TITAN mark (image/titan-mark.svg, the app icon): two chevrons on a night square, drawn as vectors so it is always sharp. */
-  function mark(ctx, x, y, size) {
-    const k = size / 100;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.fillStyle = "#05070a";
+  function rectPath(ctx, op) {
+    const { x, y, w, h } = op, r = Math.min(op.radius || 0, w / 2, h / 2), cut = op.cut || 0;
     ctx.beginPath();
-    ctx.roundRect ? ctx.roundRect(0, 0, size, size, 22 * k) : ctx.rect(0, 0, size, size);
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    if (r) ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - (cut || r));
+    if (cut) ctx.lineTo(x + w - cut, y + h);
+    else if (r) ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    if (r) ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    if (r) ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+  function mark(ctx, op) {
+    const k = op.size / 32;
+    ctx.save();
+    ctx.translate(op.x, op.y);
+    ctx.fillStyle = op.bg;
+    rectPath(ctx, { x: 0, y: 0, w: op.size, h: op.size, radius: 7 * k });
     ctx.fill();
-    ctx.strokeStyle = C.cy;
-    ctx.lineWidth = 3.2 * 3.125 * k;
+    ctx.strokeStyle = op.fg;
+    ctx.lineWidth = 3.2 * k;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    const chevron = (dy, alpha) => {
-      ctx.globalAlpha = alpha;
+    for (const [dy, a] of [[0, 1], [8, 0.5]]) {
+      ctx.globalAlpha = a;
       ctx.beginPath();
-      ctx.moveTo(9 * 3.125 * k, (15.5 + dy) * 3.125 * k);
-      ctx.lineTo(16 * 3.125 * k, (8.5 + dy) * 3.125 * k);
-      ctx.lineTo(23 * 3.125 * k, (15.5 + dy) * 3.125 * k);
+      ctx.moveTo(9 * k, (15.5 + dy) * k);
+      ctx.lineTo(16 * k, (8.5 + dy) * k);
+      ctx.lineTo(23 * k, (15.5 + dy) * k);
       ctx.stroke();
-    };
-    chevron(0, 1);
-    chevron(8, 0.5);
+    }
+    ctx.restore();
+  }
+  const images = new Map();
+  /** An SVG image, loaded once; null when it cannot be loaded (the card is drawn without it). */
+  function image(src) {
+    if (!images.has(src)) images.set(src, new Promise((ok) => {
+      const img = new Image();
+      const timer = setTimeout(() => ok(null), 2500);
+      img.onload = () => { clearTimeout(timer); ok(img); };
+      img.onerror = () => { clearTimeout(timer); images.delete(src); ok(null); };
+      img.src = src;
+    }));
+    return images.get(src);
+  }
+  const glyph = (name, color) => {
+    if (!window.titanIcon || !name) return Promise.resolve(null);
+    const svg = window.titanIcon(name).replace("<svg ", `<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" style="color:${color}" `);
+    return image(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`);
+  };
+  /** The brand's contour lines (assets/ascension/contours.svg) inked in `color`. */
+  async function relief(ctx, op) {
+    const img = await image("/assets/ascension/contours.svg");
+    if (!img) return;
+    const off = document.createElement("canvas");
+    off.width = Math.round(op.w); off.height = Math.round(op.h);
+    const o = off.getContext("2d");
+    o.drawImage(img, 0, 0, off.width, off.height);
+    o.globalCompositeOperation = "source-in";
+    o.fillStyle = op.color;
+    o.fillRect(0, 0, off.width, off.height);
+    ctx.save();
+    const c = op.clip;
+    if (c) { ctx.beginPath(); ctx.rect(c.x, c.y, c.w, c.h); ctx.clip(); }
+    ctx.globalAlpha = op.opacity ?? 1;
+    // The asset's strokes are faint on purpose (7 to 34 %): drawn twice they read on a bright field without competing with it.
+    ctx.drawImage(off, op.x, op.y);
+    ctx.drawImage(off, op.x, op.y);
     ctx.restore();
   }
 
-  /** The glyph of the discipline (or a trophy for a success) as an image, in the accent colour; null if it cannot be loaded. */
-  function glyph(name, color) {
-    return new Promise((ok) => {
-      if (!window.titanIcon) return ok(null);
-      const svg = window.titanIcon(name).replace("<svg ", `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" style="color:${color}" `);
-      const img = new Image();
-      const timer = setTimeout(() => ok(null), 1500);
-      img.onload = () => { clearTimeout(timer); ok(img); };
-      img.onerror = () => { clearTimeout(timer); ok(null); };
-      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-    });
-  }
-  function iconName(sportId, kind) {
-    try { if (sportId && window.TitanSports?.iconOf) return window.TitanSports.iconOf(sportId); } catch {}
-    return kind === "achievement" ? "trophy" : "bolt";
-  }
-
-  /** Draws a model (TitanShareStory.session/achievement) and returns the 1080 × 1920 canvas. */
-  async function draw(model, { sportId = null } = {}) {
+  /** Draws a model in a style and returns the 1080 × 1920 canvas. */
+  async function draw(model, style) {
     await fonts();
-    const SAFE = S().SAFE;
+    const plan = S().layout(model, style);
     const c = document.createElement("canvas");
-    c.width = W;
-    c.height = H;
+    c.width = plan.width;
+    c.height = plan.height;
     const ctx = c.getContext("2d");
-    ctx.textBaseline = "top";
-    ctx.fillStyle = C.bg;
-    ctx.fillRect(0, 0, W, H);
-    const left = SAFE.side;
-    const room = W - SAFE.side * 2;
-    const accent = model.accent === "amber" ? C.am : C.cy;
-    const dense = Boolean(model.highlight) || (Boolean(model.xp) && model.facts.length > 0);
-    const top = SAFE.top;
-    const bottom = H - SAFE.bottom;
-
-    // Brand row.
-    mark(ctx, left, top, 92);
-    CUT.display(ctx, 70);
-    if ("letterSpacing" in ctx) ctx.letterSpacing = "9px";
-    ctx.fillStyle = C.tx;
-    ctx.fillText("TITAN", left + 92 + 26, top + 8);
-    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
-    if (model.date) {
-      CUT.semi(ctx, 32);
-      ctx.fillStyle = C.tx2;
-      ctx.textAlign = "right";
-      ctx.fillText(ellipsis(ctx, model.date, room - 400), W - SAFE.side, top + 28);
-      ctx.textAlign = "left";
-    }
-
-    // Footer, from the bottom margin up.
-    const footer = [];
-    if (model.name) footer.push({ cut: CUT.bold, size: 44, color: C.tx, text: model.name });
-    footer.push({ cut: CUT.semi, size: 36, color: C.tx, text: model.tagline });
-    footer.push({ cut: CUT.semi, size: 36, color: C.cy, text: model.url });
-    const footerH = footer.reduce((n, f) => n + f.size * 1.12, 0) + (footer.length - 1) * 6;
-    const footerTop = bottom - footerH;
-    ctx.fillStyle = C.line2;
-    ctx.fillRect(left, footerTop - 28 - 3, room, 3);
-    let fy = footerTop;
-    for (const f of footer) {
-      f.cut(ctx, f.size);
-      ctx.fillStyle = f.color;
-      ctx.fillText(ellipsis(ctx, f.text, room), left, fy + f.size * 0.06);
-      fy += f.size * 1.12 + 6;
-    }
-
-    // The middle block: laid out first, then centred between the brand row and the footer rule.
-    const blocks = [];
-    const titleSize = dense ? 92 : 108;
-    CUT.display(ctx, titleSize);
-    const titleLines = lines(ctx, model.title, room, model.highlight ? 1 : 2);
-    blocks.push({ h: 60 + 14 + titleLines.length * titleSize * 1.06, paint: async (y) => {
-      const img = await glyph(iconName(sportId, model.kind), accent);
-      if (img) ctx.drawImage(img, left, y, 60, 60);
-      CUT.semi(ctx, 40);
-      ctx.fillStyle = accent;
-      ctx.fillText(ellipsis(ctx, model.eyebrow, room - 78), left + (img ? 78 : 0), y + 8);
-      CUT.display(ctx, titleSize);
-      ctx.fillStyle = C.tx;
-      titleLines.forEach((l, i) => ctx.fillText(l, left, y + 74 + i * titleSize * 1.06 + titleSize * 0.03));
-    } });
-    if (model.hero) {
-      const size = fitSize(model.hero.value, dense ? 200 : 300, room, 0.4);
-      blocks.push({ h: size + (model.hero.label ? 45 : 0), paint: (y) => {
-        const hero = fitLine(ctx, CUT.figure, model.hero.value, room, size, size * 0.5);
-        if ("letterSpacing" in ctx) ctx.letterSpacing = "-3px";
-        ctx.fillStyle = C.tx;
-        ctx.fillText(hero.text, left - 4, y - hero.size * 0.04);
-        if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
-        if (model.hero.label) {
-          CUT.semi(ctx, 40);
-          ctx.fillStyle = C.tx2;
-          ctx.fillText(ellipsis(ctx, model.hero.label, room), left, y + size + 2);
+    for (const op of plan.ops) {
+      if (op.t === "fill") { ctx.fillStyle = op.color; ctx.fillRect(0, 0, c.width, c.height); }
+      else if (op.t === "rect") {
+        ctx.save();
+        ctx.globalAlpha = op.opacity ?? 1;
+        rectPath(ctx, op);
+        if (op.color && op.color !== "transparent") { ctx.fillStyle = op.color; ctx.fill(); }
+        if (op.stroke) { ctx.strokeStyle = op.stroke; ctx.lineWidth = op.strokeWidth || 2; ctx.stroke(); }
+        ctx.restore();
+      } else if (op.t === "line") {
+        ctx.strokeStyle = op.color; ctx.lineWidth = op.width || 2;
+        ctx.beginPath(); ctx.moveTo(op.x1, op.y1); ctx.lineTo(op.x2, op.y2); ctx.stroke();
+      } else if (op.t === "route") {
+        ctx.save();
+        ctx.strokeStyle = op.color; ctx.lineWidth = op.width; ctx.lineCap = "round"; ctx.lineJoin = "round";
+        for (const seg of op.segs) {
+          ctx.beginPath();
+          seg.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+          ctx.stroke();
         }
-      } });
-    }
-    if (model.facts.length) {
-      blocks.push({ h: 34 + 36 + 6 + 85, paint: (y) => {
-        ctx.fillStyle = C.line2;
-        ctx.fillRect(left, y, room, 3);
-        const n = model.facts.length;
-        const col = (room - 28 * (n - 1)) / n;
-        model.facts.forEach(([label, value], i) => {
-          const x = left + i * (col + 28);
-          CUT.semi(ctx, 32);
-          ctx.fillStyle = C.tx3;
-          ctx.fillText(ellipsis(ctx, label, col), x, y + 34);
-          const v = fitLine(ctx, CUT.figureBold, value, col, 76, 46);
-          ctx.fillStyle = C.tx;
-          ctx.fillText(v.text, x, y + 34 + 36 + 6 + (76 - v.size) * 0.5);
-        });
-      } });
-    }
-    if (model.highlight) {
-      const h = model.highlight;
-      const vSize = fitSize(h.value, 96, room - 64, 0.45);
-      const height = 32 + 40 + 6 + vSize * 1.12 + (h.detail ? 6 + 38 : 0) + 32;
-      blocks.push({ h: height, paint: (y) => {
-        ctx.fillStyle = C.bg2;
-        ctx.beginPath();
-        // La coupe: the 45° corner of what is primary (DESIGN.md § 11).
-        const cut = 40, r = 12;
-        ctx.moveTo(left + r, y);
-        ctx.lineTo(left + room - r, y);
-        ctx.quadraticCurveTo(left + room, y, left + room, y + r);
-        ctx.lineTo(left + room, y + height - cut);
-        ctx.lineTo(left + room - cut, y + height);
-        ctx.lineTo(left + r, y + height);
-        ctx.quadraticCurveTo(left, y + height, left, y + height - r);
-        ctx.lineTo(left, y + r);
-        ctx.quadraticCurveTo(left, y, left + r, y);
-        ctx.fill();
-        CUT.semi(ctx, 36);
-        ctx.fillStyle = C.am;
-        ctx.fillText(ellipsis(ctx, h.label, room - 64), left + 32, y + 32);
-        const v = fitLine(ctx, CUT.figureBold, h.value, room - 64, vSize, vSize * 0.5);
-        ctx.fillText(v.text, left + 32, y + 32 + 40 + 6);
-        if (h.detail) {
-          CUT.text(ctx, 34);
-          ctx.fillStyle = C.tx2;
-          ctx.fillText(ellipsis(ctx, h.detail, room - 64), left + 32, y + 32 + 40 + 6 + vSize * 1.12 + 6);
-        }
-      } });
-    }
-    if (model.progress) {
-      CUT.text(ctx, 42);
-      const pl = lines(ctx, model.progress, room, 2);
-      blocks.push({ h: pl.length * 47, paint: (y) => {
-        CUT.text(ctx, 42);
-        ctx.fillStyle = C.tx2;
-        pl.forEach((l, i) => ctx.fillText(l, left, y + i * 47));
-      } });
-    }
-    if (model.xp || model.level) {
-      blocks.push({ h: 88, paint: (y) => {
-        let x = left;
-        if (model.xp) {
-          CUT.figureBold(ctx, 84);
-          ctx.fillStyle = C.cy;
-          ctx.fillText(model.xp, x, y);
-          x += ctx.measureText(model.xp).width + 24;
-        }
-        if (model.level) {
-          CUT.semi(ctx, 36);
-          ctx.fillStyle = C.tx2;
-          ctx.fillText(ellipsis(ctx, model.level, left + room - x), x, y + 42);
-        }
-      } });
-    }
-    const gap = dense ? 24 : 40;
-    const total = blocks.reduce((n, b) => n + b.h, 0) + gap * (blocks.length - 1);
-    const areaTop = top + 92, areaBottom = footerTop - 31;
-    let y = Math.max(areaTop + 24, areaTop + (areaBottom - areaTop - total) / 2);
-    for (const b of blocks) {
-      await b.paint(y);
-      y += b.h + gap;
+        ctx.restore();
+      } else if (op.t === "mark") mark(ctx, op);
+      else if (op.t === "relief") await relief(ctx, op);
+      else if (op.t === "icon") { const img = await glyph(op.name, op.color); if (img) ctx.drawImage(img, op.x, op.y, op.size, op.size); }
+      else if (op.t === "text") textOp(ctx, op);
     }
     return c;
   }
@@ -307,23 +223,23 @@
   const track = (event, kind) => { try { void window.TitanAnalytics?.track?.(S().EVENTS[event], { kind }); } catch {} };
 
   /* ---------- Preview sheet ---------- */
-  /** `request`: { kind: "session" | "achievement", input }. `isCurrent`: false once the account or the source changed. */
-  async function open(request, { isCurrent = () => true } = {}) {
+  /** `request`: { kind: "session" | "achievement", input }. `route`: an optional promise of the session's route shape, drawn as
+      soon as it arrives. `isCurrent`: false once the account or the source changed. */
+  async function open(request, { isCurrent = () => true, route = null } = {}) {
     if (!S() || !window.titanShell?.sheet) return null;
-    const accountOf = () => ({ owner: window.state?.user?.id, epoch: window.titanAccountTransition?.epoch });
-    const job = accountOf();
-    const current = () => !closed && isCurrent() && job.owner === window.state?.user?.id && job.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
+    const job = { owner: window.state?.user?.id, epoch: window.titanAccountTransition?.epoch };
     let closed = false;
+    const current = () => !closed && isCurrent() && job.owner === window.state?.user?.id && job.epoch === window.titanAccountTransition?.epoch && !window.titanAccountTransition?.active;
     const kind = request.kind === "achievement" ? "achievement" : "session";
-    const available = S().availableOptions(request.input);
+    const input = { ...request.input };
     const choice = { ...S().DEFAULTS };
-    const build = () => (kind === "achievement" ? S().achievement(request.input, choice) : S().session(request.input, choice));
+    const build = () => (kind === "achievement" ? S().achievement(input, choice) : S().session(input, choice));
     const body = document.createElement("div");
     body.className = "asc-stack cd-sheet st-sheet";
-    body.innerHTML = `<div class="cd-preview st-preview"><img alt="Aperçu de l’image à partager" width="${W}" height="${H}"></div>
-      <p class="asc-small asc-muted">${icon("lock")} Aperçu de l’image 1080 × 1920, créée sur ton appareil. Rien n’est publié tant que tu ne la partages pas.</p>
-      ${available.length ? `<fieldset class="st-options"><legend class="asc-eyebrow">Ce que montre l’image</legend>${available.map((id) => `<label class="auth-check"><input type="checkbox" data-option="${id}" ${choice[id] ? "checked" : ""}><span>${esc(S().OPTION_LABELS[id])}</span></label>`).join("")}</fieldset>` : ""}
-      <p class="asc-small asc-faint">Jamais sur l’image : tracé GPS, lieu, adresse, notes, ressenti ou données de santé. La visibilité de ta séance et de ton profil ne change pas.</p>
+    body.innerHTML = `<div class="cd-preview st-preview"><img alt="Aperçu de l’image à partager" width="1080" height="1920"></div>
+      <div class="asc-field st-styles"><span>Style</span><div class="asc-seg" role="group" aria-label="Style de l’image">${S().STYLES.map((id) => `<button type="button" data-style="${id}" aria-pressed="${choice.style === id}">${esc(S().STYLE_LABELS[id])}</button>`).join("")}</div></div>
+      <fieldset class="st-options" data-story-options></fieldset>
+      <p class="asc-small asc-muted">${icon("lock")} Image créée sur ton appareil. Jamais dessus : fond de carte, coordonnées, lieu, notes, ressenti ou données de santé. Rien n’est publié tant que tu ne la partages pas.</p>
       <p class="asc-small asc-muted" role="status" data-story-status></p>
       <p class="asc-small jr-edit-error" role="alert" data-story-error hidden></p>
       <button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-story-retry hidden>Réessayer</button>
@@ -334,15 +250,20 @@
         <div class="asc-row-flex"><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-story-link>${icon("copy")} Copier le lien titan-app.fr</button><a class="asc-btn asc-btn-ghost asc-btn-sm" href="/social#amis" data-story-invite>${icon("userPlus")} Inviter un ami</a></div></section>`;
     const sheet = window.titanShell.sheet({ title: "Partager", eyebrow: kind === "achievement" ? "Succès" : "Séance", body, onClose: () => { closed = true; } });
     const $ = (sel) => body.querySelector(sel);
-    const img = $("img"), status = $("[data-story-status]"), error = $("[data-story-error]"), retry = $("[data-story-retry]");
+    const img = $("img"), status = $("[data-story-status]"), error = $("[data-story-error]"), retry = $("[data-story-retry]"), optionsBox = $("[data-story-options]");
     const shareBtn = $("[data-story-share]"), saveBtn = $("[data-story-save]"), actions = $("[data-story-actions]"), help = $("[data-story-help]");
     let canvas = null, file = null, painting = false, pending = false, sequence = 0, failedAction = "paint";
     const live = () => { if (!current()) { if (sheet.open) sheet.close(); return false; } return sheet.isConnected && sheet.open; };
     const sync = () => {
       actions.setAttribute("aria-busy", String(pending || painting));
       shareBtn.disabled = saveBtn.disabled = pending || painting || !canvas;
-      body.querySelectorAll("[data-option]").forEach((el) => { el.disabled = pending; });
+      body.querySelectorAll("[data-option], [data-style]").forEach((el) => { el.disabled = pending; });
       retry.hidden = pending || painting || !error.textContent;
+    };
+    const renderOptions = () => {
+      const available = S().availableOptions(input, choice.style);
+      optionsBox.hidden = !available.length;
+      optionsBox.innerHTML = available.length ? `<legend class="asc-eyebrow">Ce que montre l’image</legend>${available.map((id) => `<label class="auth-check"><input type="checkbox" data-option="${id}" ${choice[id] ? "checked" : ""}><span>${esc(S().OPTION_LABELS[id])}${S().OPTION_HINTS[id] ? `<small class="asc-faint"> · ${esc(S().OPTION_HINTS[id])}</small>` : ""}</span></label>`).join("")}` : "";
     };
     const fail = (message, action) => { failedAction = action; error.textContent = message; error.hidden = false; sync(); };
     const canShareFiles = (f) => Boolean(navigator.share && navigator.canShare && navigator.canShare({ files: [f] }));
@@ -352,12 +273,11 @@
       if (pending || !live()) return;
       const seq = ++sequence;
       painting = true; canvas = null; file = null;
-      img.removeAttribute("src");
       error.textContent = ""; error.hidden = true;
       status.textContent = "Création de l’image…";
       sync();
       try {
-        const next = await draw(build(), { sportId: request.input.sportId || null });
+        const next = await draw(build(), choice.style);
         if (seq !== sequence || !live()) return;
         canvas = next;
         img.src = next.toDataURL("image/png");
@@ -413,6 +333,14 @@
       choice[box.dataset.option] = box.checked;
       void paint();
     });
+    body.addEventListener("click", (e) => {
+      const button = e.target.closest?.("[data-style]");
+      if (!button || pending || button.dataset.style === choice.style) return;
+      choice.style = button.dataset.style;
+      body.querySelectorAll("[data-style]").forEach((el) => el.setAttribute("aria-pressed", String(el === button)));
+      renderOptions();
+      void paint();
+    });
     shareBtn.addEventListener("click", () => act("share"));
     saveBtn.addEventListener("click", () => act("save"));
     retry.addEventListener("click", () => (failedAction === "paint" ? paint() : act(failedAction)));
@@ -424,10 +352,18 @@
         window.titanShell.toast({ type: "warn", title: "Copie impossible", message: "Le lien est https://titan-app.fr" });
       }
     });
+    renderOptions();
     track("preview", kind);
+    // The route arrives from the server after the sheet opens: the card is drawn at once, then again with its route.
+    if (route) Promise.resolve(route).then((shape) => {
+      if (!shape || !live()) return;
+      input.route = shape;
+      renderOptions();
+      void paint();
+    }).catch(() => {});
     await paint();
     return live() ? sheet : null;
   }
 
-  window.TitanStory = { draw, open, sessionInput, fitSize };
+  window.TitanStory = { draw, open, sessionInput, routeOf };
 })();

@@ -196,10 +196,10 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   const counts = status === "confirmed" && !historical ? contributions(social, events) : [];
 
   // « Partager » (before V2): the story card opens on its preview, where the person chooses what it shows. It takes only what this
-  // screen already shows: the measures, a record set by this session and the XP the server confirmed (none while pending or held).
+  // screen already shows: the measures, the discipline's own fields, a record set by this session, its week and its route.
   function openStory() {
     if (!log) return;
-    navigation.navigate("ShareStory", { kind: "session", input: sessionStory(log, { logs, name: profile?.username ?? null, receipt: status === "confirmed" ? receipt : null }) });
+    navigation.navigate("ShareStory", { kind: "session", input: sessionStory(log, { logs, name: profile?.username ?? null }) });
   }
 
   return (

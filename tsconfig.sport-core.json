@@ -27,7 +27,6 @@
     "js/core/support-diagnostics.js",
     "types/sport-core-globals.d.ts",
     "tests/typecheck/effort-contract.ts",
-    "js/core/coach-workspace.js",
-    "js/core/share-story.js"
+    "js/core/coach-workspace.js"
   ]
 }

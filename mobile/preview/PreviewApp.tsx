@@ -90,7 +90,7 @@ export default function PreviewApp() {
   });
   if (!loaded) return null;
   if (previewState.route === "Crests") return <Gallery />;
-  if (previewState.route === "Story") return <StoryPreview name={previewState.params.case ?? "gps"} />;
+  if (previewState.route === "Story") return <StoryPreview name={previewState.params.case ?? "gps"} style={previewState.params.style} />;
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
       <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 412, height: 915 }, insets: { top: 32, bottom: 0, left: 0, right: 0 } }}>

@@ -117,6 +117,26 @@
     });
   }
 
+  /** « Partager » (before V2): the route of a session as a shape for its story card. The first and last 300 m are removed (null
+      when the route is too short to hide both ends), and only planar offsets in metres from the south-west corner leave this
+      function: no coordinate reaches the card. Null when the account has no route for the session or the feature is off. */
+  async function shapeForSession(log) {
+    if (!enabled() || !log?.client_event_id) return null;
+    const ctx = context();
+    if (!same(ctx, context())) return null;
+    try {
+      const meta = await call(ctx, "titan_route_for_event_v1", { p_event_id: log.client_event_id });
+      if (!meta) return null;
+      const full = await call(ctx, "titan_route_get_v1", { p_id: meta.id });
+      const trimmed = trimEnds(decode(full?.track), SHARE_TRIM_M);
+      if (!trimmed) return null;
+      const pts = trimmed.flat();
+      const lat0 = Math.min(...pts.map((p) => p.lat)), lon0 = Math.min(...pts.map((p) => p.lon));
+      const k = Math.cos(rad((lat0 + Math.max(...pts.map((p) => p.lat))) / 2));
+      return { segs: trimmed.map((seg) => seg.map((p) => [Math.round((p.lon - lon0) * k * 111320), Math.round((p.lat - lat0) * 110574)])) };
+    } catch { return null; }
+  }
+
   /** Inside a session's detail: the map of the route linked to it (nothing at all when it has none or the feature is off). */
   async function mountForSession(slot, log) {
     if (!slot || !enabled() || !log?.client_event_id) return;
@@ -164,5 +184,5 @@
     });
     list();
   }
-  Object.assign(root.TitanRoutes, { mountForSession, openLibrary, enabled });
+  Object.assign(root.TitanRoutes, { mountForSession, shapeForSession, openLibrary, enabled });
 })(typeof window !== "undefined" ? window : globalThis);

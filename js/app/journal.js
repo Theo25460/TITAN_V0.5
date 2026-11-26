@@ -427,7 +427,7 @@
       if (!currentAccount(context)) return d.close();
       if (e.target.closest("[data-duplicate]")) return X().duplicate(l);
       // « Partager » (before V2): a story card of this session, previewed before anything is shared.
-      if (e.target.closest("[data-story]")) return window.TitanStory?.open({ kind: "session", input: window.TitanStory.sessionInput(l) }, { isCurrent: () => d.open && currentAccount(context) });
+      if (e.target.closest("[data-story]")) return window.TitanStory?.open({ kind: "session", input: window.TitanStory.sessionInput(l) }, { isCurrent: () => d.open && currentAccount(context), route: window.TitanStory.routeOf(l) });
       if (e.target.closest("[data-edit]")) {
         d.close();
         return openEdit(l, context);

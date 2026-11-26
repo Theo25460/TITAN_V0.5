@@ -135,7 +135,15 @@ test("the preview stays inside a small phone and keeps the invitation separate f
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   assert.equal(overflow, false, "no horizontal scroll at 320 px");
   assert.equal(await sheet(page).getByRole("link", { name: "Inviter un ami" }).getAttribute("href"), "/social#amis");
-  assert.equal(await page.locator("dialog[open] [data-option='xp']").count(), 0, "no XP choice without a confirmed gain");
+  // Three styles; the week is a choice of Champ and Feuille only, and every style repaints the same 1080 × 1920 picture.
+  const styles = page.locator("dialog[open] [data-style]");
+  assert.deepEqual(await styles.allTextContents(), ["Champ", "Feuille", "Carnet"]);
+  for (const style of ["feuille", "carnet", "champ"]) {
+    const before = await page.locator("dialog[open] .st-preview img").getAttribute("src");
+    await page.locator(`dialog[open] [data-style='${style}']`).click();
+    await page.waitForFunction((src) => { const img = document.querySelector("dialog[open] .st-preview img"); return img?.src && img.src !== src && img.complete && img.naturalWidth === 1080; }, before);
+    assert.equal(await page.locator(`dialog[open] [data-style='${style}']`).getAttribute("aria-pressed"), "true");
+  }
   assert.deepEqual(errors, []);
   await context.close();
 });
@@ -160,6 +168,30 @@ test("the journal sheet of a session offers « Partager », which opens the same
   await sheet(page).waitFor();
   await painted(page);
   assert.equal(await page.evaluate(() => window.storyEvents.filter(([n]) => n === "share_preview_opened").length), 1);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test("a session's route arrives after the preview opens, is drawn by default, and the shape holds no coordinate", async () => {
+  const { context, page, errors } = await journal();
+  await page.evaluate(() => {
+    window.routeAsked = [];
+    window.TitanRoutes = { ...(window.TitanRoutes || {}), shapeForSession: async (log) => { window.routeAsked.push(log.client_event_id); return { segs: [[[0, 0], [900, 60], [950, 1300], [2200, 1250], [2300, 2100], [3100, 2350], [3300, 900]]] }; } };
+  });
+  await page.evaluate((log) => window.TitanMoment.open(log), LOG);
+  await page.locator("dialog[open] [data-moment='story']").click();
+  await sheet(page).waitFor();
+  await page.locator("dialog[open] [data-option='route']").waitFor();
+  assert.equal(await page.locator("dialog[open] [data-option='route']").isChecked(), true, "the route is shown by default");
+  assert.deepEqual(await page.evaluate(() => window.routeAsked), [LOG.client_event_id]);
+  await painted(page);
+  const plan = await page.evaluate((log) => {
+    const S = window.TitanShareStory;
+    const input = { ...window.TitanStory.sessionInput(log), route: { segs: [[[0, 0], [900, 60], [950, 1300]]] } };
+    return S.layout(S.session(input), "champ").ops.filter((o) => o.t === "route");
+  }, LOG);
+  assert.equal(plan.length, 1);
+  assert.ok(plan[0].segs.flat().every(([x, y]) => x >= 0 && x <= 1080 && y >= 0 && y <= 1920), "the route is drawn in picture pixels");
   assert.deepEqual(errors, []);
   await context.close();
 });
