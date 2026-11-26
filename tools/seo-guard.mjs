@@ -12,10 +12,11 @@
 // Reports: <out>/<label>.json and <out>/<label>.md (default out: test-results/seo-guard). Nothing is ever sent anywhere.
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { startEmulator } from "./lib/netlify-emulator.mjs";
 import { runGuard, toBaseline, toMarkdown, boundedFetch, inspectDist } from "./lib/seo-guard.mjs";
 
-const root = resolve(new URL("..", import.meta.url).pathname);
+const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const PRODUCTION = "https://titan-app.fr";
 const DUPLICATE_HOSTS = ["titano-app.netlify.app", "main--titano-app.netlify.app"];
 
@@ -71,7 +72,7 @@ async function main() {
     // --netlify-toml lets the guard judge another checkout (a branch of a parallel lot) with that checkout's own routing rules.
     emulator = await startEmulator({ dist, netlifyToml: readFileSync(resolve(root, opts["netlify-toml"] || "netlify.toml"), "utf8") });
     base = emulator.url;
-    distInfo = inspectDist(dist);
+    distInfo = { ...inspectDist(dist), ruleSources: emulator.site.config.redirects.map((r) => r.from) };
     label ||= `dist-${context}`;
   } else {
     base = String(opts.base || "").replace(/\/+$/, "");

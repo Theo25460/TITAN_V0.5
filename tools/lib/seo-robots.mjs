@@ -27,7 +27,12 @@ export function parseRobots(text) {
   return { groups, sitemaps };
 }
 
-const ruleRegex = (path) => new RegExp(`^${path.replace(/[.+?^{}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\\\$$|\$$/, "$")}`);
+// "*" is any run of characters; "$" anchors only at the very end of a rule, anywhere else it is a literal character.
+const ruleRegex = (path) => {
+  const anchored = path.endsWith("$");
+  const body = (anchored ? path.slice(0, -1) : path).replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+  return new RegExp(`^${body}${anchored ? "$" : ""}`);
+};
 
 function groupFor(robots, userAgent) {
   const agent = userAgent.toLowerCase();
@@ -35,13 +40,13 @@ function groupFor(robots, userAgent) {
   let bestLength = -1;
   for (const group of robots.groups) {
     for (const name of group.agents) {
-      const length = name === "*" ? 0 : agent.startsWith(name) ? name.length : -1;
+      const length = name === "*" ? 0 : agent === name ? name.length : -1; // Google matches the product token exactly
       if (length > bestLength) { best = group; bestLength = length; }
     }
   }
   if (!best) return [];
   // Every group naming the same most specific agent is merged, as the RFC asks.
-  return robots.groups.filter((g) => g.agents.some((name) => (name === "*" ? bestLength === 0 : name.length === bestLength && agent.startsWith(name)))).flatMap((g) => g.rules);
+  return robots.groups.filter((g) => g.agents.some((name) => (name === "*" ? bestLength === 0 : name === agent))).flatMap((g) => g.rules);
 }
 
 /** @returns {{ allowed: boolean, rule: string | null }} whether `path` may be crawled by `userAgent`. */

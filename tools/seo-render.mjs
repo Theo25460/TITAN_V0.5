@@ -10,11 +10,11 @@
 // Exit codes as tools/seo-guard.mjs: 0 PASS · 1 FAIL · 3 INCONCLUSIVE · 2 usage. Report: test-results/seo-guard/render-<label>.json/.md
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { startEmulator } from "./lib/netlify-emulator.mjs";
 import { expandRoutes, toMarkdown, summarizePage, boundedFetch } from "./lib/seo-guard.mjs";
 
-const root = resolve(new URL("..", import.meta.url).pathname);
+const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const PLAY_LISTING = "https://play.google.com/store/apps/details?id=fr.titanapp.app";
 export const VIEWPORTS = [{ name: "mobile", width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }, { name: "desktop", width: 1280, height: 800, deviceScaleFactor: 1 }];
 // Lab profile for --perf (comparable runs, not field data): a mid-range phone on a good 4G link.

@@ -183,4 +183,5 @@ export function robotsDirectives({ robotsMeta = [], xRobotsTag = "" } = {}) {
 }
 
 // The words a 404 page says, to recognise a "soft 404" (a missing page answered 200) by its content.
-export const NOT_FOUND_TITLE = /page introuvable|page not found|404/i;
+// Anchored at the start of the title: a page titled « Course 4040 m » or « Les 404 marches » is not a 404 page.
+export const NOT_FOUND_TITLE = /^\s*(page introuvable|page not found|404\b)/i;

@@ -84,7 +84,7 @@ describe("Netlify emulator (behaviour measured on titan-app.fr, 26/11/2026)", ()
     for (const host of ["titano-app.netlify.app", "main--titano-app.netlify.app"]) {
       const r = site.resolveRequest("/suivi-escalade?x=1", host);
       assert.equal(r.status, 301, host);
-      assert.equal(r.headers.location, "https://titan-app.fr/suivi-escalade");
+      assert.equal(r.headers.location, "https://titan-app.fr/suivi-escalade?x=1", "the query string is passed through, as on Netlify");
     }
     for (const host of ["deploy-preview-170--titano-app.netlify.app", "6afec02bcf8ca878e98133e6--titano-app.netlify.app", "titan-app.fr"]) assert.equal(site.resolveRequest("/suivi-escalade", host).status, 200, host);
   });

@@ -8,14 +8,14 @@ Audit initial, chiffres et preuves : [`AUDIT_2026-11-26.md`](AUDIT_2026-11-26.md
 
 | Pièce | Rôle |
 |---|---|
-| [`tools/seo/manifest.json`](../../tools/seo/manifest.json) | **Le contrat** : chaque route (100, et leurs variantes `.html` et `/`), son groupe, sa criticité, ses attentes et le motif de chaque exception. Le diff de ce fichier *est* la revue d'un changement de routage. |
+| [`tools/seo/manifest.json`](../../tools/seo/manifest.json) | **Le contrat** : chaque route (103, et leurs variantes `.html` et `/`), son groupe, sa criticité, ses attentes et le motif de chaque exception. Le diff de ce fichier *est* la revue d'un changement de routage. |
 | [`tools/seo/baseline/production.json`](../../tools/seo/baseline/production.json) | **La référence** : la production du 26/11/2026 (déploiement `6afec02bcf8ca878e98133e6`, commit `0dae9af`), par page publique : titre, description, canonique, H1, intertitres, texte principal par blocs, liens internes, FAQ, données structurées, poids. Aucun secret, aucun cookie, aucun contenu privé (seulement les 27 pages publiques). |
 | [`tools/seo/approvals.json`](../../tools/seo/approvals.json) | **Les approbations** : un changement voulu, pour une URL, une règle et la valeur exacte. |
 | `tools/seo-guard.mjs` (+ `tools/lib/seo-guard.mjs`, `seo-html.mjs`, `seo-robots.mjs`, `netlify-emulator.mjs`) | Contrôle HTTP du HTML **brut** : sur `dist/` (servi localement avec les vraies règles de `netlify.toml`), une preview ou la production. Sans dépendance, sans réseau pour `dist/`. |
 | `tools/seo-render.mjs` | Contrôle du **DOM rendu** (Chromium, téléphone 390 px et ordinateur 1 280 px, tiers coupés, première visite avec la bannière de consentement) et parcours Google → page → lien interne → connexion / inscription. Option `--perf` : mesures de laboratoire. |
 | `tools/lib/build-context.mjs` | Écrit `/build-info.json` (commit, contexte Netlify, déploiement) et, **seulement** pour `deploy-preview`, `branch-deploy` ou `dev`, un `dist/_headers` avec `X-Robots-Tag: noindex`. |
 
-Contrôles systématiques : statut final attendu, 404/5xx inattendus, boucles et chaînes de redirection, canonique unique et absolue vers la page elle-même, indexabilité selon le groupe (meta robots **et** `X-Robots-Tag`), sitemap XML valide et cohérent avec le contrat, robots.txt servi en `text/plain` et ne bloquant aucune page publique (règles Google : la plus longue l'emporte, `Allow` gagne à égalité), contenu principal présent, soft 404 (page vide ou page 404 servie en 200, repli qui répond 200 aux URL inconnues), boutons vers `/onboarding`, liens internes vers des pages mortes, scripts de la vitrine (aucun bundle applicatif, SDK ni carte), CSS/JS servis avec le bon type MIME et l'empreinte `rev=` (pas de mélange de deux builds), poids de chaque page, fichiers internes jamais publiés, hôtes en double, commit réellement servi, titres et descriptions dupliqués entre pages, pages publiques orphelines, réciprocité des `hreflang` (aucun aujourd'hui).
+Contrôles systématiques : statut final attendu, 404/5xx inattendus, boucles et chaînes de redirection, canonique unique et absolue vers la page elle-même, indexabilité selon le groupe (meta robots **et** `X-Robots-Tag`), sitemap XML valide et cohérent avec le contrat, robots.txt servi en `text/plain` et ne bloquant aucune page publique (règles Google : la plus longue l'emporte, `Allow` gagne à égalité), contenu principal présent, soft 404 (page vide ou page 404 servie en 200, repli qui répond 200 aux URL inconnues), boutons vers `/onboarding`, liens internes vers des pages mortes, scripts de la vitrine (aucun bundle applicatif, SDK ni carte), CSS/JS servis avec le bon type MIME et l'empreinte `rev=` (pas de mélange de deux builds), poids de chaque page, fichiers internes jamais publiés, hôtes en double, commit réellement servi, titres et descriptions dupliqués entre pages, pages publiques orphelines, réciprocité des `hreflang` (aucun aujourd'hui), et couverture de l'inventaire : tout fichier HTML de `dist/` et tout chemin exact nommé par `netlify.toml` doivent figurer au manifeste.
 
 ### Fidélité de l'émulateur
 
@@ -27,7 +27,7 @@ Mesurée le 26/11/2026 sur 114 chemins : **113 réponses identiques à la produc
 |---|---|---|
 | **P0** — bloque | Build Netlify refusé (l'ancien déploiement reste en ligne), CI rouge, sonde rouge | page publique absente (`page-unavailable`), 5xx (`server-error`), `noindex` inattendu, `robots-disallowed`, canonique hors domaine (`canonical-mismatch`), URL historique sans redirection (`redirect-missing`, `route-dropped`), sitemap inaccessible ou incohérent à plus de 20 % (`sitemap-*`), page privée dans le sitemap, contenu principal disparu (`content-removed`, `soft-404`, `render-content-lost`), boucle de redirection, fichier interne exposé (`file-exposed`), cible des boutons cassée (`cta-broken`), noindex de preview dans un build de production (`noindex-propagation`, `build-context`), commit publié différent du commit validé (`build-mismatch`) |
 | **P1** — revue | CI rouge tant qu'il n'y a pas d'approbation ; jamais bloquant dans le build Netlify ni la sonde | titre stratégique changé, contenu réduit de plus de 25 %, liens internes réduits de plus de 30 %, FAQ réduite, canonique changée, script applicatif sur une page publique, page plus lourde de plus de 30 % **et** 30 Ko, redirection en deux sauts, page indexable hors contrat, hôte en double indexable |
-| **P2** — avertissement | Jamais bloquant, listé dans le résumé | titre de plus de 65 caractères, description hors 50–170, H1 multiple, texte modifié sans perte, nouvelle page, `lastmod` uniforme, page `noindex` hors contrat |
+| **P2** — avertissement | Jamais bloquant, listé dans le résumé | titre de plus de 65 caractères, description hors 50–170, H1 multiple, texte modifié sans perte, nouvelle page, `lastmod` uniforme, page `noindex` ou règle `netlify.toml` hors contrat, page orpheline, titre en double |
 
 Seuils (dans le manifeste) tirés de la référence réelle : le plus petit texte de chaque groupe fixe son plancher (`/partenariats` 139 mots → 100 pour support et légal ; guides ≥ 328 → 250 ; vitrine ≥ 434 → 300). Un résultat réseau qui échoue après les nouvelles tentatives (2, délai 15 s) est **non concluant**, jamais une réussite : code de sortie 3.
 
@@ -74,6 +74,8 @@ Codes de sortie : 0 PASS (P2 tolérés), 1 FAIL, 3 non concluant (réseau), 2 us
 ```json
 { "id": "2026-12-03-titre-fonctionnalites", "path": "/fonctionnalites", "rule": "title-changed", "to": "<le titre exact>", "reason": "Titre plus explicite pour « application suivi sportif »", "ref": "PR #171", "approvedBy": "Theo25460", "expires": "2027-01-31" }
 ```
+
+   `content-removed` (texte réduit de plus de 60 %) est le seul P0 qu'une approbation peut lever : c'est une refonte volontaire, relue dans la PR, et l'approbation nomme l'empreinte exacte du nouveau contenu. Le plancher du contrat (`soft-404` : moins de 40 mots, ou une page 404) ne s'approuve jamais.
 
    Une approbation couvre **une URL, une règle, une valeur exacte** (pour un texte : l'empreinte du nouveau contenu). Un nouveau changement de la même page la rend caduque. Pas de motif `*`, pas d'interrupteur global ; une règle de contrat (statut, noindex, robots, sitemap, soft 404, fuite) ne s'approuve pas : on corrige, ou on change le manifeste dans la PR.
 4. Après publication, rafraîchir la référence **depuis la production** et retirer les approbations devenues inutiles (le rapport les signale `approval-unused`) :
@@ -122,18 +124,19 @@ après publication ─► probe-prod (workflow_dispatch avec expect_commit, puis
 | Étape | Avant | Après | Mesure |
 |---|---|---|---|
 | `pnpm test` (local, 4 cœurs) | 6,3 s, 782 tests | 13,4 s, 815 tests | +7 s : 33 scénarios en trois fichiers parallèles |
-| Bouclier sur `dist/` (job verify) | — | 0,4–0,7 s, 172 routes | sans réseau |
+| Job `verify` sur GitHub | 57 s (dont `pnpm run verify` 11 s) | 72 s (dont `pnpm run verify` 21 s, bouclier < 1 s, archivage du rapport 1 s) | PR #166 contre la dernière PR du 19/11 |
+| Bouclier sur `dist/` | — | 0,4–0,7 s, 175 routes | sans réseau |
 | Build Netlify | — | +0,5 s | aucun build supplémentaire |
 | E2E (job e2e, ~25 min) | 1 093 parcours | + 2 tests, ~16 s en local | |
-| `seo-preview` (PR vers `main`) | — | 1 job, ~1–3 min (attente de Netlify, plafond 12 min) | lecture seule |
-| `probe-prod` (toutes les 6 h) | ~20 s | + ~15 s (checkout, Node, smoke de 35 routes en 3,7 s) | |
-| `audit-live` (quotidien) | ~3 min | + ~1,5 min (172 routes en 6 s, rendu 6 pages × 2 écrans) | |
+| `seo-preview` (PR vers `main`) | — | 1 job de 24 s mesuré (contrôle 6 s ; attente de Netlify plafonnée à 8 min, job à 12 min) | lecture seule |
+| `probe-prod` (toutes les 6 h) | ~20 s | + ~5 s mesurés (24 s au total ; smoke de 37 routes en 3,2 s) | |
+| `audit-live` (quotidien) | ~3 min | ~3 min au total mesurés (contrôle complet de 176 routes en 6–8 s, rendu 6 pages × 2 écrans en 18 s) | |
 
 Le dépôt est public : les minutes GitHub Actions des exécuteurs standard ne sont pas facturées. Netlify (offre `nf_team_dev`) : aucun build supplémentaire. **Aucune dépense nouvelle.** Le rendu complet et les mesures de performance ne tournent pas sur chaque PR (seulement les 6 pages critiques dans la suite E2E déjà existante).
 
 ## 8. Retour arrière (frontend Web)
 
-Dernier déploiement sain connu, avant la V2.0 : **`6afec02bcf8ca878e98133e6`** (commit `0dae9af`, publié le 19/11/2026 09:24 UTC). Vérifié le 26/11/2026 : `ready`, sans expiration ; son permalien passe le bouclier complet (172 routes, 0 P0 : [preuve](evidence-2026-11-26/rollback-target-6afec02.md)).
+Dernier déploiement sain connu, avant la V2.0 : **`6afec02bcf8ca878e98133e6`** (commit `0dae9af`, publié le 19/11/2026 09:24 UTC). Vérifié le 26/11/2026 : `ready`, sans expiration ; son permalien passe le bouclier complet (175 routes, 0 P0, 0 P1 : [preuve](evidence-2026-11-26/rollback-target-6afec02.md)).
 
 1. **Décider** : un P0 en production (sonde ou audit rouge, rapport à l'appui), ou un parcours critique cassé. Suspendre les publications : ne pas changer `TITAN_APPROVED_RELEASE_SHA` (la garde refuse tout autre commit).
 2. **Identifier la cible** : Netlify › titano-app › Deploys, le dernier déploiement de production vert dont le commit est connu (le permalien `https://<id>--titano-app.netlify.app` peut d'abord passer `node tools/seo-guard.mjs check --base https://<id>--titano-app.netlify.app --context deploy-preview --fail-on p0`).

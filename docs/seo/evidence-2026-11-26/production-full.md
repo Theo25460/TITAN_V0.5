@@ -1,6 +1,6 @@
 ## Bouclier SEO — PASS
 
-Cible : `https://titan-app.fr` · contexte `production` · périmètre `full` · 172 routes · 6.4 s
+Cible : `https://titan-app.fr` · contexte `production` · périmètre `full` · 176 routes · 8.2 s
 Référence : production du 2026-11-26 (commit `0dae9af`, déploiement `6afec02bcf8ca878e98133e6`)
 
 | P0 bloquant | P1 à approuver | P2 avertissement | approuvés | non concluants |

@@ -139,7 +139,8 @@ export function createSite({ dist, netlifyToml, host = "titan-app.fr" }) {
       const status = Number(rule.status ?? 301);
       const to = String(rule.to).replace(/:([A-Za-z_][A-Za-z0-9_]*)/g, (m, name) => (name in params ? params[name] : m));
       const where = `netlify.toml:${rule.line}`;
-      if (status >= 300 && status < 400) return { ...respond(status, null, path, { location: to }), rule: where };
+      // Netlify passes the query string through a redirect whose target has none of its own.
+      if (status >= 300 && status < 400) return { ...respond(status, null, path, { location: to.includes("?") || !url.search ? to : `${to}${url.search}` }), rule: where };
       const targetPath = to.split("?")[0];
       if (targetPath.startsWith("/.netlify/functions/")) return { ...respond(200, null, path), function: targetPath.slice(20), rule: where };
       if (/^https?:\/\//.test(targetPath)) return { ...respond(200, null, path), proxy: to, rule: where };
@@ -164,7 +165,9 @@ export async function startEmulator({ dist = "dist", netlifyToml, host = "titan-
       res.end("Netlify function or proxy: not emulated");
       return;
     }
-    res.writeHead(answer.status, { ...answer.headers, "x-emulator-rule": answer.rule || "static" });
+    const headers = { ...answer.headers, "x-emulator-rule": answer.rule || "static" };
+    if (headers.location) headers.location = headers.location.replace(/[^\x21-\x7e]/g, (c) => encodeURIComponent(c)); // a decoded splat may hold non-ASCII
+    res.writeHead(answer.status, headers);
     if (req.method === "HEAD" || !answer.file) { res.end(answer.platform404 ? "Not Found - Request ID: emulated" : ""); return; }
     createReadStream(answer.file).pipe(res);
   });

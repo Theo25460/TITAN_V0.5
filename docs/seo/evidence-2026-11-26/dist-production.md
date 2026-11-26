@@ -1,7 +1,7 @@
 ## Bouclier SEO — PASS
 
-Cible : `dist/ (dist) via netlify.toml` · contexte `production` · périmètre `full` · 172 routes · 0.4 s
-Build servi : commit `0dae9af9b32d7cf7ec3ceca7b1dee52e92544f39`, contexte `local`
+Cible : `dist/ (dist) via netlify.toml` · contexte `production` · périmètre `full` · 175 routes · 0.4 s
+Build servi : commit `483e983496c1810d99e71f31da1e564b15bcda9d`, contexte `local`
 Référence : production du 2026-11-26 (commit `0dae9af`, déploiement `6afec02bcf8ca878e98133e6`)
 
 | P0 bloquant | P1 à approuver | P2 avertissement | approuvés | non concluants |

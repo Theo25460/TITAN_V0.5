@@ -392,7 +392,10 @@
     {
       "path": "/dynamic-page",
       "group": "app",
-      "reason": "Coquille des pages CMS : noindex, follow tant qu'une page CMS publiée ne fournit pas ses métadonnées (js/dynamic-page.js)."
+      "reason": "Coquille des pages CMS : noindex, follow tant qu'une page CMS publiée ne fournit pas ses métadonnées (js/dynamic-page.js).",
+      "variants": [
+        "html"
+      ]
     },
     {
       "path": "/network-error.html",
@@ -457,6 +460,13 @@
         "reason": "Écrit par tools/build-public.mjs à partir de ce changement ; absent du build de production du 19/11/2026.",
         "ref": "chantier bouclier SEO du 26/11/2026"
       }
+    },
+    {
+      "path": "/auth/garmin/callback",
+      "group": "technical",
+      "status": 302,
+      "function": true,
+      "reason": "Retour OAuth Garmin, servi par la fonction garmin (302 vers /profile avec un état invalide) : non émulé, contrôlé en production seulement."
     },
     {
       "path": "/personnage",
@@ -630,6 +640,14 @@
     },
     {
       "path": "/supabase/config.toml",
+      "group": "blocked"
+    },
+    {
+      "path": "/package-lock.json",
+      "group": "blocked"
+    },
+    {
+      "path": "/TITAN_REPRISE_CONTEXTE.md",
       "group": "blocked"
     },
     {

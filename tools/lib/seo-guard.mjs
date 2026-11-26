@@ -12,7 +12,10 @@ import { parseRobots, isAllowed, parseSitemap } from "./seo-robots.mjs";
 export const INDEXABLE_GROUPS = new Set(["marketing", "guide", "support", "legal"]);
 const NOINDEX_GROUPS = new Set(["conversion", "app"]);
 // Drift rules an owner may approve for one exact new value. Contract rules (status, noindex, robots, sitemap, soft 404, leaks) are never
-// approvable: an intended change of those is written in the manifest itself, where the pull request shows it.
+// approvable: an intended change of those is written in the manifest itself, where the pull request shows it. content-removed is the one
+// P0 an approval can lift, on purpose: an intended rewrite that shortens a page by more than 60 % is legitimate once reviewed, and the
+// approval names the exact new content (its digest). The contract floor (soft-404: under 40 words, or a 404 page) is never approvable.
+// weight-regression approves an asset list AND a 50 KB weight bucket: further growth needs a new approval.
 export const APPROVABLE = new Set(["title-changed", "description-changed", "h1-changed", "canonical-changed", "content-reduced", "content-removed",
   "links-reduced", "critical-link-removed", "faq-reduced", "jsonld-removed", "lang-changed", "scripts-added", "headings-removed", "weight-regression"]);
 const digest = (value) => createHash("sha256").update(typeof value === "string" ? value : JSON.stringify(value)).digest("hex").slice(0, 16);
@@ -182,7 +185,9 @@ export async function runGuard(o) {
   const findings = [];
   const add = (...args) => finding(findings, ...args);
   const allRoutes = expandRoutes(manifest);
-  const routes = allRoutes.filter((r) => (o.scope === "smoke" ? r.smoke || (r.criticality === "critical" && !r.variantOf) : true));
+  // Server functions are not emulated, and on another host (a preview, a permalink) they may refuse the request (the Garmin OAuth
+  // return answers 403 there): their routes are checked on production only.
+  const routes = allRoutes.filter((r) => (o.scope === "smoke" ? r.smoke || (r.criticality === "critical" && !r.variantOf) : true) && !(r.function && (o.distInfo || context !== "production")));
   const byPath = new Map(allRoutes.map((r) => [r.path, r]));
   const manifestProblems = validateManifest(manifest);
   for (const p of manifestProblems) add("P0", "manifest-invalid", "tools/seo/manifest.json", "le contrat est valide", "valid", p, "Corriger l'entrée du manifeste.");
@@ -348,6 +353,11 @@ export async function runGuard(o) {
     if (isPreview && !/x-robots-tag\s*:\s*[^\n]*noindex/i.test(h)) add("P1", "preview-headers-missing", "dist/_headers", "un build hors production écrit un _headers noindex", "noindex", "absent", "tools/build-public.mjs écrit dist/_headers quand CONTEXT n'est pas la production.");
     if (o.distInfo.redirectsFile) add("P1", "redirects-file", "dist/_redirects", "le routage vit dans netlify.toml seulement", "absent", "présent", "Le _redirects de la racine est une copie périmée : Netlify l'appliquerait AVANT netlify.toml.");
     const known = new Set(allRoutes.map((r) => r.path));
+    // Every exact path a netlify.toml rule names is part of the inventory too (patterns and host rules excepted).
+    for (const from of new Set(o.distInfo.ruleSources || [])) {
+      if (/[*:]/.test(from) || /^https?:/.test(from) || known.has(from)) continue;
+      add("P2", "rule-unclassified", from, "chaque chemin nommé par netlify.toml est déclaré dans le manifeste", "une entrée du manifeste", "règle hors contrat", "La déclarer dans tools/seo/manifest.json (groupe redirect, app, blocked ou technical).");
+    }
     for (const f of o.distInfo.htmlFiles || []) {
       const p = f === "index.html" ? "/" : `/${f.replace(/\.html$/, "")}`;
       if (known.has(p) || known.has(`/${f}`)) continue;
@@ -382,9 +392,11 @@ export async function runGuard(o) {
 
   const open = findings.filter((f) => !f.approved);
   const count = (s) => open.filter((f) => f.severity === s && !f.inconclusive).length;
-  const inconclusive = open.filter((f) => f.inconclusive && f.severity !== "P2").length;
-  const summary = { P0: count("P0"), P1: count("P1"), P2: count("P2"), approved: findings.length - open.length, inconclusive, routes: routes.length };
   const failOn = o.failOn || "p1";
+  // With --fail-on p0 (Netlify build, production smoke), only a P0-level network doubt makes the run inconclusive: a non-critical route
+  // that cannot be reached is listed, but never blocks a deploy on its own.
+  const inconclusive = open.filter((f) => f.inconclusive && (f.severity === "P0" || (failOn === "p1" && f.severity === "P1"))).length;
+  const summary = { P0: count("P0"), P1: count("P1"), P2: count("P2"), approved: findings.length - open.length, inconclusive, routes: routes.length };
   summary.verdict = summary.P0 || (failOn === "p1" && summary.P1) ? "FAIL" : inconclusive ? "INCONCLUSIVE" : "PASS";
   const severityOrder = { P0: 0, P1: 1, P2: 2 };
   findings.sort((a, b) => (a.approved ? 1 : 0) - (b.approved ? 1 : 0) || severityOrder[a.severity] - severityOrder[b.severity] || a.url.localeCompare(b.url));
@@ -517,7 +529,7 @@ function compareBaseline({ observed, baseline, add, thresholds, byPath, origin, 
       else if (criticalLost.length) add("P1", "critical-link-removed", path, "les liens vers les pages publiques critiques sont conservés", "kept", criticalLost.join(", "), "Restaurer le lien ou approuver.", { value: p.linksDigest });
     }
     if ((before.faqQuestions || 0) > p.faqQuestions) add("P1", "faq-reduced", path, "les questions de la FAQ sont conservées", before.faqQuestions, p.faqQuestions, "Les questions répondent à des recherches : approuver si c'est voulu.", { value: String(p.faqQuestions) });
-    if (before.weight && ob.weight && ob.weight > before.weight * (1 + thresholds.weightIncreaseReview) && ob.weight - before.weight > thresholds.weightIncreaseMinBytes) add("P1", "weight-regression", path, `le poids de la page (HTML + CSS + JS) augmente de ≤ ${pct(thresholds.weightIncreaseReview)}`, `${Math.round(before.weight / 1024)} KB`, `${Math.round(ob.weight / 1024)} KB (${ob.assetList.join(", ")})`, "Une vitrine plus lourde ralentit chaque visite venue de Google : garder le code applicatif hors des pages publiques, ou approuver.", { value: digest(ob.assetList) });
+    if (before.weight && ob.weight && ob.weight > before.weight * (1 + thresholds.weightIncreaseReview) && ob.weight - before.weight > thresholds.weightIncreaseMinBytes) add("P1", "weight-regression", path, `le poids de la page (HTML + CSS + JS) augmente de ≤ ${pct(thresholds.weightIncreaseReview)}`, `${Math.round(before.weight / 1024)} KB`, `${Math.round(ob.weight / 1024)} KB (${ob.assetList.join(", ")})`, "Une vitrine plus lourde ralentit chaque visite venue de Google : garder le code applicatif hors des pages publiques, ou approuver.", { value: `${digest(ob.assetList)}:${Math.ceil(ob.weight / 51200) * 50}KB` });
     const lostTypes = (before.jsonLdTypes || []).filter((t) => !p.jsonLdTypes.includes(t));
     if (lostTypes.length) add("P2", "jsonld-removed", path, "les types de données structurées sont conservés", before.jsonLdTypes.join(", "), p.jsonLdTypes.join(", "), "Informative.", { value: p.jsonLdTypes.join(",") });
     const lostH2 = (before.h2 || []).filter((h) => !p.h2.includes(h));
