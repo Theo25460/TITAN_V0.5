@@ -1,5 +1,5 @@
 // V1.6.4 — Migration de l’historique, website. Real journal, real import sheet, real file chosen in the page, against a local fake of
-// the RPCs of migration 20261123150000 (their contract is proven on a real PostgreSQL by sql/tests/300_history_migration.sql and the
+// the RPCs of migration 20261130100300 (their contract is proven on a real PostgreSQL by sql/tests/300_history_migration.sql and the
 // 5 000-row proofs of tools/db/test-history-migration.mjs). Scenario: a CSV profile file is previewed (time zone, units, rows already in
 // the journal, an unknown sport classified, invalid rows explained), imported until the daily history budget stops it, resumed after a
 // reload by choosing the same file again, read back as a per-row report, then withdrawn after a preview of its effects: the session that

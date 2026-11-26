@@ -11,7 +11,7 @@ const require = createRequire(import.meta.url);
 for (const f of ["format.js", "../training-store.js", "effort.js", "sports-catalog.js", "sports.js", "sport-contracts.js", "../sport-insights.js", "progress.js", "sync-state.js", "session-match.js", "history-ledger.js"]) require(`../js/core/${f}`);
 const M = require("../js/core/history-migration.js");
 const L = globalThis.TitanLedger;
-const SQL = readFileSync(new URL("../supabase/migrations/20261123150000_history_migration.sql", import.meta.url), "utf8");
+const SQL = readFileSync(new URL("../supabase/migrations/20261130100300_history_migration.sql", import.meta.url), "utf8");
 const NOW = Date.parse("2026-11-23T12:00:00Z");
 
 test("numbers and durations in the notations athletes use", () => {

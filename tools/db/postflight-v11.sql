@@ -207,18 +207,17 @@ checks(check_name, blocking, ok, detail) as (
     'la définition d''export contient les clés ajoutées'
   union all
   select 'export:RPG conservé', true,
-    (select body like '%adventureRpg%' and body like '%titan_export_extras_before_rpg_v1%'
-     from (select case
-       -- V1.3 wraps the complete earlier export, and AUD-35 wraps V1.3 again (cadence claims). An archived body alone is insufficient:
-       -- each layer is followed only when the outer one really calls it.
-       when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_cadence_v1(p_uid)%'
-       then case
-         when pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_cadence_v1(uuid)')) like '%private.titan_export_extras_before_journey_v1(p_uid)%'
-         then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)'))
-         else pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_cadence_v1(uuid)')) end
-       when pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) like '%private.titan_export_extras_before_journey_v1(p_uid)%'
-       then pg_get_functiondef(to_regprocedure('private.titan_export_extras_before_journey_v1(uuid)'))
-       else pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')) end body) export_body),
+    -- V2.0 (A2): the export is a chain of wrappers (V1.3 journey, AUD-35 cadence, then the V1.5 and V1.7.7 packages). Each layer is
+    -- followed only when the outer one really calls it (an archived body alone is insufficient), whatever the number of layers; the
+    -- chain must reach the layer that carries the RPG journal on top of the export it wraps.
+    (with recursive layer(fn, body, depth) as (
+       select 'private.titan_export_extras_v1'::text, pg_get_functiondef(to_regprocedure('private.titan_export_extras_v1(uuid)')), 0
+       union all
+       select n.fn, pg_get_functiondef(to_regprocedure(n.fn || '(uuid)')), l.depth + 1
+       from layer l
+       cross join lateral (select substring(l.body from '(private\.titan_export_extras_before_[a-z0-9_]+_v1)\(p_uid\)') as fn) n
+       where n.fn is not null and n.fn <> 'private.titan_export_extras_before_rpg_v1' and to_regprocedure(n.fn || '(uuid)') is not null and l.depth < 40)
+     select coalesce(bool_or(body like '%adventureRpg%' and body like '%titan_export_extras_before_rpg_v1%'), false) from layer),
     'le journal RPG complète les sections précédentes sans les remplacer'
   union all
   select 'trigger:jetons Garmin effacés avec le lien', true,

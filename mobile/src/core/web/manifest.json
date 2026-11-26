@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "5b7774d46693a2053b6ddcae5c6f9db5249fcd1f",
+  "sha": "555498c0c5b8ca10a86c967587790ea12b5d4259",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "0d089fdb88f819fae61b77f0e47ae7259efc2e9a70cf10d27602254d8425ccc5",
@@ -32,7 +32,7 @@
     "cordee.js": "8f542b0a923c5168d18b74a7345e4e0f7370250dd980a68108b58caac5af1737",
     "social-digest.js": "4e56fee2d6fb6d7bfad261761ab0028955137b4d1001304cebe0c9f18c2eca1f",
     "sync-state.js": "65ce3c28f3fdf8c621c154d2d8a088b5edfdbb558bc313224a28caba2b0c5b03",
-    "session-match.js": "13b98abfe0a7ba1b0143043770d84c3cda2a33c22b5df0b4685e62dcef4b0749",
+    "session-match.js": "c0ad7afbafc7ee8a3f30ebe9f2738e0e5a53d02180ed953f16b0d9eae86f0907",
     "history-ledger.js": "16803afbfe6c3b5d7c769ca1194097670d2ef4ca35e3b8697db850b8c407b898",
     "history-migration.js": "cb006cefa05a720427091c8cbe8762f4262933b4143d73f9ce11fe2232e8655d",
     "history-window.js": "515d55701a101c48f344a167493cf4dce50adc4a8c3715fdb285490760eac019",
@@ -43,6 +43,7 @@
     "discipline-analysis.js": "1171421cb012a394218bfef78ed9afe4c387b17b74598b7abdd959f9e6dd3b3d",
     "gps-engine.js": "828fa0c7effb057260a43336541f6010051b45536b6ca2f61c6313732a9679b3",
     "gps-nav.js": "3bef75f3a73c422549d736678bfbdb2a60a09dec5337126ca3cb15fec5a437ec",
-    "gps-session.js": "618426f272835edf69d47c07c12d27f01296e8f71e17461adddd8f655f37c40a"
+    "gps-session.js": "618426f272835edf69d47c07c12d27f01296e8f71e17461adddd8f655f37c40a",
+    "source-center.js": "a4c5e3c7bb9b3b12d2e3b38001bee84f2c55e089018aa57f8badf45d0d7affc0"
   }
 }

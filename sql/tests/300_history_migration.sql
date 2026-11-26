@@ -1,4 +1,4 @@
--- V1.6.4 — Migration de l’historique (migration 20261123150000). Synthetic accounts only, full rollback.
+-- V1.6.4 — Migration de l’historique (migration 20261130100300). Synthetic accounts only, full rollback.
 -- A. A batch: every row gets one result (added, linked, duplicate, skipped with its reason); note, feeling and a kg value are kept;
 --    history gives no XP; a replayed call (lost answer) changes nothing; opening the same file again resumes the same batch.
 -- B. The per-batch report is readable from any device; another account reads nothing; no anonymous access.

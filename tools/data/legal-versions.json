@@ -22,13 +22,8 @@
     },
     {
       "ref": "Version 15",
-      "updated": "23 novembre 2026",
-      "sha256": "6a7a955a316923746ba313fca5cfc2ef42b39a52441d990fecf6ad86c9a2061b"
-    },
-    {
-      "ref": "Version 16",
-      "updated": "25 novembre 2026",
-      "sha256": "18723323e4e3b604788050388a53184616d5626b12820451c8169c2ce6710333"
+      "updated": "26 novembre 2026",
+      "sha256": "8482dd4b602383a379067d7dc12e07b0e785c4793bac44fd7a9dd3ae9a866a44"
     }
   ],
   "regles-communaute": [
@@ -46,13 +41,8 @@
     },
     {
       "ref": "Version 5",
-      "updated": "23 novembre 2026",
-      "sha256": "6a508676759023c251967a0b09064a697a31bbeea521e748cb2f16dd815a2ef0"
-    },
-    {
-      "ref": "Version 6",
-      "updated": "25 novembre 2026",
-      "sha256": "f12cc051dee674e446b83a41e9ccf0274922ab88f5a2e01d18cd202d1d71303d"
+      "updated": "26 novembre 2026",
+      "sha256": "ad4a755791d0267629e40b4613ac5edb93c114574a9a6f95e6c3a61f65826d48"
     }
   ]
 }

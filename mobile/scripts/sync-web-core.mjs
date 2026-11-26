@@ -55,6 +55,7 @@ export const MODULES = [
   "js/core/gps-engine.js",
   "js/core/gps-nav.js",
   "js/core/gps-session.js",
+  "js/core/source-center.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

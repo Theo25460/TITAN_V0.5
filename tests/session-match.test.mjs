@@ -1,5 +1,5 @@
 // V1.6.2 — Rapprochement des séances: the shared module (js/core/session-match.js), measured on the annotated fixtures, and its parity
-// with the server (supabase/migrations/20261123090000_session_match_review.sql) and with the V15 rule it reuses.
+// with the server (supabase/migrations/20261130100100_session_match_review.sql) and with the V15 rule it reuses.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
@@ -14,7 +14,7 @@ require("../js/core/sports.js");
 const C = require("../js/core/sport-contracts.js");
 const M = require("../js/core/session-match.js");
 const FIXTURES = JSON.parse(readFileSync(new URL("./fixtures/session-match-annotated.json", import.meta.url), "utf8")).cases;
-const SQL = readFileSync(new URL("../supabase/migrations/20261123090000_session_match_review.sql", import.meta.url), "utf8");
+const SQL = readFileSync(new URL("../supabase/migrations/20261130100100_session_match_review.sql", import.meta.url), "utf8");
 const byId = (id) => FIXTURES.find((c) => c.id === id);
 
 test("annotated fixtures: every verdict is the expected one, no real duplicate is missed, no false match is silent except the documented V15 trap", () => {

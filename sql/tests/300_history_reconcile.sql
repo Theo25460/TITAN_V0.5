@@ -1,4 +1,4 @@
--- V1.6.3 — Contrôle et réconciliation (migration 20261123120000). Synthetic accounts only, full rollback.
+-- V1.6.3 — Contrôle et réconciliation (migration 20261130100200). Synthetic accounts only, full rollback.
 -- A. Correction of a typed run (10,4 → 10 km, 52 → 50 min): one revision, date and unit unchanged, no reward change; the change is readable.
 -- B. An import that duplicates the run is archived: one counted session; a replay of the same import (even « modified » at the source)
 --    creates nothing and does not bring it back; restoring it grants no reward; the account export carries the real state each time.

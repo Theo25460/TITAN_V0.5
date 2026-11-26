@@ -1,0 +1,101 @@
+{
+  "_comment": "V1.6.5 — Centre des sources. Fixed states of the two pilot connectors (Santé Connect read on the phone, Garmin push) and the history archive, as titan_source_center_v1 returns them, with what the phone says. Synthetic: no real account. `now` is fixed.",
+  "now": "2026-11-23T10:00:00Z",
+  "states": {
+    "hc_off": {
+      "source": "health_connect", "device": { "availability": "ready", "access": { "steps": false, "exercise": false } },
+      "entry": null,
+      "expect": { "state": "off", "connected": false, "action": "authorize" }
+    },
+    "hc_withdrawn": {
+      "source": "health_connect", "device": { "availability": "ready", "access": { "steps": false, "exercise": false } },
+      "entry": { "source": "health_connect", "consent": { "granted": false, "granted_at": "2026-10-01T08:00:00Z", "revoked_at": "2026-11-20T18:00:00Z", "revoked_by": "user" },
+        "counts": { "imported": 12, "linked": 3, "archived": 0, "review": 0 },
+        "runs": [{ "id": "r1", "kind": "read", "started_at": "2026-11-19T07:00:00Z", "finished_at": "2026-11-19T07:00:20Z", "window_from": "2026-11-12T00:00:00Z", "window_to": "2026-11-19T07:00:00Z", "outcome": "ok", "counts": { "read": 3, "imported": 2, "linked": 1 } }] },
+      "expect": { "state": "withdrawn", "connected": false, "action": "authorize", "detailHas": "12 séances déjà importées restent" }
+    },
+    "hc_expired": {
+      "source": "health_connect", "device": { "availability": "ready", "access": { "steps": false, "exercise": false } },
+      "entry": { "source": "health_connect", "consent": { "granted": true, "granted_at": "2026-10-01T08:00:00Z", "revoked_at": null },
+        "counts": { "imported": 12, "linked": 3, "archived": 0, "review": 0 },
+        "runs": [{ "id": "r1", "kind": "read", "started_at": "2026-10-28T07:00:00Z", "finished_at": "2026-10-28T07:00:20Z", "window_from": "2026-10-21T00:00:00Z", "window_to": "2026-10-28T07:00:00Z", "outcome": "ok", "counts": { "read": 3, "imported": 2, "linked": 1 } }] },
+      "expect": { "state": "expired", "connected": false, "action": "reauthorize" }
+    },
+    "hc_expired_web": {
+      "source": "health_connect", "device": null, "here": false,
+      "entry": { "source": "health_connect", "consent": { "granted": true, "granted_at": "2026-10-01T08:00:00Z", "revoked_at": null },
+        "counts": { "imported": 12, "linked": 3, "archived": 0, "review": 0 },
+        "runs": [{ "id": "r2", "kind": "read", "started_at": "2026-11-22T07:00:00Z", "finished_at": "2026-11-22T07:00:01Z", "window_from": null, "window_to": null, "outcome": "denied", "error_code": "ANDROID_PERMISSION", "counts": {} },
+                 { "id": "r1", "kind": "read", "started_at": "2026-10-28T07:00:00Z", "finished_at": "2026-10-28T07:00:20Z", "window_from": "2026-10-21T00:00:00Z", "window_to": "2026-10-28T07:00:00Z", "outcome": "ok", "counts": { "read": 3, "imported": 2, "linked": 1 } }] },
+      "expect": { "state": "expired", "connected": false, "action": null }
+    },
+    "hc_empty": {
+      "source": "health_connect", "device": { "availability": "ready", "access": { "steps": true, "exercise": true } },
+      "entry": { "source": "health_connect", "consent": { "granted": true, "granted_at": "2026-10-01T08:00:00Z", "revoked_at": null },
+        "counts": { "imported": 12, "linked": 3, "archived": 0, "review": 0 },
+        "runs": [{ "id": "r3", "kind": "read", "started_at": "2026-11-23T07:00:00Z", "finished_at": "2026-11-23T07:00:05Z", "window_from": "2026-11-16T00:00:00Z", "window_to": "2026-11-23T07:00:00Z", "outcome": "empty", "counts": { "read": 2, "duplicate": 2 } }] },
+      "expect": { "state": "empty", "connected": true, "action": "replay" }
+    },
+    "hc_failed": {
+      "source": "health_connect", "device": { "availability": "ready", "access": { "steps": true, "exercise": true } },
+      "entry": { "source": "health_connect", "consent": { "granted": true, "granted_at": "2026-10-01T08:00:00Z", "revoked_at": null },
+        "counts": { "imported": 12, "linked": 3, "archived": 0, "review": 0 },
+        "runs": [{ "id": "r4", "kind": "read", "started_at": "2026-11-23T08:00:00Z", "finished_at": "2026-11-23T08:00:03Z", "window_from": "2026-11-16T00:00:00Z", "window_to": "2026-11-23T08:00:00Z", "outcome": "failed", "error_code": "HC_UNAVAILABLE", "counts": {} },
+                 { "id": "r3", "kind": "read", "started_at": "2026-11-22T07:00:00Z", "finished_at": "2026-11-22T07:00:05Z", "window_from": "2026-11-15T00:00:00Z", "window_to": "2026-11-22T07:00:00Z", "outcome": "ok", "counts": { "read": 2, "imported": 1, "duplicate": 1 } }] },
+      "expect": { "state": "failed", "connected": false, "action": "replay", "detailHas": "Santé Connect n’a pas répondu." }
+    },
+    "hc_interrupted": {
+      "source": "health_connect", "device": { "availability": "ready", "access": { "steps": true, "exercise": true } },
+      "entry": { "source": "health_connect", "consent": { "granted": true, "granted_at": "2026-10-01T08:00:00Z", "revoked_at": null },
+        "counts": { "imported": 12, "linked": 3, "archived": 0, "review": 0 },
+        "runs": [{ "id": "r5", "kind": "replay", "started_at": "2026-11-23T09:00:00Z", "finished_at": null, "window_from": "2026-10-27T07:00:00Z", "window_to": "2026-11-23T09:00:00Z", "outcome": "running", "counts": { "read": 9, "imported": 4 } }] },
+      "expect": { "state": "interrupted", "connected": false, "action": "replay", "replayFrom": "2026-10-27T07:00:00.000Z" }
+    },
+    "hc_gap_weeks": {
+      "source": "health_connect", "device": { "availability": "ready", "access": { "steps": true, "exercise": true } },
+      "entry": { "source": "health_connect", "consent": { "granted": true, "granted_at": "2026-09-01T08:00:00Z", "revoked_at": null },
+        "counts": { "imported": 12, "linked": 3, "archived": 0, "review": 1 },
+        "runs": [{ "id": "r1", "kind": "read", "started_at": "2026-10-10T07:00:00Z", "finished_at": "2026-10-10T07:00:20Z", "window_from": "2026-10-03T00:00:00Z", "window_to": "2026-10-10T07:00:00Z", "outcome": "ok", "counts": { "read": 3, "imported": 2, "linked": 1 } }] },
+      "expect": { "state": "gap", "connected": true, "action": "replay", "replayFrom": "2026-10-24T10:00:00.000Z", "unavailableBefore": "2026-10-24T10:00:00.000Z", "review": true }
+    },
+    "hc_restored": {
+      "source": "health_connect", "device": { "availability": "ready", "access": { "steps": true, "exercise": true } },
+      "entry": { "source": "health_connect", "consent": { "granted": true, "granted_at": "2026-11-23T09:30:00Z", "revoked_at": null },
+        "counts": { "imported": 14, "linked": 3, "archived": 0, "review": 0 },
+        "runs": [{ "id": "r6", "kind": "replay", "started_at": "2026-11-23T09:40:00Z", "finished_at": "2026-11-23T09:40:30Z", "window_from": "2026-10-27T07:00:00Z", "window_to": "2026-11-23T09:40:00Z", "outcome": "ok", "counts": { "read": 9, "imported": 2, "duplicate": 7 } },
+                 { "id": "r5", "kind": "replay", "started_at": "2026-11-23T09:00:00Z", "finished_at": null, "window_from": "2026-10-27T07:00:00Z", "window_to": "2026-11-23T09:00:00Z", "outcome": "running", "counts": { "read": 9, "imported": 4 } }] },
+      "expect": { "state": "ok", "connected": true, "action": "replay" }
+    },
+    "garmin_off": {
+      "source": "garmin", "device": null, "entry": null,
+      "expect": { "state": "off", "connected": false, "action": "connect_garmin" }
+    },
+    "garmin_to_finish": {
+      "source": "garmin", "device": null,
+      "entry": { "source": "garmin", "consent": { "granted": true, "granted_at": "2026-11-20T08:00:00Z", "revoked_at": null }, "link": { "linked": false }, "counts": {}, "runs": [] },
+      "expect": { "state": "expired", "connected": false, "action": "finish_garmin", "label": "À terminer" }
+    },
+    "garmin_provider_withdrawn": {
+      "source": "garmin", "device": null,
+      "entry": { "source": "garmin", "consent": { "granted": false, "granted_at": "2026-11-01T08:00:00Z", "revoked_at": "2026-11-21T12:00:00Z", "revoked_by": "provider" }, "link": { "linked": false, "ended_at": "2026-11-21T12:00:00Z" }, "counts": { "imported": 5 }, "runs": [] },
+      "expect": { "state": "provider_withdrawn", "connected": false, "action": "connect_garmin" }
+    },
+    "garmin_quiet": {
+      "source": "garmin", "device": null,
+      "entry": { "source": "garmin", "consent": { "granted": true, "granted_at": "2026-10-01T08:00:00Z", "revoked_at": null }, "link": { "linked": true, "linked_at": "2026-10-01T08:01:00Z", "last_event_at": "2026-10-20T19:00:00Z" }, "counts": { "imported": 5 }, "runs": [] },
+      "expect": { "state": "empty", "connected": true, "action": null }
+    },
+    "garmin_ok_with_exclusions": {
+      "source": "garmin", "device": null,
+      "entry": { "source": "garmin", "consent": { "granted": true, "granted_at": "2026-10-01T08:00:00Z", "revoked_at": null }, "link": { "linked": true, "linked_at": "2026-10-01T08:01:00Z", "last_event_at": "2026-11-22T19:00:00Z" },
+        "counts": { "imported": 6, "linked": 1 },
+        "runs": [{ "id": "p1", "kind": "push", "started_at": "2026-11-22T00:00:00Z", "finished_at": "2026-11-22T19:00:00Z", "window_from": null, "window_to": null, "outcome": "ok", "counts": { "read": 3, "imported": 1, "excluded": 2 }, "excluded": { "unmapped_type": 1, "too_short": 1 } }] },
+      "expect": { "state": "ok", "connected": true, "action": null, "exclusions": 2 }
+    },
+    "archive_paused": {
+      "source": "archive", "device": null,
+      "entry": { "batch": { "id": "b1", "file_name": "activities.csv", "status": "open", "next_row": 301, "total_rows": 5000, "counts": { "added": 300 } } },
+      "expect": { "state": "interrupted", "connected": false, "action": "resume_batch" }
+    }
+  }
+}

@@ -177,6 +177,8 @@ test("sources: an allowed source can be stopped, and what it brought can be arch
     assert.match(text, /4 séances reçues/);
     assert.match(text, /1 rattachée à une séance déjà saisie/);
     await block.locator("[data-source-revoke]").click();
+    // V1.6.5: the withdrawal says what stops and what stays, then asks for confirmation.
+    await page.locator("dialog [data-ok]").click();
     await page.waitForFunction(() => window.sourceCalls.length === 1);
     assert.deepEqual(await page.evaluate(() => window.sourceCalls[0]), ["titan_set_source_consent_v1", { p_source: "health_connect", p_granted: false }]);
     await block.locator("text=Santé Connect · retirée").waitFor();
@@ -309,6 +311,8 @@ test("garmin connect: once linked, the button gives way to the source line, and 
     assert.equal(await page.locator("[data-garmin-connect]").count(), 0);
     assert.match(await block.innerText(), /Garmin · autorisée/);
     await block.locator("[data-source-revoke=garmin]").click();
+    // V1.6.5: the withdrawal says what stops and what stays, then asks for confirmation.
+    await page.locator("dialog [data-ok]").click();
     await page.waitForFunction(() => window.sourceCalls.length === 1);
     assert.deepEqual(calls, ["action=disconnect|Bearer synthetic-showcase-token"]);
     assert.deepEqual(await page.evaluate(() => window.sourceCalls[0]), ["titan_set_source_consent_v1", { p_source: "garmin", p_granted: false }]);
@@ -330,6 +334,8 @@ for (const [label, answer] of [["refused", { status: 200, body: JSON.stringify({
       const block = page.locator("[data-sources-block]");
       await block.waitFor();
       await block.locator("[data-source-revoke=garmin]").click();
+      // V1.6.5: the withdrawal says what stops and what stays, then asks for confirmation.
+      await page.locator("dialog [data-ok]").click();
       await page.waitForFunction(() => window.sourceCalls.length === 1);
       assert.deepEqual(await page.evaluate(() => window.sourceCalls[0]), ["titan_set_source_consent_v1", { p_source: "garmin", p_granted: false }], "the consent is withdrawn in TITAN in any case");
       const notice = page.locator("[data-garmin-withdrawal]");

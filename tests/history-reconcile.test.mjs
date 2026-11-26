@@ -15,7 +15,7 @@ const T = globalThis.TitanTraining;
 const P = globalThis.TitanProgress;
 const FIXTURE = JSON.parse(readFileSync(new URL("./fixtures/history-reconcile.json", import.meta.url), "utf8"));
 const { run } = require("../tools/history-reconcile-sim.cjs");
-const SQL = readFileSync(new URL("../supabase/migrations/20261123120000_history_reconcile.sql", import.meta.url), "utf8");
+const SQL = readFileSync(new URL("../supabase/migrations/20261130100200_history_reconcile.sql", import.meta.url), "utf8");
 
 const sample = {
   confirmed: { id: "c", client_event_id: "c0000000-1", syncStatus: "confirmed", sport: "running", date: "2026-11-20T07:00:00Z", val: 5, unit: "km", details: { duration: 30 } },

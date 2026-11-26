@@ -403,7 +403,12 @@ export const sourceConsent = (owner: string, source: "health_connect", consent: 
 export const dailyActivity = (owner: string, from: string, to: string) =>
   ownerRpc<{ day: string; steps: number; sources?: string[]; updatedAt?: string }[]>(owner, "titan_daily_activity_v1", { p_from: from, p_to: to });
 export const sourcesStatus = (owner: string) => ownerRpc<SourceStatus[]>(owner, "titan_sources_v1", {});
-export type ImportResult = { status: "imported" | "linked" | "duplicate"; log_id?: string };
+/* V1.6.5 — Centre des sources: the center read by its owner (bundle v24) and one Santé Connect run reported by the phone. */
+export const sourceCenter = (owner: string, current?: () => boolean) =>
+  ownerRpc<import("../core").SourceCenterData>(owner, "titan_source_center_v1", {}, current);
+export const reportSourceRun = (owner: string, run: Record<string, unknown>, current?: () => boolean) =>
+  ownerRpc<import("../core").SourceRun>(owner, "titan_source_run_v1", { p_source: "health_connect", p_run: run }, current);
+export type ImportResult = { status: "imported" | "linked" | "duplicate"; log_id?: string; needs_review?: boolean };
 export const importActivity = (owner: string, p: { externalId: string; sport: string; startedAt: string; minutes: number }, current?: () => boolean) =>
   ownerRpc<ImportResult>(owner, "titan_import_activity_v1", { p_source: "health_connect", p_external_id: p.externalId, p_sport: p.sport, p_started_at: p.startedAt, p_duration_minutes: p.minutes, p_distance_km: null }, current);
 export async function importDailySteps(owner: string, day: string, steps: number, current?: () => boolean) {

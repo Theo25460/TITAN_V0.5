@@ -1,4 +1,4 @@
--- V1.6.6 — Journal longue durée (migration 20261123180000). Synthetic accounts only, full rollback.
+-- V1.6.6 — Journal longue durée (migration 20261130100400). Synthetic accounts only, full rollback.
 -- A. The elevation of an old ride is corrected alone: one revision, one snapshot, nothing else moves (value, date, unit, reward);
 --    the change is readable as « elevation 1450 > 1650 m ».
 -- B. Elevation and duration in the same correction: still one revision and one snapshot.

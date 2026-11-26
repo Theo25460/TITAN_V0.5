@@ -1,0 +1,41 @@
+{
+  "_": "Entries that lot branches V1.5–V1.9 appended to tools/data/legal-versions.json but that production never served. A2 replaces them by one consolidated candidate entry per document (published entries are never rewritten).",
+  "dropped": [
+    {
+      "page": "legal_privacy",
+      "ref": "Version 15",
+      "updated": "23 novembre 2026",
+      "sha256": "6a7a955a316923746ba313fca5cfc2ef42b39a52441d990fecf6ad86c9a2061b"
+    },
+    {
+      "page": "legal_privacy",
+      "ref": "Version 16",
+      "updated": "25 novembre 2026",
+      "sha256": "18723323e4e3b604788050388a53184616d5626b12820451c8169c2ce6710333"
+    },
+    {
+      "page": "legal_privacy",
+      "ref": "Version 16",
+      "updated": "24 novembre 2026",
+      "sha256": "f74d5e8092200b4e89f643bd2630f213367ba3a39f1a76ef1d3222fc99fd578d"
+    },
+    {
+      "page": "supprimer-mon-compte",
+      "ref": "Version 5",
+      "updated": "23 novembre 2026",
+      "sha256": "6a508676759023c251967a0b09064a697a31bbeea521e748cb2f16dd815a2ef0"
+    },
+    {
+      "page": "supprimer-mon-compte",
+      "ref": "Version 6",
+      "updated": "25 novembre 2026",
+      "sha256": "f12cc051dee674e446b83a41e9ccf0274922ab88f5a2e01d18cd202d1d71303d"
+    },
+    {
+      "page": "supprimer-mon-compte",
+      "ref": "Version 6",
+      "updated": "24 novembre 2026",
+      "sha256": "bdfcb058478b0b9291f2d86324807523a0ad1b8e87794169964db421c57d2f6f"
+    }
+  ]
+}

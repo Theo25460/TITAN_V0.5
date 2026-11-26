@@ -9,7 +9,7 @@
    - « ambiguous »  the V15 rule matches but a fact disagrees (overlap below 80 %, duration or distance gap, several candidates):
                     still ONE counted session (no double count by default), shown « À vérifier » until the athlete decides;
    - « distinct »   different group, or less than half of the shorter effort shared: two sessions.
-   Thresholds are the server's (private.titan_session_match_reasons, migration 20261123090000): tests/session-match.test.mjs checks
+   Thresholds are the server's (private.titan_session_match_reasons, migration 20261130100100): tests/session-match.test.mjs checks
    that both carry the same numbers.
 
    Who provides each value (POLICY): the counted session is the journal entry. Its values, the athlete's note, felt effort, exercises,

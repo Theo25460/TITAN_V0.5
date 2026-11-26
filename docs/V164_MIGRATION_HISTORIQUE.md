@@ -1,7 +1,7 @@
 # V1.6.4 — Migration de l’historique
 
 Lecture des fichiers : `js/core/history-migration.js`, copié tel quel dans Android (`mobile/src/core/web/history-migration.js`,
-manifeste de hachages vérifié par les tests). Serveur : `supabase/migrations/20261123150000_history_migration.sql` (paquet
+manifeste de hachages vérifié par les tests). Serveur : `supabase/migrations/20261130100300_history_migration.sql` (paquet
 `supabase/release-v23`, **non appliqué**). Web : « Journal › Importer un historique » (`js/app/migration.js`). Android :
 « Profil › Sources › Importer mon historique » (`mobile/src/screens/settings/HistoryImportScreen.tsx`).
 

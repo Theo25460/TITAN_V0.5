@@ -1,5 +1,5 @@
 // V1.6.2 — Rapprochement des séances, website. Real journal, real session sheet and real entry form, against a local fake of the two
-// RPCs of migration 20261123090000 (their contract is proven on a real PostgreSQL by sql/tests/300_session_match_review.sql) and of the
+// RPCs of migration 20261130100100 (their contract is proven on a real PostgreSQL by sql/tests/300_session_match_review.sql) and of the
 // training_logs read-back. Scenarios: a real duplicate shown with both sources, their times and the diverging fields; an uncertain
 // link split into two sessions and joined back (reversible, journaled); a typed session next to a GPX entry asks first and keeps the
 // athlete's « two sessions » decision with the new session. External requests are blocked; no production account is used.

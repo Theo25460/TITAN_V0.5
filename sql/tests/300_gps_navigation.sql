@@ -1,4 +1,4 @@
--- V1.7.7 — GPS et navigation sportive (migration 20261125170000). Synthetic accounts only, full rollback.
+-- V1.7.7 — GPS et navigation sportive (migration 20261130102100). Synthetic accounts only, full rollback.
 -- A. Route library v2: a save is idempotent by client id (the replay changes nothing), the name is trimmed and cut, a bad origin,
 --    summary or name is refused and writes nothing; a route saved with v1 reads through v2 with origin 'recorded'; rename, clear.
 -- B. Personal points: the same client id updates the point, 300 points at most, deletion one by one.

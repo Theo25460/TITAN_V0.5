@@ -1,4 +1,4 @@
--- V1.6.2 — Rapprochement des séances (migration 20261123090000). Synthetic accounts only, full rollback.
+-- V1.6.2 — Rapprochement des séances (migration 20261130100100). Synthetic accounts only, full rollback.
 -- A. A typed mountain-bike ride and the same effort read by Health Connect as « cycling »: ONE counted session; the link keeps what the
 --    source said and the rule; replaying the import changes nothing.
 -- B. Two runs the same day (morning typed, evening imported) stay two, also after a replay.
