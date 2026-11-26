@@ -1044,6 +1044,7 @@
         ${mode === "coach" && snapshot.invites?.length ? `<details class="co-invites"><summary>${snapshot.invites.length} invitation(s) en attente</summary>${snapshot.invites.map((v) => `<div class="asc-between"><span class="asc-small">Créée le ${esc(date(v.created_at))} · expire le ${esc(date(v.expires_at))}</span><button type="button" class="asc-btn asc-btn-ghost asc-btn-sm" data-cancel-invite="${esc(v.id)}">Annuler</button></div>`).join("")}</details>` : ""}
       </section>
       <div data-co-review-slot>${reviewHtml()}</div>
+      ${mode === "coach" ? "<div data-co-groups-slot></div>" : ""}
       <div data-co-queue-slot>${queueHtml()}</div>
       <div data-co-roster-slot>${rosterHtml()}</div>
       ${list.length ? `<div class="co-layout${list.length === 1 || mode === "coach" && feature("screens.coachworkspace") ? " is-single" : ""}">
@@ -1078,6 +1079,7 @@
     mountTools();
     mountPrograms();
     mountCycles();
+    mountGroups();
     if (focusedMode) root.querySelector(`[role="tab"][data-mode="${focusedMode}"]`)?.focus({ preventScroll: true });
   }
 
@@ -1113,6 +1115,16 @@
       ok: () => sameContext(job) && current()?.id === l.id && root.contains(slot),
       onChanged: () => { if (!sameContext(job)) return; loadQueue(); },
       onPlans: () => programsView?.reload?.() });
+  }
+
+  // V1.9.6: the coach's private groups (a block prepared once, a version per athlete, a send per recipient, the group review), only when
+  // screens.coach_groups is open (checked again by the server). Mounted in the coach's space, never in the athlete's.
+  function mountGroups() {
+    const slot = root.querySelector("[data-co-groups-slot]");
+    const job = viewContext;
+    if (!slot || mode !== "coach" || !job || !sameContext(job) || !feature("screens.coach_groups") || !feature("screens.coach_programs") || !window.TitanCoachGroups || !window.TitanCoachGroup) return;
+    window.TitanCoachGroups.mount(slot, { client: job.client, ok: () => sameContext(job) && mode === "coach" && root.contains(slot),
+      onChanged: () => { if (!sameContext(job)) return; loadQueue(); loadReview(); } });
   }
 
   function onTabKey(e) {

@@ -5372,3 +5372,20 @@
 .co-cy-pick { display: grid; gap: var(--s1); padding: var(--s2) 0; border-top: 1px solid var(--line-2); }
 .co-cy-pick p { margin: 0; }
 .co-cy-hosted { display: grid; gap: var(--s2); padding: var(--s3); border: 1px solid var(--space-line); border-radius: 14px; }
+/* V1.9.6 — Suivi collectif individualisé (js/app/coach-groups.js). */
+.co-gr-open { display: grid; gap: var(--s4); }
+.co-gr-open h3 { margin: 0; }
+.co-gr-review, .co-gr-blocks, .co-gr-results { display: grid; gap: var(--s2); min-width: 0; }
+.co-gr-members, .co-gr-recipients { display: grid; gap: var(--s2); list-style: none; margin: 0; padding: 0; }
+.co-gr-members > li, .co-gr-recipients > li { display: grid; gap: var(--s1); padding: var(--s3); border: 1px solid var(--line-2); border-radius: 14px; min-width: 0; overflow-wrap: anywhere; }
+.co-gr-members p, .co-gr-recipients p, .co-gr-results p { margin: 0; }
+.co-gr-members > li[data-next="discuss"], .co-gr-members > li[data-next="feedback"], .co-gr-members > li[data-next="report"] { border-left: 3px solid var(--space-line); }
+.co-gr-recipients > li[data-outcome="COACH_CAPACITY_PAUSED"], .co-gr-recipients > li[data-outcome="SHARING_UNAVAILABLE"] { background: var(--line-2); }
+.co-gr-results { padding: var(--s3); border: 1px solid var(--space-line); border-radius: 14px; }
+.co-gr-results ul, .co-gr-sessions { margin: 0; padding-left: var(--s4); display: grid; gap: 2px; }
+.co-gr-pick { display: grid; gap: var(--s1); border: 0; padding: 0; margin: 0; }
+.co-gr-variant { display: grid; gap: var(--s2); list-style: none; margin: 0; padding: 0; }
+.co-gr-variant > li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--s2); align-items: center; padding: var(--s1) 0; border-top: 1px solid var(--line-2); }
+.co-gr-variant .auth-check { margin: 0; }
+@media (max-width: 520px) { .co-gr-variant > li { grid-template-columns: 1fr 1fr; } .co-gr-variant > li .auth-check { grid-column: 1 / -1; } }
+.co-gr-open > .asc-between { flex-wrap: wrap; gap: var(--s2); }
