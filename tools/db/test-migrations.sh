@@ -149,4 +149,10 @@ if guard=$(bash "$ROOT/tools/db/test-coach-cycle-concurrency.sh" "${PSQL[@]}" -d
 fi
 [[ "$guard" == "Refused: the coach cycle report concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 bash "$ROOT/tools/db/test-coach-cycle-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Coach group block send concurrency contract (two real connections, V1.9.6)"
+if guard=$(bash "$ROOT/tools/db/test-coach-group-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "coach group concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the coach group concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-coach-group-concurrency.sh" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."

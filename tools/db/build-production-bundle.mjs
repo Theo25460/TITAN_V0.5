@@ -156,6 +156,20 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v194 bundle (head 20261204090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_cycle_report for the pilot accounts only, once screens.coach_followup, screens.coach_feedback, screens.coach_review and screens.coach_programs are open for them.",
   },
+  // V1.9.6 — Suivi collectif individualisé (26 November 2026): private groups of a coach's own links, a block prepared from a template with
+  // a variant per athlete, the preview of who receives which version (and who does not, with the reason), a send that treats each
+  // recipient in its own sub-transaction (paused and ended links refused separately), a resumption that never repeats a recipient already
+  // served, a group review with the next action per athlete and the coach's load (counts only), the export of the coach's groups, behind
+  // screens.coach_groups (absent = closed). NOT APPLIED: owner decision required. Needs v191 to v195 first (it creates V1.9.4 programmes and
+  // wraps the V1.9.5 export). Additive, rehearsed on a replica (tools/db/test-migrations.sh, sql/tests/300_coach_groups.sql,
+  // tools/db/test-coach-group-concurrency.sh).
+  v196: {
+    out: "supabase/release-v196", after: "20261205090000", until: "20261206090000",
+    before: { private: [150, "586d38f8d971", "4c7a807e390f"], public: [329, "bac2a73985e2", "8822db836a5a"] },
+    expected: { private: [154, "d54cf36d42af", "7bd81dcf3a5b"], public: [330, "211397ebafd6", "73baa6ed9d95"] },
+    beforeNote: "This is the state production reaches at the end of the v195 bundle (head 20261205090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_groups for the pilot accounts only, once screens.coach_followup, screens.coach_feedback, screens.coach_review, screens.coach_programs and screens.coach_cycle_report are open for them.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
