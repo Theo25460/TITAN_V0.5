@@ -201,4 +201,40 @@ if guard=$(bash "$ROOT/tools/db/test-coach-group-concurrency.sh" "${PSQL[@]}" -d
 fi
 [[ "$guard" == "Refused: the coach group concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
 bash "$ROOT/tools/db/test-coach-group-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Cordée relay concurrency contract (two real connections, V1.8.1)"
+if guard=$(bash "$ROOT/tools/db/test-cordee-relay-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "relay concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the relay concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-cordee-relay-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Cordée handover concurrency contract (two real connections, V1.8.2)"
+if guard=$(bash "$ROOT/tools/db/test-cordee-reprise-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "handover concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the handover concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-cordee-reprise-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Cordée proposal concurrency contract (two real connections, V1.8.3)"
+if guard=$(bash "$ROOT/tools/db/test-cordee-suite-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "proposal concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the proposal concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-cordee-suite-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Club season concurrency contract (two real connections, V1.8.4)"
+if guard=$(bash "$ROOT/tools/db/test-club-season-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "club season concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the club season concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-club-season-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Club match concurrency contract (two real connections, V1.8.5)"
+if guard=$(bash "$ROOT/tools/db/test-club-match-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "club match concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the club match concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-club-match-concurrency.sh" "${PSQL[@]}" -d "$DB"
+echo "Club agenda concurrency contract (two real connections, V1.8.6)"
+if guard=$(bash "$ROOT/tools/db/test-club-agenda-concurrency.sh" "${PSQL[@]}" -d postgres 2>&1); then
+  echo "club agenda concurrency runner accepted a non-test database"; exit 1
+fi
+[[ "$guard" == "Refused: the club agenda concurrency test requires a titan_test_ disposable database" ]] || { echo "$guard"; exit 1; }
+bash "$ROOT/tools/db/test-club-agenda-concurrency.sh" "${PSQL[@]}" -d "$DB"
 echo "OK: migrations and tests passed on a clean replica."

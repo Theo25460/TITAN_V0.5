@@ -301,6 +301,15 @@ test("privacy: every per-player table added since 17 November 2026 is erased wit
     titan_import_batches: ["Imports d’historique : le nom et l’empreinte du fichier importé", "tes imports d’historique et leurs rapports"],
     titan_places: ["Points personnels : le nom, la catégorie, la position et la note", "tes points personnels"],
     titan_source_runs: ["Pour Santé Connect et Garmin : la date de chaque lecture ou de chaque envoi reçu", "le suivi de leurs synchronisations"],
+    // V1.8.3: a proposal keeps the group's history with no person (proposed_by on delete set null); the answers go with the account.
+    titan_cordee_suite_answers: ["propositions de repartir après une cordée et tes réponses", "tes réponses aux propositions de repartir"],
+    // V1.8.4: a season keeps its frozen report with no person (created_by on delete set null); participations and pauses go with the account.
+    titan_club_season_members: ["saisons privées de club (ta participation choisie", "tes participations aux saisons privées de club"],
+    titan_club_season_pauses: ["tes pauses, ton départ et tes jours actifs comptés", "saisons privées de club et leurs pauses"],
+    // V1.8.5: a meeting keeps its frozen recap with no person (created_by, answered_by on delete set null); participations and answers go with the account.
+    titan_club_match_members: ["rencontres entre clubs (ta participation choisie, ton départ, tes jours actifs comptés jusqu’à ta part et ton avis sur le score", "tes participations aux rencontres entre clubs et tes avis"],
+    // V1.8.6: an event keeps its history with no person (created_by, by_user on delete set null); answers, presences and links go with the account.
+    titan_club_event_answers: ["rendez-vous du club (tes réponses, la place que tu attends quand c’est complet, tes rappels si tu les demandes, ta présence déclarée", "tes réponses aux rendez-vous de club, tes présences déclarées et les séances que tu y as associées"],
   };
   const privacy = page("legal_privacy.html"), deletion = page("supprimer-mon-compte.html");
   const found = [];

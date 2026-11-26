@@ -31,12 +31,13 @@ const config: ExpoConfig = {
     allowBackup: false,
     // AUD-12: invitation links (https://titan-app.fr/social?ami=… / ?guilde=…) open the app's Community screen once
     // https://titan-app.fr/.well-known/assetlinks.json lists the Play signing fingerprint (TWA_SHA256_FINGERPRINTS on Netlify).
-    // Until then Android simply opens the website, which pre-fills the same code: nothing breaks. Only /social is claimed.
+    // Until then Android simply opens the website, which pre-fills the same code: nothing breaks. Only /social and, since V1.8.1, /defi
+    // (challenge and Grande Cordée invitation links, native card in Communauté › Défis) are claimed.
     intentFilters: [
       {
         action: "VIEW",
         autoVerify: true,
-        data: [{ scheme: "https", host: "titan-app.fr", pathPrefix: "/social" }],
+        data: [{ scheme: "https", host: "titan-app.fr", pathPrefix: "/social" }, { scheme: "https", host: "titan-app.fr", pathPrefix: "/defi" }],
         category: ["BROWSABLE", "DEFAULT"],
       },
     ],

@@ -47,6 +47,7 @@ export const MODULES = [
   "js/core/program-grid.js",
   "js/core/periodic-quests.js",
   "js/core/cordee.js",
+  "js/core/club-agenda.js",
   "js/core/social-digest.js",
   "js/core/sync-state.js",
   "js/core/session-match.js",
@@ -66,6 +67,8 @@ export const MODULES = [
   "js/core/coach-feedback.js",
   "js/core/coach-program.js",
   "js/core/coach-cycle.js",
+  "js/core/club-season.js",
+  "js/core/club-match.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

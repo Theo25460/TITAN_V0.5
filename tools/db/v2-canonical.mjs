@@ -169,9 +169,12 @@ function apply() {
 }
 
 const touched = new Map();
+// A file belongs to a chain when the chain's head changed it (a later lot of the chain may name an earlier lot's version).
+const CHAIN_HEAD = (lot) => (lot.startsWith("V1.5") ? LOT["V1.5.5"] : lot === "V1.6.5" ? LOT["V1.6.5"] : /^V1\.[67]/.test(lot) ? LOT["V1.7.7"]
+  : lot.startsWith("V1.8") ? LOT["V1.8.6"] : lot.startsWith("V1.9") ? LOT["V1.9.6"] : LOT[lot]);
 function fileTouchedBy(file, lot) {
-  const key = lot;
-  if (!touched.has(key)) touched.set(key, new Set(git("diff", "--name-only", MAIN_SHA, LOT[lot]).split("\n").filter(Boolean)));
+  const key = CHAIN_HEAD(lot);
+  if (!touched.has(key)) touched.set(key, new Set(git("diff", "--name-only", MAIN_SHA, key).split("\n").filter(Boolean)));
   return touched.get(key).has(file);
 }
 

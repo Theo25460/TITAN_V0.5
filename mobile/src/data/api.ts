@@ -1,5 +1,8 @@
 /* Every server call of the Android app. Same tables, RPCs and rules as the website (production schema v300):
    rewards, credits, possession and progression are only ever written by SECURITY DEFINER functions on the server. */
+import type { ClubAgendaAction, ClubAgendaView } from "../core/clubAgenda";
+import type { ClubMatchView } from "../core/clubMatch";
+import type { ClubSeasonAction, ClubSeasonView } from "../core/clubSeason";
 import { supabase } from "../lib/supabase";
 import type { AdventureSnapshot, Goal, Privacy, Profile, TrainingLog, TrainingPayload } from "../core/types";
 import type { HistoryCoverage, ImportBatch, ImportBatchRow } from "../core";
@@ -266,6 +269,22 @@ export type CordeeList = { cordees: import("../core/cordee").CordeeState[]; titl
 export const fetchCordees = (owner: string) => ownerRpc<CordeeList>(owner, "titan_cordees_v1", {});
 export const cordeeCreate = (owner: string, p: { route: string; pace: string; days: number; invitees: string[] }) =>
   ownerRpc<{ id: string; invited: number }>(owner, "titan_cordee_create_v1", { p_route: p.route, p_pace: p.pace, p_days: p.days, p_invitees: p.invitees });
+/** V1.8.1: transmit or confirm the relay of a pilot cordée. The server checks membership, the confirmed session, the other member and
+    the other day; a repeated call answers changed: false. */
+export const cordeeRelay = (owner: string, id: string, action: "transmit" | "confirm") =>
+  ownerRpc<import("../core/cordee").CordeeRelay & { changed: boolean }>(owner, "titan_cordee_relay_v1", { p_id: id, p_action: action });
+/** V1.8.2: take, hand over (to one member or, with no `to`, to the whole cordée), withdraw or accept the relay. No reason is ever sent. */
+export const cordeeRelayTurn = (owner: string, id: string, action: import("../core/cordee").CordeeTurn, to: string | null = null) =>
+  ownerRpc<import("../core/cordee").CordeeRelay & { changed: boolean }>(owner, "titan_cordee_relay_turn_v1", { p_id: id, p_action: action, p_to: to });
+/** The public preview of a challenge or cordée invitation link (never a name), and accepting it on an explicit tap. */
+/** V1.8.3: propose a new route to the group of a finished cordée, accept, decline or withdraw (the server decides who may). */
+export const cordeeSuite = (owner: string, from: string, action: "propose" | import("../core/cordee").CordeeSuiteAction,
+  p: { suite?: string | null; route?: string | null; pace?: string | null; days?: number | null } = {}) =>
+  ownerRpc<import("../core/cordee").CordeeSuiteAnswer>(owner, "titan_cordee_suite_v1",
+    { p_from: from, p_action: action, p_suite: p.suite ?? null, p_route: p.route ?? null, p_pace: p.pace ?? null, p_days: p.days ?? null });
+export type ChallengeLinkPreview = { valid: boolean; title?: string; metric?: string; sport?: string | null; target?: number; endsAt?: string; kind?: "individual" | "cordee"; route?: string | null; pace?: string | null; participants?: number };
+export const challengeLinkPreview = (token: string) => rpc<ChallengeLinkPreview>("titan_challenge_link_preview_v1", { p_token: token });
+export const challengeLinkAccept = (owner: string, token: string) => ownerRpc<unknown>(owner, "titan_challenge_link_accept_v1", { p_token: token });
 /** Social lot D: what happened in one's circle since a moment (the server clamps it to 1 hour .. 30 days). */
 /** V1.9.1 — the athlete's side of the coach follow-up (titan_coach_followup_v1, behind screens.coach_followup). */
 export const coachFollowup = <T = unknown>(owner: string, action: string, data: Record<string, unknown> = {}) =>
@@ -385,6 +404,27 @@ export const clubJoin = (owner: string, code: string) => ownerRpc<string>(owner,
 /** minutes and active are null below 3 members: the server never gives a total that would be another member's week. */
 export type ClubWeek = { club: string; weekStart: string; goal: number | null; minutes: number | null; members: number; active: number | null; canSet: boolean };
 export const fetchClubWeek = (owner: string, club: string) => ownerRpc<ClubWeek>(owner, "titan_club_week_v1", { p_club: club });
+/** V1.8.4: a club's private season (current one and the last frozen report). Aggregates are null below 3 participants. */
+export const fetchClubSeason = (owner: string, club: string) => ownerRpc<ClubSeasonView>(owner, "titan_club_season_v1", { p_club: club });
+/** V1.8.4: join, pause, resume, leave (any member); postpone (7 or 14 days) and stop (administrators). Creation is on the website. */
+export const clubSeasonAct = (owner: string, club: string, action: ClubSeasonAction, days: number | null = null) =>
+  ownerRpc<ClubSeasonView>(owner, "titan_club_season_act_v1", { p_club: club, p_action: action, p_title: null, p_pace: null, p_weeks: null, p_starts_on: null, p_days: days });
+/** V1.8.5: a club's meeting with another club (current one and the last frozen recap). The other club is a name, a number of
+    participants and a rate; rates are null below 3 participants. */
+export const fetchClubMatch = (owner: string, club: string) => ownerRpc<ClubMatchView>(owner, "titan_club_match_v1", { p_club: club });
+/** V1.8.5: join, leave (any member), stop (administrators), feedback after the end. Proposing and answering a code are on the website. */
+export const clubMatchAct = (owner: string, club: string, action: "join" | "leave" | "stop" | "feedback", answers: { clear: boolean; again: boolean } | null = null) =>
+  ownerRpc<ClubMatchView>(owner, "titan_club_match_act_v1", { p_club: club, p_action: action, p_format: null, p_pace: null, p_weeks: null, p_starts_on: null,
+    p_match: null, p_clear: answers ? answers.clear : null, p_again: answers ? answers.again : null });
+
+/** V1.8.6: a club's agenda (meetings to come, cancelled ones included, and those finished in the last 30 days). A member reads counts of
+    answers, never a name; the precise place only once they come, hesitate or wait; the group's totals from 3 linked sessions. */
+export const fetchClubAgenda = (owner: string, club: string) => ownerRpc<ClubAgendaView>(owner, "titan_club_agenda_v1", { p_club: club });
+/** V1.8.6: answer, remind, attend, link or unlink one's own session (any member); fallback and cancel (administrators). Proposing,
+    moving and managing a series are on the website. Nothing here ever writes a session. */
+export const clubAgendaAct = (owner: string, club: string, action: ClubAgendaAction, args: { slot: string; answer?: "yes" | "maybe" | "no" | null; on?: boolean | null; log?: string | null }) =>
+  ownerRpc<ClubAgendaView>(owner, "titan_club_agenda_act_v1", { p_club: club, p_action: action, p_slot: args.slot, p_event: null, p_answer: args.answer ?? null,
+    p_on: args.on ?? null, p_starts_at: null, p_log: args.log ?? null, p_form: null });
 
 /* ---------- Life chapters (AUD-48) ---------- */
 export type LifeChapter = { id: string; title: string; startsOn: string; endsOn: string | null; open: boolean; days: number; minutes: number; sessions: number };

@@ -1,6 +1,6 @@
 {
   "source": "Theo25460/TITAN_V0.5",
-  "sha": "0ea1dc0058072dcc05a59294d0d100938e468675",
+  "sha": "f3b49b734041b9624e23cfa1ae590e67426957d4",
   "files": {
     "format.js": "1c9c19b36dec0f389f5e14b23299ff48ca765cc2d63327ef2034c525aa81fcb7",
     "training-store.js": "0d089fdb88f819fae61b77f0e47ae7259efc2e9a70cf10d27602254d8425ccc5",
@@ -35,8 +35,9 @@
     "live-scene.js": "fbc87b2ffc4bc243e2dc4b90e30046e1685d4e361091484118c38f3a23e6ee10",
     "program-grid.js": "0d032a355db6cae62ca41160d70c0518d88ac30897c240d899efa1ceb5ff8db3",
     "periodic-quests.js": "fb9abcdcdc3f1fdd668f9f015cd54da5a25036098948cf9557a0826c63dd6c51",
-    "cordee.js": "8f542b0a923c5168d18b74a7345e4e0f7370250dd980a68108b58caac5af1737",
-    "social-digest.js": "4e56fee2d6fb6d7bfad261761ab0028955137b4d1001304cebe0c9f18c2eca1f",
+    "cordee.js": "4a9fc4370f13406d39b381e9214fe0664f77ff6085b89084cda3bfc3b737b9a0",
+    "club-agenda.js": "d7c1a2b5f1e10e539eef2d8dc7c10868e9397dafe19688ddc0d55cf5289aa193",
+    "social-digest.js": "a1bd1069b55a439f74c5d189d3291db077b06d6564e3a4f56914e58716e92da3",
     "sync-state.js": "65ce3c28f3fdf8c621c154d2d8a088b5edfdbb558bc313224a28caba2b0c5b03",
     "session-match.js": "c0ad7afbafc7ee8a3f30ebe9f2738e0e5a53d02180ed953f16b0d9eae86f0907",
     "history-ledger.js": "16803afbfe6c3b5d7c769ca1194097670d2ef4ca35e3b8697db850b8c407b898",
@@ -54,6 +55,8 @@
     "coach-followup.js": "f50d93682d5acfacebf0dae681e502821f31cc9f7a2667d65b1320242659d78b",
     "coach-feedback.js": "1e4791655e9c98f7a5106a8a57160ce889df86138a6719054c46aaa6f7ff42d3",
     "coach-program.js": "8a736022af6623154a4b465a6b90fc4324e7e05ebc30b62c3ea07016c325529b",
-    "coach-cycle.js": "29b4dd569bfc91007fe981e7927b60b70985951c81372f874561cd550593914a"
+    "coach-cycle.js": "29b4dd569bfc91007fe981e7927b60b70985951c81372f874561cd550593914a",
+    "club-season.js": "569dfacd46bee72e8a9ecc3f29800bd74dde87e7fba41f5cb7d06b20e883f5dc",
+    "club-match.js": "5fbb4feda108a977baeed7636d2c96139d55fd11307d8fa772f8538d08a37c0b"
   }
 }

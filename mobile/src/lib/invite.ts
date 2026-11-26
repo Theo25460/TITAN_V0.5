@@ -30,7 +30,7 @@ export function guildInviteMessage(name: string, code: string): string {
   return `Rejoins ${team} sur TITAN : chaque minute d’effort compte pour l’équipe. ${guildInviteUrl(code)}\nCode de guilde : ${clean(code)}`;
 }
 
-export type InviteParams = { ami?: string; guilde?: string; invitation?: string };
+export type InviteParams = { ami?: string; guilde?: string; invitation?: string; defi?: string };
 
 /* Social lot A: a personal one-use invitation link. It works while the inviter stays private (not findable); the person who opens it
    sees who invites them once signed in, then accepts or ignores. The token is 64 hex characters; only its hash is stored server-side. */
@@ -46,12 +46,14 @@ export function friendLinkMessage(token: string): string {
 }
 
 /** Reads the parameters of an opened link: only a well-formed code or token is kept, anything else is ignored. */
-export function parseInvite(params: unknown): { friend: string | null; guild: string | null; invitation: string | null } {
+export function parseInvite(params: unknown): { friend: string | null; guild: string | null; invitation: string | null; challenge: string | null } {
   const p = (params && typeof params === "object" ? params : {}) as Record<string, unknown>;
   return {
     friend: isFriendCode(p.ami) ? clean(p.ami) : null,
     guild: isGuildCode(p.guilde) ? clean(p.guilde) : null,
     invitation: isInvitationToken(p.invitation) ? String(p.invitation).trim().toLowerCase() : null,
+    // V1.8.1: a challenge or Grande Cordée link (https://titan-app.fr/defi?t=…) arrives as ?defi=<token>. Same 64-hex shape.
+    challenge: isInvitationToken(p.defi) ? String(p.defi).trim().toLowerCase() : null,
   };
 }
 

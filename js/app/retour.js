@@ -58,6 +58,8 @@
   });
   window.addEventListener("titan:account-changing", () => { shown = null; render(); });
   ["titan:account-changed", "titan:flags-updated"].forEach((ev) => window.addEventListener(ev, () => { shown = null; refresh(); }));
+  // V1.8.3: once I answered a proposal to set off again (or proposed one), the line that waited for me is read again from the server.
+  window.addEventListener("titan:cordee-suite-changed", () => { if (shown) refresh(); });
   function start() { root = document.getElementById("retour"); if (root) refresh(); }
   window.TitanRetour = { refresh };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(start, 0)); else setTimeout(start, 0);

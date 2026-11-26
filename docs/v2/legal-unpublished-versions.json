@@ -36,6 +36,66 @@
       "ref": "Version 6",
       "updated": "24 novembre 2026",
       "sha256": "bdfcb058478b0b9291f2d86324807523a0ad1b8e87794169964db421c57d2f6f"
+    },
+    {
+      "page": "legal_privacy",
+      "ref": "Version 15",
+      "updated": "26 novembre 2026",
+      "sha256": "8482dd4b602383a379067d7dc12e07b0e785c4793bac44fd7a9dd3ae9a866a44"
+    },
+    {
+      "page": "legal_privacy",
+      "ref": "Version 15",
+      "updated": "24 novembre 2026",
+      "sha256": "148a36c3155b7b5f395a821b47964669b72bf062e97dd27ec83260a9ddcaa5ef"
+    },
+    {
+      "page": "legal_privacy",
+      "ref": "Version 16",
+      "updated": "24 novembre 2026",
+      "sha256": "3d4c3d77adc45d536eddd797e6e8db809325d33d0738774db23b4901ce33e32c"
+    },
+    {
+      "page": "legal_privacy",
+      "ref": "Version 17",
+      "updated": "24 novembre 2026",
+      "sha256": "6919b4af5c9cd3413c223d4028cb8e592c276aa5e062060d9e79412eeada5a57"
+    },
+    {
+      "page": "legal_privacy",
+      "ref": "Version 18",
+      "updated": "24 novembre 2026",
+      "sha256": "b3dff7498870fa6efafc66fc1c08ecf0df9e2c97270ba66ec3135ee84179c427"
+    },
+    {
+      "page": "supprimer-mon-compte",
+      "ref": "Version 5",
+      "updated": "26 novembre 2026",
+      "sha256": "ad4a755791d0267629e40b4613ac5edb93c114574a9a6f95e6c3a61f65826d48"
+    },
+    {
+      "page": "supprimer-mon-compte",
+      "ref": "Version 5",
+      "updated": "24 novembre 2026",
+      "sha256": "03661adac130c0d0ce0b61c5d72c66f21a2ec82ec362c25ef638817ea4c3b44a"
+    },
+    {
+      "page": "supprimer-mon-compte",
+      "ref": "Version 6",
+      "updated": "24 novembre 2026",
+      "sha256": "fce6d6decc80c20b42e636e107fe5314a9cede4f2081942e9d79c6318b244395"
+    },
+    {
+      "page": "supprimer-mon-compte",
+      "ref": "Version 7",
+      "updated": "24 novembre 2026",
+      "sha256": "d39570400bc648d07232a6d014e021f38de9cac0340b003ca53711a38876e847"
+    },
+    {
+      "page": "supprimer-mon-compte",
+      "ref": "Version 8",
+      "updated": "24 novembre 2026",
+      "sha256": "4cd3382fd4d31407c2e85523c41fa587214a8d446c78fe08d40cb6bfac34b6df"
     }
   ]
 }

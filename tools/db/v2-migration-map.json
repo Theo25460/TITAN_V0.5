@@ -498,10 +498,10 @@
         "file": "20261130104100_cordee_relay.sql",
         "version": "20261130104100",
         "package": "supabase/release-v2-06",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "53258dceb7ace9b9b672ac277380d2b91d1abdd19793415470be10983005bc26"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -519,10 +519,10 @@
         "file": "20261130104200_cordee_reprise.sql",
         "version": "20261130104200",
         "package": "supabase/release-v2-06",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "b7c9ab1066f7c733ceb8cd4eeffb98239e72196f5304a19ba14521181651d21a"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -540,10 +540,10 @@
         "file": "20261130104300_cordee_suite.sql",
         "version": "20261130104300",
         "package": "supabase/release-v2-06",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "96efc3b62231b17e60598b3cff99867498321c46742f3617aa7eceb2491e3528"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -561,10 +561,10 @@
         "file": "20261130104400_club_season.sql",
         "version": "20261130104400",
         "package": "supabase/release-v2-06",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "48b517ed39088ac19baf8834c93d17b6d8af4da69f9f77c3b89483ac4a8bb4c9"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -582,10 +582,10 @@
         "file": "20261130104500_club_match.sql",
         "version": "20261130104500",
         "package": "supabase/release-v2-06",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "2e7754c2d5abf72126c5db3508902300a9647d07138dea55ca77d2b6e83b227c"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {
@@ -603,10 +603,10 @@
         "file": "20261130104600_club_agenda.sql",
         "version": "20261130104600",
         "package": "supabase/release-v2-06",
-        "present": false,
-        "sha256": null
+        "present": true,
+        "sha256": "b7c5e7a7fc6f206e17cc9d61e9d422a80be0b76dd6cd51a781411b162fd06331"
       },
-      "identical": null,
+      "identical": true,
       "edit": null
     },
     {

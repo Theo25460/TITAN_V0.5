@@ -98,3 +98,189 @@ test("with friends in it, two members must bring longueurs: one strong member wi
   assert.match(SQL2, /'needs', least\(2, v_joined \+ v_pending\)/);
   assert.equal(C.RULE.contributors, 2);
 });
+
+// V1.8.1 — Relais de cordée: the module words exactly the states and hints the server sends, and nothing else.
+const RELAY_SQL = readFileSync(new URL("../supabase/migrations/20261130104100_cordee_relay.sql", import.meta.url), "utf8");
+test("relay: the module words every hint and refusal of the server, on the pilot route only", () => {
+  assert.match(RELAY_SQL, /v_c\.route <> 'aube'/);
+  assert.equal(C.RELAY.route, "aube");
+  assert.match(RELAY_SQL, /private\.titan_flag_on\('screens\.cordee_relay'\)/);
+  const hints = [...RELAY_SQL.matchAll(/v_hint := '([a-z_]+)'/g)].map((m) => m[1]).concat([...RELAY_SQL.matchAll(/v_hint := case when v_has then '([a-z_]+)' else '([a-z_]+)' end;/g)].flatMap((m) => [m[1], m[2]]));
+  assert.deepEqual([...new Set(hints)].sort(), ["closed", "confirm", "done", "join", "other_day", "own", "session", "transmit"]);
+  for (const hint of hints) {
+    const words = C.relay({ relay: { status: "waiting", hint, can: null } });
+    assert.ok(words.mine && !/undefined/.test(words.mine), hint);
+  }
+  const codes = [...new Set([...RELAY_SQL.matchAll(/raise exception '(RELAY_[A-Z_]+)'/g)].map((m) => m[1]))];
+  assert.ok(codes.length >= 8);
+  for (const code of codes) assert.ok(C.RELAY_MESSAGES[code], code);
+  assert.equal(C.relayMessage({ message: "RELAY_OWN" }), C.RELAY_MESSAGES.RELAY_OWN);
+  assert.equal(C.relayMessage({ message: "CHALLENGE_ENDED" }), null, "other refusals keep the cordée's own wording");
+  assert.match(RELAY_SQL, /having least\(90, sum\(s\.effort_minutes\)\) >= 12/, "the relay uses the longueur threshold of the Cordée");
+  assert.ok(C.RELAY_MESSAGES.RELAY_NO_SESSION.includes(`${C.RULE.oneLongueur} minutes`));
+});
+
+test("relay: the shared state names only who the server names, with a family label, and offers only the server's action", () => {
+  assert.equal(C.relay({}), null);
+  assert.equal(C.relay({ relay: null }), null);
+  const waiting = C.relay({ relay: { status: "waiting", hint: "transmit", can: "transmit", opener: null, receiver: null } });
+  assert.equal(waiting.label, "Transmettre le relais");
+  assert.deepEqual(waiting.steps.map((s) => s.done), [false, false]);
+  const own = C.relay({ relay: { status: "opened", hint: "own", can: null, opener: { name: "Moi", me: true, family: "technique" } } });
+  assert.equal(own.shared, "Tu as ouvert le passage (Prisme).");
+  assert.equal(own.can, null, "the opener is never offered to receive their own relay");
+  const other = C.relay({ relay: { status: "opened", hint: "confirm", can: "confirm", opener: { name: "Léa", me: false, family: "technique" } } });
+  assert.equal(other.shared, "Passage ouvert par Léa (Prisme). Le relais attend un autre membre.");
+  assert.equal(other.label, "Confirmer le relais");
+  const done = C.relay({ relay: { status: "confirmed", hint: "done", can: null, opener: { name: "Léa", me: false, family: "technique" }, receiver: { name: "Membre de la cordée", me: false, family: null } } });
+  assert.equal(done.shared, "Relais passé : Léa (Prisme) → Membre de la cordée. La Sentinelle laisse passer la cordée.");
+  assert.match(done.mine, /À ton tour/);
+  assert.equal(C.relay({ relay: { status: "opened", hint: "own", can: "hack" } }).can, null, "an unknown action is never offered");
+  assert.deepEqual(C.relayResult({ changed: false }, "confirm").title, "Déjà fait");
+  assert.deepEqual(C.relayResult({ changed: true }, "confirm").title, "Relais reçu");
+});
+
+// V1.8.2 — Reprise et relais facultatifs: the module words every new hint and refusal of the server, offers only the turns the server
+// sends, never says why someone paused or left, and tells the truth about leaving (longueurs kept, part closed at what was brought).
+const REPRISE_SQL = readFileSync(new URL("../supabase/migrations/20261130104200_cordee_reprise.sql", import.meta.url), "utf8");
+test("reprise: every hint and refusal of the server is worded; the flag and the durations match", () => {
+  const hints = new Set([...REPRISE_SQL.matchAll(/'(held|offered|holder|holder_session|paused|alone|own|confirm|other_day|transmit|session|join|done|closed)'/g)].map((m) => m[1]));
+  for (const h of ["held", "offered", "holder", "holder_session", "paused", "alone"]) assert.ok(hints.has(h), `server hint ${h}`);
+  for (const hint of hints) {
+    const words = C.relay({ relay: { status: "opened", hint, can: null } });
+    assert.ok(words.mine && !/undefined/.test(words.mine), hint);
+    assert.doesNotMatch(words.mine, /pourquoi|raison|motif|malad|bless/i, `no reason in ${hint}`);
+  }
+  const codes = [...new Set([...REPRISE_SQL.matchAll(/raise exception '(RELAY_[A-Z_]+)'/g)].map((m) => m[1]))];
+  assert.ok(codes.includes("RELAY_HELD") && codes.includes("RELAY_HANDOVER_TAKEN") && codes.includes("RELAY_GROUP_TOO_SMALL"));
+  for (const code of codes) assert.ok(C.RELAY_MESSAGES[code], code);
+  assert.match(REPRISE_SQL, /private\.titan_flag_on\('screens\.cordee_reprise'\)/);
+  assert.match(REPRISE_SQL, new RegExp(`now\\(\\) \\+ interval '${C.RULE.holdHours} hours'`));
+  assert.match(REPRISE_SQL, new RegExp(`now\\(\\) \\+ interval '${C.RULE.offerHours} hours'`));
+  assert.match(REPRISE_SQL, new RegExp(`>= ${C.RULE.turnLimit} then raise exception 'RELAY_TURN_LIMIT'`));
+  assert.doesNotMatch(REPRISE_SQL, /\b(reason|motif)\s+text\b/i, "no reason column");
+});
+
+test("reprise: only the server's turns, the holder's allowed choices, and the handover seen without its target by others", () => {
+  const free = C.relay({ relay: { status: "opened", hint: "confirm", can: "confirm", turn: ["take", "hack"], opener: { name: "Léa", me: false, family: "technique" } } });
+  assert.deepEqual(free.turns.map((t) => t.action), ["take"], "unknown turns are never offered");
+  assert.equal(free.turns[0].label, "Prendre le relais");
+  assert.equal(free.holder, null);
+  const mine = C.relay({ relay: { status: "opened", hint: "holder", can: "confirm", turn: ["handover"], holder: { name: "Moi", me: true, family: null },
+    choices: [{ id: "u2", name: "Sam" }, { id: null, name: "ghost" }] } });
+  assert.deepEqual(mine.choices, [{ id: "u2", name: "Sam" }]);
+  assert.equal(mine.holder, `Tu as pris le relais (${C.RULE.holdHours} h au plus).`);
+  const leak = C.relay({ relay: { status: "opened", hint: "held", turn: [], choices: [{ id: "u2", name: "Sam" }], holder: { name: "Léa", me: false } } });
+  assert.deepEqual(leak.choices, [], "choices only come with the handover action");
+  const third = C.relay({ relay: { status: "opened", hint: "held", turn: [], holder: { name: "Membre de la cordée", me: false }, handover: { pending: true, mine: false, forMe: false, open: null, to: null } } });
+  assert.equal(third.handover, "Passation en cours.");
+  assert.equal(third.holder, "Relais pris en charge par Membre de la cordée.");
+  const offered = C.relay({ relay: { status: "opened", hint: "offered", turn: ["accept"], handover: { pending: true, mine: false, forMe: true, open: true } } });
+  assert.equal(offered.handover, "Le relais est proposé à toute la cordée : tu peux le reprendre.");
+  assert.match(offered.mine, /rien n’est validé d’avance/);
+  const paused = C.relay({ relay: { status: "opened", hint: "paused", turn: ["withdraw"], holder: { name: "Moi", me: true }, handover: { pending: true, mine: true, open: false, to: { name: "Sam", me: false } } } });
+  assert.equal(paused.handover, "Tu as passé la main à Sam : en attente de sa réponse.");
+  assert.equal(C.turnResult({ changed: false }, "accept").title, "Déjà fait");
+  assert.equal(C.turnResult({ changed: true }, "accept").title, "Relais repris");
+  assert.equal(C.relay({ relay: { status: "confirmed", hint: "done", turn: ["take"], holder: { name: "X" } } }).holder, null, "no hold once the relay is received");
+});
+
+test("reprise: kept longueurs and the departure sentence say what the server does", () => {
+  const words = C.explain({ route: "aube", status: "active", target: 12, share: 10, joined: 1, needs: 2, kept: 2, total: 6, camps: 1, me: { counted: 4 } });
+  assert.match(words.kept, /2 longueurs restent acquises grâce à des membres partis/);
+  assert.match(words.together, /au moins deux membres/);
+  assert.equal(C.explain({ route: "aube", status: "active", target: 20, share: 10, joined: 2, needs: 2, kept: 0 }).kept, null);
+  assert.equal(C.explain({ route: "aube", status: "active", target: 10, share: 10, joined: 1, needs: 1, kept: 0 }).together, null, "a solo climb is not « too small »");
+  assert.match(C.LEAVE, /restent acquises/);
+  assert.match(C.LEAVE, /Personne ne voit pourquoi/);
+  assert.match(REPRISE_SQL, /v_kept_target := v_kept_target \+ least\(v_share, v_counted\)/, "the departed part closes at what was brought, never more than a share");
+  assert.match(REPRISE_SQL, /'needs', least\(2, v_joined \+ v_pending \+ v_kept_members\)/, "the two-contributor rule stands");
+  assert.match(REPRISE_SQL, /where l\.created_at < p_until/, "nothing recorded after the departure counts");
+});
+
+// V1.8.3 — Un groupe qui se retrouve: the module words every hint and refusal of the server, offers only the answers the server
+// sends, never names a refusal, mirrors the windows and suggests a pace that is never harder than what the group lived.
+const SUITE_SQL = readFileSync(new URL("../supabase/migrations/20261130104300_cordee_suite.sql", import.meta.url), "utf8");
+test("suite: every hint and refusal of the server is worded; the flag, the windows and the limits match", () => {
+  const hints = [...new Set([...SUITE_SQL.matchAll(/(?:then|else) '(suspended|closed|in|alone|answer|mine|full|propose)'/g)].map((m) => m[1]))];
+  assert.deepEqual(hints.sort(), ["alone", "answer", "closed", "full", "in", "mine", "propose", "suspended"]);
+  for (const hint of hints) {
+    const w = C.suite({ suite: { hint, can: [], proposals: [] } });
+    assert.ok(w.hint && !/undefined/.test(w.hint), hint);
+    assert.doesNotMatch(w.hint, /pourquoi|raison|motif|derni[eè]re chance|vite/i, hint);
+  }
+  const codes = [...new Set([...SUITE_SQL.matchAll(/raise exception '(SUITE_[A-Z_]+)'/g)].map((m) => m[1]))];
+  assert.ok(codes.includes("SUITE_ALREADY_IN") && codes.includes("SUITE_UNAVAILABLE") && codes.includes("SUITE_GROUP_TOO_SMALL"));
+  for (const code of codes) assert.ok(C.SUITE_MESSAGES[code], code);
+  assert.equal(C.suiteMessage(new Error("SUITE_ALREADY_IN")), C.SUITE_MESSAGES.SUITE_ALREADY_IN);
+  assert.match(SUITE_SQL, /private\.titan_flag_on\('screens\.cordee_suite'\)/);
+  assert.match(SUITE_SQL, new RegExp(`clock_timestamp\\(\\) \\+ interval '${C.SUITE.proposalHours} hours'`));
+  assert.match(SUITE_SQL, new RegExp(`v_c\\.ends_at \\+ interval '${C.SUITE.windowDays} days'`));
+  assert.match(SUITE_SQL, new RegExp(`>= ${C.SUITE.openMax} then\\s+raise exception 'SUITE_LIMIT'`));
+  assert.match(SUITE_SQL, /titan_cordee_suite_yes\(p_suite\)\)\s*<\s*2 then return null/, "two acceptances start the new cordée");
+  assert.match(SUITE_SQL, /starts_at, ends_at, kind, route, pace\)\s*values \(v_s\.proposed_by, v_title, 'pitches', null, private\.titan_cordee_share\(v_s\.pace, v_s\.days\), now\(\)/,
+    "a new row starts now: the counters start at zero");
+  assert.doesNotMatch(SUITE_SQL, /\b(reason|motif|message|comment)\s+text\b/i, "no free text column");
+});
+
+test("suite: the next pace is never harder than what the group lived", () => {
+  assert.equal(C.nextPace("soutenue", true), "soutenue");
+  assert.equal(C.nextPace("soutenue", false), "reguliere");
+  assert.equal(C.nextPace("reguliere", false), "douce");
+  assert.equal(C.nextPace("douce", false), "douce");
+  assert.equal(C.nextPace("inconnue", false), "douce");
+  assert.equal(C.itinerary({ route: "marees", pace: "douce", days: 14 }), "« La passe des Marées » · allure douce · 14 jours");
+});
+
+test("suite: proposals as the server sends them — answers offered, acceptances named under the rule, refusals counted only", () => {
+  const w = C.suite({ suite: { hint: "answer", choice: true, can: [], previous: { route: "aube", pace: "reguliere", days: 14, summited: true }, proposals: [
+    { id: "p1", route: "marees", pace: "douce", days: 14, status: "open", by: { name: "Léa", me: false }, mine: false, myAnswer: null, yes: 2, no: 1, eligible: 5,
+      accepted: [{ name: "Léa", me: false }], others: 1, turn: ["accept", "decline", "hack"], expiresAt: "2026-11-27T10:00:00Z" },
+    { id: "p2", route: "forge", pace: "soutenue", days: 7, status: "open", by: { name: "Moi", me: true }, mine: true, myAnswer: "yes", yes: 1, no: 0, eligible: 5,
+      accepted: [{ name: "Moi", me: true }], others: 0, turn: ["withdraw"] },
+    { id: "p3", route: "aurores", pace: "douce", days: 21, status: "started", by: { name: "Membre de la cordée", me: false }, myStatus: "invited", yes: 2, no: 0, eligible: 5, joined: 2,
+      accepted: [], others: 2, turn: ["accept", "decline"] },
+  ] } });
+  assert.equal(w.pace, "reguliere", "after a summit, the same pace");
+  assert.match(w.choice, /une acceptation à la fois/);
+  const [p1, p2, p3] = w.proposals;
+  assert.deepEqual(p1.actions.map((a) => a.action), ["accept", "decline"], "unknown answers are never offered");
+  assert.equal(p1.counts, "2 sur 5 ont accepté · 1 a décliné · 2 n’ont pas encore répondu");
+  assert.equal(p1.accepted, "Ont accepté : Léa et 1 autre membre.");
+  assert.equal(p1.by, "Proposée par Léa");
+  assert.equal(p2.by, "Ta proposition");
+  assert.deepEqual(p2.actions.map((a) => a.label), ["Retirer ma proposition"]);
+  assert.equal(p3.by, "Repartie à 2");
+  assert.deepEqual(p3.actions.map((a) => a.label), ["S’encorder", "Décliner"]);
+  assert.match(p3.mine, /La cordée est partie : tu peux encore t’encorder ou décliner/);
+  assert.doesNotMatch(JSON.stringify(w), /décliné par|a refusé :|pourquoi/i, "a refusal is never named or explained");
+  assert.equal(C.suite({}), null);
+  assert.equal(C.suiteResult({ changed: true, started: "n1" }, "accept").title, "La cordée repart");
+  assert.equal(C.suiteResult({ changed: true, canonical: true, started: null }, "propose").title, "Même itinéraire");
+  assert.equal(C.suiteResult({ changed: false }, "accept").title, "Déjà fait");
+});
+
+test("suite: the story tells shareable steps and the group's decisions only; the new cordée names the one it follows", () => {
+  const lines = C.story({ route: "aube", story: [
+    { kind: "formed", at: "2026-11-01T08:00:00Z", members: 5 },
+    { kind: "relay_opened", at: "2026-11-05T08:00:00Z", who: { name: "Léa", me: false, family: "technique" } },
+    { kind: "relay_confirmed", at: "2026-11-07T08:00:00Z", who: { name: "Moi", me: true, family: "endurance" } },
+    { kind: "camps", camps: 2, total: 40, target: 80 },
+    { kind: "ended", at: "2026-11-15T08:00:00Z", total: 52, target: 80 },
+    { kind: "proposal", at: "2026-11-16T08:00:00Z", route: "marees", pace: "douce", days: 14, by: { name: "Sam", me: false }, status: "started", yes: 3, no: 1 },
+    { kind: "suite", at: "2026-11-16T09:00:00Z", route: "marees", joined: 2 },
+    { kind: "session", log_id: "x", sport: "running" },
+  ] }).map((l) => l.text);
+  assert.deepEqual(lines, [
+    "La cordée se forme à 5 sur « Les crêtes de l’Aube ».",
+    "Léa (Prisme) ouvre le passage de la Sentinelle.",
+    "Tu reçois le relais : la Sentinelle laisse passer la cordée.",
+    "2 camps atteints : Le gué des premiers pas · La terrasse des bergers.",
+    "La cordée s’arrête à 52 / 80 longueurs. Ce qui est fait reste fait.",
+    "Sam propose « La passe des Marées » · allure douce · 14 jours — 3 acceptations, 1 refus, le groupe repart.",
+    "Le groupe repart à 2 sur « La passe des Marées », compteurs à zéro.",
+  ], "an unknown event (a session) is never shown");
+  assert.equal(C.follows({ follows: { route: "aube", summited: false, total: 52, target: 80, group: 5, proposedBy: { name: "Sam" } } }),
+    "Suite de « Les crêtes de l’Aube » (52 / 80 longueurs, à 5). Proposée par Sam. Les compteurs sont repartis de zéro.");
+  assert.equal(C.follows({}), null);
+});

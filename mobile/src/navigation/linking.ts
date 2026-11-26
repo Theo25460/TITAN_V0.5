@@ -9,8 +9,9 @@ const urlOf = (r: Notifications.NotificationResponse | null) => {
   return typeof url === "string" && url.startsWith("titan://") ? url : null;
 };
 
-/** titan:// links (local reminders, shortcuts) and verified invitation links https://titan-app.fr/social?ami=…|guilde=… (AUD-12).
-    Only /social is claimed by the Android intent filter: every other website link stays on the website. */
+/** titan:// links (local reminders, shortcuts) and verified invitation links https://titan-app.fr/social?ami=…|guilde=… (AUD-12)
+    and https://titan-app.fr/defi?t=… (V1.8.1). Only /social and /defi are claimed by the Android intent filter: every other website
+    link stays on the website. */
 export const linking: LinkingOptions<RootParams> = {
   prefixes: ["titan://", "https://titan-app.fr"],
   config: {
@@ -35,6 +36,10 @@ export const linking: LinkingOptions<RootParams> = {
     // The website's community page is the invitation landing: same query, native Community screen.
     const social = /^\/?social(?:\.html)?\/?(\?[^#]*)?(?:#.*)?$/.exec(path);
     if (social) return getStateFromPath(`/communaute${social[1] || ""}`, options);
+    // V1.8.1: a challenge or Grande Cordée invitation (/defi?t=<64 hex>) opens Communauté › Défis with its native card. Anything else
+    // in the query is dropped; a malformed token still lands on the Community screen, which says the link is unavailable.
+    const defi = /^\/?defi(?:\.html)?\/?\?(?:[^#]*&)?t=([^&#]*)/.exec(path);
+    if (defi) return getStateFromPath(`/communaute?defi=${encodeURIComponent(decodeURIComponent(defi[1]))}`, options);
     return getStateFromPath(path, options);
   },
   async getInitialURL() {
