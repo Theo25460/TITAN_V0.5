@@ -4,6 +4,11 @@ name: Sonde production (lecture seule)
 # repository secrets are only tested for presence (true/false), never echoed.
 on:
   workflow_dispatch:
+    inputs:
+      expect_commit:
+        description: "SHA attendu en production (juste après une mise en ligne) : le smoke SEO attend au plus 10 min que build-info.json le serve"
+        required: false
+        default: ""
   schedule:
     - cron: "23 */6 * * *"   # every six hours: a regression published by any deploy is noticed without waiting for a user
   pull_request:
@@ -22,6 +27,26 @@ jobs:
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
       HAS_GOOGLE_CLIENT: ${{ secrets.GOOGLE_WEB_CLIENT_ID != '' }}
     steps:
+      # SEO smoke of titan-app.fr (docs/seo/SEO_GUARD.md): about 40 requests, 4 at a time, 15 s timeout and 2 retries each. It records the
+      # served commit and Netlify deploy (build-info.json); a P0 (critical page down, noindex, robots block, canonical off-site, sitemap,
+      # soft 404, exposed file, published SHA different from the expected one) fails this run, and GitHub e-mails the maintainer.
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Bouclier SEO — smoke de production
+        env:
+          EXPECT: ${{ inputs.expect_commit }}
+        run: |
+          if [ -n "$EXPECT" ]; then node tools/seo-guard.mjs check --base https://titan-app.fr --scope smoke --fail-on p0 --expect-commit "$EXPECT" --wait-commit 600
+          else node tools/seo-guard.mjs check --base https://titan-app.fr --scope smoke --fail-on p0; fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: seo-smoke-${{ github.run_id }}
+          path: test-results/seo-guard/
+          retention-days: 30
+          if-no-files-found: ignore
       - name: Site publié
         run: |
           for p in / /profile /app-ads.txt /sitemap.xml "/auth/garmin/callback?code=probe&state=probe"; do

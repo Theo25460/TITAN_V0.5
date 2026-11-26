@@ -183,6 +183,7 @@ test('release gate: passes a clean checkout and fails closed on anything it cann
 test('public build excludes hidden image editor files and directories while preserving real images and originals', () => {
   const files={
     'tools/build-public.mjs':readFileSync(new URL('../tools/build-public.mjs',import.meta.url),'utf8'),
+    'tools/lib/build-context.mjs':readFileSync(new URL('../tools/lib/build-context.mjs',import.meta.url),'utf8'),
     'index.html':'<h1>TITAN</h1>','sw.js':'const PRECACHE = [/* PRECACHE */];',
     'network-error.html':'offline','manifest.json':'{}','favicon.ico':'icon','image/logo-192.png':'logo',
     'css/fonts/archivo-latin-variable.woff2':'font',

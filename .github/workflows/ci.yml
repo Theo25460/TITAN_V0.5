@@ -43,6 +43,11 @@ jobs:
       - name: Verifier, tester et construire
         run: pnpm run verify
 
+      # The built dist/ (the one archived below) served with the real netlify.toml rules and compared with the production reference
+      # (tools/seo/baseline/production.json): P0, or a P1 without its approval in tools/seo/approvals.json, fails the check. About 1 s.
+      - name: Bouclier SEO sur l'artefact construit
+        run: node tools/seo-guard.mjs check --dist dist --context production
+
       - name: Rechercher des secrets dans tout l'historique git
         run: pnpm run history-scan
 
@@ -53,6 +58,15 @@ jobs:
           path: dist/
           retention-days: 7
           if-no-files-found: error
+
+      - name: Archiver le rapport du bouclier SEO
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-guard-${{ github.sha }}
+          path: test-results/seo-guard/
+          retention-days: 14
+          if-no-files-found: ignore
 
   e2e:
     name: Parcours navigateur (Playwright)
@@ -75,6 +89,39 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Parcours de bout en bout
         run: pnpm run test:e2e
+
+  # The Netlify Deploy Preview of the EXACT head commit of the pull request (build-info.json names it), checked as Google would read it:
+  # statuses and redirects on the real platform, X-Robots-Tag: noindex everywhere, canonicals and sitemap on titan-app.fr only. Read-only,
+  # no secret. Waits at most 8 minutes for Netlify; a preview that never shows the commit is reported INCONCLUSIVE (warning), not green.
+  # Drift review (P1 approvals) is the artifact check's job above: here only P0 fails.
+  seo-preview:
+    name: Bouclier SEO sur la Deploy Preview
+    if: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' }}
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Attendre la preview du commit testé, puis la contrôler
+        env:
+          PREVIEW: https://deploy-preview-${{ github.event.pull_request.number }}--titano-app.netlify.app
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set +e
+          node tools/seo-guard.mjs check --base "$PREVIEW" --context deploy-preview --expect-commit "$HEAD_SHA" --wait-commit 480 --fail-on p0
+          code=$?
+          if [ "$code" = 3 ]; then echo "::warning title=Preview SEO non concluante::$PREVIEW n'a pas servi $HEAD_SHA à temps (preview désactivée, build Netlify en échec ou en attente). Le contrôle de l'artefact reste la garantie bloquante."; exit 0; fi
+          exit $code
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: seo-preview-${{ github.event.pull_request.head.sha }}
+          path: test-results/seo-guard/
+          retention-days: 14
+          if-no-files-found: ignore
 
   database:
     name: Migrations sur une replique vide (Postgres 17.6)
