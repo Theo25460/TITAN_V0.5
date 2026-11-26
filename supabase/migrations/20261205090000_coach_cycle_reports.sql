@@ -1,0 +1,720 @@
+-- V1.9.5 — Bilans de cycle partageables (25 November 2026). At the end of a cycle (a V1.9.4 programme, sent or closed) the coach and the
+-- athlete conclude it with a sourced report (« bilan »), choose what they share, and take the decisions over into the next cycle.
+-- Behind the server flag screens.coach_cycle_report (absent = closed). It REUSES what exists and writes nothing in the journal:
+--   the sharing link (public.coach_links: scope, pause of capacity, revocation) decides every read and every write, at that moment;
+--   the cycle is a programme of V1.9.4 (private.titan_coach_plans) and its sessions are its proposals (public.coach_assignments): what was
+--   proposed, accepted, moved (V1.9.1 « déplacer », or a revision of the coach), declared done, linked to a journal session;
+--   the measures of a linked session are the « core » projection of V1.9.2 (day, sport, value, unit, duration), only inside the link's scope;
+--   the next cycle is an ordinary V1.9.4 draft (public.titan_coach_program_v1 « adapt »).
+-- New:
+--   private.titan_coach_cycle_reports  one report per programme: the coach's working copy (observations tied to source sessions, decisions
+--                     for what comes next), a draft the athlete never sees, proposed to the athlete, then published;
+--   private.titan_coach_cycle_report_versions  one entry per validation by the athlete: exactly what they validated (the facts of each
+--                     session, the measures, notes and check-ins they chose, the coach's observations, each decision approved or not), the
+--                     link's contract at that moment, whether a file may be downloaded, and what was retracted since (kind and key only);
+--   private.titan_coach_cycle_report_exports  who downloaded a file of which version, and how many fields it held (never the content);
+--   private.titan_coach_plans.origin  the report a next cycle comes from and the objectives confirmed there (traceability).
+-- Every figure of a report carries its period and its sources (the keys of the sessions it counts). The totals are never stored: they are
+-- computed from the sessions of the version at every read, after a live check of each source — a journal session archived, deleted or out
+-- of the link's scope since the validation gives no measure and no note any more, and is not counted as done.
+-- A note of the journal and a weekly check-in are OUT of a report until the athlete ticks them in the validation of that very report
+-- (whatever share_notes or the check-in's own sharing say). Nothing reaches the coach before the athlete validates.
+-- After the publication the athlete may retract an item (a note, a measure, a check-in, their word): it is deleted from every stored
+-- version, so it leaves the hosted version and every future export; they may withdraw the access to the hosted version (the coach then reads
+-- no shared content, even by a direct call); a change of the link's sharing scope (sport, since, details, notes) suspends the hosted version
+-- until a new validation. After a revocation the coach reads nothing (SHARING_UNAVAILABLE) and the athlete keeps a read-only view for 365
+-- days; while a link is paused the coach reads nothing (COACH_CAPACITY_PAUSED). A file already downloaded cannot be taken back: the export
+-- is built from the fields authorised at that moment, allowed to the coach only when the athlete allowed it for that version, and logged.
+-- A decision the athlete approved becomes an objective (or a session to propose) of the next cycle: « next » creates a V1.9.4 draft on
+-- the same link, with ONLY the confirmed objectives, and keeps where they come from. Replaying it returns the same draft.
+-- No action writes public.training_logs, a note or a check-in. No XP, no credit, no notification. Additive. The caller owns the
+-- transaction: never BEGIN/COMMIT here.
+-- Rollback: drop function public.titan_coach_cycle_v1(text, jsonb), private.titan_coach_cycle_measure(),
+-- private.titan_coach_cycle_row(private.titan_coach_cycle_reports, private.titan_coach_plans, public.coach_links, text, boolean),
+-- private.titan_coach_cycle_published(private.titan_coach_cycle_reports, private.titan_coach_plans, public.coach_links),
+-- private.titan_coach_cycle_candidates(private.titan_coach_cycle_reports, private.titan_coach_plans, public.coach_links),
+-- private.titan_coach_cycle_totals(jsonb, date, integer), private.titan_coach_cycle_facts(private.titan_coach_plans, public.coach_links),
+-- private.titan_coach_cycle_content(jsonb, uuid), private.titan_coach_cycle_contract(public.coach_links); re-apply
+-- private.titan_coach_plan_row and private.titan_export_extras_v1 of 20261204090000; drop index private.titan_coach_plans_origin_report;
+-- alter table private.titan_coach_plans drop column origin; drop table private.titan_coach_cycle_report_exports,
+-- private.titan_coach_cycle_report_versions, private.titan_coach_cycle_reports.
+
+create table if not exists private.titan_coach_cycle_reports (
+  id uuid primary key default gen_random_uuid(),
+  plan_id uuid not null unique references private.titan_coach_plans(id) on delete cascade,
+  link_id uuid not null references public.coach_links(id) on delete cascade,
+  coach_id uuid not null references auth.users(id) on delete cascade,
+  state text not null default 'draft' check (state in ('draft', 'proposed', 'published')),
+  content jsonb not null default '{"observations": [], "decisions": []}'::jsonb
+    check (jsonb_typeof(content) = 'object' and jsonb_typeof(content->'observations') = 'array' and jsonb_typeof(content->'decisions') = 'array'),
+  revision integer not null default 1,
+  version integer not null default 0 check (version >= 0),
+  withdrawn_at timestamptz,
+  returned_note text check (returned_note is null or char_length(returned_note) <= 300),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  proposed_at timestamptz,
+  first_published_at timestamptz,
+  published_at timestamptz,
+  check ((version = 0) = (published_at is null)),
+  check (state <> 'published' or version >= 1),
+  check (withdrawn_at is null or version >= 1)
+);
+create index if not exists titan_coach_cycle_reports_link_idx on private.titan_coach_cycle_reports (link_id, created_at desc);
+create table if not exists private.titan_coach_cycle_report_versions (
+  report_id uuid not null references private.titan_coach_cycle_reports(id) on delete cascade,
+  version integer not null check (version >= 1),
+  op_id uuid not null,
+  content jsonb not null check (jsonb_typeof(content) = 'object' and jsonb_typeof(content->'sessions') = 'array'),
+  contract jsonb not null check (jsonb_typeof(contract) = 'object'),
+  allow_export boolean not null default false,
+  understood text check (understood is null or understood in ('clear', 'unsure')),
+  retracted jsonb not null default '[]'::jsonb check (jsonb_typeof(retracted) = 'array'),
+  validated_by uuid,
+  created_at timestamptz not null default now(),
+  primary key (report_id, version),
+  unique (report_id, op_id)
+);
+create table if not exists private.titan_coach_cycle_report_exports (
+  id uuid primary key default gen_random_uuid(),
+  report_id uuid not null references private.titan_coach_cycle_reports(id) on delete cascade,
+  version integer not null,
+  actor uuid,
+  role text not null check (role in ('coach', 'athlete')),
+  fields jsonb not null default '{}'::jsonb check (jsonb_typeof(fields) = 'object'),
+  created_at timestamptz not null default now()
+);
+create index if not exists titan_coach_cycle_report_exports_idx on private.titan_coach_cycle_report_exports (report_id, created_at desc);
+alter table private.titan_coach_cycle_reports enable row level security;
+alter table private.titan_coach_cycle_report_versions enable row level security;
+alter table private.titan_coach_cycle_report_exports enable row level security;
+revoke all on private.titan_coach_cycle_reports, private.titan_coach_cycle_report_versions, private.titan_coach_cycle_report_exports from public, anon, authenticated;
+
+alter table private.titan_coach_plans add column if not exists origin jsonb;
+alter table private.titan_coach_plans drop constraint if exists titan_coach_plans_origin_check;
+alter table private.titan_coach_plans add constraint titan_coach_plans_origin_check check (origin is null or (jsonb_typeof(origin) = 'object' and origin ? 'report_id'));
+-- One live next cycle per report: a replayed « next » finds it instead of creating a second draft.
+create unique index if not exists titan_coach_plans_origin_report on private.titan_coach_plans ((origin->>'report_id')) where origin is not null and state <> 'discarded';
+
+-- The sharing scope a version was validated under. Any difference later suspends the hosted version until a new validation.
+create or replace function private.titan_coach_cycle_contract(l public.coach_links)
+returns jsonb language sql immutable set search_path = ''
+as $function$ select jsonb_build_object('sport', l.sport, 'since_date', l.since_date, 'share_details', l.share_details, 'share_notes', l.share_notes) $function$;
+revoke all on function private.titan_coach_cycle_contract(public.coach_links) from public, anon, authenticated;
+
+-- The coach's working copy: up to 8 observations (a sentence and the sessions of the cycle it rests on) and up to 5 decisions for what
+-- comes next (an objective, or a session to propose). Keys are stable: they follow an item through drafts, validations and the next cycle.
+create or replace function private.titan_coach_cycle_content(p jsonb, p_plan uuid)
+returns jsonb language plpgsql volatile security definer set search_path = ''
+as $function$
+declare v_obs jsonb := '[]'::jsonb; v_dec jsonb := '[]'::jsonb; e jsonb; v_key text; v_text text; v_src jsonb; v_keys text[] := '{}'; v_kind text;
+begin
+  if jsonb_typeof(p) is distinct from 'object' then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+  if jsonb_typeof(coalesce(p->'observations', '[]'::jsonb)) <> 'array' or jsonb_array_length(coalesce(p->'observations', '[]'::jsonb)) > 8 then raise exception 'BAD_OBSERVATION' using errcode = '22023'; end if;
+  if jsonb_typeof(coalesce(p->'decisions', '[]'::jsonb)) <> 'array' or jsonb_array_length(coalesce(p->'decisions', '[]'::jsonb)) > 5 then raise exception 'BAD_DECISION' using errcode = '22023'; end if;
+  for e in select x from jsonb_array_elements(coalesce(p->'observations', '[]'::jsonb)) x loop
+    if jsonb_typeof(e) is distinct from 'object' then raise exception 'BAD_OBSERVATION' using errcode = '22023'; end if;
+    v_text := left(btrim(regexp_replace(coalesce(e->>'text', ''), '[[:cntrl:]<>]', '', 'g')), 300);
+    if v_text = '' then raise exception 'BAD_OBSERVATION' using errcode = '22023'; end if;
+    v_key := coalesce(nullif(e->>'key', ''), 'o' || left(md5(gen_random_uuid()::text), 8));
+    if v_key !~ '^[A-Za-z0-9_-]{1,24}$' or v_key = any(v_keys) then raise exception 'BAD_OBSERVATION' using errcode = '22023'; end if;
+    v_keys := v_keys || v_key;
+    if jsonb_typeof(coalesce(e->'sources', '[]'::jsonb)) <> 'array' or jsonb_array_length(coalesce(e->'sources', '[]'::jsonb)) > 8 then raise exception 'BAD_SOURCE' using errcode = '22023'; end if;
+    select coalesce(jsonb_agg(distinct s), '[]'::jsonb) into v_src from jsonb_array_elements_text(coalesce(e->'sources', '[]'::jsonb)) s;
+    -- A source is a session of this very cycle: an observation never points outside what both sides can open.
+    if exists (select 1 from jsonb_array_elements_text(v_src) s where not exists (select 1 from public.coach_assignments a where a.plan_id = p_plan and a.plan_key = s)) then
+      raise exception 'BAD_SOURCE' using errcode = '22023';
+    end if;
+    v_obs := v_obs || jsonb_build_array(jsonb_build_object('key', v_key, 'text', v_text, 'sources', v_src));
+  end loop;
+  v_keys := '{}';
+  for e in select x from jsonb_array_elements(coalesce(p->'decisions', '[]'::jsonb)) x loop
+    if jsonb_typeof(e) is distinct from 'object' then raise exception 'BAD_DECISION' using errcode = '22023'; end if;
+    v_kind := coalesce(e->>'kind', 'goal');
+    if v_kind not in ('goal', 'session') then raise exception 'BAD_DECISION' using errcode = '22023'; end if;
+    v_text := left(btrim(regexp_replace(coalesce(e->>'text', ''), '[[:cntrl:]<>]', '', 'g')), case when v_kind = 'goal' then 140 else 100 end);
+    if v_text = '' then raise exception 'BAD_DECISION' using errcode = '22023'; end if;
+    v_key := coalesce(nullif(e->>'key', ''), 'd' || left(md5(gen_random_uuid()::text), 8));
+    if v_key !~ '^[A-Za-z0-9_-]{1,24}$' or v_key = any(v_keys) then raise exception 'BAD_DECISION' using errcode = '22023'; end if;
+    v_keys := v_keys || v_key;
+    if v_kind = 'session' and not exists (select 1 from public.sports s where s.id = e->>'sport' and coalesce(s.is_active, true)) then raise exception 'SPORT_UNKNOWN' using errcode = '22023'; end if;
+    v_dec := v_dec || jsonb_build_array(jsonb_strip_nulls(jsonb_build_object('key', v_key, 'kind', v_kind, 'text', v_text, 'sport', case when v_kind = 'session' then e->>'sport' else null end)));
+  end loop;
+  return jsonb_build_object('observations', v_obs, 'decisions', v_dec);
+end;
+$function$;
+revoke all on function private.titan_coach_cycle_content(jsonb, uuid) from public, anon, authenticated;
+
+-- The facts of every session of a cycle, as the server knows them now (internal: holds the journal reference and the note; the callers
+-- project it for one side). outcome: done (linked to a journal session that is still there), archived (linked, the journal session is
+-- archived), declared (said done, no journal session), open (accepted, nothing linked), awaiting, declined, cancelled. moved: the date in
+-- force is not the date first proposed (by the athlete: V1.9.1 move; by the coach: a revision).
+create or replace function private.titan_coach_cycle_facts(p private.titan_coach_plans, l public.coach_links)
+returns jsonb language sql stable security definer set search_path = ''
+as $function$
+  select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+      'key', a.plan_key, 'week', a.plan_week, 'title', a.title, 'sport', a.sport,
+      'first_date', f.first_date, 'planned_date', a.planned_date, 'effective_date', f.eff, 'status', a.status,
+      'outcome', case when a.status = 'cancelled' then 'cancelled' when a.status = 'declined' then 'declined' when a.status = 'proposed' then 'awaiting'
+                      when a.status = 'completed' and a.session_id is not null and t.archived_at is null then 'done'
+                      when a.status = 'completed' and a.session_id is not null then 'archived'
+                      when a.status = 'completed' or a.done_declared_at is not null then 'declared' else 'open' end,
+      'moved', case when f.eff <> f.first_date then true else null end,
+      'moved_by', case when f.eff = f.first_date then null when a.moved_date is not null then 'athlete' else 'coach' end,
+      'in_scope', case when t.id is not null and t.archived_at is null then (l.sport is null or l.sport = t.sport) and t.date >= l.since_date::timestamp at time zone 'UTC' else null end,
+      'measure', case when t.id is not null and t.archived_at is null then jsonb_strip_nulls(private.titan_coach_feedback_projection(t)->'core') else null end,
+      'note', case when t.id is not null and t.archived_at is null then nullif(left(btrim(regexp_replace(coalesce(t.details->>'note', t.details->>'notes', ''), '[[:cntrl:]<>]', '', 'g')), 500), '') else null end,
+      'ref', t.id)) order by a.plan_week, a.planned_date, a.plan_key), '[]'::jsonb)
+    from public.coach_assignments a
+    cross join lateral (select coalesce(case when a.history#>>'{0,version,planned_date}' ~ '^\d{4}-\d{2}-\d{2}$' then (a.history#>>'{0,version,planned_date}')::date end, a.planned_date) first_date,
+                               coalesce(a.moved_date, a.planned_date) eff) f
+    left join public.training_logs t on t.id = a.session_id and t.user_id = l.athlete_id
+   where a.plan_id = p.id
+$function$;
+revoke all on function private.titan_coach_cycle_facts(private.titan_coach_plans, public.coach_links) from public, anon, authenticated;
+
+-- The figures of a cycle from its sessions (the facts above, or the sessions of a validated version). Each figure carries its period and
+-- its sources (the keys of the sessions it counts). A week is a calendar week of the cycle: a session counts in the week of its date in
+-- force (the day it was done when it is linked), so a moved session is counted once, where it now stands. Never stored.
+create or replace function private.titan_coach_cycle_totals(p_sessions jsonb, p_start date, p_weeks integer)
+returns jsonb language sql immutable set search_path = ''
+as $function$
+  with s as (
+    select e->>'key' k, e->>'outcome' o, e->>'status' st, coalesce((e->>'moved')::boolean, false) mv, (e->>'week')::integer w, (e->>'planned_date')::date pd,
+           (e->>'effective_date')::date eff, coalesce((e#>>'{measure,day}')::date, (e->>'effective_date')::date) dday, e->'measure' m
+      from jsonb_array_elements(coalesce(p_sessions, '[]'::jsonb)) e),
+  per as (select jsonb_build_object('from', p_start, 'to', p_start + p_weeks * 7 - 1) j),
+  fig(ord, id, n, src, unit, val) as (
+    select 1, 'proposed', count(*), jsonb_agg(k order by w, pd, k), null::text, null::numeric from s
+    union all select 2, 'accepted', count(*), jsonb_agg(k order by w, pd, k), null, null from s where st in ('accepted', 'completed')
+    union all select 3, 'done', count(*), jsonb_agg(k order by w, pd, k), null, null from s where o = 'done'
+    union all select 4, 'moved', count(*), jsonb_agg(k order by w, pd, k), null, null from s where mv and o <> 'cancelled'
+    union all select 5, 'declared', count(*), jsonb_agg(k order by w, pd, k), null, null from s where o = 'declared'
+    union all select 6, 'open', count(*), jsonb_agg(k order by w, pd, k), null, null from s where o = 'open'
+    union all select 7, 'awaiting', count(*), jsonb_agg(k order by w, pd, k), null, null from s where o = 'awaiting'
+    union all select 8, 'declined', count(*), jsonb_agg(k order by w, pd, k), null, null from s where o = 'declined'
+    union all select 9, 'cancelled', count(*), jsonb_agg(k order by w, pd, k), null, null from s where o = 'cancelled'
+    union all select 10, 'archived', count(*), jsonb_agg(k order by w, pd, k), null, null from s where o = 'archived'
+    union all select 11, 'duration', count(*), jsonb_agg(k order by w, pd, k), 'min', sum((m->>'duration')::numeric) from s where o = 'done' and m->>'duration' is not null
+    union all select 12, 'volume', count(*), jsonb_agg(k order by w, pd, k), m->>'unit', sum((m->>'val')::numeric) from s
+                where o = 'done' and m->>'val' is not null and coalesce(m->>'unit', '') <> '' group by m->>'unit'),
+  wk as (
+    select g week, p_start + (g - 1) * 7 d_from, p_start + g * 7 - 1 d_to from generate_series(1, p_weeks) g)
+  select jsonb_build_object(
+    'period', (select j || jsonb_build_object('weeks', p_weeks) from per),
+    'figures', (select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object('id', f.id, 'n', f.n, 'value', f.val, 'unit', f.unit, 'period', (select j from per),
+                  'sources', coalesce(f.src, '[]'::jsonb))) order by f.ord, f.unit), '[]'::jsonb) from fig f where f.n > 0 or f.ord <= 4),
+    'weeks', (select coalesce(jsonb_agg(jsonb_build_object('week', wk.week, 'period', jsonb_build_object('from', wk.d_from, 'to', wk.d_to),
+                  'planned', (select count(*) from s where o not in ('cancelled', 'declined') and eff between wk.d_from and wk.d_to),
+                  'done', (select count(*) from s where o in ('done', 'declared') and dday between wk.d_from and wk.d_to),
+                  'moved', (select count(*) from s where mv and o not in ('cancelled', 'declined') and eff between wk.d_from and wk.d_to),
+                  'sources', (select coalesce(jsonb_agg(k order by eff, k), '[]'::jsonb) from s where o not in ('cancelled', 'declined') and (eff between wk.d_from and wk.d_to or (o in ('done', 'declared') and dday between wk.d_from and wk.d_to))))
+                order by wk.week), '[]'::jsonb) from wk),
+    'outside', (select case when count(*) = 0 then null else jsonb_build_object('planned', count(*), 'done', count(*) filter (where o in ('done', 'declared')), 'sources', jsonb_agg(k order by eff, k)) end
+                  from s where o not in ('cancelled', 'declined') and eff not between p_start and p_start + p_weeks * 7 - 1))
+$function$;
+revoke all on function private.titan_coach_cycle_totals(jsonb, date, integer) from public, anon, authenticated;
+
+-- What the athlete is asked to validate: the coach's content (the working copy when the report is proposed, otherwise what they validated
+-- last), every session with what could be shared (a measure inside the link's scope, the note of that session), the check-ins of the
+-- weeks of the cycle, and a key that changes when any of it changes: a validation made on a stale reading is refused.
+create or replace function private.titan_coach_cycle_candidates(r private.titan_coach_cycle_reports, p private.titan_coach_plans, l public.coach_links)
+returns jsonb language plpgsql stable security definer set search_path = ''
+as $function$
+declare v_sessions jsonb; v_checkins jsonb; v_content jsonb; v_last jsonb; v_contract jsonb := private.titan_coach_cycle_contract(l);
+begin
+  select v.content into v_last from private.titan_coach_cycle_report_versions v where v.report_id = r.id and v.version = r.version;
+  v_content := case when r.state = 'proposed' then r.content else jsonb_build_object('observations', coalesce(v_last->'observations', '[]'::jsonb),
+    'decisions', coalesce((select jsonb_agg(d - 'state' - 'decided_at' order by i) from jsonb_array_elements(v_last->'decisions') with ordinality x(d, i)), '[]'::jsonb)) end;
+  select coalesce(jsonb_agg(
+      (e - 'ref' - 'in_scope' - 'measure' - 'note')
+      || jsonb_strip_nulls(jsonb_build_object('session_id', e->'ref', 'in_scope', e->'in_scope',
+           'measure', case when (e->>'in_scope')::boolean then e->'measure' else null end,
+           'note', case when (e->>'in_scope')::boolean then e->'note' else null end,
+           'shared', case when v_last is null then null else exists (select 1 from jsonb_array_elements(v_last->'sessions') s where s->>'key' = e->>'key' and s ? 'measure') end,
+           'note_shared', case when v_last is null then null else exists (select 1 from jsonb_array_elements(v_last->'sessions') s where s->>'key' = e->>'key' and s ? 'note') end))
+      order by i), '[]'::jsonb) into v_sessions
+    from jsonb_array_elements(private.titan_coach_cycle_facts(p, l)) with ordinality x(e, i);
+  select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object('week', c.week_start, 'scores', c.scores, 'note', c.note, 'already_shared', c.shared,
+           'shared', case when v_last is null then null else exists (select 1 from jsonb_array_elements(coalesce(v_last->'checkins', '[]'::jsonb)) s where s->>'week' = c.week_start::text) end))
+           order by c.week_start), '[]'::jsonb) into v_checkins
+    from private.titan_coach_checkins c where c.link_id = l.id and c.week_start between p.start_date and p.start_date + p.weeks * 7 - 1;
+  return jsonb_build_object('observations', v_content->'observations', 'decisions', v_content->'decisions', 'sessions', v_sessions, 'checkins', v_checkins,
+    'contract', v_contract, 'totals', private.titan_coach_cycle_totals(v_sessions, p.start_date, p.weeks),
+    'preview_key', left(md5(v_content::text || v_sessions::text || v_checkins::text || v_contract::text), 16));
+end;
+$function$;
+revoke all on function private.titan_coach_cycle_candidates(private.titan_coach_cycle_reports, private.titan_coach_plans, public.coach_links) from public, anon, authenticated;
+
+-- The hosted version, as BOTH sides read it (the athlete sees exactly what the coach sees). Each source is checked now: a journal session
+-- archived or deleted since the validation is no longer « done » and gives no measure nor note; one that left the link's scope keeps its
+-- fact and loses its measure and note; a check-in deleted since is gone. The totals are computed from what remains. The caller decides
+-- whether the reader may have it at all.
+create or replace function private.titan_coach_cycle_published(r private.titan_coach_cycle_reports, p private.titan_coach_plans, l public.coach_links)
+returns jsonb language plpgsql stable security definer set search_path = ''
+as $function$
+declare v private.titan_coach_cycle_report_versions%rowtype; v_sessions jsonb; v_checkins jsonb;
+begin
+  select * into v from private.titan_coach_cycle_report_versions x where x.report_id = r.id and x.version = r.version;
+  if not found then return null; end if;
+  select coalesce(jsonb_agg(case
+        when e->>'ref' is null then e - 'ref'
+        when t.id is null or t.archived_at is not null then (e - 'ref' - 'measure' - 'note') || jsonb_build_object('outcome', case when e->>'outcome' = 'done' then 'archived' else e->>'outcome' end, 'source_gone', true)
+        when not ((l.sport is null or l.sport = t.sport) and t.date >= l.since_date::timestamp at time zone 'UTC') then (e - 'ref' - 'measure' - 'note') || jsonb_build_object('source_out_of_scope', true)
+        else e - 'ref' end order by i), '[]'::jsonb) into v_sessions
+    from jsonb_array_elements(v.content->'sessions') with ordinality x(e, i)
+    left join public.training_logs t on t.id = nullif(e->>'ref', '')::uuid and t.user_id = l.athlete_id;
+  select coalesce(jsonb_agg(c order by c->>'week'), '[]'::jsonb) into v_checkins from jsonb_array_elements(coalesce(v.content->'checkins', '[]'::jsonb)) c
+   where exists (select 1 from private.titan_coach_checkins k where k.link_id = l.id and k.week_start = (c->>'week')::date);
+  return jsonb_strip_nulls(jsonb_build_object('version', v.version, 'validated_at', v.created_at, 'allow_export', v.allow_export,
+    'plan', jsonb_build_object('title', p.title, 'start_date', p.start_date, 'end_date', p.start_date + p.weeks * 7 - 1, 'weeks', p.weeks, 'goals', p.goals),
+    'sessions', v_sessions, 'checkins', v_checkins, 'observations', v.content->'observations', 'decisions', v.content->'decisions',
+    'athlete_note', v.content->'athlete_note', 'totals', private.titan_coach_cycle_totals(v_sessions, p.start_date, p.weeks), 'retracted', v.retracted));
+end;
+$function$;
+revoke all on function private.titan_coach_cycle_published(private.titan_coach_cycle_reports, private.titan_coach_plans, public.coach_links) from public, anon, authenticated;
+
+-- A report as one side sees it. hosted: none (never validated), online, withdrawn (the athlete withdrew the access), revalidate (the
+-- link's sharing scope changed since the validation). The coach reads the published content only while it is online; their own working
+-- copy shows the facts they may already read through the link (a measure inside the scope; never a note, never a check-in). The athlete
+-- never reads a draft: only what is proposed to them, and what they validated.
+create or replace function private.titan_coach_cycle_row(r private.titan_coach_cycle_reports, p private.titan_coach_plans, l public.coach_links, p_role text, p_detail boolean default false)
+returns jsonb language plpgsql stable security definer set search_path = ''
+as $function$
+declare
+  v_active boolean := l.revoked_at is null and private.titan_coach_link_active(l.id); v_last private.titan_coach_cycle_report_versions%rowtype;
+  v_hosted text; v_next jsonb; v_out jsonb; v_sessions jsonb; v_state text;
+begin
+  select * into v_last from private.titan_coach_cycle_report_versions x where x.report_id = r.id and x.version = r.version;
+  v_hosted := case when r.version = 0 then 'none' when r.withdrawn_at is not null then 'withdrawn'
+                   when v_last.contract is distinct from private.titan_coach_cycle_contract(l) then 'revalidate' else 'online' end;
+  v_state := case when p_role = 'coach' or r.state <> 'draft' then r.state when r.version >= 1 then 'published' else 'none' end;
+  select jsonb_build_object('id', n.id, 'title', n.title, 'state', n.state, 'start_date', n.start_date) into v_next from private.titan_coach_plans n
+   where n.origin->>'report_id' = r.id::text and n.state <> 'discarded' and (p_role = 'coach' or n.state in ('sent', 'closed'));
+  v_out := jsonb_build_object('id', r.id, 'plan_id', r.plan_id, 'link_id', r.link_id, 'state', v_state, 'version', r.version, 'hosted', v_hosted,
+    'plan', jsonb_build_object('title', p.title, 'start_date', p.start_date, 'end_date', p.start_date + p.weeks * 7 - 1, 'weeks', p.weeks, 'state', p.state, 'goals', p.goals),
+    'link_state', case when l.revoked_at is not null then 'revoked' when v_active then 'active' else 'paused' end, 'can_act', v_active,
+    'updated_at', r.updated_at, 'proposed_at', case when v_state = 'proposed' then r.proposed_at else null end, 'published_at', r.published_at, 'withdrawn_at', r.withdrawn_at,
+    'allow_export', coalesce(v_last.allow_export, false), 'next_plan', v_next);
+  if p_role = 'coach' then
+    v_out := v_out || jsonb_build_object('revision', r.revision, 'returned_note', r.returned_note, 'created_at', r.created_at);
+  end if;
+  if p_detail and p_role = 'coach' then
+    select coalesce(jsonb_agg((e - 'ref' - 'note' - 'measure' - 'in_scope') || jsonb_strip_nulls(jsonb_build_object('linked', e ? 'ref',
+             'measure', case when (e->>'in_scope')::boolean then e->'measure' else null end, 'out_of_scope', case when e->>'in_scope' = 'false' then true else null end)) order by i), '[]'::jsonb)
+      into v_sessions from jsonb_array_elements(private.titan_coach_cycle_facts(p, l)) with ordinality x(e, i);
+    v_out := v_out || jsonb_build_object(
+      'draft', jsonb_build_object('observations', r.content->'observations',
+        'decisions', (select coalesce(jsonb_agg(d || coalesce((select jsonb_build_object('state', o->>'state', 'decided_at', o->>'decided_at') from jsonb_array_elements(coalesce(v_last.content->'decisions', '[]'::jsonb)) o
+                         where o->>'key' = d->>'key' and o->>'text' = d->>'text' and o->>'kind' = d->>'kind' and o ? 'state'), '{}'::jsonb) order by i), '[]'::jsonb)
+                        from jsonb_array_elements(r.content->'decisions') with ordinality x(d, i)),
+        'sessions', v_sessions, 'totals', private.titan_coach_cycle_totals(v_sessions, p.start_date, p.weeks)),
+      'published', case when v_hosted = 'online' and v_active then private.titan_coach_cycle_published(r, p, l) else null end);
+  elsif p_detail then
+    v_out := v_out || jsonb_build_object(
+      'proposal', case when l.revoked_at is null and (r.state = 'proposed' or r.version >= 1) then private.titan_coach_cycle_candidates(r, p, l) else null end,
+      'published', case when r.version >= 1 then private.titan_coach_cycle_published(r, p, l) else null end,
+      'exports', (select coalesce(jsonb_agg(jsonb_build_object('role', x.role, 'version', x.version, 'at', x.created_at, 'fields', x.fields) order by x.created_at desc), '[]'::jsonb)
+                    from (select * from private.titan_coach_cycle_report_exports where report_id = r.id order by created_at desc limit 20) x));
+  end if;
+  if p_detail then
+    v_out := v_out || jsonb_build_object('versions', (select coalesce(jsonb_agg(jsonb_build_object('version', x.version, 'at', x.created_at, 'allow_export', x.allow_export,
+      'retracted', jsonb_array_length(x.retracted)) order by x.version), '[]'::jsonb) from private.titan_coach_cycle_report_versions x where x.report_id = r.id));
+  end if;
+  return jsonb_strip_nulls(v_out);
+end;
+$function$;
+revoke all on function private.titan_coach_cycle_row(private.titan_coach_cycle_reports, private.titan_coach_plans, public.coach_links, text, boolean) from public, anon, authenticated;
+
+create or replace function public.titan_coach_cycle_v1(p_action text, p_data jsonb default '{}'::jsonb)
+returns jsonb language plpgsql security definer set search_path = '' set statement_timeout = '8s'
+as $function$
+declare
+  v_uid uuid := auth.uid(); v_today date := (now() at time zone 'Europe/Paris')::date; v_link public.coach_links%rowtype; v_role text;
+  v_plan private.titan_coach_plans%rowtype; v_new private.titan_coach_plans%rowtype; v_r private.titan_coach_cycle_reports%rowtype;
+  v_v private.titan_coach_cycle_report_versions%rowtype; v_id uuid; v_plan_id uuid; v_active boolean; v_write boolean; v_content jsonb; v_cand jsonb;
+  v_op uuid; v_e jsonb; v_sessions jsonb; v_checkins jsonb; v_decisions jsonb; v_share jsonb; v_note text; v_text text; v_hosted text; v_pub jsonb;
+  v_date date; v_goals jsonb; v_extra jsonb; v_res jsonb; v_items jsonb; v_kind text; v_key text; v_n integer; v_done jsonb := '[]'::jsonb;
+begin
+  if v_uid is null or not exists (select 1 from public.profiles where id = v_uid and is_suspended is not true) then raise exception 'AUTH_REQUIRED' using errcode = '42501'; end if;
+  if jsonb_typeof(p_data) is distinct from 'object' or octet_length(p_data::text) > 60000 then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+  if not private.titan_flag_on('screens.coach_cycle_report') then raise exception 'FEATURE_DISABLED' using errcode = '42501'; end if;
+  begin
+    v_id := nullif(p_data->>'id', '')::uuid; v_plan_id := nullif(p_data->>'plan_id', '')::uuid;
+  exception when others then raise exception 'INVALID_INPUT' using errcode = '22023'; end;
+
+  -- ---- Athlete: the reports proposed to me or validated by me, across my links (ended links read-only, for a year).
+  if p_action = 'athlete' then
+    return jsonb_build_object('owner', v_uid, 'today', v_today, 'reports', coalesce((
+      select jsonb_agg(private.titan_coach_cycle_row(r, p, l, 'athlete') || jsonb_build_object('coach_name', c.username) order by r.updated_at desc, r.id)
+        from private.titan_coach_cycle_reports r join private.titan_coach_plans p on p.id = r.plan_id join public.coach_links l on l.id = r.link_id
+        join public.profiles c on c.id = l.coach_id
+       where l.athlete_id = v_uid and (r.state = 'proposed' or r.version >= 1) and (l.revoked_at is null or l.revoked_at > now() - interval '365 days')), '[]'::jsonb));
+  end if;
+
+  -- ---- One link's reports (coach: an active link; athlete: any of their links).
+  if p_action = 'link' then
+    begin select * into v_link from public.coach_links where id = nullif(p_data->>'link_id', '')::uuid and (coach_id = v_uid or athlete_id = v_uid);
+    exception when others then raise exception 'INVALID_INPUT' using errcode = '22023'; end;
+    if not found or (v_link.coach_id = v_uid and v_link.revoked_at is not null) then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+    v_role := case when v_link.coach_id = v_uid then 'coach' else 'athlete' end;
+    if v_role = 'coach' and not private.titan_coach_link_active(v_link.id) then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+    if v_role = 'athlete' and v_link.revoked_at is not null and v_link.revoked_at <= now() - interval '365 days' then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+    return jsonb_build_object('link_id', v_link.id, 'role', v_role, 'reports', coalesce((
+      select jsonb_agg(private.titan_coach_cycle_row(r, p, v_link, v_role) order by p.start_date desc, r.created_at desc)
+        from private.titan_coach_cycle_reports r join private.titan_coach_plans p on p.id = r.plan_id
+       where r.link_id = v_link.id and (v_role = 'coach' or r.state = 'proposed' or r.version >= 1)), '[]'::jsonb),
+      -- The cycles a report can be about: the programmes of this link that were sent (running or closed), newest first.
+      'cycles', coalesce((
+        select jsonb_agg(jsonb_strip_nulls(jsonb_build_object('plan_id', p.id, 'title', p.title, 'start_date', p.start_date, 'end_date', p.start_date + p.weeks * 7 - 1, 'weeks', p.weeks, 'state', p.state,
+                 'report_id', (select r.id from private.titan_coach_cycle_reports r where r.plan_id = p.id and (v_role = 'coach' or r.state = 'proposed' or r.version >= 1)))) order by p.start_date desc, p.id)
+          from private.titan_coach_plans p where p.link_id = v_link.id and p.state in ('sent', 'closed')), '[]'::jsonb));
+  end if;
+
+  if p_action not in ('report', 'start', 'save', 'propose', 'recall', 'validate', 'return', 'retract', 'withdraw', 'export', 'next') then raise exception 'INVALID_ACTION' using errcode = '22023'; end if;
+
+  -- ---- Every other action is about one report (or, to start one, one programme). Lock order of the portal: the sharing link first.
+  if v_id is not null then select plan_id into v_plan_id from private.titan_coach_cycle_reports where id = v_id; end if;
+  v_write := p_action <> 'report';
+  if v_write then
+    select l.* into v_link from public.coach_links l join private.titan_coach_plans p on p.link_id = l.id where p.id = v_plan_id and (l.coach_id = v_uid or l.athlete_id = v_uid) for update of l;
+  else
+    select l.* into v_link from public.coach_links l join private.titan_coach_plans p on p.link_id = l.id where p.id = v_plan_id and (l.coach_id = v_uid or l.athlete_id = v_uid);
+  end if;
+  if not found then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  v_role := case when v_link.coach_id = v_uid then 'coach' else 'athlete' end;
+  v_active := v_link.revoked_at is null and private.titan_coach_link_active(v_link.id);
+  -- The coach: nothing after a revocation, nothing while the link is paused — whatever the action, whatever identifier they hold.
+  if v_role = 'coach' and v_link.revoked_at is not null then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  if v_role = 'coach' and not v_active then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+  if v_role = 'athlete' and v_link.revoked_at is not null and v_link.revoked_at <= now() - interval '365 days' then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  if p_action in ('start', 'save', 'propose', 'recall', 'next') and v_role <> 'coach' then raise exception 'COACH_ONLY' using errcode = '42501'; end if;
+  if p_action in ('validate', 'return', 'retract', 'withdraw') and v_role <> 'athlete' then raise exception 'ATHLETE_ONLY' using errcode = '42501'; end if;
+  -- Validating or sending back needs a live link; retracting, withdrawing and the athlete's own export never do.
+  if p_action in ('validate', 'return') and v_link.revoked_at is not null then raise exception 'SHARING_UNAVAILABLE' using errcode = '42501'; end if;
+  if p_action in ('validate', 'return') and not v_active then raise exception 'COACH_CAPACITY_PAUSED' using errcode = '42501'; end if;
+  select * into v_plan from private.titan_coach_plans where id = v_plan_id;
+  if v_plan.state not in ('sent', 'closed') then raise exception 'REPORT_UNAVAILABLE' using errcode = '22023'; end if;
+  if v_write then
+    perform private.titan_rate_limit(v_uid, 'coach_cycle', 120);
+    select * into v_r from private.titan_coach_cycle_reports where plan_id = v_plan.id for update;
+  else
+    select * into v_r from private.titan_coach_cycle_reports where plan_id = v_plan.id;
+  end if;
+
+  -- start: the coach opens the report of a cycle (once: a replay returns it).
+  if p_action = 'start' then
+    if v_r.id is null then
+      insert into private.titan_coach_cycle_reports (plan_id, link_id, coach_id) values (v_plan.id, v_link.id, v_uid) returning * into v_r;
+      return jsonb_build_object('ok', true, 'already', false, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'coach', true));
+    end if;
+    return jsonb_build_object('ok', true, 'already', true, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'coach', true));
+  end if;
+
+  if v_r.id is null or (v_role = 'athlete' and v_r.state <> 'proposed' and v_r.version = 0) then raise exception 'REPORT_UNAVAILABLE' using errcode = '22023'; end if;
+
+  if p_action = 'report' then return private.titan_coach_cycle_row(v_r, v_plan, v_link, v_role, true); end if;
+
+  -- save: the coach's working copy. Saving after a publication opens a new draft; the hosted version stays what the athlete validated.
+  if p_action = 'save' then
+    if v_r.state = 'proposed' then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+    if v_r.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT'; end if;
+    v_content := private.titan_coach_cycle_content(p_data, v_plan.id);
+    update private.titan_coach_cycle_reports set content = v_content, state = 'draft', revision = revision + 1, updated_at = now() where id = v_r.id returning * into v_r;
+    return jsonb_build_object('ok', true, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'coach', true));
+  end if;
+
+  -- propose: the coach's explicit action on the draft they read (its revision). Nothing is shared by it: the athlete decides.
+  if p_action = 'propose' then
+    if v_r.state = 'proposed' then return jsonb_build_object('ok', true, 'already', true, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'coach', true)); end if;
+    if v_r.state <> 'draft' then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+    if v_r.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT'; end if;
+    update private.titan_coach_cycle_reports set state = 'proposed', proposed_at = now(), returned_note = null, revision = revision + 1, updated_at = now() where id = v_r.id returning * into v_r;
+    return jsonb_build_object('ok', true, 'already', false, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'coach', true));
+  end if;
+
+  if p_action = 'recall' then
+    if v_r.state <> 'proposed' then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+    if v_r.revision is distinct from (p_data->>'revision')::integer then raise exception 'COACH_CONFLICT'; end if;
+    update private.titan_coach_cycle_reports set state = 'draft', revision = revision + 1, updated_at = now() where id = v_r.id returning * into v_r;
+    return jsonb_build_object('ok', true, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'coach', true));
+  end if;
+
+  -- return: the athlete sends the proposed report back with a word; nothing is published.
+  if p_action = 'return' then
+    if v_r.state <> 'proposed' then raise exception 'INVALID_TRANSITION' using errcode = '22023'; end if;
+    v_note := nullif(left(btrim(regexp_replace(coalesce(p_data->>'note', ''), '[[:cntrl:]<>]', '', 'g')), 300), '');
+    update private.titan_coach_cycle_reports set state = 'draft', returned_note = coalesce(v_note, 'À revoir'), revision = revision + 1, updated_at = now() where id = v_r.id returning * into v_r;
+    return jsonb_build_object('ok', true, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'athlete', true));
+  end if;
+
+  -- validate: the athlete's dedicated validation. They choose, item by item, the measures, the notes and the check-ins that go into the
+  -- version, approve or decline each decision, and say whether a file may be downloaded. The version is built from the data as it is
+  -- now, on the reading they made (preview_key). It carries an op_id: a replay returns the version it created.
+  if p_action = 'validate' then
+    begin v_op := (p_data->>'op_id')::uuid; exception when others then raise exception 'INVALID_INPUT' using errcode = '22023'; end;
+    if v_op is null then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+    select * into v_v from private.titan_coach_cycle_report_versions where report_id = v_r.id and op_id = v_op;
+    if found then return jsonb_build_object('ok', true, 'already', true, 'version', v_v.version, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'athlete', true)); end if;
+    v_cand := private.titan_coach_cycle_candidates(v_r, v_plan, v_link);
+    if v_cand->>'preview_key' is distinct from p_data->>'preview_key' then raise exception 'COACH_CONFLICT'; end if;
+    v_share := coalesce(p_data->'share', '{}'::jsonb);
+    if jsonb_typeof(v_share) <> 'object' or jsonb_typeof(coalesce(v_share->'measures', '[]'::jsonb)) <> 'array' or jsonb_typeof(coalesce(v_share->'notes', '[]'::jsonb)) <> 'array'
+       or jsonb_typeof(coalesce(v_share->'checkins', '[]'::jsonb)) <> 'array' or jsonb_typeof(coalesce(p_data->'decisions', '[]'::jsonb)) <> 'array' then
+      raise exception 'INVALID_INPUT' using errcode = '22023';
+    end if;
+    -- Only what was offered can be ticked: a measure inside the scope, the note of a session whose measure is shared, a check-in of the cycle.
+    if exists (select 1 from jsonb_array_elements_text(coalesce(v_share->'measures', '[]'::jsonb)) k
+                where not exists (select 1 from jsonb_array_elements(v_cand->'sessions') s where s->>'key' = k and s ? 'measure'))
+       or exists (select 1 from jsonb_array_elements_text(coalesce(v_share->'notes', '[]'::jsonb)) k
+                where not exists (select 1 from jsonb_array_elements(v_cand->'sessions') s where s->>'key' = k and s ? 'note') or not coalesce(v_share->'measures', '[]'::jsonb) ? k)
+       or exists (select 1 from jsonb_array_elements_text(coalesce(v_share->'checkins', '[]'::jsonb)) k
+                where not exists (select 1 from jsonb_array_elements(v_cand->'checkins') c where c->>'week' = k))
+       or exists (select 1 from jsonb_array_elements(coalesce(p_data->'decisions', '[]'::jsonb)) d
+                where coalesce(d->>'answer', '') not in ('approve', 'decline') or not exists (select 1 from jsonb_array_elements(v_cand->'decisions') c where c->>'key' = d->>'key')) then
+      raise exception 'INVALID_INPUT' using errcode = '22023';
+    end if;
+    select coalesce(jsonb_agg((s - 'session_id' - 'in_scope' - 'measure' - 'note' - 'shared' - 'note_shared')
+        || jsonb_strip_nulls(jsonb_build_object('ref', s->'session_id',
+             'measure', case when coalesce(v_share->'measures', '[]'::jsonb) ? (s->>'key') then s->'measure' else null end,
+             'note', case when coalesce(v_share->'notes', '[]'::jsonb) ? (s->>'key') then s->'note' else null end)) order by i), '[]'::jsonb)
+      into v_sessions from jsonb_array_elements(v_cand->'sessions') with ordinality x(s, i);
+    select coalesce(jsonb_agg(c - 'already_shared' - 'shared' order by i), '[]'::jsonb) into v_checkins
+      from jsonb_array_elements(v_cand->'checkins') with ordinality x(c, i) where coalesce(v_share->'checkins', '[]'::jsonb) ? (c->>'week');
+    select * into v_v from private.titan_coach_cycle_report_versions where report_id = v_r.id and version = v_r.version;
+    -- A decision is approved or declined by this validation; one left unanswered keeps the answer of the previous version when its
+    -- wording did not change, otherwise it stays « proposed » (and is never carried into a next cycle).
+    select coalesce(jsonb_agg(d || coalesce(
+        (select jsonb_build_object('state', case when a->>'answer' = 'approve' then 'approved' else 'declined' end, 'decided_at', now())
+           from jsonb_array_elements(coalesce(p_data->'decisions', '[]'::jsonb)) a where a->>'key' = d->>'key' limit 1),
+        (select jsonb_build_object('state', o->>'state', 'decided_at', o->>'decided_at') from jsonb_array_elements(coalesce(v_v.content->'decisions', '[]'::jsonb)) o
+          where o->>'key' = d->>'key' and o->>'text' = d->>'text' and o->>'kind' = d->>'kind' and o->>'state' in ('approved', 'declined')),
+        jsonb_build_object('state', 'proposed')) order by i), '[]'::jsonb)
+      into v_decisions from jsonb_array_elements(v_cand->'decisions') with ordinality x(d, i);
+    v_note := nullif(left(btrim(regexp_replace(coalesce(p_data->>'note', ''), '[[:cntrl:]<>]', '', 'g')), 300), '');
+    if p_data->>'understood' is not null and p_data->>'understood' not in ('clear', 'unsure') then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+    update private.titan_coach_cycle_reports set state = case when state = 'proposed' then 'published' else state end, version = version + 1, withdrawn_at = null,
+      published_at = now(), first_published_at = coalesce(first_published_at, now()), revision = revision + 1, updated_at = now() where id = v_r.id returning * into v_r;
+    insert into private.titan_coach_cycle_report_versions (report_id, version, op_id, content, contract, allow_export, understood, validated_by)
+      values (v_r.id, v_r.version, v_op, jsonb_strip_nulls(jsonb_build_object('sessions', v_sessions, 'checkins', v_checkins, 'observations', v_cand->'observations',
+                'decisions', v_decisions, 'athlete_note', v_note)), v_cand->'contract', coalesce((p_data->>'allow_export')::boolean, false), p_data->>'understood', v_uid);
+    return jsonb_build_object('ok', true, 'already', false, 'version', v_r.version, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'athlete', true));
+  end if;
+
+  if v_r.version = 0 then raise exception 'REPORT_UNAVAILABLE' using errcode = '22023'; end if;
+
+  -- retract: the athlete removes items from what they shared. They are deleted from every stored version (the hosted one and the older
+  -- ones), so no later reading and no later export can hold them; the version only remembers that an item of that kind was retracted.
+  if p_action = 'retract' then
+    v_items := p_data->'items';
+    if jsonb_typeof(v_items) is distinct from 'array' or jsonb_array_length(v_items) = 0 or jsonb_array_length(v_items) > 40 then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+    for v_e in select x from jsonb_array_elements(v_items) x loop
+      v_kind := v_e->>'kind'; v_key := coalesce(v_e->>'key', '');
+      if v_kind is null or v_kind not in ('note', 'measure', 'checkin', 'word') or (v_kind <> 'word' and v_key = '') then raise exception 'INVALID_INPUT' using errcode = '22023'; end if;
+      select count(*) into v_n from private.titan_coach_cycle_report_versions v where v.report_id = v_r.id and case v_kind
+        when 'word' then v.content ? 'athlete_note'
+        when 'checkin' then exists (select 1 from jsonb_array_elements(coalesce(v.content->'checkins', '[]'::jsonb)) c where c->>'week' = v_key)
+        when 'note' then exists (select 1 from jsonb_array_elements(v.content->'sessions') s where s->>'key' = v_key and s ? 'note')
+        else exists (select 1 from jsonb_array_elements(v.content->'sessions') s where s->>'key' = v_key and (s ? 'measure' or s ? 'note')) end;
+      if v_n = 0 then continue; end if;
+      update private.titan_coach_cycle_report_versions v set content = case v_kind
+          when 'word' then v.content - 'athlete_note'
+          when 'checkin' then jsonb_set(v.content, '{checkins}', coalesce((select jsonb_agg(c order by i) from jsonb_array_elements(coalesce(v.content->'checkins', '[]'::jsonb)) with ordinality x(c, i) where c->>'week' <> v_key), '[]'::jsonb))
+          else jsonb_set(v.content, '{sessions}', (select jsonb_agg(case when s->>'key' = v_key then (case when v_kind = 'note' then s - 'note' else s - 'note' - 'measure' end) else s end order by i)
+                                                    from jsonb_array_elements(v.content->'sessions') with ordinality x(s, i))) end
+       where v.report_id = v_r.id;
+      v_done := v_done || jsonb_build_array(jsonb_build_object('kind', v_kind, 'key', v_key, 'at', now()));
+    end loop;
+    if v_done <> '[]'::jsonb then
+      update private.titan_coach_cycle_report_versions set retracted = retracted || v_done where report_id = v_r.id and version = v_r.version;
+      update private.titan_coach_cycle_reports set updated_at = now() where id = v_r.id returning * into v_r;
+    end if;
+    return jsonb_build_object('ok', true, 'retracted', jsonb_array_length(v_done), 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'athlete', true));
+  end if;
+
+  -- withdraw: the athlete ends the access to the hosted version. The coach reads no shared content from then on; a new validation
+  -- publishes a new version. A file already downloaded stays where it is.
+  if p_action = 'withdraw' then
+    if v_r.withdrawn_at is not null then return jsonb_build_object('ok', true, 'already', true, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'athlete', true)); end if;
+    update private.titan_coach_cycle_reports set withdrawn_at = now(), updated_at = now() where id = v_r.id returning * into v_r;
+    return jsonb_build_object('ok', true, 'already', false, 'report', private.titan_coach_cycle_row(v_r, v_plan, v_link, 'athlete', true));
+  end if;
+
+  select * into v_v from private.titan_coach_cycle_report_versions where report_id = v_r.id and version = v_r.version;
+  v_hosted := case when v_r.withdrawn_at is not null then 'withdrawn' when v_v.contract is distinct from private.titan_coach_cycle_contract(v_link) then 'revalidate' else 'online' end;
+  if v_role = 'coach' and v_hosted = 'withdrawn' then raise exception 'REPORT_WITHDRAWN' using errcode = '42501'; end if;
+  if v_role = 'coach' and v_hosted = 'revalidate' then raise exception 'REPORT_REVALIDATION' using errcode = '42501'; end if;
+
+  -- export: the fields authorised right now, for a file. The coach only when the athlete allowed it for this version. Logged (who, which
+  -- version, how many fields) so the athlete knows a copy exists outside TITAN: a file cannot be taken back, the hosted version can.
+  if p_action = 'export' then
+    if v_role = 'coach' and not v_v.allow_export then raise exception 'EXPORT_NOT_ALLOWED' using errcode = '42501'; end if;
+    v_pub := private.titan_coach_cycle_published(v_r, v_plan, v_link);
+    insert into private.titan_coach_cycle_report_exports (report_id, version, actor, role, created_at, fields)
+      values (v_r.id, v_r.version, v_uid, v_role, clock_timestamp(), jsonb_build_object(
+        'measures', (select count(*) from jsonb_array_elements(v_pub->'sessions') s where s ? 'measure'),
+        'notes', (select count(*) from jsonb_array_elements(v_pub->'sessions') s where s ? 'note'),
+        'checkins', jsonb_array_length(coalesce(v_pub->'checkins', '[]'::jsonb))));
+    return jsonb_build_object('ok', true, 'role', v_role, 'generated_at', now(), 'hosted', v_hosted, 'report', v_pub,
+      'coach_name', (select username from public.profiles where id = v_link.coach_id), 'athlete_name', (select username from public.profiles where id = v_link.athlete_id));
+  end if;
+
+  -- next: the cycle that follows, as a V1.9.4 draft on the same link (from the cycle as it stands, or from a template). It takes ONLY the
+  -- decisions the athlete approved in the hosted version: objectives become its objectives, sessions to propose are added to its first
+  -- week for the coach to place. It remembers the report and the version they come from. Once: a replay returns the same draft.
+  select * into v_new from private.titan_coach_plans n where n.origin->>'report_id' = v_r.id::text and n.state <> 'discarded';
+  if found then return jsonb_build_object('ok', true, 'already', true, 'plan', private.titan_coach_plan_row(v_new, v_link, 'coach')); end if;
+  v_pub := private.titan_coach_cycle_published(v_r, v_plan, v_link);
+  begin v_date := coalesce(nullif(p_data->>'start_date', '')::date, greatest(date_trunc('week', v_today)::date + 7, v_plan.start_date + v_plan.weeks * 7));
+  exception when others then raise exception 'INVALID_PERIOD' using errcode = '22023'; end;
+  select coalesce(jsonb_agg(d->>'text' order by i) filter (where d->>'kind' = 'goal'), '[]'::jsonb),
+         coalesce(jsonb_agg(jsonb_build_object('key', 'r-' || (d->>'key'), 'week', 1, 'day', 1, 'title', d->>'text', 'sport', d->>'sport', 'instructions', '') order by i) filter (where d->>'kind' = 'session'), '[]'::jsonb),
+         coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object('key', d->>'key', 'kind', d->>'kind', 'text', d->>'text', 'sport', d->>'sport', 'approved_at', d->>'decided_at',
+           'session_key', case when d->>'kind' = 'session' then 'r-' || (d->>'key') else null end)) order by i), '[]'::jsonb)
+    into v_goals, v_extra, v_e
+    from jsonb_array_elements(coalesce(v_pub->'decisions', '[]'::jsonb)) with ordinality x(d, i) where d->>'state' = 'approved';
+  v_res := public.titan_coach_program_v1('adapt', jsonb_strip_nulls(jsonb_build_object('link_id', v_link.id, 'start_date', v_date,
+    'program_id', nullif(p_data->>'program_id', ''), 'plan_id', case when nullif(p_data->>'program_id', '') is null then v_plan.id else null end)));
+  select * into v_new from private.titan_coach_plans where id = (v_res#>>'{plan,id}')::uuid for update;
+  update private.titan_coach_plans set goals = v_goals,
+      sessions = private.titan_coach_program_sessions(sessions || v_extra, weeks),
+      origin = jsonb_build_object('report_id', v_r.id, 'version', v_r.version, 'plan_id', v_plan.id, 'plan_title', v_plan.title, 'validated_at', v_v.created_at, 'objectives', v_e),
+      updated_at = now()
+    where id = v_new.id returning * into v_new;
+  return jsonb_build_object('ok', true, 'already', false, 'plan', private.titan_coach_plan_row(v_new, v_link, 'coach'));
+end;
+$function$;
+revoke all on function public.titan_coach_cycle_v1(text, jsonb) from public, anon;
+grant execute on function public.titan_coach_cycle_v1(text, jsonb) to authenticated;
+
+-- ---- V1.9.4 programme row, re-applied with one additive key: « origin », the report a cycle comes from and the objectives confirmed
+-- there, each with whether it is still among the cycle's objectives (or sessions). Everything else is unchanged.
+create or replace function private.titan_coach_plan_row(p private.titan_coach_plans, l public.coach_links, p_role text, p_detail boolean default false)
+returns jsonb language plpgsql stable security definer set search_path = ''
+as $function$
+declare v_rows jsonb := '[]'::jsonb; v_a public.coach_assignments%rowtype; v_r jsonb; v_active boolean := l.revoked_at is null and private.titan_coach_link_active(l.id);
+  v_prog private.titan_coach_programs%rowtype; v_today date := (now() at time zone 'Europe/Paris')::date;
+begin
+  if p.state in ('sent', 'closed') then
+    for v_a in select * from public.coach_assignments a where a.plan_id = p.id order by a.plan_week, a.planned_date, a.plan_key loop
+      v_r := private.titan_coach_followup_row(v_a, l, p_role);
+      if not p_detail then v_r := v_r - 'history' - 'candidates' - 'accepted_version'; end if;
+      v_rows := v_rows || jsonb_build_array(v_r || jsonb_build_object('key', v_a.plan_key, 'week', v_a.plan_week));
+    end loop;
+  else
+    select coalesce(jsonb_agg(e || jsonb_build_object('planned_date', p.start_date + ((e->>'week')::integer - 1) * 7 + (e->>'day')::integer - 1)
+             order by (e->>'week')::integer, (e->>'day')::integer, e->>'key'), '[]'::jsonb) into v_rows from jsonb_array_elements(p.sessions) e;
+  end if;
+  if p.program_id is not null then select * into v_prog from private.titan_coach_programs where id = p.program_id; end if;
+  -- Top-level keys without a value are left out (a draft has no versions to show the athlete, the athlete never reads the basis).
+  return (select jsonb_object_agg(k, v) from jsonb_each(jsonb_build_object('id', p.id, 'link_id', p.link_id, 'title', p.title, 'goals', p.goals, 'start_date', p.start_date,
+    'end_date', p.start_date + p.weeks * 7 - 1, 'weeks', p.weeks, 'state', p.state, 'version', p.version, 'revision', p.revision, 'today', v_today,
+    'current_week', case when v_today between p.start_date and p.start_date + p.weeks * 7 - 1 then (v_today - p.start_date) / 7 + 1 else null end,
+    'created_at', p.created_at, 'updated_at', p.updated_at, 'sent_at', p.sent_at, 'closed_at', p.closed_at,
+    'prep_minutes', case when p.sent_at is not null then round(extract(epoch from p.sent_at - p.created_at) / 60.0, 1) else null end,
+    'basis', case when p_role = 'coach' then p.basis - 'sessions' - 'goals' else null end,
+    'program', case when p_role = 'coach' and v_prog.id is not null then jsonb_build_object('id', v_prog.id, 'title', v_prog.title, 'version', p.program_version,
+                 'current_version', v_prog.version, 'archived', v_prog.archived_at is not null) else null end,
+    'changes', case when p_role = 'coach' and p.state = 'draft' then private.titan_coach_plan_changes(p.basis->'sessions', p.sessions) else null end,
+    'origin', case when p.origin is null then null else (p.origin - 'objectives') || jsonb_build_object('objectives', (
+                 select coalesce(jsonb_agg(o || jsonb_build_object('kept', case when o->>'kind' = 'session' then exists (select 1 from jsonb_array_elements(p.sessions) e where e->>'key' = o->>'session_key')
+                                                                                else p.goals ? (o->>'text') end) order by i), '[]'::jsonb)
+                   from jsonb_array_elements(coalesce(p.origin->'objectives', '[]'::jsonb)) with ordinality x(o, i))) end,
+    'sessions', v_rows,
+    'counts', jsonb_build_object('sessions', jsonb_array_length(v_rows),
+      'awaiting', (select count(*) from jsonb_array_elements(v_rows) e where e->>'state' = 'awaiting'),
+      'to_discuss', (select count(*) from jsonb_array_elements(v_rows) e where e->>'state' = 'to_discuss'),
+      'accepted', (select count(*) from jsonb_array_elements(v_rows) e where e->>'status' in ('accepted', 'completed')),
+      'linked', (select count(*) from jsonb_array_elements(v_rows) e where e->>'state' = 'linked'),
+      'declined', (select count(*) from jsonb_array_elements(v_rows) e where e->>'status' = 'declined'),
+      'cancelled', (select count(*) from jsonb_array_elements(v_rows) e where e->>'status' = 'cancelled'),
+      'changes_pending', (select count(*) from jsonb_array_elements(v_rows) e where e->'pending_change' is not null and jsonb_typeof(e->'pending_change') = 'object')),
+    'versions', (select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object('version', v.version, 'kind', v.kind, 'scope', v.scope, 'summary', v.summary, 'created_at', v.created_at,
+                   'snapshot', case when p_detail then v.snapshot else null end)) order by v.version), '[]'::jsonb) from private.titan_coach_plan_versions v where v.plan_id = p.id),
+    'link_state', case when l.revoked_at is not null then 'revoked' when v_active then 'active' else 'paused' end,
+    'can_act', v_active and p.state in ('draft', 'sent'))) x(k, v) where jsonb_typeof(v) <> 'null');
+end;
+$function$;
+revoke all on function private.titan_coach_plan_row(private.titan_coach_plans, public.coach_links, text, boolean) from public, anon, authenticated;
+
+-- ---- The export: the body of 20261204090000, plus the cycle reports. The coach exports their own working copy and the hosted version
+-- only while they may read it (same gate as the screen); the athlete exports what they validated and the log of the files downloaded.
+create or replace function private.titan_export_extras_v1(p_uid uuid)
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select private.titan_export_extras_before_cadence_v1(p_uid) || jsonb_build_object(
+    'cadenceWeekClaims', coalesce((
+      select jsonb_agg(jsonb_build_object('week', c.week_start, 'days', c.days, 'target', c.target, 'credits', c.credits, 'claimed_at', c.claimed_at) order by c.week_start)
+      from private.titan_cadence_claims c where c.user_id = p_uid), '[]'::jsonb),
+    'timeCapsules', coalesce((
+      select jsonb_agg(jsonb_build_object('message', t.message, 'months', t.months, 'deliver_on', t.deliver_on, 'written_minutes', t.written_minutes,
+        'written_days', t.written_days, 'created_at', t.created_at, 'opened_at', t.opened_at) order by t.created_at)
+      from private.titan_time_capsules t where t.user_id = p_uid), '[]'::jsonb),
+    'lifeChapters', coalesce((
+      select jsonb_agg(jsonb_build_object('title', l.title, 'starts_on', l.starts_on, 'ends_on', l.ends_on, 'created_at', l.created_at) order by l.starts_on)
+      from private.titan_life_chapters l where l.user_id = p_uid), '[]'::jsonb),
+    'coachFeedback', coalesce((
+      select jsonb_agg(jsonb_build_object('link_id', f.link_id, 'assignment_id', f.assignment_id, 'message_id', f.message_id, 'session_day', f.session_day,
+        'adjustment', f.adjustment, 'adjustment_state', f.adjustment_state, 'answered_at', f.answered_at, 'read_at', f.read_at, 'created_at', f.created_at) order by f.created_at)
+      from private.titan_coach_feedback f join public.coach_links l on l.id = f.link_id where p_uid in (l.coach_id, l.athlete_id)), '[]'::jsonb),
+    'coachReviewDrafts', coalesce((
+      select jsonb_agg(jsonb_build_object('link_id', d.link_id, 'week', d.week_start, 'state', d.state, 'basis', d.basis - 'base', 'content', d.content,
+        'assignment_id', d.assignment_id, 'created_at', d.created_at, 'sent_at', d.sent_at) order by d.created_at)
+      from private.titan_coach_review_drafts d where d.coach_id = p_uid), '[]'::jsonb),
+    'coachPrograms', coalesce((
+      select jsonb_agg(jsonb_build_object('title', g.title, 'version', g.version, 'archived_at', g.archived_at, 'created_at', g.created_at,
+        'versions', (select jsonb_agg(jsonb_build_object('version', v.version, 'weeks', v.weeks, 'goals', v.goals, 'sessions', v.sessions, 'created_at', v.created_at) order by v.version)
+                       from private.titan_coach_program_versions v where v.program_id = g.id)) order by g.created_at)
+      from private.titan_coach_programs g where g.coach_id = p_uid), '[]'::jsonb),
+    'coachPlans', coalesce((
+      select jsonb_agg(jsonb_build_object('link_id', p.link_id, 'title', p.title, 'goals', p.goals, 'start_date', p.start_date, 'weeks', p.weeks, 'state', p.state,
+        'sessions', case when p.coach_id = p_uid or p.state in ('sent', 'closed') then p.sessions else null end, 'created_at', p.created_at, 'sent_at', p.sent_at, 'closed_at', p.closed_at,
+        'versions', (select jsonb_agg(jsonb_build_object('version', v.version, 'kind', v.kind, 'scope', v.scope, 'summary', v.summary, 'snapshot', v.snapshot, 'created_at', v.created_at) order by v.version)
+                       from private.titan_coach_plan_versions v where v.plan_id = p.id)) order by p.created_at)
+      from private.titan_coach_plans p join public.coach_links l on l.id = p.link_id
+     where p.coach_id = p_uid or (l.athlete_id = p_uid and p.state in ('sent', 'closed'))), '[]'::jsonb),
+    'coachCycleReports', coalesce((
+      select jsonb_agg(jsonb_strip_nulls(jsonb_build_object('link_id', r.link_id, 'cycle', p.title, 'start_date', p.start_date, 'weeks', p.weeks, 'version', r.version,
+        'state', case when r.coach_id = p_uid or r.state <> 'draft' then r.state else 'published' end,
+        'working_copy', case when r.coach_id = p_uid then r.content else null end,
+        'published', case when l.athlete_id = p_uid or (l.revoked_at is null and r.withdrawn_at is null and private.titan_coach_link_active(l.id)
+                               and (select v.contract from private.titan_coach_cycle_report_versions v where v.report_id = r.id and v.version = r.version) = private.titan_coach_cycle_contract(l))
+                          then private.titan_coach_cycle_published(r, p, l) else null end,
+        'withdrawn_at', r.withdrawn_at, 'created_at', r.created_at, 'published_at', r.published_at,
+        'exports', case when l.athlete_id = p_uid then (select jsonb_agg(jsonb_build_object('role', x.role, 'version', x.version, 'at', x.created_at, 'fields', x.fields) order by x.created_at)
+                                                         from private.titan_coach_cycle_report_exports x where x.report_id = r.id) else null end)) order by r.created_at)
+      from private.titan_coach_cycle_reports r join private.titan_coach_plans p on p.id = r.plan_id join public.coach_links l on l.id = r.link_id
+     where r.coach_id = p_uid or (l.athlete_id = p_uid and (r.state = 'proposed' or r.version >= 1))), '[]'::jsonb));
+$$;
+revoke all on function private.titan_export_extras_v1(uuid) from public, anon, authenticated;
+
+-- Measure (team only, no identifier): reports by state, the time to produce one (opened by the coach → first validation), validations and
+-- what the athletes chose, retractions and withdrawals, files downloaded, the cycles relaunched from a report, and the one-tap answer to
+-- « is it clear what your coach will see? ».
+create or replace function private.titan_coach_cycle_measure()
+returns jsonb language sql stable security definer set search_path = ''
+as $function$
+  select jsonb_build_object(
+    'reports', (select coalesce(jsonb_object_agg(s, n), '{}'::jsonb) from (select state s, count(*) n from private.titan_coach_cycle_reports group by 1) x),
+    'published', (select count(*) from private.titan_coach_cycle_reports where version >= 1),
+    'productionMinutesMedian', (select round((percentile_cont(0.5) within group (order by extract(epoch from first_published_at - created_at) / 60.0))::numeric, 1)
+                                  from private.titan_coach_cycle_reports where first_published_at is not null),
+    'productionMinutesMax', (select round(max(extract(epoch from first_published_at - created_at) / 60.0)::numeric, 1) from private.titan_coach_cycle_reports where first_published_at is not null),
+    'versions', (select count(*) from private.titan_coach_cycle_report_versions),
+    'versionsWithNotes', (select count(*) from private.titan_coach_cycle_report_versions v where exists (select 1 from jsonb_array_elements(v.content->'sessions') s where s ? 'note')),
+    'versionsWithCheckins', (select count(*) from private.titan_coach_cycle_report_versions v where jsonb_array_length(coalesce(v.content->'checkins', '[]'::jsonb)) > 0),
+    'versionsExportAllowed', (select count(*) from private.titan_coach_cycle_report_versions where allow_export),
+    'retractions', (select coalesce(sum(jsonb_array_length(retracted)), 0) from private.titan_coach_cycle_report_versions),
+    'withdrawn', (select count(*) from private.titan_coach_cycle_reports where withdrawn_at is not null),
+    'exports', (select coalesce(jsonb_object_agg(s, n), '{}'::jsonb) from (select role s, count(*) n from private.titan_coach_cycle_report_exports group by 1) x),
+    'decisionsApproved', (select count(*) from private.titan_coach_cycle_reports r join private.titan_coach_cycle_report_versions v on v.report_id = r.id and v.version = r.version,
+                            jsonb_array_elements(coalesce(v.content->'decisions', '[]'::jsonb)) d where d->>'state' = 'approved'),
+    'cyclesRelaunched', (select count(*) from private.titan_coach_cycle_reports r where r.version >= 1
+                           and exists (select 1 from private.titan_coach_plans n where n.origin->>'report_id' = r.id::text and n.state in ('sent', 'closed'))),
+    'cyclesRelaunchPrepared', (select count(*) from private.titan_coach_cycle_reports r where r.version >= 1
+                           and exists (select 1 from private.titan_coach_plans n where n.origin->>'report_id' = r.id::text and n.state <> 'discarded')),
+    'understoodClear', (select count(*) from private.titan_coach_cycle_report_versions where understood = 'clear'),
+    'understoodUnsure', (select count(*) from private.titan_coach_cycle_report_versions where understood = 'unsure'))
+$function$;
+revoke all on function private.titan_coach_cycle_measure() from public, anon, authenticated;
+
+notify pgrst, 'reload schema';

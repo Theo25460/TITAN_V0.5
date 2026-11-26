@@ -141,6 +141,21 @@ export const BUNDLES = {
     beforeNote: "This is the state production reaches at the end of the v193 bundle (head 20261203090000).",
     afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_programs for the pilot accounts only, once screens.coach_followup, screens.coach_feedback and screens.coach_review are open for them.",
   },
+  // V1.9.5 — Bilans de cycle partageables (25 November 2026): the report of a V1.9.4 cycle (figures computed at every read with their period
+  // and sources, observations tied to source sessions, decisions), a draft the athlete never sees, a dedicated validation by the athlete
+  // (measures, notes and check-ins ticked one by one, decisions approved or not, a file allowed or not) that publishes an immutable version,
+  // retractions deleted from every stored version, withdrawal of the hosted version, a new validation when the sharing scope changes, an
+  // export of the authorised fields with its log, and the next cycle from the approved decisions with its origin, behind
+  // screens.coach_cycle_report (absent = closed). NOT APPLIED: owner decision required. Needs v191 to v194 first (it reads the V1.9.4
+  // programmes and re-applies their row and the V1.9.4 export). Additive, rehearsed on a replica (tools/db/test-migrations.sh,
+  // sql/tests/300_coach_cycle_reports.sql, tools/db/test-coach-cycle-concurrency.sh).
+  v195: {
+    out: "supabase/release-v195", after: "20261204090000", until: "20261205090000",
+    before: { private: [142, "7f7fdc02ec0d", "e8547c9acb1c"], public: [328, "7410ae198479", "c98a08c50f3b"] },
+    expected: { private: [150, "586d38f8d971", "4c7a807e390f"], public: [329, "bac2a73985e2", "8822db836a5a"] },
+    beforeNote: "This is the state production reaches at the end of the v194 bundle (head 20261204090000).",
+    afterNote: "Then run tools/db/postflight-v11.sql, postflight-v13.sql and postflight-v131.sql: every row true. Open screens.coach_cycle_report for the pilot accounts only, once screens.coach_followup, screens.coach_feedback, screens.coach_review and screens.coach_programs are open for them.",
+  },
 };
 const NAME = opt("--bundle", "v131");
 if (!BUNDLES[NAME]) throw new Error(`unknown bundle ${NAME}: ${Object.keys(BUNDLES).join(", ")}`);
