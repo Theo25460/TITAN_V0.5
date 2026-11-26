@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
+import type { StoryRequest } from "../core/shareStory";
 import type { TrainingPayload } from "../core/types";
 
 export type TabParams = {
@@ -36,6 +37,8 @@ export type RootParams = {
   Places: undefined;
   SessionResult: { eventId: string; stored?: { owner: string; payload: TrainingPayload } };
   SessionDetail: { id: string };
+  /** « Partager » (before V2): the preview of a story card; the request holds only values the opening screen already shows. */
+  ShareStory: StoryRequest;
   SessionEdit: { id: string };
   Journal: { sport?: string; weekStart?: number } | undefined;
   Records: undefined;
@@ -45,7 +48,7 @@ export type RootParams = {
   World: { id: string; focus?: "retour" | "indices" | "chroniques" };
   Sentiers: undefined;
   Atelier: undefined;
-  Community: { ami?: string; guilde?: string; invitation?: string; defi?: string } | undefined;
+  Community: { ami?: string; guilde?: string; invitation?: string; defi?: string; sheet?: "invite" } | undefined;
   Events: undefined;
   Retro: { year?: number; month?: number } | undefined;
   SaveAccount: undefined;

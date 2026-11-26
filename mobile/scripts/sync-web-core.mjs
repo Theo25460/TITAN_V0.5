@@ -69,6 +69,7 @@ export const MODULES = [
   "js/core/coach-cycle.js",
   "js/core/club-season.js",
   "js/core/club-match.js",
+  "js/core/share-story.js",
 ];
 
 const manifest = { source: "Theo25460/TITAN_V0.5", sha, files: {} };

@@ -24,7 +24,7 @@ measure() { "${PSQL[@]}" -d "$DB" -At -F '|' -c "$FP_SQL"; }
 "${PSQL[@]}" -d "$DB" -f "$ROOT/tools/db/supabase-shim.sql" >/dev/null
 for f in "$ROOT"/tools/db/baseline/*.sql; do "${PSQL[@]}" -d "$DB" -f "$f" >/dev/null; done
 HEAD="$(cat "$ROOT/tools/db/production-head.txt")"
-UNTILS="$(node --input-type=module -e "const m=await import('$ROOT/tools/db/v2-canonical.mjs');const {existsSync}=await import('node:fs');for(const b of m.BUNDLES){const p=b.migrations.filter(x=>existsSync('$ROOT/supabase/migrations/'+x.version+'_'+x.old.slice(15)));if(p.length===b.migrations.length)console.log(b.name+' '+p.at(-1).version)}")"
+UNTILS="$(node --input-type=module -e "const m=await import('$ROOT/tools/db/v2-canonical.mjs');const {existsSync}=await import('node:fs');for(const b of m.BUNDLES){const p=b.migrations.filter(x=>existsSync('$ROOT/supabase/migrations/'+m.fileOf(x)));if(p.length===b.migrations.length)console.log(b.name+' '+p.at(-1).version)}")"
 OUT="{"
 sep=""
 for f in "$ROOT"/supabase/migrations/*.sql; do

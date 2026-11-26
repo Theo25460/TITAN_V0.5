@@ -274,6 +274,7 @@
       <h3 class="moment-label">Et ensuite ?</h3>
       <p class="moment-next">${esc(nextStep(log, rw))}</p>
       <div class="moment-actions">
+        ${window.TitanStory && log.syncStatus !== "error" ? `<button type="button" class="asc-btn asc-btn-secondary moment-story" data-moment="story">${icon("share")} Partager</button>` : ""}
         ${window.TitanShare?.available() && !E().isHistorical(log.date) ? `<button type="button" class="asc-btn asc-btn-ghost moment-share" data-moment="share">${icon("send")} Partager avec mes amis</button>` : ""}
         ${isGuest() ? `<a class="asc-btn asc-btn-primary" href="/login?mode=signup" data-moment-signup>${icon("user")} Créer un compte et garder ma séance</a>` : ""}
         <button type="button" class="asc-btn ${isGuest() ? "asc-btn-secondary" : "asc-btn-primary"}" data-moment="done">Terminé</button>
@@ -352,6 +353,11 @@
       // The sheet opens under the pointer that just saved: the second click of a double click on « Enregistrer » is not a choice made here.
       if (e.detail > 1 && performance.now() - openedAt < 700) return;
       if (e.target.closest("[data-moment='done']")) dialog.close();
+      // « Partager » (before V2): the story card of this session, opened on its preview; nothing leaves the device without a choice.
+      if (e.target.closest("[data-moment='story']")) {
+        void window.TitanStory.open({ kind: "session", input: window.TitanStory.sessionInput(current(log)) }, { isCurrent: () => live(), route: window.TitanStory.routeOf(current(log)) })
+          .then((sheet) => { if (sheet?.open) sheet.addEventListener("close", () => restoreAction("[data-moment='story']"), { once: true }); else restoreAction("[data-moment='story']"); });
+      }
       if (e.target.closest("[data-moment='share']")) {
         const l = current(log);
         const rec = records(l).find((r) => !r.first);
@@ -376,5 +382,5 @@
     return dialog;
   }
 
-  window.TitanMoment = { open, metrics, reward };
+  window.TitanMoment = { open, metrics, reward, records };
 })();

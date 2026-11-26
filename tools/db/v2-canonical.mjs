@@ -111,11 +111,20 @@ export const BUNDLES = [
     requires: "main only (private.titan_analytics_payload_valid_v300)",
     migrations: [{ lot: "T1", old: "20261126120000_analytics_share_story.sql", version: "20261130105100", oldPackage: "release-partage" }],
   },
+  {
+    name: "v2-08", title: "Consolidation V2.0 (export complet, hygiène des droits, garde finale)",
+    requires: "every package above: it wraps the final export chain and checks that no section was lost",
+    migrations: [{ lot: "A2", old: null, version: "20261130105900", name: "v2_consolidation", oldPackage: null,
+      note: "Written by A2: exports the V1.6.4 import batches and the V1.6.5 source runs, revokes the default grant of the V1.6.5 trigger function, refuses the package if an export section or a grant is lost." }],
+  },
 ];
 
-export const ALL = BUNDLES.flatMap((b) => b.migrations.map((m) => ({ ...m, bundle: b.name, name: m.old.slice(15, -4), oldVersion: m.old.slice(0, 14), file: `${m.version}_${m.old.slice(15)}` })));
+export const ALL = BUNDLES.flatMap((b) => b.migrations.map((m) => (m.old
+  ? { ...m, bundle: b.name, name: m.old.slice(15, -4), oldVersion: m.old.slice(0, 14), file: `${m.version}_${m.old.slice(15)}` }
+  : { ...m, bundle: b.name, oldVersion: null, file: `${m.version}_${m.name}.sql` })));
 // Every version any lot branch used (including the share lot): the canonical versions must avoid all of them.
-export const OLD_VERSIONS = [...new Set(ALL.map((m) => m.oldVersion))].sort();
+export const OLD_VERSIONS = [...new Set(ALL.filter((m) => m.oldVersion).map((m) => m.oldVersion))].sort();
+export const fileOf = (m) => (m.old ? `${m.version}_${m.old.slice(15)}` : `${m.version}_${m.name}.sql`);
 
 const git = (...a) => execFileSync("git", a, { cwd: ROOT, encoding: "utf8", maxBuffer: 1 << 28 });
 const sha256 = (s) => createHash("sha256").update(s).digest("hex");
@@ -127,7 +136,7 @@ const KEEP = [/^supabase\/migrations\//, /^docs\/v2\/integration-manifest\.json$
   /^tests\/v2-migration-map\.test\.mjs$/, /^supabase\/release-/, /^docs\/seo\/evidence-/];
 
 function apply() {
-  const present = ALL.filter((m) => existsSync(MIG(m.old)));
+  const present = ALL.filter((m) => m.old && existsSync(MIG(m.old)));
   for (const m of present) {
     if (existsSync(MIG(m.file))) throw new Error(`${m.file} already exists next to ${m.old}`);
     renameSync(MIG(m.old), MIG(m.file));
@@ -137,7 +146,7 @@ function apply() {
   // is merged, every remaining occurrence of one of its old versions comes from that chain (the chains merged before it
   // already point to canonical versions, and main never names a future version).
   const byOld = new Map();
-  for (const m of ALL.filter((x) => existsSync(MIG(x.file)))) {
+  for (const m of ALL.filter((x) => x.old && existsSync(MIG(x.file)))) {
     if (!byOld.has(m.oldVersion)) byOld.set(m.oldVersion, new Set());
     byOld.get(m.oldVersion).add(m);
   }
@@ -182,13 +191,14 @@ export function computeMap() {
   const entries = ALL.map((m) => {
     const sha = LOT[m.lot];
     let oldBody = null, blob = null;
-    try { blob = git("rev-parse", `${sha}:supabase/migrations/${m.old}`).trim(); oldBody = git("show", `${sha}:supabase/migrations/${m.old}`); } catch { /* not fetched */ }
+    if (m.old) try { blob = git("rev-parse", `${sha}:supabase/migrations/${m.old}`).trim(); oldBody = git("show", `${sha}:supabase/migrations/${m.old}`); } catch { /* not fetched */ }
     const present = existsSync(MIG(m.file));
     const body = present ? readFileSync(MIG(m.file), "utf8") : null;
     return {
-      lot: m.lot, bundle: m.bundle, old: { file: m.old, version: m.oldVersion, package: m.oldPackage, source_sha: sha, blob, sha256: oldBody && sha256(oldBody) },
+      lot: m.lot, bundle: m.bundle, old: { file: m.old, version: m.oldVersion, package: m.oldPackage, source_sha: sha ?? null, blob, sha256: oldBody && sha256(oldBody) },
       new: { file: m.file, version: m.version, package: `supabase/release-${m.bundle}`, present, sha256: body && sha256(body) },
       identical: body != null && oldBody != null ? body === oldBody : null,
+      written_by_a2: !m.old, note: m.note ?? null,
       edit: m.edit ?? null,
     };
   });
@@ -221,8 +231,9 @@ export function readmes() {
     order.push(b.name);
     const until = list.at(-1).version;
     const fmt = (v) => (fp[v] ? Object.entries(fp[v]).map(([k, [n, r, c]]) => `\`${k}\` ${n} fonctions, droits \`${r}\`, corps \`${c}\``).join(" ; ") : "à mesurer");
-    const rows = list.map((m, i) => `| \`${String(i + 1).padStart(2, "0")}-${m.file}\` | ${m.lot} | \`${m.old}\` (paquet ${m.oldPackage}) | \`${LOT[m.lot]}\` | ${m.edit ? "**modifiée** : " + m.edit : "identique octet pour octet"} |`);
-    const origins = list.map((m) => {
+    const rows = list.map((m, i) => m.old ? `| \`${String(i + 1).padStart(2, "0")}-${m.file}\` | ${m.lot} | \`${m.old}\` (paquet ${m.oldPackage}) | \`${LOT[m.lot]}\` | ${m.edit ? "**modifiée** : " + m.edit : "identique octet pour octet"} |`
+      : `| \`${String(i + 1).padStart(2, "0")}-${m.file}\` | ${m.lot} | nouvelle migration écrite par A2 | — | ${m.note} |`);
+    const origins = list.filter((m) => m.old).map((m) => {
       const pkg = m.oldPackage.split(" ")[0];
       let text = "";
       try { text = git("show", `${LOT[m.lot]}:supabase/${pkg}/README.md`); } catch { text = "(README introuvable à ce SHA)"; }
@@ -261,7 +272,7 @@ Les fonctions d'export \`private.titan_export_extras_v1\` sont des enveloppes su
 
 ## Notes d'origine des paquets remplacés
 
-${origins.join("\n")}`;
+${origins.join("\n") || "Aucun : ce paquet est écrit par la mission A2."}`;
     writeFileSync(join(ROOT, `supabase/release-${b.name}/README.md`), md);
     after = until;
   }
@@ -276,7 +287,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   else if (cmd === "readmes") readmes();
   else if (cmd === "build") {
     // apply + bundles + readmes + map, in that order (fingerprints must have been measured first)
-    const present = BUNDLES.filter((b) => b.migrations.every((m) => existsSync(MIG(`${m.version}_${m.old.slice(15)}`)))).map((b) => b.name);
+    const present = BUNDLES.filter((b) => b.migrations.every((m) => existsSync(MIG(fileOf(m))))).map((b) => b.name);
     for (const name of present) {
       execFileSync("node", ["tools/db/build-production-bundle.mjs", "--bundle", name], { cwd: ROOT, stdio: "inherit" });
     }

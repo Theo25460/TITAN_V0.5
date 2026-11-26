@@ -7,7 +7,7 @@ Généré par `node tools/db/build-production-bundle.mjs --bundle v2-01` depuis 
 `node tools/db/v2-canonical.mjs readmes` (ce texte). **Ne pas modifier à la main** : `tests/production-bundle.test.mjs` et
 `tests/v2-migration-map.test.mjs` échouent si un fichier diffère de sa source.
 
-Ordre : **v2-01** → v2-02 → v2-03 → v2-04 → v2-05 → v2-06 → v2-07. Ce paquet suppose : production head 20261122090000 (v20).
+Ordre : **v2-01** → v2-02 → v2-03 → v2-04 → v2-05 → v2-06 → v2-07 → v2-08. Ce paquet suppose : production head 20261122090000 (v20).
 
 | Fichier | Lot | Origine (fichier et paquet du lot) | SHA du lot | Corps |
 |---|---|---|---|---|

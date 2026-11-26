@@ -37,6 +37,7 @@ import { StepsScreen } from "../screens/steps/StepsScreen";
 import { GpsRecordScreen } from "../screens/session/GpsRecordScreen";
 import { SessionFormScreen } from "../screens/session/SessionFormScreen";
 import { SessionResultScreen } from "../screens/session/SessionResultScreen";
+import { ShareStoryScreen } from "../screens/share/ShareStoryScreen";
 import { AboutScreen } from "../screens/settings/AboutScreen";
 import { AccountScreen } from "../screens/settings/AccountScreen";
 import { DeleteAccountScreen } from "../screens/settings/DeleteAccountScreen";
@@ -117,6 +118,7 @@ function SignedIn({ options, reduced }: { options: NativeStackNavigationOptions;
       <Stack.Screen name="SessionForm" component={SessionFormScreen} options={{ title: "Séance" }} />
       <Stack.Screen name="SessionResult" component={SessionResultScreen} options={{ headerShown: false, animation: reduced ? "none" : "fade_from_bottom", gestureEnabled: false }} />
       <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: "Séance" }} />
+      <Stack.Screen name="ShareStory" component={ShareStoryScreen} options={{ title: "Partager", presentation: "modal" }} />
       <Stack.Screen name="SessionEdit" component={SessionEditScreen} options={{ title: "Corriger la séance", presentation: "modal" }} />
       <Stack.Screen name="Pending" component={PendingScreen} options={{ title: "Envois en attente" }} />
       <Stack.Screen name="Journal" component={JournalScreen} options={{ title: "Journal" }} />

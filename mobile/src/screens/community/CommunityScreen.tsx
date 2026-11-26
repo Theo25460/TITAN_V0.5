@@ -52,7 +52,8 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
   const savePrefs = useSavePrefs();
   const invite = parseInvite(route?.params);
   const [tab, setTab] = useState<Tab>(invite.guild ? "guild" : invite.challenge ? "challenges" : "friends");
-  const [peopleSheet, setPeopleSheet] = useState<"invite" | "coach" | null>(invite.friend ? "invite" : null);
+  const openInvite = route?.params?.sheet === "invite";
+  const [peopleSheet, setPeopleSheet] = useState<"invite" | "coach" | null>(invite.friend || openInvite ? "invite" : null);
   const [code, setCode] = useState(invite.friend ?? "");
   const [busy, setBusy] = useState<string | null>(null);
   const [newChallenge, setNewChallenge] = useState(false);
@@ -74,7 +75,12 @@ export function CommunityScreen({ route }: { route?: { params?: RootParams["Comm
       setCode(invite.friend);
       setPeopleSheet("invite");
     } else if (invite.guild) setTab("guild");
-  }, [invite.friend, invite.guild, invite.invitation, invite.challenge]);
+    // « Inviter un ami » from a share preview opens the invitation sheet itself.
+    else if (openInvite) {
+      setTab("friends");
+      setPeopleSheet("invite");
+    }
+  }, [invite.friend, invite.guild, invite.invitation, invite.challenge, openInvite]);
 
   /* Sharing a code nobody can use was a silent dead end (AUD-06): the server only finds a "findable" profile. Before sharing,
      an unfindable profile is offered the switch, with what it reveals; refusing cancels the share instead of sending a dead code. */

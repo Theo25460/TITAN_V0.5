@@ -7,7 +7,7 @@ Généré par `node tools/db/build-production-bundle.mjs --bundle v2-02` depuis 
 `node tools/db/v2-canonical.mjs readmes` (ce texte). **Ne pas modifier à la main** : `tests/production-bundle.test.mjs` et
 `tests/v2-migration-map.test.mjs` échouent si un fichier diffère de sa source.
 
-Ordre : v2-01 → **v2-02** → v2-03 → v2-04 → v2-05 → v2-06 → v2-07. Ce paquet suppose : private.titan_import_batches (V1.6.4); applied after V1.6.6 so that the two forks of the journal end in one state.
+Ordre : v2-01 → **v2-02** → v2-03 → v2-04 → v2-05 → v2-06 → v2-07 → v2-08. Ce paquet suppose : private.titan_import_batches (V1.6.4); applied after V1.6.6 so that the two forks of the journal end in one state.
 
 | Fichier | Lot | Origine (fichier et paquet du lot) | SHA du lot | Corps |
 |---|---|---|---|---|

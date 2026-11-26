@@ -11046,6 +11046,53 @@
       "capture": null
     },
     {
+      "path": "mobile/assets/brand/relief.png",
+      "family": "brand",
+      "bytes": 180158,
+      "sha256": "3009dfa85a0a3dae95374c156d70597fe64bf2493a4708541d4d7740e334dc34",
+      "version": "sha256:3009dfa85a0a3dae95374c156d70597fe64bf2493a4708541d4d7740e334dc34",
+      "format": "png",
+      "width": 1200,
+      "height": 900,
+      "ratio": 1.3333,
+      "source": "rendered from assets/ascension/contours.svg (strokes set to white for tinting) with @resvg/resvg-js",
+      "visualOwner": "not established",
+      "usage": [
+        {
+          "source": "mobile/src/components/StoryCard.tsx",
+          "lines": [
+            14
+          ],
+          "evidence": "literal"
+        }
+      ],
+      "platform": "native",
+      "distribution": "native-bundle-candidate",
+      "expectedDeliveredBytes": 180158,
+      "style": "Ascension #05070A / #3DD9E8 / #F4BB54",
+      "crop": "stretch to the box given by the share-story layout, clipped to the colour field",
+      "safeArea": "decorative texture, never under a figure read at a glance",
+      "background": "transparent; tinted in the ink of the field (lime, amber or cyan)",
+      "colorMode": "tinted at runtime",
+      "density": {
+        "oneX": "rendered size pending",
+        "twoX": "rendered size pending",
+        "threeX": "rendered size pending"
+      },
+      "accessibleAlternative": {
+        "status": "decorative, hidden from accessibility in the story card",
+        "sourceEvidence": [
+          "mobile/src/components/StoryCard.tsx"
+        ]
+      },
+      "rpgUsage": false,
+      "decision": "add",
+      "reason": "the brand's contour lines (« le relief ») on the story card's colour field, same drawing as the website",
+      "technicalValidation": "dimensions-read",
+      "visualValidation": "pending-human-review",
+      "capture": null
+    },
+    {
       "path": "mobile/assets/brand/splash-mark.png",
       "family": "brand",
       "bytes": 18018,

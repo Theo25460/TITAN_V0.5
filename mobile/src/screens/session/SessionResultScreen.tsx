@@ -5,8 +5,7 @@ import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSessionInterstitial } from "../../ads/useSessionInterstitial";
 import { maybeAskForReview } from "../../lib/review";
-import { shareCardImage } from "../../lib/shareImage";
-import { ShareCard, type ShareCardData } from "../../components/ShareCard";
+import { sessionStory } from "../../core/shareStory";
 import { DiscoveryBanner } from "../settings/SaveAccountScreen";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
@@ -103,8 +102,6 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
 
   // One tactile "done" when the server confirms, not on every re-render.
   const confirmedOnce = useRef(false);
-  const cardRef = useRef<View>(null);
-  const [imageBusy, setImageBusy] = useState(false);
   useEffect(() => {
     if (status === "confirmed" && !confirmedOnce.current) {
       confirmedOnce.current = true;
@@ -198,28 +195,11 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
   shareRef.current = share;
   const counts = status === "confirmed" && !historical ? contributions(social, events) : [];
 
-  // AUD-21: the story card mirrors this screen — a record first, otherwise the session's main measure, and the week in notches.
-  const cardRecord = records.find((r) => !r.first);
-  const cardData: ShareCardData = {
-    eyebrow: cardRecord ? "Nouveau record" : "Séance du jour",
-    title: Sports.label(log.sport),
-    value: cardRecord ? recordText(cardRecord) : headline?.[1] ?? Sports.label(log.sport),
-    caption: cardRecord ? `${cardRecord.label}${cardRecord.previous ? ` · avant : ${recordText(cardRecord, cardRecord.previous.value)}` : ""}` : headline?.[0] ?? null,
-    facts: facts.filter(([k]) => k !== "Ressenti").slice(0, 3),
-    icon: Sports.iconOf(log.sport),
-    week: thisWeek && !historical && !cadence.currentPaused ? { done: cadence.currentDays, target: cadence.target } : null,
-    record: !!cardRecord,
-  };
-  async function shareImage() {
-    if (imageBusy) return;
-    setImageBusy(true);
-    try {
-      await shareCardImage(cardRef, "Partager ma séance");
-    } catch (e) {
-      toast({ kind: "err", title: "Image impossible à partager", message: errorMessage(e) });
-    } finally {
-      setImageBusy(false);
-    }
+  // « Partager » (before V2): the story card opens on its preview, where the person chooses what it shows. It takes only what this
+  // screen already shows: the measures, the discipline's own fields, a record set by this session, its week and its route.
+  function openStory() {
+    if (!log) return;
+    navigation.navigate("ShareStory", { kind: "session", input: sessionStory(log, { logs, name: profile?.username ?? null }) });
   }
 
   return (
@@ -464,7 +444,7 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
         </View>
         {/* Whole buttons, each label on one line: those that do not fit side by side go to the next line and share its width. */}
         <View style={styles.secondary}>
-          {status === "confirmed" && !historical ? <Button small label="En image" kind="secondary" icon="share" loading={imageBusy} onPress={shareImage} style={styles.secondaryButton} testID="share-image" /> : null}
+          {status !== "error" ? <Button small label="Partager" kind="secondary" icon="share" onPress={openStory} style={styles.secondaryButton} testID="share-image" accessibilityHint="Ouvre l’aperçu de l’image avant tout partage" /> : null}
           {status === "confirmed" && !shared && !historical ? <Button small label="Aux amis" kind="secondary" icon="send" loading={sharing} disabled={!online} onPress={share} style={styles.secondaryButton} /> : null}
           <Button small label="Voir le journal" kind="secondary" icon="journal" onPress={() => navigation.navigate("Journal")} style={styles.secondaryButton} />
         </View>
@@ -481,11 +461,6 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
         />
       ) : null}
       {status === "confirmed" ? <View style={{ paddingHorizontal: space.s4 }}><DiscoveryBanner onPress={() => navigation.navigate("SaveAccount")} /></View> : null}
-      {status === "confirmed" && !historical ? (
-        <View style={styles.offscreen} pointerEvents="none">
-          <ShareCard ref={cardRef} data={cardData} />
-        </View>
-      ) : null}
       <View style={[styles.actions, { paddingBottom: insets.bottom + space.s4 }]}>
         {status !== "confirmed" ? <Button small label="Voir les envois en attente" kind="secondary" onPress={() => navigation.replace("Pending")} /> : null}
         <Button
@@ -506,7 +481,6 @@ export function SessionResultScreen({ navigation, route }: NativeStackScreenProp
 }
 
 const styles = StyleSheet.create({
-  offscreen: { position: "absolute", left: -10000, top: 0 },
   root: { flex: 1, backgroundColor: colors.bg },
   field: { backgroundColor: spaces.seance.accent, paddingHorizontal: space.s5, paddingBottom: space.s5, gap: space.s4 },
   scroll: { padding: space.s5, gap: space.s5 },

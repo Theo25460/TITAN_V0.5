@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { test } from "node:test";
-import { ALL, BUNDLES, OLD_VERSIONS, PRODUCTION_HEAD, MAIN_SHA, computeMap } from "../tools/db/v2-canonical.mjs";
+import { ALL, BUNDLES, OLD_VERSIONS, PRODUCTION_HEAD, MAIN_SHA, computeMap, fileOf } from "../tools/db/v2-canonical.mjs";
 import { BUNDLES as PROD } from "../tools/db/build-production-bundle.mjs";
 
 const root = new URL("../", import.meta.url);
@@ -32,7 +32,7 @@ test("no two migration files share a version, and no old lot file name is left",
     assert.ok(!seen.has(v), `${f} and ${seen.get(v)} share version ${v}`);
     seen.set(v, f);
   }
-  for (const m of ALL) assert.ok(!migrations.includes(m.old), `${m.old} must be renamed ${m.file}`);
+  for (const m of ALL.filter((x) => x.old)) assert.ok(!migrations.includes(m.old), `${m.old} must be renamed ${m.file}`);
   const unknown = migrations.filter((f) => f.slice(0, 14) > PRODUCTION_HEAD && !ALL.some((m) => m.file === f));
   assert.deepEqual(unknown, [], "a future migration is not in the canonical plan (tools/db/v2-canonical.mjs)");
 });
@@ -50,7 +50,7 @@ test("every migration already in production's registry is unchanged since main",
 test("the map is up to date and every present body is the lot's file, byte for byte, unless an edit is declared", () => {
   const computed = computeMap();
   assert.deepEqual(JSON.parse(readFileSync(new URL("tools/db/v2-migration-map.json", root), "utf8")), computed, "run node tools/db/v2-canonical.mjs map");
-  for (const e of computed.migrations.filter((x) => x.new.present)) {
+  for (const e of computed.migrations.filter((x) => x.new.present && !x.written_by_a2)) {
     assert.ok(e.old.blob, `${e.old.file}: the lot SHA ${e.old.source_sha} is not available (git fetch)`);
     if (e.edit) assert.equal(e.identical, false, `${e.new.file} declares an edit but is identical`);
     else assert.equal(e.identical, true, `${e.new.file} differs from ${e.old.file} at ${e.old.source_sha} without a declared edit`);
@@ -59,15 +59,15 @@ test("the map is up to date and every present body is the lot's file, byte for b
 
 test("each canonical package is generated, chained on the production head and documented with every lot README it replaces", () => {
   const v2 = Object.entries(PROD).filter(([n]) => n.startsWith("v2-"));
-  const present = BUNDLES.filter((b) => b.migrations.every((m) => migrations.includes(`${m.version}_${m.old.slice(15)}`)));
+  const present = BUNDLES.filter((b) => b.migrations.every((m) => migrations.includes(fileOf(m))));
   assert.deepEqual(v2.map(([n]) => n), present.map((b) => b.name));
   assert.equal(v2[0]?.[1].after, PRODUCTION_HEAD);
   assert.deepEqual(v2[0]?.[1].before, PROD.v20.expected, "the first package must expect the state v20 leaves (measured on the replica)");
   for (const b of present) {
     const readme = readFileSync(new URL(`supabase/release-${b.name}/README.md`, root), "utf8");
-    for (const m of b.migrations) {
+    for (const m of b.migrations.filter((x) => x.old)) {
       assert.ok(readme.includes(`### ${m.lot} — \`supabase/${m.oldPackage.split(" ")[0]}/README.md\``), `${b.name}: README of ${m.lot} not carried over`);
-      assert.ok(readme.includes(m.old) && readme.includes(`${m.version}_${m.old.slice(15)}`));
+      assert.ok(readme.includes(m.old) && readme.includes(fileOf(m)));
     }
   }
   // the lot packages are gone from the tree (retrieve them with git show <lot sha>:supabase/<package>/)

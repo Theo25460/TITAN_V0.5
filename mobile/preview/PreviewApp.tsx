@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../src/core";
 import { Gallery } from "./Gallery";
+import { STORY_CASES, StoryPreview } from "./StoryCases";
 import { DialogHost } from "../src/components/Dialog";
 import { PickerHost } from "../src/components/Picker";
 import { ToastProvider } from "../src/components/Toast";
@@ -65,7 +66,9 @@ const theme: Theme = {
 };
 
 function open() {
-  const { route, params } = previewState;
+  const { route } = previewState;
+  // The share preview takes a whole request (not URL strings): #ShareStory?case=gps picks one of the story cases.
+  const params = route === "ShareStory" ? (STORY_CASES[previewState.params.case ?? "gps"] ?? STORY_CASES.gps).request : previewState.params;
   const nav = ref as unknown as { navigate: (name: string, params?: object) => void };
   if (previewState.signedOut) {
     nav.navigate(route, params);
@@ -87,6 +90,7 @@ export default function PreviewApp() {
   });
   if (!loaded) return null;
   if (previewState.route === "Crests") return <Gallery />;
+  if (previewState.route === "Story") return <StoryPreview name={previewState.params.case ?? "gps"} style={previewState.params.style} />;
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
       <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 412, height: 915 }, insets: { top: 32, bottom: 0, left: 0, right: 0 } }}>

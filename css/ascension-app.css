@@ -5252,6 +5252,33 @@
   height: auto;
 }
 
+/* « Partager » (before V2): the 9:16 story preview stays small enough for the choices and the actions to show under it. */
+.st-preview {
+  max-width: min(260px, 62vw);
+}
+.st-styles .asc-seg {
+  width: 100%;
+}
+.st-styles .asc-seg button {
+  flex: 1;
+}
+.st-options[hidden] {
+  display: none;
+}
+.st-options {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s2);
+}
+.st-discover {
+  display: grid;
+  gap: var(--s2);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line-2);
+}
+
 /* ---------- Public profile (settings in Profil, page /u/…) ---------- */
 .pf-public {
   display: grid;
